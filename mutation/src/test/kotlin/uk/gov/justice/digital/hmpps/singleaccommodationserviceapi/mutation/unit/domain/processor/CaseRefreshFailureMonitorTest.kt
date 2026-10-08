@@ -55,14 +55,9 @@ class CaseRefreshFailureMonitorTest {
 
     caseRefreshFailureMonitor.reportFailedRequests()
 
-    verify {
-      sentryService.captureErrorMessage(
-        match {
-          it.contains("Detected 2 failed case refresh request(s)")
-        },
-      )
-    }
+    verify { sentryService.captureErrorMessage(match { it.contains("Detected 2 failed case refresh request(s)") }) }
   }
+}
 
   private fun failedRequest(
     caseId: UUID = UUID.randomUUID(),

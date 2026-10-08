@@ -36,11 +36,6 @@ class DutyToReferQueryService(
   private val auditService: AuditService,
   private val clock: Clock,
 ) {
-  fun getDutyToReferHistory(crn: String): List<DutyToReferDto> {
-    val caseEntity = caseRepository.findByCrn(crn) ?: return emptyList()
-    return getDutyToReferHistory(caseEntity, crn)
-  }
-
   private fun isActiveDtr(dtr: DutyToReferEntity): Boolean = dtr.status != WITHDRAWN && !isDtrExpired(dtr.submissionDate, clock)
 
   private fun getActiveDtrId(caseId: UUID): UUID? = dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId)

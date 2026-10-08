@@ -28,6 +28,9 @@ class CaseMapperTest {
       lastName = "Last",
       dateOfBirth = LocalDate.of(2000, 12, 3),
       roshLevelCode = "RMRH",
+      assignedToForename = "Firstname",
+      assignedToSurname = "Surname",
+      assignedToUsername = "user1",
     )
     val caseAggregate = caseMapper.toAggregate(caseEntity)
     val snapshot = caseAggregate.snapshot()
@@ -40,6 +43,9 @@ class CaseMapperTest {
       { assertThat(snapshot.lastName).isEqualTo(caseEntity.lastName) },
       { assertThat(snapshot.dateOfBirth).isEqualTo(caseEntity.dateOfBirth) },
       { assertThat(snapshot.roshLevelCode).isEqualTo(caseEntity.roshLevelCode) },
+      { assertThat(snapshot.assignedToForename).isEqualTo("Firstname") },
+      { assertThat(snapshot.assignedToSurname).isEqualTo("Surname") },
+      { assertThat(snapshot.assignedToUsername).isEqualTo("user1") },
     )
   }
 
@@ -138,6 +144,9 @@ class CaseMapperTest {
       accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
       accommodationStatusDate = LocalDate.now(),
       roshLevelCode = "RMRH",
+      assignedToForename = "Firstname",
+      assignedToSurname = "Surname",
+      assignedToUsername = "user1",
     )
     caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
 
@@ -165,6 +174,9 @@ class CaseMapperTest {
       { assertThat(mergedEntity.accommodationStatus).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE) },
       { assertThat(mergedEntity.accommodationStatusDate).isEqualTo(LocalDate.now()) },
       { assertThat(mergedEntity.roshLevelCode).isEqualTo("RMRH") },
+      { assertThat(mergedEntity.assignedToForename).isEqualTo("Firstname") },
+      { assertThat(mergedEntity.assignedToSurname).isEqualTo("Surname") },
+      { assertThat(mergedEntity.assignedToUsername).isEqualTo("user1") },
     )
   }
 
@@ -239,6 +251,9 @@ class CaseMapperTest {
       accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
       accommodationStatusDate = LocalDate.now(),
       roshLevelCode = "RVHR",
+      assignedToForename = "Second",
+      assignedToSurname = "User",
+      assignedToUsername = "Second.User",
     )
     caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
 
@@ -271,6 +286,9 @@ class CaseMapperTest {
       { assertThat(mergedEntity.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE) },
       { assertThat(mergedEntity.accommodationStatusDate).isEqualTo(LocalDate.now()) },
       { assertThat(mergedEntity.roshLevelCode).isEqualTo("RVHR") },
+      { assertThat(mergedEntity.assignedToForename).isEqualTo("Second") },
+      { assertThat(mergedEntity.assignedToSurname).isEqualTo("User") },
+      { assertThat(mergedEntity.assignedToUsername).isEqualTo("Second.User") },
     )
   }
 }

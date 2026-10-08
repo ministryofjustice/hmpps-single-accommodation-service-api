@@ -5,23 +5,30 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildExternalReferralDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildExternalReferralSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus.REJECTED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.externalreferral.ExternalReferralQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
 import java.time.LocalDate
 
@@ -34,10 +41,22 @@ class AccommodationReferralServiceTest {
   @MockK
   lateinit var dutyToReferQueryService: DutyToReferQueryService
 
+  @MockK
+  lateinit var externalReferralQueryService: ExternalReferralQueryService
+
+  @MockK
+  lateinit var caseRepository: CaseRepository
+
   @InjectMockKs
   lateinit var service: AccommodationReferralService
 
   private val crn = "X12345"
+  private val caseEntity = buildCaseEntity()
+
+  @BeforeEach
+  fun setup() {
+    every { caseRepository.findByCrn(crn) } returns caseEntity
+  }
 
   @Nested
   inner class GetReferralHistory {
@@ -68,7 +87,8 @@ class AccommodationReferralServiceTest {
       val dutyToReferDto = buildDutyToReferDto(crn = crn, submissionDate = dtrSubmissionDate)
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
-      every { dutyToReferQueryService.getDutyToReferHistory(crn) } returns listOf(dutyToReferDto)
+      every { dutyToReferQueryService.getDutyToReferHistory(caseEntity, crn) } returns listOf(dutyToReferDto)
+      every { externalReferralQueryService.getExternalReferralHistory(caseEntity, crn) } returns emptyList()
 
       val result = service.getReferralHistory(crn)
 
@@ -88,7 +108,8 @@ class AccommodationReferralServiceTest {
       )
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
-      every { dutyToReferQueryService.getDutyToReferHistory(crn) } returns emptyList()
+      every { dutyToReferQueryService.getDutyToReferHistory(caseEntity, crn) } returns emptyList()
+      every { externalReferralQueryService.getExternalReferralHistory(caseEntity, crn) } returns emptyList()
 
       val result = service.getReferralHistory(crn)
 
@@ -106,7 +127,8 @@ class AccommodationReferralServiceTest {
       val dutyToReferDto = buildDutyToReferDto(crn = crn)
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
-      every { dutyToReferQueryService.getDutyToReferHistory(crn) } returns listOf(dutyToReferDto)
+      every { dutyToReferQueryService.getDutyToReferHistory(caseEntity, crn) } returns listOf(dutyToReferDto)
+      every { externalReferralQueryService.getExternalReferralHistory(caseEntity, crn) } returns emptyList()
 
       val result = service.getReferralHistory(crn)
 
@@ -114,6 +136,7 @@ class AccommodationReferralServiceTest {
         AccommodationReferralTransformer.transformReferrals(
           orchestrationDto,
           listOf(dutyToReferDto),
+          emptyList(),
         ),
       )
     }
@@ -124,7 +147,8 @@ class AccommodationReferralServiceTest {
       val dutyToReferDto = buildDutyToReferDto(crn = crn)
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
-      every { dutyToReferQueryService.getDutyToReferHistory(crn) } returns listOf(dutyToReferDto)
+      every { dutyToReferQueryService.getDutyToReferHistory(caseEntity, crn) } returns listOf(dutyToReferDto)
+      every { externalReferralQueryService.getExternalReferralHistory(caseEntity, crn) } returns emptyList()
 
       val result = service.getReferralHistory(crn)
 
@@ -133,6 +157,7 @@ class AccommodationReferralServiceTest {
         AccommodationReferralTransformer.transformReferrals(
           orchestrationDto,
           listOf(dutyToReferDto),
+          emptyList(),
         ),
       )
     }
@@ -189,8 +214,15 @@ class AccommodationReferralServiceTest {
         cas3Referrals = listOf(cas3Rejected, cas3Pending, cas3Accepted),
       )
 
+      val externalReferralAccepted = buildExternalReferralDto(
+        crn = crn,
+        status = ExternalReferralStatus.ACCEPTED,
+        submission = buildExternalReferralSubmissionDto(submissionDate = LocalDate.of(2025, 7, 3)),
+      )
+
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
-      every { dutyToReferQueryService.getDutyToReferHistory(crn) } returns listOf(dtrPending, dtrAccepted, dtrRejected)
+      every { dutyToReferQueryService.getDutyToReferHistory(caseEntity, crn) } returns listOf(dtrPending, dtrAccepted, dtrRejected)
+      every { externalReferralQueryService.getExternalReferralHistory(caseEntity, crn) } returns listOf(externalReferralAccepted)
 
       val result = service.getReferralHistory(crn)
 

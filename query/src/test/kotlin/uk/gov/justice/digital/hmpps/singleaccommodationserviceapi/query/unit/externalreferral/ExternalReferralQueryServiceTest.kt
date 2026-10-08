@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Fi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildExternalReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildExternalReferralNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
@@ -28,6 +29,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus as EntityExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralWithdrawalReason as EntityExternalReferralWithdrawalReason
 
 @ExtendWith(MockKExtension::class)
 class ExternalReferralQueryServiceTest {
@@ -160,6 +162,96 @@ class ExternalReferralQueryServiceTest {
       val result = service.searchExternalReferrals(crn, emptyList())
 
       assertThat(result).isEmpty()
+    }
+  }
+
+  @Nested
+  inner class GetExternalReferralHistory {
+
+    @Test
+    fun `should return empty list when no history referrals found`() {
+      val caseEntity = buildCaseEntity(id = caseId)
+      every {
+        externalReferralRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(
+          caseId,
+          listOf(EntityExternalReferralStatus.REJECTED, EntityExternalReferralStatus.COMPLETED, EntityExternalReferralStatus.ARCHIVED),
+        )
+      } returns emptyList()
+
+      val result = service.getExternalReferralHistory(caseEntity, crn)
+
+      assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `should return referrals mapped to dto in descending created at order`() {
+      val caseEntity = buildCaseEntity(id = caseId)
+      val userEntity = buildUserEntity(id = createdByUserId, forename = "Joe", surname = "Bloggs", username = "JBLOGGS")
+      val newestEntity = buildExternalReferralEntity(
+        caseId = caseId,
+        crn = crn,
+        createdByUserId = createdByUserId,
+        status = EntityExternalReferralStatus.REJECTED,
+        withdrawalReason = EntityExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
+        submissionDate = LocalDate.of(2026, 7, 13),
+      )
+      val oldestEntity = buildExternalReferralEntity(
+        caseId = caseId,
+        crn = crn,
+        createdByUserId = createdByUserId,
+        status = EntityExternalReferralStatus.ARCHIVED,
+        submissionDate = LocalDate.of(2026, 9, 20),
+      )
+
+      every {
+        externalReferralRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(
+          caseId,
+          listOf(EntityExternalReferralStatus.REJECTED, EntityExternalReferralStatus.COMPLETED, EntityExternalReferralStatus.ARCHIVED),
+        )
+      } returns listOf(newestEntity, oldestEntity)
+      every { userRepository.findAllById(setOf(createdByUserId)) } returns listOf(userEntity)
+
+      val result = service.getExternalReferralHistory(caseEntity, crn)
+
+      assertThat(result).hasSize(2)
+      assertThat(result[0].submission.id).isEqualTo(newestEntity.id)
+      assertThat(result[1].submission.id).isEqualTo(oldestEntity.id)
+      assertThat(result[0].crn).isEqualTo(crn)
+    }
+
+    @Test
+    fun `should exclude rejected referrals that have no outcome reason`() {
+      val caseEntity = buildCaseEntity(id = caseId)
+      val userEntity = buildUserEntity(id = createdByUserId, forename = "Joe", surname = "Bloggs", username = "JBLOGGS")
+      val rejectedWithWithdrawalReason = buildExternalReferralEntity(
+        caseId = caseId,
+        crn = crn,
+        createdByUserId = createdByUserId,
+        status = EntityExternalReferralStatus.REJECTED,
+        withdrawalReason = EntityExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
+        submissionDate = LocalDate.of(2026, 2, 1),
+      )
+      val rejectedWithoutWithdrawalReason = buildExternalReferralEntity(
+        caseId = caseId,
+        crn = crn,
+        createdByUserId = createdByUserId,
+        status = EntityExternalReferralStatus.REJECTED,
+        withdrawalReason = null,
+        submissionDate = LocalDate.of(2026, 1, 1),
+      )
+
+      every {
+        externalReferralRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(
+          caseId,
+          listOf(EntityExternalReferralStatus.REJECTED, EntityExternalReferralStatus.COMPLETED, EntityExternalReferralStatus.ARCHIVED),
+        )
+      } returns listOf(rejectedWithWithdrawalReason, rejectedWithoutWithdrawalReason)
+      every { userRepository.findAllById(setOf(createdByUserId)) } returns listOf(userEntity)
+
+      val result = service.getExternalReferralHistory(caseEntity, crn)
+
+      assertThat(result).hasSize(1)
+      assertThat(result.single().submission.id).isEqualTo(rejectedWithWithdrawalReason.id)
     }
   }
 

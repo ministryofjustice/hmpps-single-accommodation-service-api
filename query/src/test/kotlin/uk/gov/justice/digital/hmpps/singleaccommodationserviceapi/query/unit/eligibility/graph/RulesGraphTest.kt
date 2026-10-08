@@ -2,9 +2,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -32,7 +32,7 @@ class RulesGraphTest {
     @Test
     fun `walk records PASS and FAIL edges and rules on RuleSet nodes`() {
       val pass = builder.confirmed()
-      val fail = builder.notEligible(AccommodationService.CAS1)
+      val fail = builder.notEligible(ServiceType.CAS1)
       val root = builder
         .ruleSet("ExampleEligibility", StubRuleSet(listOf(StubRule("FAIL if example"))))
         .onPass(pass)
@@ -65,7 +65,7 @@ class RulesGraphTest {
           Cas1SuitabilityContextUpdater(),
         )
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1))
         .build()
 
       val graph = RulesGraphWalker.walk("EXAMPLE", root)
@@ -86,7 +86,7 @@ class RulesGraphTest {
       val eligibility = builder
         .ruleSet("Eligibility", StubRuleSet(listOf(StubRule("eligible"))))
         .onPass(confirmed)
-        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1))
         .build()
       val upcoming = builder
         .ruleSet("Upcoming", StubRuleSet(listOf(StubRule("upcoming"))), StubContextUpdater())
@@ -135,7 +135,7 @@ class RulesGraphTest {
       val root = builder
         .ruleSet("ExampleEligibility", StubRuleSet(listOf(StubRule("FAIL if example"))))
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1))
         .build()
       val graph = RulesGraphWalker.walk("EXAMPLE", root)
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
@@ -161,7 +161,7 @@ class RulesGraphTest {
           Cas1SuitabilityContextUpdater(),
         )
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1))
         .build()
       val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker.walk("EXAMPLE", root)))
 
@@ -181,7 +181,7 @@ class RulesGraphTest {
       val root = builder
         .ruleSet("Upcoming", StubRuleSet(listOf(StubRule("window"))), StubContextUpdater())
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1))
         .build()
       val graph = RulesGraphWalker.walk("EXAMPLE", root)
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
@@ -202,7 +202,7 @@ class RulesGraphTest {
           ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED),
         )
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1))
         .build()
       val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker.walk("PA", root)))
 
@@ -222,7 +222,7 @@ class RulesGraphTest {
       val root = builder
         .ruleSet("Named", StubRuleSet(listOf(anonymous)))
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1))
         .build()
 
       assertThatThrownBy { RulesGraphWalker.walk("BROKEN", root) }
@@ -233,7 +233,7 @@ class RulesGraphTest {
     @Test
     fun `duplicate node names fail the walk`() {
       val confirmed = builder.confirmed()
-      val notEligible = builder.notEligible(AccommodationService.CAS1)
+      val notEligible = builder.notEligible(ServiceType.CAS1)
       val first = builder
         .ruleSet("Same", StubRuleSet(listOf(StubRule("first"))))
         .onPass(confirmed)

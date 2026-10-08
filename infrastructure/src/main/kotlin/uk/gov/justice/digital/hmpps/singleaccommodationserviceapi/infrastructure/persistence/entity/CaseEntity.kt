@@ -43,6 +43,10 @@ class CaseEntity(
 
   var roshLevelCode: String? = null,
 
+  var assignedToForename: String? = null,
+  var assignedToSurname: String? = null,
+  var assignedToUsername: String? = null,
+
   @OneToMany(
     mappedBy = "caseEntity",
     fetch = FetchType.LAZY,
