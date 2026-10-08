@@ -84,6 +84,8 @@ object EligibilityNewToOldTransformer {
     ServiceStatusNew.DTR_SUBMITTED -> ServiceStatus.SUBMITTED
     ServiceStatusNew.DTR_UPCOMING -> ServiceStatus.UPCOMING
 
+    ServiceStatusNew.ER_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
+
     ServiceStatusNew.PA_COMPLETED -> ServiceStatus.COMPLETED
     ServiceStatusNew.PA_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
     ServiceStatusNew.PA_NOT_STARTED -> ServiceStatus.NOT_STARTED

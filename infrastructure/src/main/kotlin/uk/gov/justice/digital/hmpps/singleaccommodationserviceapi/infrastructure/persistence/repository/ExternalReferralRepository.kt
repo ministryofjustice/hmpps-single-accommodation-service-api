@@ -10,6 +10,7 @@ import java.util.UUID
 @JaversSpringDataAuditable
 interface ExternalReferralRepository : JpaRepository<ExternalReferralEntity, UUID> {
   fun findByCaseId(caseId: UUID): ExternalReferralEntity?
+  fun findByCaseIdAndStatusInOrderByCreatedAtDesc(caseId: UUID, status: List<ExternalReferralStatus>): List<ExternalReferralEntity>
 
   @Query(
     """

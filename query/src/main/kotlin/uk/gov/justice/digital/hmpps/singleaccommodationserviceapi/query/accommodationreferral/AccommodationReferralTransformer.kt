@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.StaffDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
@@ -13,11 +14,13 @@ object AccommodationReferralTransformer {
   fun transformReferrals(
     dto: AccommodationReferralOrchestrationDto,
     dtrs: List<DutyToReferDto>,
+    externalReferrals: List<ExternalReferralDto>,
   ): List<AccommodationReferralDto> = buildList {
     addAll(dto.cas1Referrals.map(::toCas1Referral))
     addAll(dto.cas2Referrals.map(::toCas2Referral))
     addAll(dto.cas3Referrals.map(::toCas3Referral))
     addAll(dtrs.mapNotNull(::toDtrReferral))
+    addAll(externalReferrals.map(::toExternalReferral))
   }
 
   private fun toCas1Referral(cas1Referral: Cas1ReferralHistory) = AccommodationReferralDto(
@@ -37,6 +40,7 @@ object AccommodationReferralTransformer {
     placementStatus = cas1Referral.placementStatus?.value,
     uiUrl = cas1Referral.uiUrl,
     withdrawalReason = cas1Referral.withdrawalReason,
+    withdrawalNote = null,
   )
 
   private fun toCas2Referral(cas2Referral: Cas2ReferralHistory) = AccommodationReferralDto(
@@ -59,6 +63,7 @@ object AccommodationReferralTransformer {
     placementStatus = null,
     uiUrl = cas2Referral.uiUrl,
     withdrawalReason = null,
+    withdrawalNote = null,
   )
 
   private fun toCas3Referral(cas3Referral: Cas3ReferralHistory) = AccommodationReferralDto(
@@ -78,6 +83,7 @@ object AccommodationReferralTransformer {
     placementStatus = cas3Referral.bookingStatus?.value,
     uiUrl = cas3Referral.uiUrl,
     withdrawalReason = null,
+    withdrawalNote = null,
   )
 
   private fun toDtrReferral(dtr: DutyToReferDto): AccommodationReferralDto? = dtr.submission?.let { submission ->
@@ -101,6 +107,33 @@ object AccommodationReferralTransformer {
       placementStatus = submission.outcomeReason?.name,
       uiUrl = null,
       withdrawalReason = submission.withdrawalReason?.name,
+      withdrawalNote = null,
+    )
+  }
+
+  private fun toExternalReferral(externalReferral: ExternalReferralDto): AccommodationReferralDto {
+    val submission = externalReferral.submission
+    return AccommodationReferralDto(
+      id = submission.id,
+      type = AccommodationService.ER,
+      status = AccommodationReferralStatusMapper.toStatus(externalReferral),
+      assessmentStatus = null,
+      requestForPlacementStatus = null,
+      date = submission.submissionDate,
+      applicationLastUpdatedDate = null,
+      referralRejectionReason = null,
+      referralRejectionReasonDetail = null,
+      localAuthorityArea = null,
+      pdu = null,
+      referredBy = StaffDetailsDto(
+        name = submission.createdBy,
+        username = submission.createdByUsername,
+      ),
+      placementAddress = null,
+      placementStatus = null,
+      uiUrl = null,
+      withdrawalReason = submission.withdrawalReason?.name,
+      withdrawalNote = submission.withdrawalNote,
     )
   }
 }
