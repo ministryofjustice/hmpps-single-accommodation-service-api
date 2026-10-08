@@ -5,18 +5,26 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummariesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.POST_CASE_SUMMARIES
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.CaseAccess
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.ProbationAccessControlService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.UserCaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserCustomCaseListEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -25,7 +33,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCustomCaseListRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.customcaselist.CustomCaseListOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.customcaselist.CustomCaseListQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCustomCaseListOrchestrationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -45,7 +56,7 @@ class CustomCaseListQueryServiceTest {
   lateinit var userCustomCaseListRepository: UserCustomCaseListRepository
 
   @MockK
-  lateinit var probationAccessControlService: ProbationAccessControlService
+  lateinit var customCaseListOrchestrationService: CustomCaseListOrchestrationService
 
   lateinit var customCaseListQueryService: CustomCaseListQueryService
 
@@ -57,7 +68,7 @@ class CustomCaseListQueryServiceTest {
       userService = userService,
       caseRepository = caseRepository,
       userCustomCaseListRepository = userCustomCaseListRepository,
-      probationAccessControlService = probationAccessControlService,
+      customCaseListOrchestrationService = customCaseListOrchestrationService,
       clock = clock,
     )
     every { userService.authorizeAndRetrieveUser() } returns user
@@ -71,7 +82,7 @@ class CustomCaseListQueryServiceTest {
 
     assertThat(result.data).isEmpty()
     verify(exactly = 0) { caseRepository.findAllWithIdentifiersByIdIn(any()) }
-    verify(exactly = 0) { probationAccessControlService.getUserAccess(any(), any()) }
+    verify(exactly = 0) { customCaseListOrchestrationService.getCaseAccessAndSummaries(any(), any()) }
   }
 
   @Test
@@ -86,6 +97,9 @@ class CustomCaseListQueryServiceTest {
       lastName = "Bloggs",
       dateOfBirth = LocalDate.of(1990, 1, 2),
       roshLevelCode = RiskLevel.HIGH.code,
+      assignedToForename = "Probation",
+      assignedToSurname = "Practioner",
+      assignedToUsername = "PROBATION.PRACTIONER",
       accommodationSummariesDto = accommodationSummaries,
     ) {
       withCrn("A123456")
@@ -104,20 +118,84 @@ class CustomCaseListQueryServiceTest {
     assertThat(caseDto.tierScore).isEqualTo("B2")
     assertThat(caseDto.riskLevel).isEqualTo(RiskLevel.HIGH)
     assertThat(caseDto.userAccess).isEqualTo(UserAccess.FULL)
-    assertThat(caseDto.limitedAccess).isNull()
-    assertThat(caseDto.assignedTo).isNull()
+    assertThat(caseDto.limitedAccess).isFalse()
+    assertThat(caseDto.assignedTo).isEqualTo(AssignedToDto(forename = "Probation", surname = "Practioner", username = "PROBATION.PRACTIONER"))
     assertThat(caseDto.pncReference).isNull()
     assertThat(caseDto.accommodationSummaries).isEqualTo(accommodationSummaries)
   }
 
   @Test
-  fun `checks access for the logged in user against every crn in the custom case list`() {
+  fun `returns null assigned to data when the case has not been refreshed`() {
+    stubCases(buildCaseEntity { withCrn("A123456") })
+    stubAccess(accessible = listOf("A123456"))
+
+    assertThat(customCaseListQueryService.getCustomCaseList().data.single().assignedTo).isNull()
+  }
+
+  @Test
+  fun `sets limited access flag from the case summary exclusion and restriction fields`() {
+    stubCases(
+      buildCaseEntity { withCrn("A111111") },
+      buildCaseEntity { withCrn("B222222") },
+      buildCaseEntity { withCrn("C333333") },
+    )
+    stubAccess(
+      accessible = listOf("A111111", "B222222", "C333333"),
+      caseSummaries = listOf(
+        buildCaseSummary(crn = "A111111"),
+        buildCaseSummary(crn = "B222222", currentExclusion = true),
+        buildCaseSummary(crn = "C333333", currentRestriction = true),
+      ),
+    )
+
+    val limitedAccessByCrn = customCaseListQueryService.getCustomCaseList().data.associate { it.crn to it.limitedAccess }
+
+    assertThat(limitedAccessByCrn).isEqualTo(mapOf("A111111" to false, "B222222" to true, "C333333" to true))
+  }
+
+  @Test
+  fun `returns null limitedAccess for a case missing from the case summaries`() {
+    stubCases(buildCaseEntity { withCrn("A123456") })
+    stubAccess(accessible = listOf("A123456"), caseSummaries = emptyList())
+
+    assertThat(customCaseListQueryService.getCustomCaseList().data.single().limitedAccess).isNull()
+  }
+
+  @Test
+  fun `returns the cases with a null limitedAccess and an upstream failure when the case summaries call fails`() {
+    stubCases(buildCaseEntity { withCrn("A123456") })
+    stubAccess(accessible = listOf("A123456"), caseSummaries = emptyList(), upstreamFailures = listOf(buildUpstreamFailure(callKey = POST_CASE_SUMMARIES)))
+
+    val result = customCaseListQueryService.getCustomCaseList()
+
+    assertThat(result.data.single().crn).isEqualTo("A123456")
+    assertThat(result.data.single().userAccess).isEqualTo(UserAccess.FULL)
+    assertThat(result.data.single().limitedAccess).isNull()
+    assertThat(result.upstreamFailures.map { it.endpoint }).containsExactly(POST_CASE_SUMMARIES)
+  }
+
+  @Test
+  fun `throws an upstream failure exception when the access check fails`() {
+    stubCases(buildCaseEntity { withCrn("A123456") })
+    every { customCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, any()) } returns OrchestrationResultDto(
+      data = buildCustomCaseListOrchestrationDto(userCaseAccess = null),
+      upstreamFailures = listOf(buildUpstreamFailure(callKey = GET_USER_ACCESS)),
+    )
+
+    assertThatThrownBy { customCaseListQueryService.getCustomCaseList() }
+      .isInstanceOf(UpstreamFailureException::class.java)
+  }
+
+  @Test
+  fun `checks access and requests case summaries for the logged in user against every crn in the custom case list`() {
     stubCases(buildCaseEntity { withCrn("A123456") }, buildCaseEntity { withCrn("B654321") })
     stubAccess(accessible = listOf("A123456", "B654321"))
 
     customCaseListQueryService.getCustomCaseList()
 
-    verify { probationAccessControlService.getUserAccess("DELIUS_USER", match { it.toSet() == setOf("A123456", "B654321") }) }
+    verify {
+      customCaseListOrchestrationService.getCaseAccessAndSummaries("DELIUS_USER", match { it.toSet() == setOf("A123456", "B654321") })
+    }
   }
 
   @Test
@@ -203,11 +281,17 @@ class CustomCaseListQueryServiceTest {
     accessible: List<String> = emptyList(),
     excluded: List<String> = emptyList(),
     restricted: List<String> = emptyList(),
+    caseSummaries: List<CaseSummary> = (accessible + excluded + restricted).map { buildCaseSummary(crn = it) },
+    upstreamFailures: List<UpstreamFailure> = emptyList(),
   ) {
-    every { probationAccessControlService.getUserAccess(user.username, any()) } returns UserCaseAccess(
+    val userCaseAccess = UserCaseAccess(
       accessible.map { CaseAccess(crn = it, userExcluded = false, userRestricted = false) } +
         excluded.map { CaseAccess(crn = it, userExcluded = true, userRestricted = false) } +
         restricted.map { CaseAccess(crn = it, userExcluded = false, userRestricted = true) },
+    )
+    every { customCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, any()) } returns OrchestrationResultDto(
+      data = buildCustomCaseListOrchestrationDto(userCaseAccess = userCaseAccess, caseSummaries = caseSummaries),
+      upstreamFailures = upstreamFailures,
     )
   }
 }

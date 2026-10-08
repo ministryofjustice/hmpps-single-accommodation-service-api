@@ -4,8 +4,14 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.ProbationAccessControlService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.UserCaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCustomCaseListRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
@@ -20,7 +26,7 @@ class CustomCaseListQueryService(
   private val userService: UserService,
   private val caseRepository: CaseRepository,
   private val userCustomCaseListRepository: UserCustomCaseListRepository,
-  private val probationAccessControlService: ProbationAccessControlService,
+  private val customCaseListOrchestrationService: CustomCaseListOrchestrationService,
   private val clock: Clock,
 ) {
   fun getCustomCaseList(): ApiResponseDto<List<CaseDto>> {
@@ -29,26 +35,40 @@ class CustomCaseListQueryService(
     if (caseIds.isEmpty()) return toApiResponseDto(data = emptyList())
 
     val caseEntities = caseRepository.findAllWithIdentifiersByIdIn(caseIds)
-    val limitedAccessCrns = getLimitedAccessCrns(user.username, caseEntities.map { it.latestCrn() })
+    val crns = caseEntities.map { it.latestCrn() }
+    val orchestrationResult = customCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, crns)
+    val userCaseAccess = getUserCaseAccessOrThrow(orchestrationResult)
+
+    val limitedAccessCrns = getLimitedAccessCrns(crns, userCaseAccess)
+    val caseSummariesByCrn = orchestrationResult.data.caseSummaries.associateBy { it.crn }
     val caseDtos = caseEntities.map {
-      if (it.latestCrn() in limitedAccessCrns) toLimitedCaseDto(it.latestCrn()) else it.toCustomCaseListCaseDto()
+      val crn = it.latestCrn()
+      if (crn in limitedAccessCrns) toLimitedCaseDto(crn) else it.toCustomCaseListCaseDto(caseSummariesByCrn[crn])
     }
-    return toApiResponseDto(data = caseDtos.sortCases(clock))
+    return toApiResponseDto(data = caseDtos.sortCases(clock), upstreamFailures = orchestrationResult.upstreamFailures)
   }
 
-  private fun CaseEntity.toCustomCaseListCaseDto() = toCaseDto(
+  private fun getUserCaseAccessOrThrow(
+    orchestrationResult: OrchestrationResultDto<CustomCaseListOrchestrationDto>,
+  ): UserCaseAccess {
+    orchestrationResult.upstreamFailures.firstOrNull { it.callKey == GET_USER_ACCESS }?.let {
+      throw UpstreamFailureException(UpstreamFailureTransformer.toUpstreamFailureDto(it))
+    }
+    return requireNotNull(orchestrationResult.data.userCaseAccess)
+  }
+
+  private fun CaseEntity.toCustomCaseListCaseDto(caseSummary: CaseSummary?) = toCaseDto(
     caseEntity = this,
     crn = latestCrn(),
     prisonNumber = latestPrisonNumber(),
     riskLevel = roshLevelCode?.let { RiskLevel.findByCode(it) },
-    // TODO: investigate ways of populating the below fields (no values for these in sas_case)
     pncReference = null,
-    assignedTo = null,
-    limitedAccess = null,
+    assignedTo = toAssignedToDto(),
+    limitedAccess = caseSummary?.let { it.currentExclusion || it.currentRestriction },
   )
 
-  private fun getLimitedAccessCrns(username: String, crns: List<String>): Set<String> {
-    val accessByCrn = probationAccessControlService.getUserAccess(username, crns).access.associateBy { it.crn }
+  private fun getLimitedAccessCrns(crns: List<String>, userCaseAccess: UserCaseAccess): Set<String> {
+    val accessByCrn = userCaseAccess.access.associateBy { it.crn }
     return crns.filter { crn -> accessByCrn[crn]?.let { it.userExcluded || it.userRestricted } ?: true }.toSet()
   }
 }
