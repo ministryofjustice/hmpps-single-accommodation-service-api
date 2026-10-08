@@ -10,13 +10,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus.ARCHIVED
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus.COMPLETED
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus.REJECTED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ExternalReferralRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus as EntityExternalReferralStatus
+
+private val HISTORY_STATUSES = listOf(REJECTED, COMPLETED, ARCHIVED)
 
 @Service
 class ExternalReferralQueryService(
@@ -53,6 +59,22 @@ class ExternalReferralQueryService(
         entity = entity,
         crn = crn,
         createdByUser = createdByUsers[entity.createdByUserId]!!,
+      )
+    }
+  }
+
+  fun getExternalReferralHistory(caseEntity: CaseEntity, crn: String): List<ExternalReferralDto> {
+    val entities = externalReferralRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseEntity.id, HISTORY_STATUSES)
+      .filterNot { it.status == REJECTED && it.withdrawalReason == null }
+    if (entities.isEmpty()) return emptyList()
+
+    val users = userRepository.findAllById(entities.map { it.createdByUserId }.distinct().toSet()).associateBy { it.id }
+
+    return entities.map { entity ->
+      ExternalReferralTransformer.toExternalReferralDto(
+        entity = entity,
+        crn = crn,
+        createdByUser = users[entity.createdByUserId]!!,
       )
     }
   }

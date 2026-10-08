@@ -48,9 +48,12 @@ enum class ExternalReferralStatus {
   SUBMITTED,
   ACCEPTED,
   REJECTED,
+  COMPLETED,
+  ARCHIVED,
 }
 
 enum class ExternalReferralWithdrawalReason {
+  PLACEMENT_COMPLETE,
   ACCEPTED_BY_ORGANISATION,
   ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
   PERSON_NOT_SUITABLE,

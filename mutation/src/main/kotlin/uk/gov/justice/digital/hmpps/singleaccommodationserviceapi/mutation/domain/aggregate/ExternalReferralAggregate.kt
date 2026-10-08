@@ -146,6 +146,9 @@ class ExternalReferralAggregate private constructor(
       ExternalReferralStatus.ACCEPTED -> validateWithdrawalReason(withdrawalReason, ACCEPTED_WITHDRAWAL_REASONS)
       ExternalReferralStatus.REJECTED -> validateWithdrawalReason(withdrawalReason, REJECTED_WITHDRAWAL_REASONS)
       ExternalReferralStatus.SUBMITTED -> validateNoOutcome(withdrawalReason, outcomeNote)
+      ExternalReferralStatus.COMPLETED,
+      ExternalReferralStatus.ARCHIVED,
+      -> Unit
     }
   }
 

@@ -394,6 +394,12 @@ enum class ServiceStatusNew(
     service = AccommodationService.DTR,
   ),
 
+  // External referrals
+  ER_NOT_ELIGIBLE(
+    service = AccommodationService.ER,
+    proposedAction = null,
+  ),
+
   // PA Service Statuses
   PA_NOT_STARTED(
     service = AccommodationService.PA,
@@ -421,7 +427,6 @@ enum class FailureReason {
   MALE_NOT_HIGH_RISK_TIER,
   NON_MALE_NOT_HIGH_RISK_TIER,
   INVALID_CURRENT_ACCOMMODATION_TYPE,
-  CRS_NOT_SUBMITTED,
   CRS_NOT_SUBMITTED_MALE,
   CRS_NOT_SUBMITTED_NON_MALE,
   HAS_NEXT_ACCOMMODATION,
@@ -429,6 +434,7 @@ enum class FailureReason {
   SUITABLE_CAS1_APPLICATION,
   SUITABLE_CAS3_APPLICATION,
   IS_SETTLED,
+  UNDER_18,
 }
 
 enum class BlockingReason {

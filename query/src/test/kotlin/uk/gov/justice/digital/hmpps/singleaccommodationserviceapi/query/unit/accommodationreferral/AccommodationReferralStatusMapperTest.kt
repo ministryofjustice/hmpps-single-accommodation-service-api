@@ -6,7 +6,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildExternalReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus
@@ -279,5 +281,21 @@ class AccommodationReferralStatusMapperTest {
       referredBy = buildDeliusUserDto(),
     )
     assertThat(AccommodationReferralStatusMapper.toStatus(referral)).isEqualTo(AccommodationReferralStatus.PENDING)
+  }
+
+  @ParameterizedTest
+  @EnumSource(ExternalReferralStatus::class)
+  fun `should transform external referral status`(status: ExternalReferralStatus) {
+    val expected = when (status) {
+      ExternalReferralStatus.SUBMITTED -> AccommodationReferralStatus.SUBMITTED
+      ExternalReferralStatus.ACCEPTED -> AccommodationReferralStatus.ACCEPTED
+      ExternalReferralStatus.REJECTED -> AccommodationReferralStatus.REJECTED
+      ExternalReferralStatus.COMPLETED -> AccommodationReferralStatus.COMPLETED
+      ExternalReferralStatus.ARCHIVED -> AccommodationReferralStatus.ARCHIVED
+    }
+
+    val externalReferral = buildExternalReferralDto(status = status)
+
+    assertThat(AccommodationReferralStatusMapper.toStatus(externalReferral)).isEqualTo(expected)
   }
 }
