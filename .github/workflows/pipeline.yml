@@ -46,6 +46,37 @@ jobs:
 #      this runs detekt, ktlintCheck etc without any tests
       gradle-command: './gradlew check -x test'
     secrets: inherit
+  app_version:
+    permissions:
+      contents: read
+    name: Create app version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.app_version.outputs.version }}
+    steps:
+      - id: app_version
+        name: Create app version
+        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/build-test-and-deploy/create_app_version@85dea2c43d9d69b5143817f8b84b71cf30d15df5 # WORKFLOW_VERSION
+  pact_test:
+    permissions:
+      contents: read
+    name: Pact Consumer Tests and Publish Contracts
+    needs: app_version
+    uses: ./.github/workflows/pact_test_publish.yml
+    with:
+      app_version: '${{ needs.app_version.outputs.version }}'
+    secrets: inherit
+  trigger_pact_provider_verification:
+    permissions:
+      contents: read
+    name: Trigger Pact Provider Verification
+    needs:
+      - app_version
+      - pact_test
+    uses: ./.github/workflows/trigger_pact_provider_verification.yml
+    with:
+      app_version: '${{ needs.app_version.outputs.version }}'
+    secrets: inherit
   unit_test:
     permissions:
       contents: read
@@ -78,11 +109,16 @@ jobs:
       packages: write
     name: Build docker image from hmpps-github-actions
     if: github.ref == 'refs/heads/main'
+    needs:
+      - app_version
+      - pact_test
+      - trigger_pact_provider_verification
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@v2 # WORKFLOW_VERSION
     with:
       docker_registry: 'ghcr.io'
       registry_org: 'ministryofjustice'
       additional_docker_tag: ${{ inputs.additional_docker_tag }}
+      image_version: '${{ needs.app_version.outputs.version }}'
       push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
       docker_multiplatform: false
   deploy_dev:
@@ -117,11 +153,12 @@ jobs:
     needs:
       - build
       - deploy_dev
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@1cd277cf487926d2f86fa68c87049e62a461d55e # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'preprod'
       app_version: '${{ needs.build.outputs.app_version }}'
+      pact_consumer_deployment: true
       slack_notification: 'true' # if 'true', it needs a valid NONPROD_RELEASES_SLACK_CHANNEL variable to be set
   deploy_prod:
     permissions:
@@ -131,9 +168,10 @@ jobs:
     needs:
       - build
       - deploy_preprod
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@1cd277cf487926d2f86fa68c87049e62a461d55e # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'prod'
       app_version: '${{ needs.build.outputs.app_version }}'
+      pact_consumer_deployment: true
       slack_notification: 'true' # if 'true', it needs a valid PROD_RELEASES_SLACK_CHANNEL variable to be set
