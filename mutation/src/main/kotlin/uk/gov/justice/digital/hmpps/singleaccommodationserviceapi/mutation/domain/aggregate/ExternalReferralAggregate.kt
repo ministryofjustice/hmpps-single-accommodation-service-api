@@ -109,8 +109,9 @@ class ExternalReferralAggregate private constructor(
       throw ExternalReferralInvalidStatusTransitionException()
     }
 
-    if (!(status == ACCEPTED || status == REJECTED || status == SUBMITTED)) {
-      throw ExternalReferralInvalidStatusTransitionException()
+    when (status) {
+      ACCEPTED, REJECTED, SUBMITTED -> Unit
+      else -> throw ExternalReferralInvalidStatusTransitionException()
     }
 
     this.submissionDate = submissionDate
