@@ -50,11 +50,7 @@ class CustomCaseListQueryService(
 
   fun getCustomCaseListCrns(): ApiResponseDto<List<String>> {
     val user = userService.authorizeAndRetrieveUser()
-    val caseIds = userCustomCaseListRepository.findAllBySasUserId(user.id).map { it.sasCaseId }
-    if (caseIds.isEmpty()) return toApiResponseDto(data = emptyList())
-
-    val crns = caseRepository.findAllWithIdentifiersByIdIn(caseIds).map { it.latestCrn() }
-    return toApiResponseDto(data = crns.sorted())
+    return toApiResponseDto(data = userCustomCaseListRepository.findLatestCrnsBySasUserId(user.id))
   }
 
   private fun getUserCaseAccessOrThrow(
