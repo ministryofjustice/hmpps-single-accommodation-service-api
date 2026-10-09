@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.casefresh
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.failuremonitor
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
