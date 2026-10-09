@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralInvalidStatusTransitionException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.time.LocalDate
@@ -186,6 +187,7 @@ class ExternalReferralAggregateTest {
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.status).isEqualTo(status)
     assertThat(snapshot.withdrawalReason).isNull()
+    assertThat(snapshot.withdrawalNote).isNull()
     assertThat(snapshot.outcomeNote).isEqualTo("An outcome note")
   }
 
@@ -206,6 +208,7 @@ class ExternalReferralAggregateTest {
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.status).isEqualTo(status)
     assertThat(snapshot.withdrawalReason).isNull()
+    assertThat(snapshot.withdrawalNote).isNull()
     assertThat(snapshot.outcomeNote).isNull()
   }
 
@@ -218,7 +221,7 @@ class ExternalReferralAggregateTest {
       crn = "X123456",
       referenceNumber = "REF-001",
       submissionDate = submissionDate,
-      status = ExternalReferralStatus.REJECTED,
+      status = status,
       organisationName = null,
       website = null,
       submissionNote = null,
@@ -298,7 +301,7 @@ class ExternalReferralAggregateTest {
   }
 
   @Test
-  fun `updateExternalReferral clears an omitted outcomeNote when moving back to SUBMITTED`() {
+  fun `updateExternalReferral clears an omitted outcomeNote when moving from REJECTED to ACCEPTED`() {
     val aggregate = hydrateAndCreateReferral()
     aggregate.updateExternalReferral(
       submissionDate = submissionDate,
@@ -313,15 +316,50 @@ class ExternalReferralAggregateTest {
     aggregate.updateExternalReferral(
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
-      status = ExternalReferralStatus.SUBMITTED,
+      status = ExternalReferralStatus.ACCEPTED,
       organisationName = null,
       website = null,
       submissionNote = null,
     )
 
     val snapshot = aggregate.snapshot()
+    assertThat(snapshot.status).isEqualTo(ExternalReferralStatus.ACCEPTED)
     assertThat(snapshot.withdrawalReason).isNull()
     assertThat(snapshot.outcomeNote).isNull()
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = ExternalReferralStatus::class, names = ["SUBMITTED"], mode = EnumSource.Mode.EXCLUDE)
+  fun `updateExternalReferral rejects moving back to SUBMITTED without changing the referral`(status: ExternalReferralStatus) {
+    val aggregate = ExternalReferralAggregate.hydrateExisting(
+      id = UUID.randomUUID(),
+      caseId = UUID.randomUUID(),
+      crn = "X123456",
+      referenceNumber = "REF-001",
+      submissionDate = submissionDate,
+      status = status,
+      organisationName = "An organisation",
+      website = "https://www.charity.org",
+      submissionNote = "A submission note",
+      notes = emptyList(),
+      withdrawalReason = ExternalReferralWithdrawalReason.NO_CAPACITY,
+      withdrawalNote = "A withdrawal note",
+      outcomeNote = "An outcome note",
+    )
+    val originalSnapshot = aggregate.snapshot()
+
+    assertThrows<ExternalReferralInvalidStatusTransitionException> {
+      aggregate.updateExternalReferral(
+        submissionDate = submissionDate.plusDays(1),
+        referenceNumber = "REF-002",
+        status = ExternalReferralStatus.SUBMITTED,
+        organisationName = null,
+        website = null,
+        submissionNote = null,
+      )
+    }
+
+    assertThat(aggregate.snapshot()).isEqualTo(originalSnapshot)
   }
 
   private fun shouldSuccessfullyAddNote(note: String) {
