@@ -102,6 +102,16 @@ case-refresh:
     cron: "0 0 12 * * *" #runs at midday, daily. This should be increased once we handle 503 errors.
     zone: UTC
 
+inbox-events:
+  failed-monitor:
+    cron: "0 0 12 * * *"
+    zone: UTC
+
+outbox-events:
+  failed-monitor:
+    cron: "0 0 12 * * *"
+    zone: UTC
+
 scheduling:
   enabled: true
   fixed-delay: 500ms
@@ -114,9 +124,15 @@ shedlock:
   inbox-event-dispatcher:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S
+  inbox-event-failure-monitor:
+    lock-at-most-for: PT30M
+    lock-at-least-for: PT5M
+  outbox-event-failure-monitor:
+    lock-at-most-for: PT30M
+    lock-at-least-for: PT5M
   case-refresh-failure-monitor:
-    lock-at-most-for: PT1H
-    lock-at-least-for: PT1M
+    lock-at-most-for: PT30M
+    lock-at-least-for: PT5M
   case-refresh-worker:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S

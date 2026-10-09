@@ -7,4 +7,6 @@ import java.util.UUID
 
 interface OutboxEventRepository : JpaRepository<OutboxEventEntity, UUID> {
   fun findAllByProcessedStatus(processedStatus: ProcessedStatus): List<OutboxEventEntity>
+
+  fun countByProcessedStatus(processedStatus: ProcessedStatus): Long
 }
