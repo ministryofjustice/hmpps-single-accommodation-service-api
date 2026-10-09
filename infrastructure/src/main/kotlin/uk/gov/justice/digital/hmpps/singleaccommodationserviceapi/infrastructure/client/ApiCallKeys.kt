@@ -4,6 +4,7 @@ object ApiCallKeys {
   // probation-integration AP and Delius service
   const val GET_CASE = "getCaseByCrn"
   const val GET_STAFF_DETAIL = "getStaffDetailByUsername"
+  const val POST_CASE_SUMMARIES = "postCaseSummaries"
 
   // probation-integration SAS and Delius service
   const val GET_CASE_LIST = "getCaseListByUsername"
@@ -14,6 +15,9 @@ object ApiCallKeys {
   // core-person-record service
   const val GET_CORE_PERSON_RECORD_BY_CRN = "getCorePersonRecordByCrn"
   const val GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER = "getCorePersonRecordByPrisonNumber"
+
+  // probation-access-control service
+  const val GET_USER_ACCESS = "getUserAccess"
 
   // tier service
   const val GET_TIER = "getTierByCrn"
