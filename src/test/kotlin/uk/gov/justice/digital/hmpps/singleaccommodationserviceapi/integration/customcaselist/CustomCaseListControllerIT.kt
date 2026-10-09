@@ -452,6 +452,50 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
       .exchange()
   }
 
+  @Nested
+  inner class GetCustomCaseListCrns {
+
+    @Test
+    fun `returns an empty list when the user has no custom case list`() {
+      getCustomCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(0)
+    }
+
+    @Test
+    fun `returns the sorted crns in the users custom case list without LAO checks`() {
+      val user2 = userRepository.save(buildUserEntity(username = "user2"))
+      val theirCase = caseRepository.save(buildCaseEntity { withCrn("C111111") })
+      userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = user2.id, sasCaseId = theirCase.id))
+      listOf("B654321", "A123456").forEach {
+        val case = caseRepository.save(buildCaseEntity { withCrn(it) })
+        userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = case.id))
+      }
+
+      getCustomCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data").isEqualTo(listOf("A123456", "B654321"))
+
+      sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
+    }
+
+    @Test
+    fun `returns the crns that were saved by the POST request`() {
+      caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("B654321")
+
+      postCustomCaseList(listOf("b654321", "A123456")).expectStatus().isCreated
+
+      getCustomCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data").isEqualTo(listOf("A123456", "B654321"))
+    }
+
+    private fun getCustomCaseListCrns() = restTestClient.get().uri("/case-list/custom/crns")
+      .withDeliusUserJwt()
+      .exchange()
+  }
+
   private fun postCustomCaseList(crns: List<String>) = restTestClient.post().uri("/case-list/custom")
     .contentType(MediaType.APPLICATION_JSON)
     .body(crns.joinToString(prefix = "[", postfix = "]") { "\"$it\"" })
