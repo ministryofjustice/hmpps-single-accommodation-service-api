@@ -42,5 +42,4 @@ class CaseRefreshFailureMonitorTest {
 
     verify { sentryService.captureErrorMessage(match { it.contains("Detected 2 failed case refresh request(s)") }) }
   }
-
 }
