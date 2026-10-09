@@ -1,7 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus.ACCEPTED
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus.REJECTED
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus.SUBMITTED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralInvalidStatusTransitionException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.time.LocalDate
@@ -100,6 +104,16 @@ class ExternalReferralAggregate private constructor(
     phoneNumber: String? = null,
     outcomeNote: String? = null,
   ) {
+
+    // Don't allow transition from any status to SUBMITTED, as this is only valid for new referrals
+    if (this.status != null && this.status != SUBMITTED && status == SUBMITTED) {
+      throw ExternalReferralInvalidStatusTransitionException()
+    }
+
+    if (!(status == ACCEPTED || status == REJECTED || status == SUBMITTED)) {
+      throw ExternalReferralInvalidStatusTransitionException()
+    }
+
     this.submissionDate = submissionDate
     this.referenceNumber = referenceNumber
     this.status = status
@@ -108,16 +122,7 @@ class ExternalReferralAggregate private constructor(
     this.submissionNote = submissionNote?.takeUnless { it.isBlank() }
     this.email = email?.takeUnless { it.isBlank() }
     this.phoneNumber = phoneNumber?.takeUnless { it.isBlank() }
-
-    if (
-      status == ExternalReferralStatus.ACCEPTED ||
-      status == ExternalReferralStatus.REJECTED ||
-      status == ExternalReferralStatus.SUBMITTED
-    ) {
-      this.outcomeNote = outcomeNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
-    } else {
-      this.outcomeNote = null
-    }
+    this.outcomeNote = outcomeNote?.takeUnless { it.isBlank() }
   }
 
   fun snapshot() = ExternalReferralSnapshot(

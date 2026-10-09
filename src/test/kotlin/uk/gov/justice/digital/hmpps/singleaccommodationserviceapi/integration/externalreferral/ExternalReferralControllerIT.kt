@@ -138,6 +138,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       assertThat(persistedRecord.submissionNote).isNull()
       assertThat(persistedRecord.status.name).isEqualTo(status.name)
       assertThat(persistedRecord.withdrawalReason).isNull()
+      assertThat(persistedRecord.withdrawalNote).isNull()
       assertThat(persistedRecord.outcomeNote).isNull()
 
       assertThatJson(result).matchesExpectedJson(
@@ -176,6 +177,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       val persistedRecord = externalReferralRepository.findByCaseId(case.id)!!
       assertThat(persistedRecord.status.name).isEqualTo(status.name)
       assertThat(persistedRecord.withdrawalReason).isNull()
+      assertThat(persistedRecord.withdrawalNote).isNull()
       assertThat(persistedRecord.outcomeNote).isEqualTo("An outcome note")
 
       assertThatJson(result).matchesExpectedJson(
@@ -738,6 +740,32 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       assertThat(updatedRecord.status.name).isEqualTo(status.name)
       assertThat(updatedRecord.withdrawalReason).isNull()
       assertThat(updatedRecord.outcomeNote).isNull()
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = EntityExternalReferralStatus::class, names = ["SUBMITTED"], mode = EnumSource.Mode.EXCLUDE)
+    fun `should return 400 when moving back to SUBMITTED without updating the referral`(status: EntityExternalReferralStatus) {
+      val existingEntity = createExternalReferralEntity(status = status)
+
+      restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createExternalReferralRequestBody(
+            status = ExternalReferralStatus.SUBMITTED.name,
+            referenceNumber = "REF-UPDATED",
+            outcomeNote = "An updated outcome note",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("$.developerMessage").isEqualTo("erInvalidStatusTransition")
+
+      val persistedRecord = externalReferralRepository.findById(existingEntity.id).orElseThrow()
+      assertThat(persistedRecord.status).isEqualTo(status)
+      assertThat(persistedRecord.referenceNumber).isEqualTo(existingEntity.referenceNumber)
+      assertThat(persistedRecord.outcomeNote).isEqualTo(existingEntity.outcomeNote)
     }
 
     @Test
