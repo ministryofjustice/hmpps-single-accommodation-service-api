@@ -271,6 +271,30 @@ class CustomCaseListQueryServiceTest {
     assertThat(result.data.map { it.crn }).containsExactly("C333333", "B222222", "D444444", "A111111")
   }
 
+  @Test
+  fun `returns an empty crn list without loading cases when the user has no custom case list`() {
+    every { userCustomCaseListRepository.findAllBySasUserId(user.id) } returns emptyList()
+
+    val result = customCaseListQueryService.getCustomCaseListCrns()
+
+    assertThat(result.data).isEmpty()
+    verify(exactly = 0) { caseRepository.findAllWithIdentifiersByIdIn(any()) }
+  }
+
+  @Test
+  fun `returns the latest crn of each case in the custom case list sorted without checking access`() {
+    stubCases(
+      buildCaseEntity { withCrn("C333333") },
+      buildCaseEntity { withCrn("A111111") },
+      buildCaseEntity { withCrn("B222222") },
+    )
+
+    val result = customCaseListQueryService.getCustomCaseListCrns()
+
+    assertThat(result.data).containsExactly("A111111", "B222222", "C333333")
+    verify(exactly = 0) { customCaseListOrchestrationService.getCaseAccessAndSummaries(any(), any()) }
+  }
+
   private fun stubCases(vararg cases: CaseEntity) {
     every { userCustomCaseListRepository.findAllBySasUserId(user.id) } returns
       cases.map { buildUserCustomCaseListEntity(sasUserId = user.id, sasCaseId = it.id) }

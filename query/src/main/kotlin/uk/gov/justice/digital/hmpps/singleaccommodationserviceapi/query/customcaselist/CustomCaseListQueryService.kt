@@ -48,6 +48,15 @@ class CustomCaseListQueryService(
     return toApiResponseDto(data = caseDtos.sortCases(clock), upstreamFailures = orchestrationResult.upstreamFailures)
   }
 
+  fun getCustomCaseListCrns(): ApiResponseDto<List<String>> {
+    val user = userService.authorizeAndRetrieveUser()
+    val caseIds = userCustomCaseListRepository.findAllBySasUserId(user.id).map { it.sasCaseId }
+    if (caseIds.isEmpty()) return toApiResponseDto(data = emptyList())
+
+    val crns = caseRepository.findAllWithIdentifiersByIdIn(caseIds).map { it.latestCrn() }
+    return toApiResponseDto(data = crns.sorted())
+  }
+
   private fun getUserCaseAccessOrThrow(
     orchestrationResult: OrchestrationResultDto<CustomCaseListOrchestrationDto>,
   ): UserCaseAccess {
