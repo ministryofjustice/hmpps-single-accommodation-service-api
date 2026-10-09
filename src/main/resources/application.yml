@@ -102,6 +102,16 @@ case-refresh:
     cron: "0 0 12 * * *" #runs at midday, daily. This should be increased once we handle 503 errors.
     zone: UTC
 
+inbox-events:
+  failed-monitor:
+    cron: "0 0 12 * * *"
+    zone: UTC
+
+outbox-events:
+  failed-monitor:
+    cron: "0 0 12 * * *"
+    zone: UTC
+
 scheduling:
   enabled: true
   fixed-delay: 500ms
