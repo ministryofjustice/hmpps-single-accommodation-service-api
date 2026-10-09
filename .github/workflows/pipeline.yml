@@ -69,6 +69,7 @@ jobs:
   trigger_pact_provider_verification:
     permissions:
       contents: read
+      id-token: write
     name: Trigger Pact Provider Verification
     needs:
       - app_version
