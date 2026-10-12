@@ -72,19 +72,19 @@ echo "Using username: $USERNAME"
 #
 AUTH_STRING=$(kubectl -n "$NAMESPACE" get secrets "$SECRET" -o json | jq -r '.data | map_values(@base64d) | "\(.ADMIN_CLIENT_SINGLE_ACCOMMODATION_SERVICE_ID):\(.ADMIN_CLIENT_SINGLE_ACCOMMODATION_SERVICE_SECRET)"')
 
-CLIENT_AUTH=$(echo -n "$AUTH_STRING" | base64 -b 0)
+CLIENT_AUTH=$(printf '%s' "$AUTH_STRING" | base64 | tr -d '\n')
 
 #
-# Get a running pod
+# Get a running hmpps-single-accommodation-service-ui pod. The UI pods have wget installed.
 #
-POD=$(kubectl -n "$NAMESPACE" get pods --field-selector=status.phase=Running -o jsonpath="{.items[0].metadata.name}")
+POD=$(kubectl -n "$NAMESPACE" get pods -l app=hmpps-single-accommodation-service-ui --field-selector=status.phase=Running -o jsonpath="{.items[0].metadata.name}")
 
 if [ -z "$POD" ]; then
-  echo "Error: No running pod found in namespace $NAMESPACE"
+  echo "Error: No running hmpps-single-accommodation-service-ui pod found in namespace $NAMESPACE"
   exit 1
 fi
 
-echo "Using pod: $POD"
+echo "Using pod for auth request: $POD"
 
 #
 # Obtain JWT token
