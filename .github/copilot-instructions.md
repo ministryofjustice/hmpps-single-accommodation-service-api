@@ -26,12 +26,31 @@ Use this file as the default operating guide. Only search the repo when these in
 ## Architecture facts that reduce bad edits
 - Follow the established read path: **Controller -> Query/Application Service -> Orchestration Service -> `AggregatorService` / persistence**.
 - Upstream HTTP aggregation lives in `infrastructure/.../aggregator/AggregatorService.kt`; prefer using existing caching/orchestration services rather than adding direct client calls in controllers.
-- Query and mutation code are intentionally separated by Gradle module boundaries:
-  - `query` depends on `infrastructure`
-  - `mutation` depends on `infrastructure`
-  - neither should depend on the other
+- Dependency rules are enforced at build time via the Gradle project graph; violations typically surface as compile errors rather than failing tests:
+  - the main app (`src/`) depends on `common`, `infrastructure`, `query`, and `mutation`
+  - `query` depends on `common` + `infrastructure` only
+  - `mutation` depends on `common` + `infrastructure` only
+  - `infrastructure` depends on `common` only
+  - `query` and `mutation` MUST NOT depend on each other
+  - shared code belongs in `common` or `infrastructure`
+- Controllers live in the app (`src/main/.../api/controller`) and delegate to query services for reads and/or mutation application services for writes.
 - Persistence and migrations live under `infrastructure/src/main/resources/db/migration` and filenames are validated by `scripts/validate_flyway_filenames.sh` (`VNNNN__description.sql`).
 - Kotlin formatting uses `.editorconfig`: **2-space indent** for `.kt`/`.kts`.
+
+```text
+hmpps-single-accommodation-service-api/
+├── src/                 # Main Spring Boot app: bootstrap, config, health, REST controllers (api/controller)
+├── common/              # Shared DTOs, exceptions, small helpers (+ testFixtures: DTO factories)
+├── infrastructure/      # JPA entities, repositories & persistence services, upstream API clients +
+│                        #   caching services, AggregatorService, security, audit, sentry, config,
+│                        #   Flyway migrations, messaging (SQS listener → inbox, outbox publisher),
+│                        #   accommodation helpers (+ testFixtures: entity/client factories)
+├── query/               # READ side: query services, *OrchestrationService, *OrchestrationDto,
+│                        #   the eligibility rules engine (engine + rule domains + graph generator)
+└── mutation/            # WRITE side: DDD-lite aggregates, application services, mappers,
+                         #   inbox event dispatcher + handlers, admin/bulk jobs
+```
+
 
 ## Validated toolchain and environment
 Validated on macOS on **2026-10-12** with:
@@ -42,7 +61,7 @@ Validated on macOS on **2026-10-12** with:
 ## Bootstrap / local dependencies
 Always start Docker services before **integration tests** or **local app runs**:
 ```bash
-cd /Users/david.awcock/IdeaProjects/hmpps-single-accommodation-service-api
+# run from the repository root
 docker compose up -d
 ```
 Validated services/ports from `docker-compose.yml`:
