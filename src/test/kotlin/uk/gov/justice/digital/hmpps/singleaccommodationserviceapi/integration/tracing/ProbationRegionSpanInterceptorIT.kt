@@ -4,7 +4,7 @@ import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,6 +37,11 @@ class ProbationRegionSpanInterceptorIT : IntegrationTestBase() {
     )
   }
 
+  @AfterEach
+  fun tearDown() {
+    spanExporter.reset()
+  }
+
   @Test
   fun `adds the probation region from the header to the current span`() {
     restTestClient.get().uri("/user/teams")
@@ -55,6 +60,20 @@ class ProbationRegionSpanInterceptorIT : IntegrationTestBase() {
   fun `does not add the attribute when the header is absent`() {
     restTestClient.get().uri("/user/teams")
       .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    await.untilAsserted {
+      val spans = spanExporter.finishedSpanItems
+      assertThat(spans).hasSize(1)
+      assertThat(spans.single().attributes.get(regionKey)).isNull()
+    }
+  }
+
+  @Test
+  fun `does not add the attribute when the header is blank`() {
+    restTestClient.get().uri("/user/teams")
+      .withDeliusUserJwt()
+      .headers { it.set(USER_PROBATION_REGION_HEADER, "   ") }
       .exchangeSuccessfully()
 
     await.untilAsserted {
