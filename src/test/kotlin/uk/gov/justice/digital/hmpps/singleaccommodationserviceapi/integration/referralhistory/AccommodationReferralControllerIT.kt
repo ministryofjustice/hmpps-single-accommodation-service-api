@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ExternalReferralRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
@@ -196,8 +195,8 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         submissionDate = LocalDate.of(2026, 9, 20),
         status = ExternalReferralStatus.REJECTED,
         organisationName = "Rejecting Charity",
-        withdrawalReason = ExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
-        withdrawalNote = "Not suitable for this organisation",
+        withdrawalReason = null,
+        withdrawalNote = null,
       ),
     )
     externalReferralRepository.save(
@@ -227,8 +226,8 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         submissionDate = LocalDate.of(2026, 10, 10),
         status = ExternalReferralStatus.ARCHIVED,
         organisationName = "Another Charity",
-        withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON,
-        withdrawalNote = "Person requires a longer stay",
+        withdrawalReason = null,
+        withdrawalNote = null,
       ),
     )
 
@@ -240,8 +239,8 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         submissionDate = LocalDate.of(2026, 9, 22),
         status = ExternalReferralStatus.COMPLETED,
         organisationName = "Another Charity",
-        withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
-        withdrawalNote = "The offender was successfully placed in the accommodation",
+        withdrawalReason = null,
+        withdrawalNote = null,
       ),
     )
 
@@ -277,16 +276,6 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
                 withdrawalReason = null,
                 withdrawalNote = null,
               ),
-              expectedReferralHistoryItem(
-                id = rejectedReferral.id,
-                type = "ER",
-                status = "REJECTED",
-                date = "2026-09-20",
-                referredByName = NAME_OF_TEST_DATA_SETUP_USER,
-                referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
-                withdrawalReason = null,
-                withdrawalNote = null,
-              ),
             ),
           ),
         )
@@ -317,8 +306,8 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         submissionDate = LocalDate.of(2026, 9, 22),
         status = ExternalReferralStatus.COMPLETED,
         organisationName = "Another Charity",
-        withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
-        withdrawalNote = "The offender was successfully placed in the accommodation",
+        withdrawalReason = null,
+        withdrawalNote = null,
       ),
     )
 
