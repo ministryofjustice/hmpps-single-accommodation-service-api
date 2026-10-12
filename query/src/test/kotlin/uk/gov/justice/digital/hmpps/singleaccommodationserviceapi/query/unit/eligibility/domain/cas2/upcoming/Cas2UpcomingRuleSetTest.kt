@@ -8,12 +8,12 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.ReleaseWithinOneYearRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.ReleaseWithin15DaysRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
-    ReleaseWithinOneYearRule::class,
+    ReleaseWithin15DaysRule::class,
     Cas2UpcomingRuleSet::class,
     ClockConfig::class,
   ],
@@ -24,7 +24,7 @@ class Cas2UpcomingRuleSetTest {
   lateinit var cas2UpcomingRuleSet: Cas2UpcomingRuleSet
 
   private val expectedCas2UpcomingRuleNames = listOf(
-    ReleaseWithinOneYearRule::class.simpleName,
+    ReleaseWithin15DaysRule::class.simpleName,
   )
 
   @Test
