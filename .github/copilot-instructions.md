@@ -26,6 +26,7 @@ Use this file as the default operating guide. Only search the repo when these in
 ## Architecture facts that reduce bad edits
 - Follow the established read path: **Controller -> Query/Application Service -> Orchestration Service -> `AggregatorService` / persistence**.
 - Upstream HTTP aggregation lives in `infrastructure/.../aggregator/AggregatorService.kt`; prefer using existing caching/orchestration services rather than adding direct client calls in controllers.
+- Write flows live in `mutation/` and usually go **Controller -> Mutation application service -> aggregate/repository -> inbox/outbox or event handlers**; avoid letting controllers reach straight into persistence.
 - Dependency rules are enforced at build time via the Gradle project graph; violations typically surface as compile errors rather than failing tests:
   - the main app (`src/`) depends on `common`, `infrastructure`, `query`, and `mutation`
   - `query` depends on `common` + `infrastructure` only
@@ -47,6 +48,20 @@ Use this file as the default operating guide. Only search the repo when these in
 - Use global exception handling with `@ControllerAdvice` / `@RestControllerAdvice`.
 - Use SLF4J logging via `LoggerFactory.getLogger(javaClass)`.
 - Prefer profile-based config for `local` and `test`.
+
+## Testing
+- Unit tests are plain JVM tests: use JUnit 5, AssertJ, and MockK with factories/builders; avoid loading Spring unless a test explicitly needs it.
+- Integration tests use the real Spring context and `IntegrationTestBase`, plus Postgres/Redis/LocalStack from `docker compose`.
+- Keep tests deterministic and package-aligned with the code under test; prefer focused tests while iterating and the full suite before handoff for broad changes.
+- For HTTP endpoints, cover the expected auth, happy path, validation/error path, and side effects/persistence changes.
+
+## Subject Access Requests
+- SAR functionality is part of this repo: the service aggregates data into a single SAR response and HTML report.
+- The main SAR template is `src/main/resources/sar/template_hmpps-single-accommodation-service-api.mustache`.
+- SAR compliance tests and fixture generation live under `src/test/kotlin/.../integration/sar/` with expected fixtures in `src/test/resources/sar/`.
+- The SAR test fixture guide is `sar-test-fixtures-guide.md`; follow it when changing SAR data retrieval or the template.
+- To regenerate fixtures, run the SAR integration tests with `SAR_GENERATE_ACTUAL=true` and use `:integrationTest` (not the unqualified task name) because integration tasks exist in the root and subprojects.
+- Changes to SAR-relevant entities, schema, or Flyway migrations may require updating SAR fixtures and schema-related expectations alongside the code change.
 
 ```text
 hmpps-single-accommodation-service-api/
