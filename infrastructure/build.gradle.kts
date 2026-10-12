@@ -15,6 +15,7 @@ dependencies {
   implementation(libs.shedlock.spring)
   implementation(libs.shedlock.jdbc)
   implementation(libs.javers)
+  implementation(libs.opentelemetry.api)
 
   implementation(libs.sentry.spring.boot.starter.jakarta)
 

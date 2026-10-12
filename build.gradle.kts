@@ -42,6 +42,7 @@ dependencies {
   testImplementation(libs.redisson.boot)
 
   testImplementation(libs.awaitility)
+  testImplementation(libs.opentelemetry.sdk.testing)
   testImplementation(libs.webtestclient)
   testImplementation(testFixtures(project(":infrastructure")))
   testImplementation(testFixtures(project(":common")))

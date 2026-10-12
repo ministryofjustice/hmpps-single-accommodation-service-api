@@ -7,9 +7,9 @@ import io.sentry.TransactionContext
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class TracesSamplerCallbackTest {
+class SentryTracesSamplerCallbackTest {
   private val tracesSampleRate = 0.25
-  private val sampler = TracesSamplerCallback(tracesSampleRate)
+  private val sampler = SentryTracesSamplerCallback(tracesSampleRate)
 
   @Test
   fun `returns configured trace sample rate when parent transaction is sampled`() {
