@@ -5,6 +5,7 @@ object ApiCallKeys {
   const val GET_CASE = "getCaseByCrn"
   const val GET_STAFF_DETAIL = "getStaffDetailByUsername"
   const val POST_CASE_SUMMARIES = "postCaseSummaries"
+  const val GET_SEXUAL_OFFENCE_REGISTRATIONS = "getSexualOffenceRegistrations"
 
   // probation-integration SAS and Delius service
   const val GET_CASE_LIST = "getCaseListByUsername"

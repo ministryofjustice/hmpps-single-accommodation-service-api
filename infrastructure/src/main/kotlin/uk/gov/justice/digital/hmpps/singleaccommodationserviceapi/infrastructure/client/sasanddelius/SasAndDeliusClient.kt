@@ -25,6 +25,10 @@ interface SasAndDeliusClient {
   @WebClientRetry
   @GetExchange(value = "/case/{crn}")
   fun getCase(@PathVariable crn: String): Case
+
+  @WebClientRetry
+  @GetExchange(value = "/probation-cases/{crn}/sexual-offence-registrations")
+  fun getSexualOffenceRegistrations(@PathVariable crn: String): SexualOffenceRegistrations?
 }
 
 @Service
@@ -42,6 +46,9 @@ class SasAndDeliusCachingService(
     log.debug("Calling getCaseList for username: {}, teamCode: {}, size: {}, page: {}", username, teamCode, size, page)
     return sasAndDeliusClient.getCaseList(username = username, teamCode = teamCode, page = page, size = size)
   }
+
+  @Cacheable(ApiCallKeys.GET_SEXUAL_OFFENCE_REGISTRATIONS, key = "#crn", sync = true)
+  fun getSexualOffenceRegistrations(crn: String) = sasAndDeliusClient.getSexualOffenceRegistrations(crn)
 
   @Cacheable(ApiCallKeys.GET_CASE, sync = true)
   fun getCase(username: String, crn: String) = sasAndDeliusClient.getCase(username, crn)
