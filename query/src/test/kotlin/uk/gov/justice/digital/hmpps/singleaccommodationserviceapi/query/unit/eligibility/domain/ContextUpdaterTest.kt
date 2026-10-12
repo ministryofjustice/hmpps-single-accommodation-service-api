@@ -32,7 +32,7 @@ class ContextUpdaterTest {
       val updater = object : ContextUpdater() {
         override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
           reasonsSeenByToServiceResult = context.currentResult.failureReasons
-          return buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET)
+          return buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
         }
       }
 
@@ -44,7 +44,7 @@ class ContextUpdaterTest {
     @Test
     fun `update does not propagate failure reasons by default`() {
       val updater = object : ContextUpdater() {
-        override fun toServiceResult(context: EvaluationContext): ServiceResultNew = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET)
+        override fun toServiceResult(context: EvaluationContext): ServiceResultNew = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
       }
 
       val result = updater.update(context, failureReasons)
@@ -57,7 +57,7 @@ class ContextUpdaterTest {
       val updater = object : ContextUpdater() {
         override val propagatesFailureReasons: Boolean = true
 
-        override fun toServiceResult(context: EvaluationContext): ServiceResultNew = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET)
+        override fun toServiceResult(context: EvaluationContext): ServiceResultNew = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
       }
 
       val result = updater.update(context, failureReasons)
