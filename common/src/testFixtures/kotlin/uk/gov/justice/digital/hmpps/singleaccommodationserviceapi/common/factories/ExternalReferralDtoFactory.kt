@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralSubmissionDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -32,8 +31,7 @@ fun buildExternalReferralSubmissionDto(
   submissionNote: String? = null,
   email: String? = null,
   phoneNumber: String? = null,
-  withdrawalReason: ExternalReferralWithdrawalReason? = null,
-  withdrawalNote: String? = null,
+  outcomeNote: String? = null,
 ) = ExternalReferralSubmissionDto(
   id = id,
   referenceNumber = referenceNumber,
@@ -46,6 +44,5 @@ fun buildExternalReferralSubmissionDto(
   submissionNote = submissionNote,
   email = email,
   phoneNumber = phoneNumber,
-  withdrawalReason = withdrawalReason,
-  withdrawalNote = withdrawalNote,
+  outcomeNote = outcomeNote,
 )

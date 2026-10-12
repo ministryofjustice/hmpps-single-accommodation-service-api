@@ -77,7 +77,6 @@ class ExternalReferralMapperTest {
     assertThat(dto.submission.submissionNote).isEqualTo(snapshot.submissionNote)
     assertThat(dto.submission.email).isEqualTo(snapshot.email)
     assertThat(dto.submission.phoneNumber).isEqualTo(snapshot.phoneNumber)
-    assertThat(dto.submission.withdrawalReason).isEqualTo(snapshot.withdrawalReason)
     assertThat(dto.submission.outcomeNote).isEqualTo(snapshot.outcomeNote)
   }
 
