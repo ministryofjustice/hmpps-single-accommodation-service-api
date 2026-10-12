@@ -1,15 +1,15 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.common
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas2.upcoming
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.ReleaseWithinOneYearRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.ReleaseWithin15DaysRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 
-class ReleaseWithinOneYearRuleTest {
+class ReleaseWithin15DaysRuleTest {
   private val clock = MutableClock()
 
   @Test
@@ -18,7 +18,7 @@ class ReleaseWithinOneYearRuleTest {
       currentAccommodation = buildAccommodationSummaryDto(endDate = null),
     )
 
-    val result = ReleaseWithinOneYearRule(clock).evaluate(data)
+    val result = ReleaseWithin15DaysRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
@@ -32,55 +32,55 @@ class ReleaseWithinOneYearRuleTest {
       currentAccommodation = buildAccommodationSummaryDto(endDate = now.minusDays(1)),
     )
 
-    val result = ReleaseWithinOneYearRule(clock).evaluate(data)
+    val result = ReleaseWithin15DaysRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
-  fun `candidate passes currentAccommodationEndDate is exactly 1 year in the future`() {
+  fun `candidate passes currentAccommodationEndDate is exactly 15 days in the future`() {
     clock.setNow(LocalDate.parse("2025-01-01"))
-    val oneYearLater = LocalDate.now(clock).plusYears(1)
+    val fifteenDaysLater = LocalDate.now(clock).plusDays(15)
     val data = buildDomainData(
-      currentAccommodation = buildAccommodationSummaryDto(endDate = oneYearLater),
+      currentAccommodation = buildAccommodationSummaryDto(endDate = fifteenDaysLater),
     )
 
-    val result = ReleaseWithinOneYearRule(clock).evaluate(data)
+    val result = ReleaseWithin15DaysRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
-  fun `candidate fails currentAccommodationEndDate is more than 1 year in the future`() {
+  fun `candidate fails currentAccommodationEndDate is more than 15 days in the future`() {
     clock.setNow(LocalDate.parse("2025-01-01"))
-    val oneYearLater = LocalDate.now(clock).plusYears(1)
+    val fifteenDaysLater = LocalDate.now(clock).plusDays(15)
 
     val data = buildDomainData(
-      currentAccommodation = buildAccommodationSummaryDto(endDate = oneYearLater.plusDays(1)),
+      currentAccommodation = buildAccommodationSummaryDto(endDate = fifteenDaysLater.plusDays(1)),
     )
 
-    val result = ReleaseWithinOneYearRule(clock).evaluate(data)
+    val result = ReleaseWithin15DaysRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
-  fun `candidate passes currentAccommodationEndDate is less than 1 year in the future`() {
+  fun `candidate passes currentAccommodationEndDate is less than 15 days in the future`() {
     clock.setNow(LocalDate.parse("2025-01-01"))
-    val oneYearLater = LocalDate.now(clock).plusYears(1)
+    val fifteenDaysLater = LocalDate.now(clock).plusDays(15)
 
     val data = buildDomainData(
-      currentAccommodation = buildAccommodationSummaryDto(endDate = oneYearLater.minusDays(1)),
+      currentAccommodation = buildAccommodationSummaryDto(endDate = fifteenDaysLater.minusDays(1)),
     )
 
-    val result = ReleaseWithinOneYearRule(clock).evaluate(data)
+    val result = ReleaseWithin15DaysRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
   fun `rule has correct description`() {
-    assertThat(ReleaseWithinOneYearRule(clock).description)
-      .isEqualTo("FAIL if not within 1 year of release from current accommodation")
+    assertThat(ReleaseWithin15DaysRule(clock).description)
+      .isEqualTo("FAIL if not within 15 days of release from current accommodation")
   }
 }
