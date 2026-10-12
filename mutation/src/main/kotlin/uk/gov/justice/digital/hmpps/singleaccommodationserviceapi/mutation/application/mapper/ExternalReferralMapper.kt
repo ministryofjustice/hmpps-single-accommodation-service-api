@@ -100,8 +100,6 @@ object ExternalReferralMapper {
       submissionNote = snapshot.submissionNote,
       email = snapshot.email,
       phoneNumber = snapshot.phoneNumber,
-      withdrawalReason = snapshot.withdrawalReason,
-      withdrawalNote = snapshot.withdrawalNote,
       outcomeNote = snapshot.outcomeNote,
     ),
   )

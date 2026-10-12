@@ -35,6 +35,7 @@ class ExternalReferralApplicationService(
       submissionNote = command.submissionNote,
       email = command.email,
       phoneNumber = command.phoneNumber,
+      outcomeNote = command.outcomeNote,
     )
 
     val persistedRecord = externalReferralRepository.save(
@@ -66,8 +67,6 @@ class ExternalReferralApplicationService(
         submissionNote = command.submissionNote,
         email = command.email,
         phoneNumber = command.phoneNumber,
-        withdrawalReason = command.withdrawalReason,
-        withdrawalNote = command.withdrawalNote,
         outcomeNote = command.outcomeNote,
       )
     }
