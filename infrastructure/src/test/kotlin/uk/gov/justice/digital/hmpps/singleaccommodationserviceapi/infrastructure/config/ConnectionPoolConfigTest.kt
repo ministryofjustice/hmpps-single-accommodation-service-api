@@ -1,12 +1,18 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import reactor.netty.http.HttpResources
 import reactor.netty.resources.ConnectionProvider
 import java.time.Duration
 
 class ConnectionPoolConfigTest {
+
+  @AfterEach
+  fun tearDown() {
+    HttpResources.disposeLoopsAndConnections()
+  }
 
   @Test
   fun `defaultHttpConnectionProvider installs configured provider as Reactor Netty's JVM-wide default pool`() {
