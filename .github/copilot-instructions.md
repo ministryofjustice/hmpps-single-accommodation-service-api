@@ -37,6 +37,17 @@ Use this file as the default operating guide. Only search the repo when these in
 - Persistence and migrations live under `infrastructure/src/main/resources/db/migration` and filenames are validated by `scripts/validate_flyway_filenames.sh` (`VNNNN__description.sql`).
 - Kotlin formatting uses `.editorconfig`: **2-space indent** for `.kt`/`.kts`.
 
+## Development standards
+- Write clean, idiomatic Kotlin; prefer immutable data structures.
+- Use data classes, sealed classes, extension functions, null safety, value classes, and coroutines where appropriate.
+- Follow Spring Boot best practices; constructor injection by default (field injection acceptable in test-only contexts matching existing patterns).
+- Keep business logic out of controllers; respect the layered flow above.
+- Prefer configuration properties over scattered `@Value` usage, though `@Value` with defaults matches existing patterns when already established (for example, `@param:Value("${case-list.page-size:100}")`).
+- Use Jakarta Bean Validation on controllers.
+- Use global exception handling with `@ControllerAdvice` / `@RestControllerAdvice`.
+- Use SLF4J logging via `LoggerFactory.getLogger(javaClass)`.
+- Prefer profile-based config for `local` and `test`.
+
 ```text
 hmpps-single-accommodation-service-api/
 ├── src/                 # Main Spring Boot app: bootstrap, config, health, REST controllers (api/controller)
