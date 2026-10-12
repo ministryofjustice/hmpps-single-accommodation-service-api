@@ -20,6 +20,6 @@ class Cas2UpcomingContextUpdater : ContextUpdater() {
 
   override fun toServiceResult(context: EvaluationContext) = outcome(
     key = upcoming,
-    actionStartDate = context.data.currentAccommodation!!.endDate!!.minusYears(1),
+    actionStartDate = context.data.currentAccommodation!!.endDate!!.minusDays(15),
   )
 }
