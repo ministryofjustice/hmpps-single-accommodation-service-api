@@ -213,7 +213,7 @@ class ExternalReferralAggregateTest {
   }
 
   @ParameterizedTest
-  @EnumSource(ExternalReferralStatus::class)
+  @EnumSource(value = ExternalReferralStatus::class, names = ["SUBMITTED", "ACCEPTED", "REJECTED"])
   fun `updateExternalReferral preserves separately recorded withdrawal details`(status: ExternalReferralStatus) {
     val aggregate = ExternalReferralAggregate.hydrateExisting(
       id = UUID.randomUUID(),

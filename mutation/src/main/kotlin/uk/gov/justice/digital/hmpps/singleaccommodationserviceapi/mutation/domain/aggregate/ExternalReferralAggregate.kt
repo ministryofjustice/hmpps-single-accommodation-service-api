@@ -122,7 +122,7 @@ class ExternalReferralAggregate private constructor(
     this.submissionNote = submissionNote?.takeUnless { it.isBlank() }
     this.email = email?.takeUnless { it.isBlank() }
     this.phoneNumber = phoneNumber?.takeUnless { it.isBlank() }
-    this.outcomeNote = outcomeNote?.takeUnless { it.isBlank() }
+    this.outcomeNote = outcomeNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
   }
 
   fun snapshot() = ExternalReferralSnapshot(
