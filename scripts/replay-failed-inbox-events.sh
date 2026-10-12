@@ -4,7 +4,7 @@ set -euo pipefail
 
 print_usage() {
   echo "Name:"
-  echo "  replay-failed-messages - replay failed inbox events"
+  echo "  replay-failed-inbox-events - replay failed inbox events"
   echo ""
   echo "Synopsis:"
   echo "  $0 <dev|test|preprod|prod> <username> <all|uuid1 [uuid2 ...]>"
