@@ -35,6 +35,10 @@ class CustomCaseListController(
   fun getCustomCaseList(): ResponseEntity<ApiResponseDto<List<CaseDto>>> = ResponseEntity.ok(customCaseListQueryService.getCustomCaseList())
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @GetMapping("/case-list/custom/crns")
+  fun getCustomCaseListCrns(): ResponseEntity<ApiResponseDto<List<String>>> = ResponseEntity.ok(customCaseListQueryService.getCustomCaseListCrns())
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PostMapping("/case-list/custom")
   @ResponseStatus(HttpStatus.CREATED)
   fun createCustomCaseList(

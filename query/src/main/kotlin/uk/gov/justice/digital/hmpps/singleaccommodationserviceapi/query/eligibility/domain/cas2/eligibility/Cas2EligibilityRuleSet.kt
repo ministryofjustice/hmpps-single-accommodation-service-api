@@ -5,7 +5,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 
 @Component
-class Cas2EligibilityRuleSet : RuleSet {
-  private val rules: List<Rule> = listOf()
+class Cas2EligibilityRuleSet(
+  under18: Under18Rule,
+) : RuleSet {
+  private val rules: List<Rule> = listOf(
+    under18,
+  )
+
   override fun getRules(): List<Rule> = rules
 }

@@ -179,6 +179,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
         premises = premises,
         status = Cas1PlacementStatus.UPCOMING,
         actualArrivalDate = null,
+        expectedDepartureDate = null,
         actualDepartureDate = null,
         cancellationReason = null,
       ),

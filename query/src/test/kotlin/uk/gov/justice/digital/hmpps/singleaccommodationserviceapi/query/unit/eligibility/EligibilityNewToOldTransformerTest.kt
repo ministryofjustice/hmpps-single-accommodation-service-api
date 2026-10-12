@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PlacementStatus
@@ -28,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pl
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationSummaryDto
@@ -115,7 +115,12 @@ class EligibilityNewToOldTransformerTest {
       Arguments.of(ServiceStatusNew.CAS3_BEDSPACE_OFFERED, ServiceStatus.BEDSPACE_OFFERED),
       Arguments.of(ServiceStatusNew.CAS3_BOOKING_CANCELLED, ServiceStatus.BOOKING_CANCELLED),
       Arguments.of(ServiceStatusNew.CAS3_BOOKING_CONFIRMED, ServiceStatus.BOOKING_CONFIRMED),
-      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION, ServiceStatus.CANNOT_START_YET),
+
       Arguments.of(ServiceStatusNew.CAS3_NOT_ARRIVED, ServiceStatus.NOT_ARRIVED),
       Arguments.of(ServiceStatusNew.CAS3_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
       Arguments.of(ServiceStatusNew.CAS3_NOT_STARTED, ServiceStatus.NOT_STARTED),
@@ -326,12 +331,12 @@ class EligibilityNewToOldTransformerTest {
       actionPosition = 5,
     )
     val caseActions = listOf(
-      CaseAction(type = CaseActionType.SUBMIT_DTR_REFERRAL, startDate = LocalDate.parse("2023-01-01"), service = AccommodationService.DTR),
-      CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.parse("2023-01-03"), service = AccommodationService.CAS1),
-      CaseAction(type = CaseActionType.START_CAS2_REFERRAL, startDate = LocalDate.parse("2023-01-02"), service = AccommodationService.CAS2),
-      CaseAction(type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL, startDate = LocalDate.parse("2023-01-04"), service = AccommodationService.CRS),
-      CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = null, service = AccommodationService.CAS3),
-      CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null, service = AccommodationService.PA),
+      CaseAction(type = CaseActionType.SUBMIT_DTR_REFERRAL, startDate = LocalDate.parse("2023-01-01"), service = ServiceType.DTR),
+      CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.parse("2023-01-03"), service = ServiceType.CAS1),
+      CaseAction(type = CaseActionType.START_CAS2_REFERRAL, startDate = LocalDate.parse("2023-01-02"), service = ServiceType.CAS2),
+      CaseAction(type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL, startDate = LocalDate.parse("2023-01-04"), service = ServiceType.CRS),
+      CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = null, service = ServiceType.CAS3),
+      CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null, service = ServiceType.PA),
     )
     val eligibilityDtoOld = EligibilityDto(
       crn = crn,
@@ -347,7 +352,7 @@ class EligibilityNewToOldTransformerTest {
           url = cas1.url,
           linkType = cas1.serviceStatus.link?.type,
           failureReasons = cas1.failureReasons,
-          blockingStatusReason = cas1.blockingStatusReason,
+          blockingStatusReason = cas1.serviceStatus.blockingStatusReason,
         ),
         cas1Application = cas1ApplicationDto,
       ),
@@ -363,7 +368,7 @@ class EligibilityNewToOldTransformerTest {
           url = cas2.url,
           linkType = cas2.serviceStatus.link?.type,
           failureReasons = cas2.failureReasons,
-          blockingStatusReason = cas2.blockingStatusReason,
+          blockingStatusReason = cas2.serviceStatus.blockingStatusReason,
         ),
         cas2Application = cas2ApplicationDto,
       ),
@@ -379,7 +384,7 @@ class EligibilityNewToOldTransformerTest {
           url = cas3.url,
           linkType = cas3.serviceStatus.link?.type,
           failureReasons = cas3.failureReasons,
-          blockingStatusReason = cas3.blockingStatusReason,
+          blockingStatusReason = cas3.serviceStatus.blockingStatusReason,
         ),
         cas3Application = cas3ApplicationDto,
       ),
@@ -395,7 +400,7 @@ class EligibilityNewToOldTransformerTest {
           url = dtr.url,
           linkType = dtr.serviceStatus.link?.type,
           failureReasons = dtr.failureReasons,
-          blockingStatusReason = dtr.blockingStatusReason,
+          blockingStatusReason = dtr.serviceStatus.blockingStatusReason,
         ),
         caseId = dutyToReferDto.caseId,
         submission = dutyToReferDto.submission,
@@ -412,7 +417,7 @@ class EligibilityNewToOldTransformerTest {
           url = crs.url,
           linkType = crs.serviceStatus.link?.type,
           failureReasons = crs.failureReasons,
-          blockingStatusReason = crs.blockingStatusReason,
+          blockingStatusReason = crs.serviceStatus.blockingStatusReason,
         ),
         commissionedRehabilitativeServices = commissionedRehabilitativeServicesDto,
       ),
@@ -428,7 +433,7 @@ class EligibilityNewToOldTransformerTest {
           url = pa.url,
           linkType = pa.serviceStatus.link?.type,
           failureReasons = pa.failureReasons,
-          blockingStatusReason = pa.blockingStatusReason,
+          blockingStatusReason = pa.serviceStatus.blockingStatusReason,
         ),
       ),
       caseActions = caseActions,

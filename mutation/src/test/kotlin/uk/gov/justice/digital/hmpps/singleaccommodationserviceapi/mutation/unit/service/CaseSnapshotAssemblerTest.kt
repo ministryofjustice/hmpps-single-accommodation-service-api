@@ -96,6 +96,9 @@ class CaseSnapshotAssemblerTest {
     assertThat(snapshot.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
     assertThat(snapshot.accommodationStatusDate).isEqualTo(LocalDate.now())
     assertThat(snapshot.roshLevelCode).isEqualTo("RMRH")
+    assertThat(snapshot.assignedToForename).isEqualTo(case.staff.name.forename)
+    assertThat(snapshot.assignedToSurname).isEqualTo(case.staff.name.surname)
+    assertThat(snapshot.assignedToUsername).isEqualTo(case.staff.username)
   }
 
   @Test
@@ -134,5 +137,8 @@ class CaseSnapshotAssemblerTest {
     assertThat(snapshot.accommodationStatus).isNull()
     assertThat(snapshot.accommodationStatusDate).isNull()
     assertThat(snapshot.roshLevelCode).isNull()
+    assertThat(snapshot.assignedToForename).isNull()
+    assertThat(snapshot.assignedToSurname).isNull()
+    assertThat(snapshot.assignedToUsername).isNull()
   }
 }

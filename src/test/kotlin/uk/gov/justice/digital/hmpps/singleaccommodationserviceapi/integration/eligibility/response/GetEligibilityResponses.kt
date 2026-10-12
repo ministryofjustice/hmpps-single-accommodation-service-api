@@ -77,6 +77,7 @@ fun expectedGetEligibilityResponse(
           "status": "UPCOMING",
           "actualArrivalDate": null,
           "actualDepartureDate": null,
+          "expectedDepartureDate": null,
           "cancellationReason": null,
           "premises": {
             "startDate": "$startDate",
@@ -108,6 +109,7 @@ fun expectedGetEligibilityResponse(
               "status": "CANCELLED",
               "actualArrivalDate": null,
               "actualDepartureDate": null,
+              "expectedDepartureDate": null,
               "cancellationReason": "Oops",
               "premises": {
                 "startDate": "$startDate",
@@ -420,6 +422,7 @@ fun expectedGetEligibilityResponseTierNotFound(
           "status": "ARRIVED",
           "actualArrivalDate": null,
           "actualDepartureDate": null,
+          "expectedDepartureDate": null,
           "cancellationReason": null,
           "premises": null
         },

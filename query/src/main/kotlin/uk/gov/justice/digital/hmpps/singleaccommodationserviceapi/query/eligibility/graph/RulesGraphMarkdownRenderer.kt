@@ -186,7 +186,7 @@ object RulesGraphMarkdownRenderer {
   }
 
   private fun renderOutcomesTable(outcomes: Map<String, ServiceResultSpec>): String {
-    val includeBlocking = outcomes.values.any { it.blockingStatusReason != null }
+    val includeBlocking = outcomes.values.any { it.serviceStatus.blockingStatusReason != null }
     val headers = buildList {
       add("Status")
       add("Action")
@@ -201,7 +201,7 @@ object RulesGraphMarkdownRenderer {
           add(escapeTable(result.serviceStatus.name))
           add(escapeTable(actionCell(result)))
           add(escapeTable(result.serviceStatus.link?.type?.name ?: "-"))
-          if (includeBlocking) add(escapeTable(result.blockingStatusReason?.name ?: "-"))
+          if (includeBlocking) add(escapeTable(result.serviceStatus.blockingStatusReason?.name ?: "-"))
         }
         appendLine("| ${cells.joinToString(" | ")} |")
       }

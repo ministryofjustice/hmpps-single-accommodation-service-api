@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
@@ -45,7 +44,6 @@ class CrsSubmittedRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-        failureReason = FailureReason.CRS_NOT_SUBMITTED,
       ),
     )
   }
@@ -62,7 +60,6 @@ class CrsSubmittedRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-        failureReason = FailureReason.CRS_NOT_SUBMITTED,
       ),
     )
   }

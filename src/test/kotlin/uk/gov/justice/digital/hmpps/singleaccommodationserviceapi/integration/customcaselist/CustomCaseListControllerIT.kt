@@ -280,6 +280,11 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
   @Nested
   inner class GetCustomCaseList {
 
+    @BeforeEach
+    fun stubCaseSummaries() {
+      ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("A123456", "B654321", "C111111")
+    }
+
     @Test
     fun `returns an empty list when the user has no custom case list`() {
       getCustomCaseList().expectStatus().isOk
@@ -287,6 +292,55 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
         .jsonPath("$.data.length()").isEqualTo(0)
 
       sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
+      sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/probation-cases/summaries")))
+    }
+
+    @Test
+    fun `returns the persisted assigned to and the limited access flag from the case summary`() {
+      val case = caseRepository.save(
+        buildCaseEntity(
+          assignedToForename = "Joe",
+          assignedToSurname = "Bloggs",
+          assignedToUsername = "JOE.BLOGGS",
+        ) { withCrn("A123456") },
+      )
+      addToCustomCaseList(case.id)
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
+      ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
+        CaseSummaries(listOf(buildCaseSummary(crn = "A123456", currentRestriction = true))),
+      )
+
+      getCustomCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data[0].assignedTo.forename").isEqualTo("Joe")
+        .jsonPath("$.data[0].assignedTo.surname").isEqualTo("Bloggs")
+        .jsonPath("$.data[0].assignedTo.username").isEqualTo("JOE.BLOGGS")
+        .jsonPath("$.data[0].limitedAccess").isEqualTo(true)
+        .jsonPath("$.upstreamFailures").doesNotExist()
+
+      sasWiremock.verify(
+        1,
+        postRequestedFor(urlPathEqualTo("/probation-cases/summaries")).withRequestBody(equalToJson("[\"A123456\"]")),
+      )
+    }
+
+    @Test
+    fun `returns the cases with an upstream failure and no limited access flag when delius case summaries are unavailable`() {
+      addToCustomCaseList(caseRepository.save(buildCaseEntity(firstName = "Joe") { withCrn("A123456") }).id)
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
+      ProbationIntegrationDeliusStubs.postCaseSummariesServerError()
+
+      getCustomCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+        .jsonPath("$.data[0].forename").isEqualTo("Joe")
+        .jsonPath("$.data[0].userAccess").isEqualTo("FULL")
+        .jsonPath("$.data[0].limitedAccess").doesNotExist()
+        .jsonPath("$.upstreamFailures.length()").isEqualTo(1)
+        .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("postCaseSummaries")
+
+      sasWiremock.verify(3, postRequestedFor(urlPathEqualTo("/probation-cases/summaries")))
     }
 
     @Test
@@ -394,6 +448,50 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
     )
 
     private fun getCustomCaseList() = restTestClient.get().uri("/case-list/custom")
+      .withDeliusUserJwt()
+      .exchange()
+  }
+
+  @Nested
+  inner class GetCustomCaseListCrns {
+
+    @Test
+    fun `returns an empty list when the user has no custom case list`() {
+      getCustomCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(0)
+    }
+
+    @Test
+    fun `returns the sorted crns in the users custom case list without LAO checks`() {
+      val user2 = userRepository.save(buildUserEntity(username = "user2"))
+      val theirCase = caseRepository.save(buildCaseEntity { withCrn("C111111") })
+      userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = user2.id, sasCaseId = theirCase.id))
+      listOf("B654321", "A123456").forEach {
+        val case = caseRepository.save(buildCaseEntity { withCrn(it) })
+        userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = case.id))
+      }
+
+      getCustomCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data").isEqualTo(listOf("A123456", "B654321"))
+
+      sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
+    }
+
+    @Test
+    fun `returns the crns that were saved by the POST request`() {
+      caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("B654321")
+
+      postCustomCaseList(listOf("b654321", "A123456")).expectStatus().isCreated
+
+      getCustomCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data").isEqualTo(listOf("A123456", "B654321"))
+    }
+
+    private fun getCustomCaseListCrns() = restTestClient.get().uri("/case-list/custom/crns")
       .withDeliusUserJwt()
       .exchange()
   }

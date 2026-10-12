@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PlacementStatus
@@ -21,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationSummaryDto
@@ -261,6 +261,7 @@ class EligibilityTransformerTest {
         status = InfraCas1PlacementStatus.DEPARTED,
         actualArrivalDate = today.plusDays(7),
         actualDepartureDate = today.plusDays(8),
+        expectedDepartureDate = today.plusDays(9),
         cancellationReason = "cancellation reason",
         premises = buildCas1PremisesSummary(
           startDate = today.plusDays(9),
@@ -293,6 +294,7 @@ class EligibilityTransformerTest {
             actualArrivalDate = today.plusDays(14),
             actualDepartureDate = today.plusDays(15),
             cancellationReason = "cancellation reason 2",
+            expectedDepartureDate = today.plusDays(17),
             premises = buildCas1PremisesSummary(
               startDate = today.plusDays(16),
               endDate = today.plusDays(17),
@@ -389,6 +391,7 @@ class EligibilityTransformerTest {
         durationDays = 12,
       ),
       placement = buildCas1PlacementSummaryDto(
+        expectedDepartureDate = today.plusDays(9),
         status = Cas1PlacementStatus.DEPARTED,
         actualArrivalDate = today.plusDays(7),
         actualDepartureDate = today.plusDays(8),
@@ -423,6 +426,7 @@ class EligibilityTransformerTest {
             status = Cas1PlacementStatus.UPCOMING,
             actualArrivalDate = today.plusDays(14),
             actualDepartureDate = today.plusDays(15),
+            expectedDepartureDate = today.plusDays(17),
             cancellationReason = "cancellation reason 2",
             premises = buildCas1PremisesSummaryDto(
               startDate = today.plusDays(16),
@@ -667,7 +671,7 @@ class EligibilityTransformerTest {
   fun `should transform to not eligible service status`() {
     val expectedServiceStatus = buildServiceResultNew()
 
-    val actualEligibility = toNotEligibleServiceStatus(AccommodationService.CAS1)
+    val actualEligibility = toNotEligibleServiceStatus(ServiceType.CAS1)
 
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
   }
@@ -676,7 +680,7 @@ class EligibilityTransformerTest {
   fun `should transform to not required service status`() {
     val expectedServiceStatus = buildServiceResultNew(ServiceStatusNew.DTR_NOT_REQUIRED)
 
-    val actualEligibility = toNotRequiredServiceStatus(AccommodationService.DTR)
+    val actualEligibility = toNotRequiredServiceStatus(ServiceType.DTR)
 
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
   }

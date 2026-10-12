@@ -88,7 +88,7 @@ flowchart TD
   Cas2Completion{"Cas2Completion (1)"}
   awaitingArrival["awaitingArrival"]
   confirmed["confirmed"]
-  Cas2Eligibility["Cas2Eligibility (always PASS)"]
+  Cas2Eligibility["Cas2Eligibility (1)"]
   notEligible["notEligible"]
   Cas2Completion -->|PASS| awaitingArrival
   Cas2Completion -->|FAIL| confirmed
@@ -149,7 +149,7 @@ flowchart TD
 **confirmed** (Outcome)
 
 **Cas2Eligibility** (RuleSet)
-- (no rules - always PASS)
+- [`Under18Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/Under18Rule.kt): FAIL if individual is under 18 years old
 
 
 **notEligible** (Outcome)
@@ -224,11 +224,11 @@ flowchart TD
 
 | Status | Action | Link type | Blocking reason |
 | --- | --- | --- | --- |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_DTR_AND_CRS_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_CRS_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_DTR_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION | - | - | SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS | - | - | SUBMIT_DTR_AND_CRS_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION | - | - | SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_CRS | - | - | SUBMIT_CRS_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_DTR | - | - | SUBMIT_DTR_BEFORE_CAS3 |
 
 
 **currentOutcome** (Outcome)
@@ -415,6 +415,7 @@ flowchart TD
 | ReleaseWithinEightWeeksRule | FAIL if not within 8 weeks of release from current accommodation | DtrUpcoming | DTR |
 | ReleaseWithinOneYearRule | FAIL if not within 1 year of release from current accommodation | Cas1Upcoming, Cas2Upcoming | CAS1, CAS2 |
 | STierEligibilityRule | FAIL if candidate is S Tier | Cas1Eligibility | CAS1 |
+| Under18Rule | FAIL if individual is under 18 years old | Cas2Eligibility | CAS2 |
 
 ## Context updater catalogue
 
@@ -518,11 +519,11 @@ Used by: Cas3Prerequisite (CAS3)
 
 | Status | Action | Link type | Blocking reason |
 | --- | --- | --- | --- |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_DTR_AND_CRS_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_CRS_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_DTR_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION | - | - | SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS | - | - | SUBMIT_DTR_AND_CRS_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION | - | - | SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_CRS | - | - | SUBMIT_CRS_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_DTR | - | - | SUBMIT_DTR_BEFORE_CAS3 |
 
 
 Set status from referral
