@@ -110,7 +110,7 @@ class ExternalReferralQueryServiceTest {
     @Test
     fun `should return empty list when no referrals found`() {
       every {
-        externalReferralRepository.searchByCrn(crn, null)
+        externalReferralRepository.searchByCrn(crn, null, null)
       } returns emptyList()
 
       val result = service.searchExternalReferrals(crn, null)
@@ -138,6 +138,7 @@ class ExternalReferralQueryServiceTest {
         externalReferralRepository.searchByCrn(
           crn,
           listOf(EntityExternalReferralStatus.SUBMITTED, EntityExternalReferralStatus.ACCEPTED),
+          null,
         )
       } returns listOf(newestEntity, oldestEntity)
       every { userRepository.findAllById(setOf(createdByUserId)) } returns listOf(userEntity)
@@ -156,10 +157,32 @@ class ExternalReferralQueryServiceTest {
     @Test
     fun `should treat an empty statuses list the same as no filter`() {
       every {
-        externalReferralRepository.searchByCrn(crn, null)
+        externalReferralRepository.searchByCrn(crn, null, null)
       } returns emptyList()
 
       val result = service.searchExternalReferrals(crn, emptyList())
+
+      assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `should pass excludeWithdrawnReferrals true to the repository`() {
+      every {
+        externalReferralRepository.searchByCrn(crn, null, true)
+      } returns emptyList()
+
+      val result = service.searchExternalReferrals(crn, null, true)
+
+      assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `should pass excludeWithdrawnReferrals false to the repository`() {
+      every {
+        externalReferralRepository.searchByCrn(crn, null, false)
+      } returns emptyList()
+
+      val result = service.searchExternalReferrals(crn, null, false)
 
       assertThat(result).isEmpty()
     }
