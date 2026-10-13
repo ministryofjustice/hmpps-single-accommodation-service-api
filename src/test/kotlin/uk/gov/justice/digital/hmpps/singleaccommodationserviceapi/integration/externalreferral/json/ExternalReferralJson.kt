@@ -11,8 +11,6 @@ fun createExternalReferralRequestBody(
   submissionNote: String? = null,
   email: String? = null,
   phoneNumber: String? = null,
-  withdrawalReason: String? = null,
-  withdrawalNote: String? = null,
   outcomeNote: String? = null,
 ): String = """
 {
@@ -47,16 +45,6 @@ fun createExternalReferralRequestBody(
   "phoneNumber": "$phoneNumber""""
 } else {
   ""
-}}${if (withdrawalReason != null) {
-  """,
-  "withdrawalReason": "$withdrawalReason""""
-} else {
-  ""
-}}${if (withdrawalNote != null) {
-  """,
-  "withdrawalNote": "$withdrawalNote""""
-} else {
-  ""
 }}${if (outcomeNote != null) {
   """,
   "outcomeNote": "$outcomeNote""""
@@ -82,8 +70,6 @@ fun expectedExternalReferralResponseBody(
   submissionNote: String? = null,
   email: String? = null,
   phoneNumber: String? = null,
-  withdrawalReason: String? = null,
-  withdrawalNote: String? = null,
   outcomeNote: String? = null,
 ): String = """
 {
@@ -102,8 +88,6 @@ fun expectedExternalReferralResponseBody(
     "submissionNote": ${if (submissionNote != null) "\"$submissionNote\"" else "null"},
     "email": ${if (email != null) "\"$email\"" else "null"},
     "phoneNumber": ${if (phoneNumber != null) "\"$phoneNumber\"" else "null"},
-    "withdrawalReason": ${if (withdrawalReason != null) "\"$withdrawalReason\"" else "null"},
-    "withdrawalNote": ${if (withdrawalNote != null) "\"$withdrawalNote\"" else "null"},
     "outcomeNote": ${if (outcomeNote != null) "\"$outcomeNote\"" else "null"}
   }
 }

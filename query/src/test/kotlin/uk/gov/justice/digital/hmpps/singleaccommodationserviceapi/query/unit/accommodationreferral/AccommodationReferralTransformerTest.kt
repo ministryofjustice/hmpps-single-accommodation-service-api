@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildExternalReferralDto
@@ -119,8 +118,7 @@ class AccommodationReferralTransformerTest {
         createdBy = "Joe Bloggs",
         createdByUsername = "JBLOGGS",
         organisationName = "Some charity",
-        withdrawalReason = ExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
-        withdrawalNote = "Some reason for rejection",
+        outcomeNote = "Some reason for rejection",
       ),
     )
 
@@ -144,7 +142,7 @@ class AccommodationReferralTransformerTest {
     assertThat(externalReferralResult.placementStatus).isNull()
     assertThat(externalReferralResult.uiUrl).isNull()
     assertThat(externalReferralResult.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs", username = "JBLOGGS"))
-    assertThat(externalReferralResult.withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE.name)
-    assertThat(externalReferralResult.withdrawalNote).isEqualTo("Some reason for rejection")
+    assertThat(externalReferralResult.withdrawalReason).isNull()
+    assertThat(externalReferralResult.withdrawalNote).isNull()
   }
 }

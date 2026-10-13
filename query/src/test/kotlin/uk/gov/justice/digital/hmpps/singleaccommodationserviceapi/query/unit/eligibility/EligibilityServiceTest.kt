@@ -84,6 +84,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithinOneYearRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationAwaitingArrivalRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionContextUpdater
@@ -96,6 +97,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitableStatusRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.ReleaseWithin15DaysRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationArrivedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
@@ -114,7 +116,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.ReleaseWithinOneYearRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
@@ -195,7 +196,7 @@ class EligibilityServiceTest {
     Under18Rule(clock),
   )
   val cas2UpcomingContextUpdater = Cas2UpcomingContextUpdater()
-  var cas2UpcomingRuleSet = Cas2UpcomingRuleSet(ReleaseWithinOneYearRule(clock))
+  var cas2UpcomingRuleSet = Cas2UpcomingRuleSet(ReleaseWithin15DaysRule(clock))
   val cas2SuitabilityContextUpdater = Cas2SuitabilityContextUpdater(sentryService)
 
   // CAS3
@@ -709,7 +710,7 @@ class EligibilityServiceTest {
         assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCas2Action)
         assertThat(result.actionStartDate).isEqualTo(
           if (result.serviceStatus.isUpcoming) {
-            s.currentAccommodationEndDate?.minusYears(1)
+            s.currentAccommodationEndDate?.minusDays(15)
           } else {
             null
           },
@@ -859,7 +860,7 @@ class EligibilityServiceTest {
               ?.split(",")
               ?.map { FailureReason.valueOf(it.trim()) }
               ?: emptyList(),
-            expectedBlockingReason = row["blockingReason"]?.let { BlockingReason.valueOf(it) },
+            expectedBlockingReason = row["expectedBlockingReason"]?.let { BlockingReason.valueOf(it) },
           )
         } catch (e: Exception) {
           throw IllegalStateException("Row $idx failed: $row", e)
@@ -968,6 +969,7 @@ class EligibilityServiceTest {
         assertThat(result.actionStartDate).isNull()
         assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CAS3)
         assertThat(result.serviceStatus.link?.text).isEqualTo(s.expectedCas3Link)
+        assertThat(result.serviceStatus.blockingStatusReason).isEqualTo(s.expectedBlockingReason)
 
         val expectedUrl = when (s.expectedCas3Url) {
           null -> null
@@ -1263,7 +1265,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.evaluate(cas3Tree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET)
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION)
       assertThat(result.failureReasons).contains(FailureReason.CRS_NOT_SUBMITTED_MALE)
     }
 
@@ -1281,7 +1283,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.evaluate(cas3Tree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET)
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS)
       assertThat(result.failureReasons).contains(FailureReason.CRS_NOT_SUBMITTED_NON_MALE)
     }
 
@@ -1301,7 +1303,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.evaluate(cas3Tree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET)
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR)
       assertThat(result.failureReasons).contains(FailureReason.DTR_REFERRAL_EXPIRED)
     }
 

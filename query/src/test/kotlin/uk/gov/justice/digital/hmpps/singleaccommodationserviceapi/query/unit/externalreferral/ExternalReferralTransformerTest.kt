@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildExternalReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.externalreferral.ExternalReferralTransformer
@@ -113,7 +112,7 @@ class ExternalReferralTransformerTest {
     }
 
     @Test
-    fun `should map withdrawalReason and outcomeNote when populated`() {
+    fun `should map outcomeNote when populated`() {
       val entity = buildExternalReferralEntity(
         withdrawalReason = EntityExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION,
         outcomeNote = "An outcome note",
@@ -125,8 +124,8 @@ class ExternalReferralTransformerTest {
         createdByUsername,
       )
 
-      assertThat(result.withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION)
       assertThat(result.outcomeNote).isEqualTo("An outcome note")
+      assertThat(ExternalReferralTransformer.toSubmission(entity, buildUserEntity()).outcomeNote).isEqualTo("An outcome note")
     }
 
     @Test
@@ -153,7 +152,6 @@ class ExternalReferralTransformerTest {
       assertThat(result.email).isNull()
       assertThat(result.phoneNumber).isNull()
       assertThat(result.createdByUsername).isEqualTo(createdByUsername)
-      assertThat(result.withdrawalReason).isNull()
       assertThat(result.outcomeNote).isNull()
     }
   }

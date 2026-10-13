@@ -28,7 +28,7 @@ flowchart TD
 ### Nodes
 
 **Cas1Upcoming** (RuleSet)
-- [`ReleaseWithinOneYearRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/ReleaseWithinOneYearRule.kt): FAIL if not within 1 year of release from current accommodation
+- [`ReleaseWithinOneYearRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/ReleaseWithinOneYearRule.kt): FAIL if not within 1 year of release from current accommodation
 - FAIL: [`Cas1UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/Cas1UpcomingContextUpdater.kt) - Set Upcoming and start Approved Premise application
 
 | Status | Action | Link type |
@@ -103,7 +103,7 @@ flowchart TD
 ### Nodes
 
 **Cas2Upcoming** (RuleSet)
-- [`ReleaseWithinOneYearRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/ReleaseWithinOneYearRule.kt): FAIL if not within 1 year of release from current accommodation
+- [`ReleaseWithin15DaysRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/upcoming/ReleaseWithin15DaysRule.kt): FAIL if not within 15 days of release from current accommodation
 - FAIL: [`Cas2UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/upcoming/Cas2UpcomingContextUpdater.kt) - Set Upcoming and start CAS2 application
 
 | Status | Action | Link type |
@@ -224,11 +224,11 @@ flowchart TD
 
 | Status | Action | Link type | Blocking reason |
 | --- | --- | --- | --- |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_DTR_AND_CRS_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_CRS_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_DTR_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION | - | - | SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS | - | - | SUBMIT_DTR_AND_CRS_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION | - | - | SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_CRS | - | - | SUBMIT_CRS_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_DTR | - | - | SUBMIT_DTR_BEFORE_CAS3 |
 
 
 **currentOutcome** (Outcome)
@@ -412,8 +412,9 @@ flowchart TD
 | MaleRiskEligibilityRule | FAIL if candidate is Male and is not Tier A3 - B1 | Cas1Eligibility | CAS1 |
 | NoNextAccommodationRule | FAIL if candidate has next accommodation | Cas3Eligibility, CrsEligibility, DtrEligibility | CAS3, CRS, DTR |
 | NonMaleRiskEligibilityRule | FAIL if candidate is not Male and is not Tier A3 - C3 | Cas1Eligibility | CAS1 |
+| ReleaseWithin15DaysRule | FAIL if not within 15 days of release from current accommodation | Cas2Upcoming | CAS2 |
 | ReleaseWithinEightWeeksRule | FAIL if not within 8 weeks of release from current accommodation | DtrUpcoming | DTR |
-| ReleaseWithinOneYearRule | FAIL if not within 1 year of release from current accommodation | Cas1Upcoming, Cas2Upcoming | CAS1, CAS2 |
+| ReleaseWithinOneYearRule | FAIL if not within 1 year of release from current accommodation | Cas1Upcoming | CAS1 |
 | STierEligibilityRule | FAIL if candidate is S Tier | Cas1Eligibility | CAS1 |
 | Under18Rule | FAIL if individual is under 18 years old | Cas2Eligibility | CAS2 |
 
@@ -519,11 +520,11 @@ Used by: Cas3Prerequisite (CAS3)
 
 | Status | Action | Link type | Blocking reason |
 | --- | --- | --- | --- |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_DTR_AND_CRS_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_CRS_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET | - | - | SUBMIT_DTR_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION | - | - | SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS | - | - | SUBMIT_DTR_AND_CRS_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION | - | - | SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_CRS | - | - | SUBMIT_CRS_BEFORE_CAS3 |
+| CAS3_CANNOT_START_YET_SUBMIT_DTR | - | - | SUBMIT_DTR_BEFORE_CAS3 |
 
 
 Set status from referral
