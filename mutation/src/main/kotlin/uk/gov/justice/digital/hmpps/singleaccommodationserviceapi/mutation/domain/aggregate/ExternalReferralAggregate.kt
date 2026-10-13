@@ -6,12 +6,29 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus.SUBMITTED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralInvalidStatusTransitionException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralWithdrawalReasonNotApplicableException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.time.LocalDate
 import java.util.UUID
 
 private const val NOTE_MAX_LENGTH = 4000
+
+internal val COMPLETED_WITHDRAWAL_REASONS = setOf(
+  ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
+)
+
+internal val ARCHIVED_WITHDRAWAL_REASONS = setOf(
+  ExternalReferralWithdrawalReason.ANOTHER_ACCOMMODATION_FOUND,
+  ExternalReferralWithdrawalReason.NO_RESPONSE_FROM_ORGANISATION,
+  ExternalReferralWithdrawalReason.PERSON_CANNOT_BE_CONTACTED_OR_DISENGAGED,
+  ExternalReferralWithdrawalReason.PERSON_NO_LONGER_CONSENTS,
+  ExternalReferralWithdrawalReason.ANOTHER_REASON,
+)
+internal val REJECTED_WITHDRAWAL_REASONS = setOf(
+  ExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
+  ExternalReferralWithdrawalReason.NO_CAPACITY,
+)
 
 class ExternalReferralAggregate private constructor(
   private val id: UUID,
@@ -123,6 +140,22 @@ class ExternalReferralAggregate private constructor(
     this.email = email?.takeUnless { it.isBlank() }
     this.phoneNumber = phoneNumber?.takeUnless { it.isBlank() }
     this.outcomeNote = outcomeNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
+  }
+
+  fun updateExternalReferralWithdrawal(
+    withdrawalReason: ExternalReferralWithdrawalReason,
+    withdrawalNote: String? = null,
+  ) {
+    this.status = getExternalReferralStatus(withdrawalReason)
+    this.withdrawalReason = withdrawalReason
+    this.withdrawalNote = withdrawalNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
+  }
+
+  private fun getExternalReferralStatus(withdrawalReason: ExternalReferralWithdrawalReason): ExternalReferralStatus = when (withdrawalReason) {
+    in COMPLETED_WITHDRAWAL_REASONS -> ExternalReferralStatus.COMPLETED
+    in ARCHIVED_WITHDRAWAL_REASONS -> ExternalReferralStatus.ARCHIVED
+    in REJECTED_WITHDRAWAL_REASONS -> ExternalReferralStatus.REJECTED
+    else -> throw ExternalReferralWithdrawalReasonNotApplicableException()
   }
 
   fun snapshot() = ExternalReferralSnapshot(

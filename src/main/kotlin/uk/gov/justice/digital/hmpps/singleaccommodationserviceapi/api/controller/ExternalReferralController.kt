@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Au
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ExternalReferralApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.externalreferral.ExternalReferralQueryService
@@ -77,6 +78,18 @@ class ExternalReferralController(
     val updatedExternalReferral =
       externalReferralApplicationService.updateExternalReferral(crn, id, command)
     return ResponseEntity.ok(updatedExternalReferral)
+  }
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @PostMapping("/cases/{crn}/external-referral/{id}/withdrawal")
+  @ResponseStatus(HttpStatus.CREATED)
+  fun withdrawalExternalReferral(
+    @PathVariable crn: String,
+    @PathVariable id: UUID,
+    @RequestBody command: ExternalReferralWithdrawalDto,
+  ): ResponseEntity<ExternalReferralDto> {
+    val created = externalReferralApplicationService.withdrawalExternalReferral(crn, id, command)
+    return ResponseEntity(created, HttpStatus.CREATED)
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")

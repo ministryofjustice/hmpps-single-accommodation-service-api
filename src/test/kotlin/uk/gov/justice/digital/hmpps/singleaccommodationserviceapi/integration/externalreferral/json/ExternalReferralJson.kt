@@ -71,6 +71,8 @@ fun expectedExternalReferralResponseBody(
   email: String? = null,
   phoneNumber: String? = null,
   outcomeNote: String? = null,
+  withdrawalReason: String? = null,
+  withdrawalNote: String? = null,
 ): String = """
 {
   "caseId": "$caseId",
@@ -89,7 +91,9 @@ fun expectedExternalReferralResponseBody(
     "email": ${if (email != null) "\"$email\"" else "null"},
     "phoneNumber": ${if (phoneNumber != null) "\"$phoneNumber\"" else "null"},
     "outcomeNote": ${if (outcomeNote != null) "\"$outcomeNote\"" else "null"}
-  }
+  },
+  "withdrawalReason": ${if (withdrawalReason != null) "\"$withdrawalReason\"" else "null"},
+  "withdrawalNote": ${if (withdrawalNote != null) "\"$withdrawalNote\"" else "null"}
 }
 """.trimIndent()
 
@@ -97,6 +101,20 @@ fun externalReferralNoteRequestBody(note: String): String = """
   {
     "note" : "$note"
   }
+""".trimIndent()
+
+fun externalReferralWithdrawalRequestBody(
+  withdrawalReason: String = "PLACEMENT_COMPLETE",
+  withdrawalNote: String? = null,
+): String = """
+{
+  "withdrawalReason": "$withdrawalReason"${if (withdrawalNote != null) {
+  """,
+  "withdrawalNote": "$withdrawalNote""""
+} else {
+  ""
+}}
+}
 """.trimIndent()
 
 @Suppress("LongParameterList")
@@ -115,6 +133,8 @@ fun expectedGetExternalReferralResponseBody(
   submissionNote: String? = null,
   email: String? = null,
   phoneNumber: String? = null,
+  withdrawalReason: String? = null,
+  withdrawalNote: String? = null,
 ): String = """{"data": ${expectedExternalReferralResponseBody(
   id = id,
   caseId = caseId,
@@ -130,6 +150,8 @@ fun expectedGetExternalReferralResponseBody(
   submissionNote = submissionNote,
   email = email,
   phoneNumber = phoneNumber,
+  withdrawalReason = withdrawalReason,
+  withdrawalNote = withdrawalNote,
 )}}"""
 
 fun expectedSearchExternalReferralResponseBody(referrals: List<String>): String = """{"data": [${referrals.joinToString(",")}]}"""
