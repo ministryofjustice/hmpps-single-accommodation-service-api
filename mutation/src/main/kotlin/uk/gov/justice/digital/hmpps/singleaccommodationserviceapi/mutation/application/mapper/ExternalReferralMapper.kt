@@ -102,5 +102,7 @@ object ExternalReferralMapper {
       phoneNumber = snapshot.phoneNumber,
       outcomeNote = snapshot.outcomeNote,
     ),
+    withdrawalReason = snapshot.withdrawalReason,
+    withdrawalNote = snapshot.withdrawalNote,
   )
 }

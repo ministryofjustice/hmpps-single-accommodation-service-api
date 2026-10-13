@@ -14,24 +14,14 @@ object ExternalReferralTransformer {
   fun toExternalReferralDto(
     entity: ExternalReferralEntity,
     crn: String,
-    createdByName: String,
-    createdByUsername: String,
-  ) = ExternalReferralDto(
-    caseId = entity.caseId,
-    crn = crn,
-    status = toStatus(entity.status),
-    submission = toSubmission(entity, createdByName, createdByUsername),
-  )
-
-  fun toExternalReferralDto(
-    entity: ExternalReferralEntity,
-    crn: String,
     createdByUser: UserEntity,
   ) = ExternalReferralDto(
     caseId = entity.caseId,
     crn = crn,
     status = toStatus(entity.status),
     submission = toSubmission(entity, createdByUser),
+    withdrawalReason = toWithdrawalReason(entity.withdrawalReason),
+    withdrawalNote = entity.withdrawalNote,
   )
 
   fun toSubmission(
