@@ -11,7 +11,7 @@ Use this file as the default operating guide. Only search the repo when these in
 
 ## Scope discipline
 - Do **not** refactor code in the same area while making a requested change.
-- Do **not** get sidetracked by warnings, recommendations, or cleanup opportunities unless the task explicitly asks for them
+- Do **not** get sidetracked by warnings, recommendations, or cleanup opportunities unless the task explicitly asks for them.
 - Do **not** manually format or reformat code as part of unrelated changes; rely on running `./gradlew ktlintFormat --no-daemon` when formatting is needed.
 - Focus solely on the task you were asked to do, and keep changes as small and targeted as possible.
 
