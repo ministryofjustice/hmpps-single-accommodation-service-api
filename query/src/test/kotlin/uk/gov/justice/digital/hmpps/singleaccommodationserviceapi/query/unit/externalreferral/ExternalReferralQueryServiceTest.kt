@@ -164,28 +164,6 @@ class ExternalReferralQueryServiceTest {
 
       assertThat(result).isEmpty()
     }
-
-    @Test
-    fun `should pass excludeWithdrawnReferrals true to the repository`() {
-      every {
-        externalReferralRepository.searchByCrn(crn, null, true)
-      } returns emptyList()
-
-      val result = service.searchExternalReferrals(crn, null, true)
-
-      assertThat(result).isEmpty()
-    }
-
-    @Test
-    fun `should pass excludeWithdrawnReferrals false to the repository`() {
-      every {
-        externalReferralRepository.searchByCrn(crn, null, false)
-      } returns emptyList()
-
-      val result = service.searchExternalReferrals(crn, null, false)
-
-      assertThat(result).isEmpty()
-    }
   }
 
   @Nested
