@@ -1025,6 +1025,86 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .expectStatus().isBadRequest
     }
 
+    @Test
+    fun `should persist other reason when withdrawal reason is ANOTHER_REASON`() {
+      val existingEntity = createExternalReferralEntity()
+
+      restTestClient.post().uri("/cases/$crn/external-referral/${existingEntity.id}/withdrawal")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          externalReferralWithdrawalRequestBody(
+            withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON.name,
+            otherReason = "Some other reason",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isCreated
+        .expectBody()
+        .jsonPath("$.otherReason").isEqualTo("Some other reason")
+
+      val updatedRecord = externalReferralRepository.findByCaseId(case.id)!!
+      assertThat(updatedRecord.withdrawalReason).isEqualTo(EntityExternalReferralWithdrawalReason.ANOTHER_REASON)
+      assertThat(updatedRecord.otherReason).isEqualTo("Some other reason")
+    }
+
+    @Test
+    fun `should clear other reason when withdrawal reason is other than ANOTHER_REASON`() {
+      val existingEntity = createExternalReferralEntity()
+
+      restTestClient.post().uri("/cases/$crn/external-referral/${existingEntity.id}/withdrawal")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          externalReferralWithdrawalRequestBody(
+            withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE.name,
+            otherReason = "Should be ignored",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isCreated
+        .expectBody()
+        .jsonPath("$.otherReason").isEmpty
+
+      val updatedRecord = externalReferralRepository.findByCaseId(case.id)!!
+      assertThat(updatedRecord.withdrawalReason).isEqualTo(EntityExternalReferralWithdrawalReason.PLACEMENT_COMPLETE)
+      assertThat(updatedRecord.otherReason).isNull()
+    }
+
+    @Test
+    fun `should return 400 when the withdrawal reason is ANOTHER_REASON and the other reason is blank`() {
+      val existingEntity = createExternalReferralEntity()
+
+      restTestClient.post().uri("/cases/$crn/external-referral/${existingEntity.id}/withdrawal")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          externalReferralWithdrawalRequestBody(
+            withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON.name,
+            otherReason = " ",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isBadRequest
+    }
+
+    @Test
+    fun `should return 400 when the other reason exceeds the maximum length`() {
+      val existingEntity = createExternalReferralEntity()
+
+      restTestClient.post().uri("/cases/$crn/external-referral/${existingEntity.id}/withdrawal")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          externalReferralWithdrawalRequestBody(
+            withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON.name,
+            otherReason = "a".repeat(4001),
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isBadRequest
+    }
+
     private fun expectedStatusFor(withdrawalReason: EntityExternalReferralWithdrawalReason) = when (withdrawalReason) {
       EntityExternalReferralWithdrawalReason.PLACEMENT_COMPLETE -> EntityExternalReferralStatus.COMPLETED
 
