@@ -610,7 +610,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           caseId = case.id,
           crn = crn,
           status = EntityExternalReferralStatus.REJECTED,
-          withdrawalReason = EntityExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
+          withdrawalReason = null,
           submissionDate = LocalDate.of(2026, 3, 2),
         ),
       )
@@ -663,6 +663,8 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       website = entity.website,
       submissionNote = entity.submissionNote,
       outcomeNote = entity.outcomeNote,
+      withdrawalReason = entity.withdrawalReason?.name,
+      withdrawalNote = entity.withdrawalNote,
     )
   }
 
