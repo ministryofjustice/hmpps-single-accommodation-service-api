@@ -76,7 +76,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.NonMaleRiskEligibilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.STierEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationRelevantExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationSuitabilityRule
@@ -181,7 +180,6 @@ class EligibilityServiceTest {
   var cas1CompletionRuleSet = Cas1CompletionRuleSet(Cas1ApplicationCompletionRule())
   var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(Cas1ApplicationPresentRule(), Cas1ApplicationSuitabilityRule(), Cas1ApplicationRelevantExpiredRule())
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
-    STierEligibilityRule(),
     MaleRiskEligibilityRule(),
     NonMaleRiskEligibilityRule(),
   )
@@ -1201,27 +1199,11 @@ class EligibilityServiceTest {
     private val today = LocalDate.parse("01/01/2025", dateFormatter)
 
     @Test
-    fun `Cas1 surfaces S_TIER when candidate is on an S tier`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        sex = SexCode.M,
-        tierScore = "A1S",
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        cas1Application = null,
-      )
-
-      val result = eligibilityService.evaluate(cas1Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.S_TIER)
-    }
-
-    @Test
     fun `Cas1 surfaces MALE_NOT_HIGH_RISK_TIER for male candidate on a low-risk tier`() {
       clock.setNow(today)
       val data = buildDomainData(
         sex = SexCode.M,
-        tierScore = "C3",
+        tierScore = "D",
         currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
         cas1Application = null,
       )
@@ -1237,7 +1219,7 @@ class EligibilityServiceTest {
       clock.setNow(today)
       val data = buildDomainData(
         sex = SexCode.F,
-        tierScore = "D3",
+        tierScore = "E",
         currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
         cas1Application = null,
       )

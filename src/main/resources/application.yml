@@ -136,6 +136,3 @@ shedlock:
   case-refresh-worker:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S
-
-tier:
-  v3-enabled: false
