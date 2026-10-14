@@ -154,7 +154,8 @@ fun expectedGetEligibilityResponse(
           "latestAssessmentStatus": "CANCELLED",
           "offerDeclinedReason": null,
           "cancelledReason": "cancelled reason",
-          "submittedAt": "2024-01-02T12:00:00Z"
+          "submittedAt": "2024-01-02T12:00:00Z",
+          "markedAsArrivedDateTime": null
         },
         "cohort":"INTENSIVE_SUPERVISION_COURTS"
       }
