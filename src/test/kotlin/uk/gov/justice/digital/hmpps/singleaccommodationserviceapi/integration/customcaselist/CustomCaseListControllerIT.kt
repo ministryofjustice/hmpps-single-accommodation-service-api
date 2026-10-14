@@ -480,6 +480,40 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
     }
 
     @Test
+    fun `does not return archived crns in the users custom case list`() {
+      val activeCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val archivedCase = caseRepository.save(
+        buildCaseEntity {
+          withCrn("B654321")
+          archiveCrn(crn = "B654321")
+        },
+      )
+      val caseWithActiveAndArchived = caseRepository.save(
+        buildCaseEntity {
+          withCrn("C111111")
+          archiveCrn(crn = "C111111")
+          withCrn("C222222")
+        },
+      )
+
+      userCustomCaseListRepository.save(
+        buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = activeCase.id),
+      )
+      userCustomCaseListRepository.save(
+        buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = archivedCase.id),
+      )
+      userCustomCaseListRepository.save(
+        buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = caseWithActiveAndArchived.id),
+      )
+
+      getCustomCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data").isEqualTo(listOf("A123456", "C222222"))
+
+      sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
+    }
+
+    @Test
     fun `returns the crns that were saved by the POST request`() {
       caseRepository.save(buildCaseEntity { withCrn("A123456") })
       ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("B654321")

@@ -61,6 +61,12 @@ class CaseEntity(
     .identifier
   fun latestPrisonNumber() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.PRISON_NUMBER }.maxByOrNull { it.createdAt }
     ?.identifier
+
+  fun archiveCrn(crn: String) = this.caseIdentifiers.single {
+    it.identifierType == IdentifierType.CRN && it.identifier == crn
+  }.apply {
+    archived = true
+  }
 }
 
 fun CaseEntity.toAssignedToDto(): AssignedToDto? {

@@ -67,10 +67,12 @@ fun buildCaseIdentifier(
   identifier: String = "DEFAULT",
   identifierType: IdentifierType = IdentifierType.CRN,
   createdAt: Instant = Instant.now(),
+  archived: Boolean = false,
 ) = CaseIdentifierEntity(
   id = id,
   caseEntity = caseEntity,
   identifier = identifier,
   identifierType = identifierType,
   createdAt = createdAt,
+  archived = archived,
 )
