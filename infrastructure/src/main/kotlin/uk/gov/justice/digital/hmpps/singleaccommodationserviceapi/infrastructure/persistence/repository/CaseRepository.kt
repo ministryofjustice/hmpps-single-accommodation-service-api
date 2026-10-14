@@ -65,6 +65,16 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
   fun findWithIdentifiersById(id: UUID): CaseEntity?
 
   @EntityGraph(attributePaths = ["caseIdentifiers"])
+  @Query(
+    """
+    select distinct c
+    from CaseEntity c
+    join c.caseIdentifiers ci
+    where c.id in :ids
+      and ci.identifierType = 'CRN'
+      and ci.archived = false
+  """,
+  )
   fun findAllWithIdentifiersByIdIn(ids: Collection<UUID>): List<CaseEntity>
 
   @Query(

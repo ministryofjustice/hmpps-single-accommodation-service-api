@@ -325,6 +325,28 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
     }
 
     @Test
+    fun `does not return cases whose only crn is archived in the users custom case list`() {
+      val activeCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val archivedCase = caseRepository.save(
+        buildCaseEntity {
+          withCrn("B654321")
+          archiveCrn("B654321")
+        },
+      )
+      addToCustomCaseList(activeCase.id)
+      addToCustomCaseList(archivedCase.id)
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf("A123456"),
+      )
+
+      getCustomCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+    }
+
+    @Test
     fun `returns the cases with an upstream failure and no limited access flag when delius case summaries are unavailable`() {
       addToCustomCaseList(caseRepository.save(buildCaseEntity(firstName = "Joe") { withCrn("A123456") }).id)
       ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
