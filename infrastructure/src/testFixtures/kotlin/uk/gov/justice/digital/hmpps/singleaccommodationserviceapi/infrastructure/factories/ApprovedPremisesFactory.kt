@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PreviousBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3SubmittedApplication
+import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -66,11 +67,13 @@ fun buildCas2SubmittedApplicationSummary(
   submittedAt: OffsetDateTime = OffsetDateTime.now(),
   offerDeclinedReason: String? = null,
   cancelledReason: String? = null,
+  markedArrivedDateTime: Instant? = null,
 ) = Cas2SubmittedApplicationSummary(
   submittedAt = submittedAt,
   latestAssessmentStatus = latestAssessmentStatus,
   offerDeclinedReason = offerDeclinedReason,
   cancelledReason = cancelledReason,
+  markedAsArrivedDateTime = markedArrivedDateTime,
 )
 
 fun buildCas2Staff(
