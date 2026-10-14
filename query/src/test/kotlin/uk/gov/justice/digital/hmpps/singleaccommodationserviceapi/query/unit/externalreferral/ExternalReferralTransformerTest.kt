@@ -28,7 +28,8 @@ class ExternalReferralTransformerTest {
       val entity = buildExternalReferralEntity(
         caseId = caseId,
         status = EntityExternalReferralStatus.ARCHIVED,
-        withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_ACCOMMODATION_FOUND,
+        withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON,
+        otherReason = "Other reason",
         withdrawalNote = "Withdrawal note",
       )
 
@@ -41,7 +42,8 @@ class ExternalReferralTransformerTest {
       assertThat(dto.caseId).isEqualTo(caseId)
       assertThat(dto.crn).isEqualTo(crn)
       assertThat(dto.status).isEqualTo(ExternalReferralStatus.ARCHIVED)
-      assertThat(dto.withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.ANOTHER_ACCOMMODATION_FOUND)
+      assertThat(dto.withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.ANOTHER_REASON)
+      assertThat(dto.otherReason).isEqualTo("Other reason")
       assertThat(dto.withdrawalNote).isEqualTo("Withdrawal note")
       assertThat(dto.submission).isNotNull()
       assertThat(dto.submission.createdBy).isEqualTo(user.displayName())

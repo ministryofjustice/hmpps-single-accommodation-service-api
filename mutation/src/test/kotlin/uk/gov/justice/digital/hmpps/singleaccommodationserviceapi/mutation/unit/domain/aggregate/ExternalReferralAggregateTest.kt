@@ -6,6 +6,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.NullAndEmptySource
 import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
@@ -14,6 +15,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.REJECTED_WITHDRAWAL_REASONS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralInvalidStatusTransitionException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralWithdrawalReasonOtherGreaterThanMaxLengthException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralWithdrawalReasonRequiredException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.time.LocalDate
@@ -394,7 +397,10 @@ class ExternalReferralAggregateTest {
   ) {
     val aggregate = hydrateAndCreateReferral()
 
-    aggregate.updateExternalReferralWithdrawal(withdrawalReason = withdrawalReason)
+    aggregate.updateExternalReferralWithdrawal(
+      withdrawalReason = withdrawalReason,
+      otherReason = "Some other reason",
+    )
 
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.status).isEqualTo(ExternalReferralStatus.ARCHIVED)
@@ -449,6 +455,74 @@ class ExternalReferralAggregateTest {
       aggregate.updateExternalReferralWithdrawal(
         withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
         withdrawalNote = "a".repeat(4001),
+      )
+    }
+  }
+
+  @Test
+  fun `updateExternalReferralWithdrawal record with other reason`() {
+    val aggregate = hydrateAndCreateReferral()
+
+    aggregate.updateExternalReferralWithdrawal(
+      withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON,
+      otherReason = "Some other reason",
+    )
+
+    assertThat(aggregate.snapshot().withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.ANOTHER_REASON)
+    assertThat(aggregate.snapshot().otherReason).isEqualTo("Some other reason")
+  }
+
+  @Test
+  fun `updateExternalReferralWithdrawal ignores other reason when the reason is not ANOTHER_REASON`() {
+    val aggregate = hydrateAndCreateReferral()
+
+    aggregate.updateExternalReferralWithdrawal(
+      withdrawalReason = ExternalReferralWithdrawalReason.NO_CAPACITY,
+      otherReason = "Some other reason",
+    )
+
+    assertThat(aggregate.snapshot().otherReason).isNull()
+  }
+
+  @Test
+  fun `updateExternalReferralWithdrawal clears a previously set other reason when the reason changes from ANOTHER_REASON`() {
+    val aggregate = hydrateAndCreateReferral()
+    aggregate.updateExternalReferralWithdrawal(
+      withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON,
+      otherReason = "Some other reason",
+    )
+    assertThat(aggregate.snapshot().otherReason).isEqualTo("Some other reason")
+
+    aggregate.updateExternalReferralWithdrawal(
+      withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
+    )
+
+    assertThat(aggregate.snapshot().withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE)
+    assertThat(aggregate.snapshot().otherReason).isNull()
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = [" ", "   "])
+  fun `updateExternalReferralWithdrawal throws exception when ANOTHER_REASON has a missing or blank other reason`(otherReason: String?) {
+    val aggregate = hydrateAndCreateReferral()
+
+    assertThrows<ExternalReferralWithdrawalReasonRequiredException> {
+      aggregate.updateExternalReferralWithdrawal(
+        withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON,
+        otherReason = otherReason,
+      )
+    }
+  }
+
+  @Test
+  fun `updateExternalReferralWithdrawal throws exception when the other reason exceeds the maximum length`() {
+    val aggregate = hydrateAndCreateReferral()
+
+    assertThrows<ExternalReferralWithdrawalReasonOtherGreaterThanMaxLengthException> {
+      aggregate.updateExternalReferralWithdrawal(
+        withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON,
+        otherReason = "a".repeat(4001),
       )
     }
   }

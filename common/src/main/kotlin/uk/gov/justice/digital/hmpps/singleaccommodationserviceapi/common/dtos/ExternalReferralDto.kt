@@ -11,6 +11,7 @@ data class ExternalReferralDto(
   val status: ExternalReferralStatus,
   val submission: ExternalReferralSubmissionDto,
   val withdrawalReason: ExternalReferralWithdrawalReason? = null,
+  val otherReason: String? = null,
   val withdrawalNote: String? = null,
 )
 
@@ -36,6 +37,7 @@ data class ExternalReferralSubmissionDto(
 
 data class ExternalReferralWithdrawalDto(
   val withdrawalReason: ExternalReferralWithdrawalReason,
+  val otherReason: String? = null,
   val withdrawalNote: String? = null,
 )
 

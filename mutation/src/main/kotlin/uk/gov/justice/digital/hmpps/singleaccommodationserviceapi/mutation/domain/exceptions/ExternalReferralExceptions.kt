@@ -2,13 +2,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.doma
 
 const val ER_WITHDRAWAL_REASON_REQUIRED_KEY = "erWithdrawalReasonRequired"
 const val ER_WITHDRAWAL_REASON_NOT_APPLICABLE_KEY = "erWithdrawalReasonNotApplicable"
-const val ER_OUTCOME_NOTE_NOT_APPLICABLE_KEY = "erOutcomeNoteNotApplicable"
+const val ER_WITHDRAWAL_REASON_OTHER_GREATER_THAN_MAX_LENGTH_KEY = "erWithdrawalReasonOtherGreaterThanMaxLength"
 const val ER_INVALID_STATUS_TRANSITION_ERROR_KEY = "erInvalidStatusTransition"
 
 class ExternalReferralWithdrawalReasonRequiredException : DomainException(ER_WITHDRAWAL_REASON_REQUIRED_KEY)
 
 class ExternalReferralWithdrawalReasonNotApplicableException : DomainException(ER_WITHDRAWAL_REASON_NOT_APPLICABLE_KEY)
 
-class ExternalReferralOutcomeNoteNotApplicableException : DomainException(ER_OUTCOME_NOTE_NOT_APPLICABLE_KEY)
-
 class ExternalReferralInvalidStatusTransitionException : DomainException(ER_INVALID_STATUS_TRANSITION_ERROR_KEY)
+
+class ExternalReferralWithdrawalReasonOtherGreaterThanMaxLengthException : DomainException(ER_WITHDRAWAL_REASON_OTHER_GREATER_THAN_MAX_LENGTH_KEY)

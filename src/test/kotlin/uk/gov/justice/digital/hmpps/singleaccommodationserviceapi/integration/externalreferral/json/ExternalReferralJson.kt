@@ -72,6 +72,7 @@ fun expectedExternalReferralResponseBody(
   phoneNumber: String? = null,
   outcomeNote: String? = null,
   withdrawalReason: String? = null,
+  otherReason: String? = null,
   withdrawalNote: String? = null,
 ): String = """
 {
@@ -93,6 +94,7 @@ fun expectedExternalReferralResponseBody(
     "outcomeNote": ${if (outcomeNote != null) "\"$outcomeNote\"" else "null"}
   },
   "withdrawalReason": ${if (withdrawalReason != null) "\"$withdrawalReason\"" else "null"},
+  "otherReason": ${if (otherReason != null) "\"$otherReason\"" else "null"},
   "withdrawalNote": ${if (withdrawalNote != null) "\"$withdrawalNote\"" else "null"}
 }
 """.trimIndent()
@@ -105,10 +107,16 @@ fun externalReferralNoteRequestBody(note: String): String = """
 
 fun externalReferralWithdrawalRequestBody(
   withdrawalReason: String = "PLACEMENT_COMPLETE",
+  otherReason: String? = if (withdrawalReason == "ANOTHER_REASON") "Some other reason" else null,
   withdrawalNote: String? = null,
 ): String = """
 {
-  "withdrawalReason": "$withdrawalReason"${if (withdrawalNote != null) {
+  "withdrawalReason": "$withdrawalReason"${if (otherReason != null) {
+  """,
+  "otherReason": "$otherReason""""
+} else {
+  ""
+}}${if (withdrawalNote != null) {
   """,
   "withdrawalNote": "$withdrawalNote""""
 } else {
@@ -134,6 +142,7 @@ fun expectedGetExternalReferralResponseBody(
   email: String? = null,
   phoneNumber: String? = null,
   withdrawalReason: String? = null,
+  otherReason: String? = null,
   withdrawalNote: String? = null,
 ): String = """{"data": ${expectedExternalReferralResponseBody(
   id = id,
@@ -151,6 +160,7 @@ fun expectedGetExternalReferralResponseBody(
   email = email,
   phoneNumber = phoneNumber,
   withdrawalReason = withdrawalReason,
+  otherReason = otherReason,
   withdrawalNote = withdrawalNote,
 )}}"""
 

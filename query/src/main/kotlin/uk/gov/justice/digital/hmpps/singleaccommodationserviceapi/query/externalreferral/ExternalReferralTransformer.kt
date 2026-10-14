@@ -21,6 +21,7 @@ object ExternalReferralTransformer {
     status = toStatus(entity.status),
     submission = toSubmission(entity, createdByUser),
     withdrawalReason = toWithdrawalReason(entity.withdrawalReason),
+    otherReason = entity.otherReason,
     withdrawalNote = entity.withdrawalNote,
   )
 
