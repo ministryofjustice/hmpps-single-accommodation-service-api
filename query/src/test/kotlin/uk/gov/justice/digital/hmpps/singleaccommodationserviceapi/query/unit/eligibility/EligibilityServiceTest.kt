@@ -696,6 +696,7 @@ class EligibilityServiceTest {
               isCas1 = it == "A02",
               isPrison = it == "HMP",
               isCas2 = it == "A10" || it == "A11",
+              isCas3 = it == "A17",
             )
           },
           dob = if (s.u18 == null) {
@@ -1379,6 +1380,7 @@ class EligibilityServiceTest {
           isCas1 = false,
           isPrison = false,
           isCas2 = false,
+          isCas3 = true,
         ),
         cas2Application = null,
       )

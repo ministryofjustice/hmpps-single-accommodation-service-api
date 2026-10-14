@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.FieldSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
@@ -18,7 +16,7 @@ class CurrentAccommodationTypeIsCas3RuleTest {
   fun `individual is in CAS3 so rule fails`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
-        code = "A17",
+        isCas3 = true,
       ),
     )
 
@@ -33,12 +31,11 @@ class CurrentAccommodationTypeIsCas3RuleTest {
     )
   }
 
-  @ParameterizedTest
-  @FieldSource("nonCas3Codes")
-  fun `individual not in CAS3 so rule passes`(code: String) {
+  @Test
+  fun `individual not in CAS3 so rule passes`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
-        code = code,
+        isCas3 = false,
       ),
     )
 
@@ -65,31 +62,6 @@ class CurrentAccommodationTypeIsCas3RuleTest {
         description = description,
         ruleStatus = RuleStatus.PASS,
       ),
-    )
-  }
-
-  companion object {
-    @JvmField
-    val nonCas3Codes = listOf(
-      "A10",
-      "A11",
-      "A07B",
-      "A07A",
-      "A14",
-      "A13",
-      "A01A",
-      "A15",
-      "A12",
-      "A01C",
-      "A01D",
-      "A04",
-      "A03",
-      "A02",
-      "A16",
-      "HMP",
-      "A08A",
-      "A08C",
-      "A08",
     )
   }
 }

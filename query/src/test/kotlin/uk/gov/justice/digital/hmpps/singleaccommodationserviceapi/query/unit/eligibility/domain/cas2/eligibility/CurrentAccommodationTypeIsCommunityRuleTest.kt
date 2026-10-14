@@ -104,6 +104,7 @@ class CurrentAccommodationTypeIsCommunityRuleTest {
         isPrison = false,
         isCas1 = false,
         isCas2 = true,
+        isCas3 = false,
         code = code,
       ),
     )
@@ -123,6 +124,10 @@ class CurrentAccommodationTypeIsCommunityRuleTest {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
         code = "A17",
+        isPrison = false,
+        isCas1 = false,
+        isCas2 = false,
+        isCas3 = true,
       ),
     )
 

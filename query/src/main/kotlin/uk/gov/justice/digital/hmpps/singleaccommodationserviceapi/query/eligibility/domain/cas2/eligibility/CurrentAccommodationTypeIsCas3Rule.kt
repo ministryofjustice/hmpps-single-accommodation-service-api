@@ -12,7 +12,7 @@ class CurrentAccommodationTypeIsCas3Rule : Rule {
   override val description = "FAIL if individual is in CAS3"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.currentAccommodationTypeEntity?.code == "A17"
+    val isFail = data.currentAccommodationTypeEntity?.isCas3 == true
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
