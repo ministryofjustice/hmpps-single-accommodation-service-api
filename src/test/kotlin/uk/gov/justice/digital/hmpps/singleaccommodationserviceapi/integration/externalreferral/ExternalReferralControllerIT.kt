@@ -531,10 +531,112 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .expectStatus().isForbidden
     }
 
-    private fun searchExternalReferrals(statuses: List<String>? = null): String = restTestClient.get().uri {
+    @Test
+    fun `should exclude referrals with a withdrawal reason when excludeWithdrawnReferrals is true`() {
+      val withoutWithdrawalReason = externalReferralRepository.save(
+        buildExternalReferralEntity(
+          caseId = case.id,
+          crn = crn,
+          status = EntityExternalReferralStatus.REJECTED,
+          submissionDate = LocalDate.of(2026, 3, 1),
+        ),
+      )
+      externalReferralRepository.save(
+        buildExternalReferralEntity(
+          caseId = case.id,
+          crn = crn,
+          status = EntityExternalReferralStatus.REJECTED,
+          withdrawalReason = EntityExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
+          submissionDate = LocalDate.of(2026, 3, 2),
+        ),
+      )
+
+      val result = searchExternalReferrals(
+        statuses = listOf("REJECTED"),
+        excludeWithdrawnReferrals = true,
+      )
+
+      assertThatJson(result).matchesExpectedJson(
+        expectedSearchExternalReferralResponseBody(
+          listOf(expectedResponseBodyFor(withoutWithdrawalReason)),
+        ),
+      )
+    }
+
+    @Test
+    fun `should include only referrals with a withdrawal reason when excludeWithdrawnReferrals is false`() {
+      externalReferralRepository.save(
+        buildExternalReferralEntity(
+          caseId = case.id,
+          crn = crn,
+          status = EntityExternalReferralStatus.REJECTED,
+          submissionDate = LocalDate.of(2026, 3, 1),
+        ),
+      )
+      val withWithdrawalReason = externalReferralRepository.save(
+        buildExternalReferralEntity(
+          caseId = case.id,
+          crn = crn,
+          status = EntityExternalReferralStatus.REJECTED,
+          withdrawalReason = EntityExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
+          submissionDate = LocalDate.of(2026, 3, 2),
+        ),
+      )
+
+      val result = searchExternalReferrals(
+        statuses = listOf("REJECTED"),
+        excludeWithdrawnReferrals = false,
+      )
+
+      assertThatJson(result).matchesExpectedJson(
+        expectedSearchExternalReferralResponseBody(
+          listOf(expectedResponseBodyFor(withWithdrawalReason)),
+        ),
+      )
+    }
+
+    @Test
+    fun `should not apply the withdrawal reason filter when excludeWithdrawnReferrals is omitted`() {
+      val withoutWithdrawalReason = externalReferralRepository.save(
+        buildExternalReferralEntity(
+          caseId = case.id,
+          crn = crn,
+          status = EntityExternalReferralStatus.REJECTED,
+          submissionDate = LocalDate.of(2026, 3, 1),
+        ),
+      )
+      val withWithdrawalReason = externalReferralRepository.save(
+        buildExternalReferralEntity(
+          caseId = case.id,
+          crn = crn,
+          status = EntityExternalReferralStatus.REJECTED,
+          withdrawalReason = null,
+          submissionDate = LocalDate.of(2026, 3, 2),
+        ),
+      )
+
+      val result = searchExternalReferrals(statuses = listOf("REJECTED"))
+
+      assertThatJson(result).matchesExpectedJson(
+        expectedSearchExternalReferralResponseBody(
+          listOf(
+            expectedResponseBodyFor(withWithdrawalReason),
+            expectedResponseBodyFor(withoutWithdrawalReason),
+          ),
+        ),
+      )
+    }
+
+    private fun searchExternalReferrals(
+      statuses: List<String>? = null,
+      excludeWithdrawnReferrals: Boolean? = null,
+    ): String = restTestClient.get().uri {
       it.path("/cases/$crn/external-referral/search")
       if (statuses != null) {
         it.queryParam("statuses", *statuses.toTypedArray())
+      }
+      if (excludeWithdrawnReferrals != null) {
+        it.queryParam("excludeWithdrawnReferrals", excludeWithdrawnReferrals)
       }
       it.build()
     }
@@ -561,6 +663,8 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       website = entity.website,
       submissionNote = entity.submissionNote,
       outcomeNote = entity.outcomeNote,
+      withdrawalReason = entity.withdrawalReason?.name,
+      withdrawalNote = entity.withdrawalNote,
     )
   }
 
