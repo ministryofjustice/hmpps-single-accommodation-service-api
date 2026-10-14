@@ -52,6 +52,7 @@ class CaseRefreshProcessor(
     when (caseRefreshCompletionService.completeRefresh(claim, projection)) {
       CaseRefreshCompletionService.Result.APPLIED -> Result.Refreshed
       CaseRefreshCompletionService.Result.IGNORED_STALE_CLAIM -> Result.IgnoredStaleClaim
+      CaseRefreshCompletionService.Result.IGNORED_CASE_NOT_FOUND -> Result.CaseNotFound
     }
   } catch (exception: Exception) {
     log.error("Unexpected error completing Case projection refresh [caseId={}]", claim.caseId, exception)

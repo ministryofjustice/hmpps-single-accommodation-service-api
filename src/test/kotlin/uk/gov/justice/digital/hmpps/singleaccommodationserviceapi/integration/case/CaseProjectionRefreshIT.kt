@@ -139,6 +139,7 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
       IncomingHmppsDomainEventType.OFFENDER_MANAGEMENT_ALLOCATION_CHANGED,
       -> true
 
+      IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_DELETED,
       IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED,
       -> {
         onboardedTeamRepository.save(OnboardedTeamEntity(teamCode = buildTeam().code))

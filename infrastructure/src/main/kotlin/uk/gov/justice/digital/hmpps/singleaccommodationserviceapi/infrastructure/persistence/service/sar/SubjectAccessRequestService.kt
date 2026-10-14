@@ -73,10 +73,7 @@ class SubjectAccessRequestService(
   ): Map<String, Any>? {
     if (crn == null && prisonNumber == null) return null
 
-    val caseEntity = caseRepository.findByIdentifiers(
-      crn?.let { listOf(it) },
-      prisonNumber?.let { listOf(it) },
-    ) ?: return null
+    val caseEntity = caseRepository.findCaseForSubjectAccessRequest(crn = crn, prisonNumber = prisonNumber) ?: return null
 
     val caseId = caseEntity.id
     val personCrn = caseEntity.latestCrn()
