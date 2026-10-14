@@ -69,6 +69,7 @@ Use this file as the default operating guide. Only search the repo when these in
 - Integration tests use the real Spring context and `IntegrationTestBase`, plus Postgres/Redis/LocalStack from `docker compose`.
 - Keep tests deterministic and package-aligned with the code under test; prefer focused tests while iterating and the full suite before handoff for broad changes.
 - For HTTP endpoints, cover the expected auth, happy path, validation/error path, and side effects/persistence changes.
+- This repository uses consumer-side Pact tests for upstream API contracts. When changing an upstream client, its request/response models, or serialization, review and update any affected Pact tests (for example, `infrastructure/src/test/.../*PactTest.kt`) and run `./gradlew pactTest`.
 
 ## Subject Access Requests
 - SAR functionality is part of this repo: the service aggregates data into a single SAR response and HTML report.
@@ -77,6 +78,7 @@ Use this file as the default operating guide. Only search the repo when these in
 - The SAR test fixture guide is `sar-test-fixtures-guide.md`; follow it when changing SAR data retrieval or the template.
 - To regenerate fixtures, run the SAR integration tests with `SAR_GENERATE_ACTUAL=true` and use `:integrationTest` (not the unqualified task name) because integration tasks exist in the root and subprojects.
 - Changes to SAR-relevant entities, schema, or Flyway migrations may require updating SAR fixtures and schema-related expectations alongside the code change.
+- When JPA entities change, follow `sar-test-fixtures-guide.md` to update the entity-schema fixture if needed, then run `SarIntegrationTest` with `./gradlew :integrationTest --tests 'uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar.SarIntegrationTest' --no-daemon`; entity-schema mismatches can cause this test to fail.
 
 
 ```

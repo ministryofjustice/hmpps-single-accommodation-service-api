@@ -34,7 +34,8 @@ interface UserCustomCaseListRepository : JpaRepository<UserCustomCaseListEntity,
         SELECT DISTINCT ON (sci.case_id) sci.identifier AS crn
         FROM sas_user_custom_case_list ucl
         JOIN sas_case_identifier sci ON sci.case_id = ucl.sas_case_id AND sci.identifier_type = 'CRN'
-        WHERE ucl.sas_user_id = :sasUserId
+        JOIN sas_case sc ON sc.id = ucl.sas_case_id
+        WHERE ucl.sas_user_id = :sasUserId AND sc.archived = false
         ORDER BY sci.case_id, sci.created_at DESC
       ) latest
       ORDER BY latest.crn
