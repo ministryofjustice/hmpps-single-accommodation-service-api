@@ -15,7 +15,6 @@ import java.time.LocalDate
 import java.util.UUID
 
 private const val NOTE_MAX_LENGTH = 4000
-private const val WITHDRAWAL_REASON_OTHER_MAX_LENGTH = 4000
 
 internal val COMPLETED_WITHDRAWAL_REASONS = setOf(
   ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
@@ -165,7 +164,7 @@ class ExternalReferralAggregate private constructor(
 
   private fun validateWithdrawalOtherReason(otherReason: String?): String? {
     if (otherReason.isNullOrBlank()) throw ExternalReferralWithdrawalReasonRequiredException()
-    if (otherReason.length > WITHDRAWAL_REASON_OTHER_MAX_LENGTH) throw ExternalReferralWithdrawalReasonOtherGreaterThanMaxLengthException()
+    if (otherReason.length > NOTE_MAX_LENGTH) throw ExternalReferralWithdrawalReasonOtherGreaterThanMaxLengthException()
     return otherReason
   }
 
