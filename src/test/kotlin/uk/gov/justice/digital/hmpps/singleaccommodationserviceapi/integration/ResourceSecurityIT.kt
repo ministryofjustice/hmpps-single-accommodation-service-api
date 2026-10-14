@@ -164,6 +164,7 @@ private val caseControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /case-list" to defaultRoles,
     "GET /cases/{crn}" to defaultRoles,
+    "POST /cases/{crn}/applications/{applicationId}/arrival" to defaultRoles,
     "GET /search/{crn}" to defaultRoles,
   )
 

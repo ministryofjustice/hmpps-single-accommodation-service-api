@@ -3,7 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.service.annotation.GetExchange
+import org.springframework.web.service.annotation.PostExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.getOrNullWhenNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.WebClientRetry
@@ -52,6 +54,9 @@ interface ApprovedPremisesClient {
   @WebClientRetry
   @GetExchange(value = "/cas3/external/url-templates")
   fun getCas3UrlTemplatesInternal(): Cas3UrlTemplates
+
+  @PostExchange(value = "/cas2/external/cases/{crn}/applications/{applicationId}/arrival")
+  fun postCas2Arrival(@PathVariable crn: String, @PathVariable applicationId: String, @RequestBody cas2Arrival: Cas2Arrival)
 }
 
 @Service
@@ -90,4 +95,8 @@ class ApprovedPremisesCachingService(
 
   @Cacheable(ApiCallKeys.GET_CAS_3_URL_TEMPLATES, sync = true)
   fun getCas3UrlTemplates() = approvedPremisesClient.getCas3UrlTemplatesInternal()
+
+  fun postCas2Arrival(crn: String, applicationId: String, cas2Arrival: Cas2Arrival) {
+    approvedPremisesClient.postCas2Arrival(crn, applicationId, cas2Arrival)
+  }
 }
