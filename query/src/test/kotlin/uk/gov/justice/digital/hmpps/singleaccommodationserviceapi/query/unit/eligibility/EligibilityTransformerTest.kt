@@ -100,7 +100,7 @@ class EligibilityTransformerTest {
         serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,
       )
       val cas2 = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED_CAS1,
+        serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED,
       )
       val cas3 = buildServiceResultNew(
         serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,

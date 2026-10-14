@@ -93,7 +93,7 @@ class DeeplinkResolverTest {
     fun `CAS2_START_APPLICATION resolves to the CAS2 application start url template`() {
       val result = resolver.resolve(
         buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED_CAS1,
+          serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED,
         ),
         buildDomainData(),
       )
@@ -107,7 +107,7 @@ class DeeplinkResolverTest {
 
       val result = resolver.resolve(
         buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED_CAS1,
+          serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED,
         ),
         buildDomainData(),
       )
