@@ -366,6 +366,7 @@ object EligibilityTransformer {
       latestAssessmentStatus = toCas2AssessmentStatusDto(it.latestAssessmentStatus),
       offerDeclinedReason = it.offerDeclinedReason,
       cancelledReason = it.cancelledReason,
+      markedAsArrivedDateTime = it.markedAsArrivedDateTime,
     )
   }
 
