@@ -15,7 +15,7 @@ class CurrentAccommodationTypeIsCommunityRule : Rule {
     val isFail = data.currentAccommodationTypeEntity?.isPrison != true &&
       data.currentAccommodationTypeEntity?.isCas1 != true &&
       data.currentAccommodationTypeEntity?.isCas2 != true &&
-      data.currentAccommodationTypeEntity?.code != "A17"
+      data.currentAccommodationTypeEntity?.isCas3 != true
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
