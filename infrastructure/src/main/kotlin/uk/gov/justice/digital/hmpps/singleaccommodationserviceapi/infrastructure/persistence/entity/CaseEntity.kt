@@ -57,10 +57,25 @@ class CaseEntity(
   var caseIdentifiers: MutableSet<CaseIdentifierEntity> = mutableSetOf(),
 
 ) {
-  fun latestCrn() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.CRN }.maxBy { it.createdAt }
+  fun latestCrn() = this.caseIdentifiers.filter { !it.archived && it.identifierType == IdentifierType.CRN }
+    .maxBy { it.createdAt }
     .identifier
-  fun latestPrisonNumber() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.PRISON_NUMBER }.maxByOrNull { it.createdAt }
+
+  fun latestPrisonNumber() = this.caseIdentifiers.filter { !it.archived && it.identifierType == IdentifierType.PRISON_NUMBER }
+    .maxByOrNull { it.createdAt }
     ?.identifier
+
+  fun archiveCrn(crn: String) = this.caseIdentifiers.single {
+    it.identifierType == IdentifierType.CRN && it.identifier == crn
+  }.apply {
+    archived = true
+  }
+
+  fun archivePrisonNumber(prisonNumber: String) = this.caseIdentifiers.single {
+    it.identifierType == IdentifierType.PRISON_NUMBER && it.identifier == prisonNumber
+  }.apply {
+    archived = true
+  }
 }
 
 fun CaseEntity.toAssignedToDto(): AssignedToDto? {

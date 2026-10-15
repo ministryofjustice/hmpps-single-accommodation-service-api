@@ -325,6 +325,28 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
     }
 
     @Test
+    fun `does not return cases whose only crn is archived in the users custom case list`() {
+      val activeCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val archivedCase = caseRepository.save(
+        buildCaseEntity {
+          withCrn("B654321")
+          archiveCrn("B654321")
+        },
+      )
+      addToCustomCaseList(activeCase.id)
+      addToCustomCaseList(archivedCase.id)
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf("A123456"),
+      )
+
+      getCustomCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+    }
+
+    @Test
     fun `returns the cases with an upstream failure and no limited access flag when delius case summaries are unavailable`() {
       addToCustomCaseList(caseRepository.save(buildCaseEntity(firstName = "Joe") { withCrn("A123456") }).id)
       ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
@@ -475,6 +497,40 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
       getCustomCaseListCrns().expectStatus().isOk
         .expectBody()
         .jsonPath("$.data").isEqualTo(listOf("A123456", "B654321"))
+
+      sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
+    }
+
+    @Test
+    fun `does not return archived crns in the users custom case list`() {
+      val activeCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val archivedCase = caseRepository.save(
+        buildCaseEntity {
+          withCrn("B654321")
+          archiveCrn(crn = "B654321")
+        },
+      )
+      val caseWithActiveAndArchived = caseRepository.save(
+        buildCaseEntity {
+          withCrn("C111111")
+          archiveCrn(crn = "C111111")
+          withCrn("C222222")
+        },
+      )
+
+      userCustomCaseListRepository.save(
+        buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = activeCase.id),
+      )
+      userCustomCaseListRepository.save(
+        buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = archivedCase.id),
+      )
+      userCustomCaseListRepository.save(
+        buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = caseWithActiveAndArchived.id),
+      )
+
+      getCustomCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data").isEqualTo(listOf("A123456", "C222222"))
 
       sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
     }

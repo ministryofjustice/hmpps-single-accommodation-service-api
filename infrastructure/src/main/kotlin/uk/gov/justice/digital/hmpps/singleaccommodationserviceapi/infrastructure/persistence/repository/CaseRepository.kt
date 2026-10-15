@@ -9,6 +9,11 @@ import java.util.UUID
 
 interface CaseRepository : JpaRepository<CaseEntity, UUID> {
 
+  // override the findAll() function so cases with only archived CRNs are not returned
+  @EntityGraph(attributePaths = ["caseIdentifiers"])
+  @Query("SELECT distinct c FROM CaseEntity c join c.caseIdentifiers ci where ci.identifierType = 'CRN'")
+  override fun findAll(): List<CaseEntity>
+
   @EntityGraph(attributePaths = ["caseIdentifiers"])
   @Query(
     """
@@ -60,6 +65,16 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
   fun findWithIdentifiersById(id: UUID): CaseEntity?
 
   @EntityGraph(attributePaths = ["caseIdentifiers"])
+  @Query(
+    """
+    select distinct c
+    from CaseEntity c
+    join c.caseIdentifiers ci
+    where c.id in :ids
+      and ci.identifierType = 'CRN'
+      and ci.archived = false
+  """,
+  )
   fun findAllWithIdentifiersByIdIn(ids: Collection<UUID>): List<CaseEntity>
 
   @Query(
