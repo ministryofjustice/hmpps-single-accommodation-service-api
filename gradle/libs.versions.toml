@@ -13,10 +13,10 @@ apache-commons-csv = "1.14.1"
 detekt = "2.0.0-alpha.6"
 awaitility = "4.3.0"
 javers = "7.11.8"
+pact = "4.6.5"
 postgres = "42.7.14"
 sentry = "8.57.0"
 sar-test-support = "2.8.3"
-
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
