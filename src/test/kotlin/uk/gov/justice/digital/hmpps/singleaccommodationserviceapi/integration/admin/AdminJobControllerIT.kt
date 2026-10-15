@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.a
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
@@ -458,7 +459,90 @@ class AdminJobControllerIT : IntegrationTestBase() {
     assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
   }
 
+  @Nested
+  inner class BulkRefreshAllCases {
+
+    @Test
+    fun `should return 403 when refreshing all cases without the admin role`() {
+      restTestClient.post().uri("/admin/bulk-refresh-all-cases")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(bulkRefreshAllCasesRequestBody(dryRun = false))
+        .withClientCredentialsJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `should return 403 when refreshing all cases with a Delius user JWT`() {
+      createDeliusUser()
+
+      restTestClient.post().uri("/admin/bulk-refresh-all-cases")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(bulkRefreshAllCasesRequestBody(dryRun = false))
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `should return 200 when refreshing all cases and no cases are stored`() {
+      val result = bulkRefreshAllCases(bulkRefreshAllCasesRequestBody(dryRun = false))
+
+      assertThat(result.dryRun).isFalse()
+      assertThat(result.crnsRequested).isEqualTo(0)
+      assertThat(result.casesFound).isEqualTo(0)
+      assertThat(result.refreshesRequested).isEqualTo(0)
+      assertThat(result.crnsNotFound).isEmpty()
+    }
+
+    @Test
+    fun `should stage a bulk refresh for every case when refreshing all cases`() {
+      val firstCase = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+      val secondCase = caseRepository.save(buildCaseEntity { withCrn(otherRefreshCrn) })
+
+      val result = bulkRefreshAllCases(bulkRefreshAllCasesRequestBody(dryRun = false))
+
+      assertThat(result.dryRun).isFalse()
+      assertThat(result.crnsRequested).isEqualTo(2)
+      assertThat(result.casesFound).isEqualTo(2)
+      assertThat(result.refreshesRequested).isEqualTo(2)
+      assertThat(result.crnsNotFound).isEmpty()
+
+      val requests = caseRefreshRequestRepository.findAll()
+      assertThat(requests.map { it.caseId }).containsExactlyInAnyOrder(firstCase.id, secondCase.id)
+      assertThat(requests).allSatisfy {
+        assertThat(it.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
+        assertThat(it.priority).isEqualTo(CaseRefreshPriority.BULK)
+        assertThat(it.attemptCount).isZero()
+        assertThat(it.nextAttemptAt).isEqualTo(now)
+      }
+    }
+
+    @Test
+    fun `should report what a bulk refresh would do without staging anything when dry run is not specified`() {
+      caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+
+      val result = bulkRefreshAllCases(bulkRefreshAllCasesRequestBody())
+
+      assertThat(result.dryRun).isTrue()
+      assertThat(result.crnsRequested).isEqualTo(1)
+      assertThat(result.casesFound).isEqualTo(1)
+      assertThat(result.refreshesRequested).isZero()
+      assertThat(result.crnsNotFound).isEmpty()
+
+      assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+    }
+  }
+
   private fun bulkRefreshCasesByCrn(requestBody: String) = restTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
+    .contentType(MediaType.APPLICATION_JSON)
+    .body(requestBody)
+    .withClientCredentialsJwt(roles = adminRoles)
+    .exchangeSuccessfully()
+    .expectApiResponse<BulkRefreshCasesResultDto>()
+    .data
+
+  private fun bulkRefreshAllCases(requestBody: String) = restTestClient.post().uri("/admin/bulk-refresh-all-cases")
     .contentType(MediaType.APPLICATION_JSON)
     .body(requestBody)
     .withClientCredentialsJwt(roles = adminRoles)
@@ -489,4 +573,6 @@ class AdminJobControllerIT : IntegrationTestBase() {
     .exchangeSuccessfully()
     .expectApiResponse<BulkLoadCasesResultDto>()
     .data
+
+  private fun bulkRefreshAllCasesRequestBody(dryRun: Boolean? = null): String = dryRun?.let { """{"dryRun": $it}""" } ?: "{}"
 }
