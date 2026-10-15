@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -21,6 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Arrival
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Name
@@ -58,6 +60,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
+import java.time.Instant
 import java.time.LocalDate
 
 class CaseControllerIT : IntegrationTestBase() {
@@ -704,6 +707,61 @@ class CaseControllerIT : IntegrationTestBase() {
       .exchange()
       .expectStatus()
       .isNotFound
+  }
+
+  @Nested
+  inner class PostCas2Arrival {
+    private val crn = "A123456"
+    private val applicationId = "application-id"
+    private val arrival = Cas2Arrival(
+      markedAsArrivedDateTime = Instant.parse("2026-10-13T12:00:00Z"),
+      arrivedByUsername = "DELIUS_USER",
+    )
+
+    @Test
+    fun `returns 201 created if crn has applications with the application id`() {
+      ApprovedPremisesStubs.postCas2ArrivalOKResponse(crn, applicationId)
+
+      restTestClient.post().uri("/cases/$crn/applications/$applicationId/arrival")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(arrival)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .isCreated
+
+      sasWiremock.verify(
+        1,
+        WireMock.postRequestedFor(WireMock.urlPathEqualTo("/cas2/external/cases/$crn/applications/$applicationId/arrival"))
+          .withRequestBody(WireMock.equalToJson(jsonMapper.writeValueAsString(arrival))),
+      )
+    }
+
+    @Test
+    fun `returns ServerError when CAS API returns ServerError`() {
+      ApprovedPremisesStubs.postCas2ArrivalServerErrorResponse(crn, applicationId)
+
+      restTestClient.post().uri("/cases/$crn/applications/$applicationId/arrival")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(arrival)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+    }
+
+    @Test
+    fun `returns ServerError when CAS API returns NotFound`() {
+      ApprovedPremisesStubs.postCas2ArrivalNotFoundResponse(crn, applicationId)
+
+      restTestClient.post().uri("/cases/$crn/applications/$applicationId/arrival")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(arrival)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+    }
   }
 
   private fun stubInitialCorePersonRecords() {

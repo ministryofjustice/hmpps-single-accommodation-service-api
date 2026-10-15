@@ -88,7 +88,7 @@ flowchart TD
   Cas2Completion{"Cas2Completion (1)"}
   awaitingArrival["awaitingArrival"]
   confirmed["confirmed"]
-  Cas2Eligibility["Cas2Eligibility (1)"]
+  Cas2Eligibility["Cas2Eligibility (5)"]
   notEligible["notEligible"]
   Cas2Completion -->|PASS| awaitingArrival
   Cas2Completion -->|FAIL| confirmed
@@ -118,10 +118,7 @@ flowchart TD
 
 | Status | Action | Link type |
 | --- | --- | --- |
-| CAS2_NOT_STARTED_COMMUNITY | - | CAS2_START_APPLICATION |
-| CAS2_NOT_STARTED_PRISON | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
-| CAS2_NOT_STARTED_CAS1 | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
-| CAS2_NOT_STARTED_CAS2 | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
+| CAS2_NOT_STARTED | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
 | CAS2_NOT_SUBMITTED | CONTINUE_A_CAS2_REFERRAL (CAS2) | CAS2_VIEW_APPLICATION |
 | CAS2_OFFER_DECLINED_OR_WITHDRAWN | - | CAS2_START_APPLICATION |
 | CAS2_CANCELLED | - | CAS2_START_APPLICATION |
@@ -150,6 +147,10 @@ flowchart TD
 
 **Cas2Eligibility** (RuleSet)
 - [`Under18Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/Under18Rule.kt): FAIL if individual is under 18 years old
+- [`CurrentAccommodationTypeIsCas3Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/CurrentAccommodationTypeIsCas3Rule.kt): FAIL if individual is in CAS3
+- [`CurrentAccommodationTypeIsCas2Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/CurrentAccommodationTypeIsCas2Rule.kt): FAIL if individual is in CAS2
+- [`CurrentAccommodationTypeIsCommunityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/CurrentAccommodationTypeIsCommunityRule.kt): FAIL if individual is in the community
+- [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/NoNextAccommodationRule.kt): FAIL if candidate has next accommodation
 
 
 **notEligible** (Outcome)
@@ -402,6 +403,9 @@ flowchart TD
 | CrsSubmittedRuleMale | FAIL if CRS not submitted and male | Cas3Prerequisite | CAS3 |
 | CrsSubmittedRuleNonMale | FAIL if CRS not submitted and not male | Cas3Prerequisite | CAS3 |
 | CrsUpcomingRule | FAIL if not within 12 weeks of release from current accommodation | CrsUpcoming | CRS |
+| CurrentAccommodationTypeIsCas2Rule | FAIL if individual is in CAS2 | Cas2Eligibility | CAS2 |
+| CurrentAccommodationTypeIsCas3Rule | FAIL if individual is in CAS3 | Cas2Eligibility | CAS2 |
+| CurrentAccommodationTypeIsCommunityRule | FAIL if individual is in the community | Cas2Eligibility | CAS2 |
 | CurrentAccommodationTypeRule | FAIL if current accommodation is not Approved Premise (CAS1), CAS2, or Prison | Cas3Eligibility | CAS3 |
 | DtrApplicationCompleteRule | FAIL if DTR not accepted | DtrCompletion | DTR |
 | DtrExpiredReferralRule | FAIL if DTR is submitted more than 26 weeks ago. | Cas3Prerequisite, DtrSuitability | CAS3, DTR |
@@ -410,7 +414,7 @@ flowchart TD
 | HasNextAccommodationRule | FAIL if candidate has no next accommodation | PaCompletion | PA |
 | IsSettledRule | FAIL if candidate is settled | CrsEligibility | CRS |
 | MaleRiskEligibilityRule | FAIL if candidate is Male and is not Tier A3 - B1 | Cas1Eligibility | CAS1 |
-| NoNextAccommodationRule | FAIL if candidate has next accommodation | Cas3Eligibility, CrsEligibility, DtrEligibility | CAS3, CRS, DTR |
+| NoNextAccommodationRule | FAIL if candidate has next accommodation | Cas2Eligibility, Cas3Eligibility, CrsEligibility, DtrEligibility | CAS2, CAS3, CRS, DTR |
 | NonMaleRiskEligibilityRule | FAIL if candidate is not Male and is not Tier A3 - C3 | Cas1Eligibility | CAS1 |
 | ReleaseWithin15DaysRule | FAIL if not within 15 days of release from current accommodation | Cas2Upcoming | CAS2 |
 | ReleaseWithinEightWeeksRule | FAIL if not within 8 weeks of release from current accommodation | DtrUpcoming | DTR |
@@ -480,10 +484,7 @@ Used by: Cas2Suitability (CAS2)
 
 | Status | Action | Link type |
 | --- | --- | --- |
-| CAS2_NOT_STARTED_COMMUNITY | - | CAS2_START_APPLICATION |
-| CAS2_NOT_STARTED_PRISON | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
-| CAS2_NOT_STARTED_CAS1 | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
-| CAS2_NOT_STARTED_CAS2 | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
+| CAS2_NOT_STARTED | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
 | CAS2_NOT_SUBMITTED | CONTINUE_A_CAS2_REFERRAL (CAS2) | CAS2_VIEW_APPLICATION |
 | CAS2_OFFER_DECLINED_OR_WITHDRAWN | - | CAS2_START_APPLICATION |
 | CAS2_CANCELLED | - | CAS2_START_APPLICATION |

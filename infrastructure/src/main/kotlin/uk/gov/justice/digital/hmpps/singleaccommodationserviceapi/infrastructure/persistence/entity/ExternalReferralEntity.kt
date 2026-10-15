@@ -30,6 +30,7 @@ open class ExternalReferralEntity(
   var submissionNote: String?,
   @Enumerated(EnumType.STRING)
   var withdrawalReason: ExternalReferralWithdrawalReason?,
+  var otherReason: String?,
   var withdrawalNote: String?,
   var outcomeNote: String?,
 

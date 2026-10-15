@@ -91,6 +91,7 @@ class ExternalReferralApplicationService(
     val aggregate = ExternalReferralMapper.toAggregate(referral).also {
       it.updateExternalReferralWithdrawal(
         withdrawalReason = command.withdrawalReason,
+        otherReason = command.otherReason,
         withdrawalNote = command.withdrawalNote,
       )
     }

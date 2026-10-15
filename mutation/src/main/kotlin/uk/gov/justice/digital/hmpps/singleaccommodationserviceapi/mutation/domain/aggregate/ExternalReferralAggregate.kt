@@ -7,6 +7,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralInvalidStatusTransitionException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralWithdrawalReasonNotApplicableException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralWithdrawalReasonOtherGreaterThanMaxLengthException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralWithdrawalReasonRequiredException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.time.LocalDate
@@ -43,6 +45,7 @@ class ExternalReferralAggregate private constructor(
   private var email: String? = null,
   private var phoneNumber: String? = null,
   private var withdrawalReason: ExternalReferralWithdrawalReason? = null,
+  private var otherReason: String? = null,
   private var withdrawalNote: String? = null,
   private var outcomeNote: String? = null,
   private var notes: MutableList<ExternalReferralNote> = mutableListOf(),
@@ -68,6 +71,7 @@ class ExternalReferralAggregate private constructor(
       email: String? = null,
       phoneNumber: String? = null,
       withdrawalReason: ExternalReferralWithdrawalReason? = null,
+      otherReason: String? = null,
       withdrawalNote: String? = null,
       outcomeNote: String? = null,
     ) = ExternalReferralAggregate(
@@ -83,6 +87,7 @@ class ExternalReferralAggregate private constructor(
       email = email,
       phoneNumber = phoneNumber,
       withdrawalReason = withdrawalReason,
+      otherReason = otherReason,
       withdrawalNote = withdrawalNote,
       outcomeNote = outcomeNote,
       notes = notes.toMutableList(),
@@ -144,11 +149,23 @@ class ExternalReferralAggregate private constructor(
 
   fun updateExternalReferralWithdrawal(
     withdrawalReason: ExternalReferralWithdrawalReason,
+    otherReason: String? = null,
     withdrawalNote: String? = null,
   ) {
     this.status = getExternalReferralStatus(withdrawalReason)
     this.withdrawalReason = withdrawalReason
+    this.otherReason = if (withdrawalReason == ExternalReferralWithdrawalReason.ANOTHER_REASON) {
+      validateWithdrawalOtherReason(otherReason)
+    } else {
+      null
+    }
     this.withdrawalNote = withdrawalNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
+  }
+
+  private fun validateWithdrawalOtherReason(otherReason: String?): String? {
+    if (otherReason.isNullOrBlank()) throw ExternalReferralWithdrawalReasonRequiredException()
+    if (otherReason.length > NOTE_MAX_LENGTH) throw ExternalReferralWithdrawalReasonOtherGreaterThanMaxLengthException()
+    return otherReason
   }
 
   private fun getExternalReferralStatus(withdrawalReason: ExternalReferralWithdrawalReason): ExternalReferralStatus = when (withdrawalReason) {
@@ -171,6 +188,7 @@ class ExternalReferralAggregate private constructor(
     email = email,
     phoneNumber = phoneNumber,
     withdrawalReason = withdrawalReason,
+    otherReason = otherReason,
     withdrawalNote = withdrawalNote,
     outcomeNote = outcomeNote,
     notes = notes.toList(),
@@ -189,6 +207,7 @@ class ExternalReferralAggregate private constructor(
     val email: String? = null,
     val phoneNumber: String? = null,
     val withdrawalReason: ExternalReferralWithdrawalReason? = null,
+    val otherReason: String? = null,
     val withdrawalNote: String? = null,
     val outcomeNote: String? = null,
     val notes: List<ExternalReferralNote> = emptyList(),
