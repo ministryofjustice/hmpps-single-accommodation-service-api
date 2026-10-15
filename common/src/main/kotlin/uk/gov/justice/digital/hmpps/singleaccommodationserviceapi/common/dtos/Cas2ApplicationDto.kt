@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
+import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -48,4 +49,5 @@ data class Cas2SubmittedApplicationSummaryDto(
   val offerDeclinedReason: String?,
   val cancelledReason: String?,
   val submittedAt: OffsetDateTime,
+  val markedAsArrivedDateTime: Instant?,
 )
