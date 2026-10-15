@@ -200,6 +200,7 @@ class EligibilityServiceTest {
     CurrentAccommodationTypeIsCas3Rule(),
     CurrentAccommodationTypeIsCas2Rule(),
     CurrentAccommodationTypeIsCommunityRule(),
+    NoNextAccommodationRule(),
   )
   val cas2UpcomingContextUpdater = Cas2UpcomingContextUpdater()
   var cas2UpcomingRuleSet = Cas2UpcomingRuleSet(ReleaseWithin15DaysRule(clock))
@@ -619,6 +620,7 @@ class EligibilityServiceTest {
             testCaseId = row["testCaseId"]!!,
             description = row["description"],
             referenceDate = row["referenceDate"]!!.toLocalDate(),
+            hasNextAccommodation = row["hasNextAccommodation"]!!,
             currentAccommodationType = row["currentAccommodationType"],
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             isApplicationPresent = row["isApplicationPresent"]!!,
@@ -683,12 +685,19 @@ class EligibilityServiceTest {
           )
         }
 
+        val nextAccommodations = if (s.hasNextAccommodation.toBoolean()) {
+          listOf(buildAccommodationSummaryDto())
+        } else {
+          emptyList()
+        }
+
         val aged18 = LocalDate.now(clock).minusYears(18)
         val under18 = LocalDate.now(clock).minusYears(18).plusDays(1)
 
         val data = buildDomainData(
           crn = s.testCaseId,
           currentAccommodation = currentAccommodation,
+          nextAccommodations = nextAccommodations,
           cas2Application = cas2Application,
           currentAccommodationTypeEntity = s.currentAccommodationType?.let {
             buildAccommodationTypeEntity(
@@ -1496,6 +1505,7 @@ data class Cas1Scenario(
 data class Cas2Scenario(
   val testCaseId: String,
   val description: String?,
+  val hasNextAccommodation: String,
   val u18: Boolean?,
   val referenceDate: LocalDate,
   val currentAccommodationType: String?,

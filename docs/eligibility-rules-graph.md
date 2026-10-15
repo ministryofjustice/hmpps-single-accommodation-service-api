@@ -88,7 +88,7 @@ flowchart TD
   Cas2Completion{"Cas2Completion (1)"}
   awaitingArrival["awaitingArrival"]
   confirmed["confirmed"]
-  Cas2Eligibility["Cas2Eligibility (4)"]
+  Cas2Eligibility["Cas2Eligibility (5)"]
   notEligible["notEligible"]
   Cas2Completion -->|PASS| awaitingArrival
   Cas2Completion -->|FAIL| confirmed
@@ -150,6 +150,7 @@ flowchart TD
 - [`CurrentAccommodationTypeIsCas3Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/CurrentAccommodationTypeIsCas3Rule.kt): FAIL if individual is in CAS3
 - [`CurrentAccommodationTypeIsCas2Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/CurrentAccommodationTypeIsCas2Rule.kt): FAIL if individual is in CAS2
 - [`CurrentAccommodationTypeIsCommunityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/CurrentAccommodationTypeIsCommunityRule.kt): FAIL if individual is in the community
+- [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/NoNextAccommodationRule.kt): FAIL if candidate has next accommodation
 
 
 **notEligible** (Outcome)
@@ -413,7 +414,7 @@ flowchart TD
 | HasNextAccommodationRule | FAIL if candidate has no next accommodation | PaCompletion | PA |
 | IsSettledRule | FAIL if candidate is settled | CrsEligibility | CRS |
 | MaleRiskEligibilityRule | FAIL if candidate is Male and is not Tier A3 - B1 | Cas1Eligibility | CAS1 |
-| NoNextAccommodationRule | FAIL if candidate has next accommodation | Cas3Eligibility, CrsEligibility, DtrEligibility | CAS3, CRS, DTR |
+| NoNextAccommodationRule | FAIL if candidate has next accommodation | Cas2Eligibility, Cas3Eligibility, CrsEligibility, DtrEligibility | CAS2, CAS3, CRS, DTR |
 | NonMaleRiskEligibilityRule | FAIL if candidate is not Male and is not Tier A3 - C3 | Cas1Eligibility | CAS1 |
 | ReleaseWithin15DaysRule | FAIL if not within 15 days of release from current accommodation | Cas2Upcoming | CAS2 |
 | ReleaseWithinEightWeeksRule | FAIL if not within 8 weeks of release from current accommodation | DtrUpcoming | DTR |
