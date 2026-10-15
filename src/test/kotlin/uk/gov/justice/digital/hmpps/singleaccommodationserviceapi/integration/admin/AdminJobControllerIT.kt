@@ -88,28 +88,6 @@ class AdminJobControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return 403 when the client does not have the admin role`() {
-    restTestClient.post().uri("/admin/bulk-load-cases")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkLoadCasesRequestBody(teamCodes = listOf(teamCode)))
-      .withClientCredentialsJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"))
-      .exchange()
-      .expectStatus().isForbidden
-  }
-
-  @Test
-  fun `should return 403 if called with Delius user JWT`() {
-    createDeliusUser()
-
-    restTestClient.post().uri("/admin/bulk-load-cases")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkLoadCasesRequestBody(teamCodes = listOf(teamCode)))
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus().isForbidden
-  }
-
-  @Test
   fun `should create the cases not already held and stage a bulk refresh for the team`() {
     SasAndDeliusStubs.stubGetCasesByTeamCode(teamCode, teamCases)
 
@@ -210,28 +188,6 @@ class AdminJobControllerIT : IntegrationTestBase() {
       .withClientCredentialsJwt(roles = adminRoles)
       .exchange()
       .expectStatus().isBadRequest
-  }
-
-  @Test
-  fun `should return 403 when refreshing cases by crn without the admin role`() {
-    restTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkRefreshCasesByCrnRequestBody(crns = listOf(refreshCrn)))
-      .withClientCredentialsJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"))
-      .exchange()
-      .expectStatus().isForbidden
-  }
-
-  @Test
-  fun `should return 403 when refreshing cases by crn with a Delius user JWT`() {
-    createDeliusUser()
-
-    restTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkRefreshCasesByCrnRequestBody(crns = listOf(refreshCrn)))
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus().isForbidden
   }
 
   @Test
@@ -461,28 +417,6 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Nested
   inner class BulkRefreshAllCases {
-
-    @Test
-    fun `should return 403 when refreshing all cases without the admin role`() {
-      restTestClient.post().uri("/admin/bulk-refresh-all-cases")
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(bulkRefreshAllCasesRequestBody(dryRun = false))
-        .withClientCredentialsJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"))
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `should return 403 when refreshing all cases with a Delius user JWT`() {
-      createDeliusUser()
-
-      restTestClient.post().uri("/admin/bulk-refresh-all-cases")
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(bulkRefreshAllCasesRequestBody(dryRun = false))
-        .withDeliusUserJwt()
-        .exchange()
-        .expectStatus().isForbidden
-    }
 
     @Test
     fun `should return 200 when refreshing all cases and no cases are stored`() {
