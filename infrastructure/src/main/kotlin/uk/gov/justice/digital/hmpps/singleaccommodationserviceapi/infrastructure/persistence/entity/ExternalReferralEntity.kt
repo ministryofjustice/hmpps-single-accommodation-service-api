@@ -30,6 +30,7 @@ open class ExternalReferralEntity(
   var submissionNote: String?,
   @Enumerated(EnumType.STRING)
   var withdrawalReason: ExternalReferralWithdrawalReason?,
+  var otherReason: String?,
   var withdrawalNote: String?,
   var outcomeNote: String?,
 
@@ -54,8 +55,10 @@ enum class ExternalReferralStatus {
 
 enum class ExternalReferralWithdrawalReason {
   PLACEMENT_COMPLETE,
-  ACCEPTED_BY_ORGANISATION,
-  ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
+  ANOTHER_ACCOMMODATION_FOUND,
+  NO_RESPONSE_FROM_ORGANISATION,
+  PERSON_CANNOT_BE_CONTACTED_OR_DISENGAGED,
+  PERSON_NO_LONGER_CONSENTS,
   PERSON_NOT_SUITABLE,
   NO_CAPACITY,
   ANOTHER_REASON,

@@ -154,7 +154,8 @@ fun expectedGetEligibilityResponse(
           "latestAssessmentStatus": "CANCELLED",
           "offerDeclinedReason": null,
           "cancelledReason": "cancelled reason",
-          "submittedAt": "2024-01-02T12:00:00Z"
+          "submittedAt": "2024-01-02T12:00:00Z",
+          "markedAsArrivedDateTime": null
         },
         "cohort":"INTENSIVE_SUPERVISION_COURTS"
       }
@@ -435,9 +436,9 @@ fun expectedGetEligibilityResponseTierNotFound(
     },
     "cas2": {
       "serviceResult": {
-        "serviceStatus": "CAS2_NOT_STARTED_COMMUNITY",
-        "action": null,
-        "link": "Start referral",
+        "serviceStatus": "NOT_STARTED",
+        "action": {"type":"START_CAS2_REFERRAL","startDate":null,"service":"CAS2"},
+        "link": "Start application",
         "url": null,
         "linkType": "CAS2_START_APPLICATION",
         "failureReasons": [],
@@ -532,7 +533,8 @@ fun expectedGetEligibilityResponseTierNotFound(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type":"START_CAS2_REFERRAL","startDate":null,"service":"CAS2"}
       ]
    }
 }
@@ -595,9 +597,9 @@ fun expectedGetEligibilityNotEligibleSTierFail(
     },
     "cas2": {
       "serviceResult": {
-        "serviceStatus": "CAS2_NOT_STARTED_COMMUNITY",
-        "action": null,
-        "link": "Start referral",
+        "serviceStatus": "NOT_STARTED",
+        "action": {"type":"START_CAS2_REFERRAL","startDate":null,"service":"CAS2"},
+        "link": "Start application",
         "url": null,
         "linkType": "CAS2_START_APPLICATION",
         "failureReasons": [],
@@ -691,7 +693,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type":"START_CAS2_REFERRAL","startDate":null,"service":"CAS2"}
       ]
    }
 }
@@ -721,7 +724,7 @@ fun expectedGetEligibilityResponseCannotStartYet(
       },
       "cas2": {
         "serviceResult": {
-          "serviceStatus": "CAS2_NOT_STARTED_PRISON",
+          "serviceStatus": "NOT_STARTED",
           "action":{
           "type":"START_CAS2_REFERRAL",
           "startDate":null,"service":"CAS2"

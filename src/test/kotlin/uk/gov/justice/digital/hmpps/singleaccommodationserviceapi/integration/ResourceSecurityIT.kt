@@ -164,6 +164,7 @@ private val caseControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /case-list" to defaultRoles,
     "GET /cases/{crn}" to defaultRoles,
+    "POST /cases/{crn}/applications/{applicationId}/arrival" to defaultRoles,
     "GET /search/{crn}" to defaultRoles,
   )
 
@@ -194,6 +195,7 @@ private val externalReferralControllerMap: Map<String, Set<String>> =
     "PUT /cases/{crn}/external-referral/{id}" to defaultRoles,
     "POST /cases/{crn}/external-referral/{id}/notes" to defaultRoles,
     "GET /cases/{crn}/external-referral/{id}/timeline" to defaultRoles,
+    "POST /cases/{crn}/external-referral/{id}/withdrawal" to defaultRoles,
   )
 
 private val controllerMap: Map<String, Map<String, Set<String>>> =

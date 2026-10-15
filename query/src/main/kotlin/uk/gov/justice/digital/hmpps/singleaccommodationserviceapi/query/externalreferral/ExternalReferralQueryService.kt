@@ -45,10 +45,12 @@ class ExternalReferralQueryService(
   fun searchExternalReferrals(
     crn: String,
     statuses: List<ExternalReferralStatus>?,
+    excludeWithdrawnReferrals: Boolean? = null,
   ): List<ExternalReferralDto> {
     val entities = externalReferralRepository.searchByCrn(
       crn = crn,
       statuses = statuses?.takeIf { it.isNotEmpty() }?.map { EntityExternalReferralStatus.valueOf(it.name) },
+      excludeWithdrawnReferrals = excludeWithdrawnReferrals,
     )
     if (entities.isEmpty()) return emptyList()
 

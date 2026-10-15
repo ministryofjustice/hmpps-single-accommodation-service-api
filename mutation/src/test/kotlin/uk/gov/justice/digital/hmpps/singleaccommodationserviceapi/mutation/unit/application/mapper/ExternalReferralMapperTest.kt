@@ -19,8 +19,8 @@ class ExternalReferralMapperTest {
   @Test
   fun `toEntity maps all fields correctly`() {
     val snapshot = buildExternalReferralSnapshot(
-      status = ExternalReferralStatus.ACCEPTED,
-      withdrawalReason = ExternalReferralWithdrawalReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
+      status = ExternalReferralStatus.ARCHIVED,
+      withdrawalReason = ExternalReferralWithdrawalReason.PERSON_CANNOT_BE_CONTACTED_OR_DISENGAGED,
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
@@ -100,8 +100,9 @@ class ExternalReferralMapperTest {
     val newNote2 = buildExternalReferralNote(id = UUID.randomUUID(), note = "3333")
     val preExistingNote = buildExternalReferralNote(id = preExistingNoteEntity.id, note = preExistingNoteEntity.note)
     val snapshot = buildExternalReferralSnapshot(
-      status = ExternalReferralStatus.ACCEPTED,
-      withdrawalReason = ExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION,
+      status = ExternalReferralStatus.COMPLETED,
+      withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
+      withdrawalNote = "A withdrawal note",
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
@@ -117,7 +118,8 @@ class ExternalReferralMapperTest {
     assertThat(merged.status).isEqualTo(EntityExternalReferralStatus.valueOf(snapshot.status.name))
     assertThat(merged.email).isEqualTo(snapshot.email)
     assertThat(merged.phoneNumber).isEqualTo(snapshot.phoneNumber)
-    assertThat(merged.withdrawalReason).isEqualTo(EntityExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION)
+    assertThat(merged.withdrawalReason).isEqualTo(EntityExternalReferralWithdrawalReason.PLACEMENT_COMPLETE)
+    assertThat(merged.withdrawalNote).isEqualTo(snapshot.withdrawalNote)
     assertThat(merged.outcomeNote).isEqualTo(snapshot.outcomeNote)
     assertThat(merged.notes).hasSize(3)
     assertThat(merged.notes.first().note).isEqualTo(preExistingNoteEntity.note)
@@ -131,6 +133,7 @@ class ExternalReferralMapperTest {
       referenceNumber = "OA-REF-001",
       status = EntityExternalReferralStatus.REJECTED,
       withdrawalReason = EntityExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
+      withdrawalNote = "A withdrawal note",
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
@@ -159,6 +162,7 @@ class ExternalReferralMapperTest {
     assertThat(snapshot.referenceNumber).isEqualTo(entity.referenceNumber)
     assertThat(snapshot.status).isEqualTo(ExternalReferralStatus.REJECTED)
     assertThat(snapshot.withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE)
+    assertThat(snapshot.withdrawalNote).isEqualTo(entity.withdrawalNote)
     assertThat(snapshot.outcomeNote).isEqualTo(entity.outcomeNote)
     assertThat(snapshot.email).isEqualTo(entity.email)
     assertThat(snapshot.phoneNumber).isEqualTo(entity.phoneNumber)

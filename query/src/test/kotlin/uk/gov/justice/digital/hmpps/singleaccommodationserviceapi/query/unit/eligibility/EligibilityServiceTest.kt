@@ -90,6 +90,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas2Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas3Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCommunityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Under18Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2ApplicationSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityContextUpdater
@@ -194,6 +197,9 @@ class EligibilityServiceTest {
   var cas2SuitabilityRuleSet = Cas2SuitabilityRuleSet(Cas2ApplicationSubmittedRule(), Cas2SuitableStatusRule())
   var cas2EligibilityRuleSet = Cas2EligibilityRuleSet(
     Under18Rule(clock),
+    CurrentAccommodationTypeIsCas3Rule(),
+    CurrentAccommodationTypeIsCas2Rule(),
+    CurrentAccommodationTypeIsCommunityRule(),
   )
   val cas2UpcomingContextUpdater = Cas2UpcomingContextUpdater()
   var cas2UpcomingRuleSet = Cas2UpcomingRuleSet(ReleaseWithin15DaysRule(clock))
@@ -690,6 +696,7 @@ class EligibilityServiceTest {
               isCas1 = it == "A02",
               isPrison = it == "HMP",
               isCas2 = it == "A10" || it == "A11",
+              isCas3 = it == "A17",
             )
           },
           dob = if (s.u18 == null) {
@@ -1336,17 +1343,76 @@ class EligibilityServiceTest {
     }
 
     @Test
-    fun `Cas2 allows candidate with no date of birth`() {
+    fun `Cas2 surfaces IN_CAS2_ACCOMMODATION when candidate is in CAS2`() {
       clock.setNow(today)
       val data = buildDomainData(
-        dob = null,
+        dob = today.minusYears(18),
+        currentAccommodation = buildAccommodationSummaryDto(
+          endDate = today.plusDays(1),
+          type = buildAccommodationTypeDto(code = "A10"),
+        ),
+        currentAccommodationTypeEntity = buildAccommodationTypeEntity(
+          code = "A10",
+          isCas1 = false,
+          isPrison = false,
+          isCas2 = true,
+        ),
         cas2Application = null,
       )
 
       val result = eligibilityService.evaluate(cas2Tree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_STARTED_COMMUNITY)
-      assertThat(result.failureReasons).isEmpty()
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
+      assertThat(result.failureReasons).containsExactly(FailureReason.IN_CAS2_ACCOMMODATION)
+    }
+
+    @Test
+    fun `Cas2 surfaces IN_CAS3_ACCOMMODATION when candidate is in CAS3`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        dob = today.minusYears(18),
+        currentAccommodation = buildAccommodationSummaryDto(
+          endDate = today.plusDays(1),
+          type = buildAccommodationTypeDto(code = "A17"),
+        ),
+        currentAccommodationTypeEntity = buildAccommodationTypeEntity(
+          code = "A17",
+          isCas1 = false,
+          isPrison = false,
+          isCas2 = false,
+          isCas3 = true,
+        ),
+        cas2Application = null,
+      )
+
+      val result = eligibilityService.evaluate(cas2Tree, data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
+      assertThat(result.failureReasons).containsExactly(FailureReason.IN_CAS3_ACCOMMODATION)
+    }
+
+    @Test
+    fun `Cas2 surfaces IN_COMMUNITY when candidate is in community accommodation`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        dob = today.minusYears(18),
+        currentAccommodation = buildAccommodationSummaryDto(
+          endDate = today.plusDays(1),
+          type = buildAccommodationTypeDto(code = "A01A"),
+        ),
+        currentAccommodationTypeEntity = buildAccommodationTypeEntity(
+          code = "A01A",
+          isCas1 = false,
+          isPrison = false,
+          isCas2 = false,
+        ),
+        cas2Application = null,
+      )
+
+      val result = eligibilityService.evaluate(cas2Tree, data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
+      assertThat(result.failureReasons).containsExactly(FailureReason.IN_COMMUNITY)
     }
 
     @Test

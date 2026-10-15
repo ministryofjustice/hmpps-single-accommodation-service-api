@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -70,6 +71,31 @@ class ExternalReferralApplicationService(
         outcomeNote = command.outcomeNote,
       )
     }
+    val updatedRecord = externalReferralRepository.save(merge(aggregate.snapshot(), referral))
+
+    return ExternalReferralMapper.toDto(
+      snapshot = aggregate.snapshot(),
+      createdBy = createdByUser.displayName(),
+      createdByUsername = createdByUser.username,
+      createdAt = updatedRecord.createdAt,
+    )
+  }
+
+  @Transactional
+  fun withdrawalExternalReferral(crn: String, id: UUID, command: ExternalReferralWithdrawalDto): ExternalReferralDto {
+    val referral = externalReferralRepository.findByIdAndCrn(id, crn)
+      .orThrowNotFound("id" to id, "crn" to crn)
+    val createdByUser = userService.findUserByUserId(referral.createdByUserId)
+      .orThrowNotFound("id" to referral.createdByUserId)
+
+    val aggregate = ExternalReferralMapper.toAggregate(referral).also {
+      it.updateExternalReferralWithdrawal(
+        withdrawalReason = command.withdrawalReason,
+        otherReason = command.otherReason,
+        withdrawalNote = command.withdrawalNote,
+      )
+    }
+
     val updatedRecord = externalReferralRepository.save(merge(aggregate.snapshot(), referral))
 
     return ExternalReferralMapper.toDto(
