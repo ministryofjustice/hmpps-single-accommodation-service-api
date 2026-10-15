@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas3Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCommunityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Under18Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
@@ -22,6 +23,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
     CurrentAccommodationTypeIsCommunityRule::class,
     ClockConfig::class,
     Under18Rule::class,
+    NoNextAccommodationRule::class,
   ],
 )
 class Cas2EligibilityRuleSetTest {
@@ -31,6 +33,7 @@ class Cas2EligibilityRuleSetTest {
 
   private val expectedCas2EligibilityRuleNames = listOf(
     Under18Rule::class.simpleName,
+    NoNextAccommodationRule::class.simpleName,
     CurrentAccommodationTypeIsCas3Rule::class.simpleName,
     CurrentAccommodationTypeIsCas2Rule::class.simpleName,
     CurrentAccommodationTypeIsCommunityRule::class.simpleName,
@@ -41,7 +44,7 @@ class Cas2EligibilityRuleSetTest {
     val ruleSetRules = cas2EligibilityRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(4)
+      .hasSize(5)
       .containsExactlyInAnyOrderElementsOf(expectedCas2EligibilityRuleNames)
   }
 }

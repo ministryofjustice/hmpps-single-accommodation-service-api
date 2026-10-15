@@ -32,9 +32,9 @@ fun expectedGetEligibilityResponse(
     "crn": "$crn",
     "cas1": {
       "serviceResult": {
-        "serviceStatus": "PLACEMENT_BOOKED",
-        "action": null,
-        "link": "View application",
+        "serviceStatus": "PLACEMENT_CANCELLED",
+        "action": {"type":"CREATE_PLACEMENT","startDate":null,"service":"CAS1"},
+        "link": "Create new placement request",
         "url": "$cas1ApplicationUrl",
         "linkType": "CAS1_VIEW_APPLICATION",
         "failureReasons": [],
@@ -74,11 +74,11 @@ fun expectedGetEligibilityResponse(
           "durationDays": 12
         },
         "placement": {
-          "status": "UPCOMING",
+          "status": "CANCELLED",
           "actualArrivalDate": null,
           "actualDepartureDate": null,
           "expectedDepartureDate": null,
-          "cancellationReason": null,
+          "cancellationReason": "Oops",
           "premises": {
             "startDate": "$startDate",
             "endDate": "$endDate",
@@ -126,7 +126,7 @@ fun expectedGetEligibilityResponse(
         "id": "$cas1ApplicationId",
         "applicationStatus": "PLACEMENT_ALLOCATED",
         "requestForPlacementStatus": "PLACEMENT_BOOKED",
-        "placementStatus": "UPCOMING"
+        "placementStatus": "CANCELLED"
       }
     },
     "cas2": {
@@ -162,7 +162,7 @@ fun expectedGetEligibilityResponse(
     },
     "cas3": {
       "serviceResult": {
-        "serviceStatus": "BOOKING_CONFIRMED",
+        "serviceStatus": "BOOKING_CANCELLED",
         "action": null,
         "link": "View referral",
         "url": "$cas3ReferralUrl",
@@ -181,7 +181,7 @@ fun expectedGetEligibilityResponse(
         },
         "applicationRejectedReason": "Oops",
         "assessmentStatus": "REJECTED",
-        "bookingStatus": "CONFIRMED",
+        "bookingStatus": "CANCELLED",
         "cancellation": {
               "cancellationDate": "2023-01-03",
               "cancellationReason": "Mistake"
@@ -253,17 +253,18 @@ fun expectedGetEligibilityResponse(
       },
       "pa":{
          "serviceResult":{
-            "serviceStatus":"COMPLETED",
+            "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[],
+            "failureReasons":["SUITABLE_CAS1_APPLICATION","SUITABLE_CAS3_APPLICATION"],
             "blockingStatusReason": null
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type":"CREATE_PLACEMENT","startDate":null, "service": "CAS1"}
       ]
    }
 }
