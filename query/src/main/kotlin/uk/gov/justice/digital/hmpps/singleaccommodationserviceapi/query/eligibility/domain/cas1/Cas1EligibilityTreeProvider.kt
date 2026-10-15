@@ -1,11 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -18,12 +16,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1ValidationRuleSet
 
 @Component
 class Cas1EligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
-  private val validation: Cas1ValidationRuleSet,
   private val upcoming: Cas1UpcomingRuleSet,
   private val upcomingContextUpdater: Cas1UpcomingContextUpdater,
   private val suitability: Cas1SuitabilityRuleSet,
@@ -44,7 +40,7 @@ class Cas1EligibilityTreeProvider(
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notEligible = builder.notEligible(AccommodationService.CAS1)
+    val notEligible = builder.notEligible(ServiceType.CAS1)
     val placementBooked = builder.outcome(
       "placementBooked",
       serviceResult(),
@@ -68,22 +64,14 @@ class Cas1EligibilityTreeProvider(
       .onFail(eligibilityNode)
       .build()
 
-    val upcomingNode = builder
+    return builder
       .ruleSet("Cas1Upcoming", upcoming, upcomingContextUpdater)
       .onPass(suitabilityNode)
       .onFail(eligibilityNode)
-      .build()
-
-    return builder
-      .ruleSet("Cas1Validation", validation)
-      .onPass(upcomingNode)
-      .onFail(notEligible)
       .build()
   }
 
   private fun serviceResult(): ServiceResultNew = ServiceResultNew(
     serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
-    link = EligibilityKeys.VIEW_APPLICATION,
-    linkType = LinkType.CAS1_VIEW_APPLICATION,
   )
 }

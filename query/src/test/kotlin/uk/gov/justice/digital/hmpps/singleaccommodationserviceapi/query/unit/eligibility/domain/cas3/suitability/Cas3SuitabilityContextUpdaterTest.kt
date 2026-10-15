@@ -3,15 +3,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -42,10 +37,7 @@ class Cas3SuitabilityContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.action).isEqualTo(CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3))
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_REJECTED)
-      assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.START_NEW_REFERRAL)
-      assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS3_START_REFERRAL)
       assertThat(result.currentResult.url).isNull()
     }
 
@@ -65,8 +57,6 @@ class Cas3SuitabilityContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_NOT_SUBMITTED)
-      assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.CONTINUE_REFERRAL)
-      assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS3_VIEW_REFERRAL)
       assertThat(result.currentResult.url).isNull()
     }
   }

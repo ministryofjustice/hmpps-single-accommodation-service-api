@@ -5,6 +5,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.OutcomeNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetNode
+import kotlin.reflect.KClass
+
+private const val QUERY_MAIN_KOTLIN = "../query/src/main/kotlin"
 
 object RulesGraphWalker {
 
@@ -42,9 +45,10 @@ object RulesGraphWalker {
                 className = rule::class.simpleName
                   ?: error("Rules should not be defined as anonymous classes"),
                 description = rule.description,
+                sourcePath = sourceLinkPath(rule::class),
               )
             },
-            contextUpdater = contextUpdaterName(node.contextUpdater),
+            contextUpdater = contextUpdaterInfo(node.contextUpdater),
             ruleSet = node.ruleSet,
           )
           nodes[node] = graphNode
@@ -81,13 +85,26 @@ internal fun slug(raw: String): String {
   return if (cleaned.firstOrNull()?.isLetter() == true) cleaned else "n_$cleaned"
 }
 
-private fun nodeLabel(node: DecisionNode): String = when (node) {
-  is OutcomeNode -> node.name
-  is RuleSetNode -> node.ruleSetName
+internal fun contextUpdaterInfo(updater: ContextUpdater): ContextUpdaterInfo? {
+  val kClass = updater::class
+  val simple = kClass.simpleName
+  if (simple.isNullOrBlank()) {
+    if (updater.propagatesFailureReasons) return null
+    return ContextUpdaterInfo(name = "constant", description = updater.description, outcomes = updater.outcomes)
+  }
+  return ContextUpdaterInfo(
+    name = simple,
+    description = updater.description,
+    outcomes = updater.outcomes,
+    sourcePath = sourceLinkPath(kClass),
+  )
 }
 
-internal fun contextUpdaterName(updater: ContextUpdater): String {
-  val simple = updater::class.simpleName
-  if (!simple.isNullOrBlank()) return simple
-  return if (updater.propagatesFailureReasons) "identity" else "constant"
+internal fun sourceLinkPath(kClass: KClass<*>): String? {
+  val javaClass = kClass.java
+  if (javaClass.isAnonymousClass || javaClass.isLocalClass || javaClass.enclosingClass != null) return null
+  val packageName = javaClass.packageName
+  val simpleName = kClass.simpleName ?: return null
+  if (packageName.isBlank()) return null
+  return "$QUERY_MAIN_KOTLIN/${packageName.replace('.', '/')}/$simpleName.kt"
 }

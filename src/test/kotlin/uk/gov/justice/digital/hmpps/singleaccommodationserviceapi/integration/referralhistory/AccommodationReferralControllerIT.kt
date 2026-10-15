@@ -4,27 +4,37 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus.NOT_ARRIVED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus.AWAITING_MATCH
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildExternalReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ExternalReferralRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response.expectedGetReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_TEST_DATA_SETUP_USER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response.expectedGetReferralHistoryResponseBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response.expectedReferralHistoryItem
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralWithdrawalReason as EntityExternalReferralWithdrawalReason
 
 class AccommodationReferralControllerIT : IntegrationTestBase() {
 
@@ -33,6 +43,9 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var dutyToReferRepository: DutyToReferRepository
+
+  @Autowired
+  private lateinit var externalReferralRepository: ExternalReferralRepository
 
   private lateinit var case: CaseEntity
 
@@ -68,6 +81,15 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
       ),
     )
 
+    val cas2Response: List<Cas2ReferralHistory> = listOf(
+      buildReferralHistory(
+        applicationSubmittedDate = LocalDate.parse("2025-02-15"),
+        applicationLastUpdatedDate = LocalDate.parse("2025-02-20"),
+        applicationStatus = Cas2AssessmentStatus.CANCELLED,
+        referredBy = referredByUser,
+      ),
+    )
+
     val cas3Response: List<Cas3ReferralHistory> = listOf(
       buildReferralHistory(
         date = LocalDate.parse("2025-02-01"),
@@ -79,6 +101,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     )
 
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, cas1Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, cas2Response)
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, cas3Response)
 
     restTestClient.get().uri("/cases/{crn}/applications", crn)
@@ -87,12 +110,51 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
       .expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(
-          expectedGetReferralHistory(
-            id1 = cas1Response.first().id,
-            id4 = cas3Response.first().id,
-            dtrId = dutyToRefer.id,
-            dtrStatus = "WITHDRAWN",
-            dtrSubmissionDate = "2026-01-15",
+          expectedGetReferralHistoryResponseBody(
+            listOf(
+              expectedReferralHistoryItem(
+                id = dutyToRefer.id,
+                type = "DTR",
+                status = "WITHDRAWN",
+                date = "2026-01-15",
+                referredByName = "Test Data Setup User",
+                referredByUsername = "TEST_DATA_SETUP_USER",
+                localAuthorityArea = "Aberdeen City",
+                pdu = "Aberdeen City",
+              ),
+              expectedReferralHistoryItem(
+                id = cas1Response.first().id,
+                type = "CAS1",
+                status = "NOT_ARRIVED",
+                date = "2025-03-01",
+                referredByName = "Joe Bloggs",
+                referredByUsername = "user1",
+                requestForPlacementStatus = "awaiting_match",
+                placementStatus = "notArrived",
+                uiUrl = "https://example.com/referral",
+              ),
+              expectedReferralHistoryItem(
+                id = cas2Response.first().id,
+                type = "CAS2",
+                status = "CANCELLED",
+                date = "2025-02-15",
+                applicationLastUpdatedDate = "2025-02-20",
+                referredByName = "Joe Bloggs",
+                referredByUsername = null,
+                uiUrl = "https://example.com/referral",
+              ),
+              expectedReferralHistoryItem(
+                id = cas3Response.first().id,
+                type = "CAS3",
+                status = "DEPARTED",
+                date = "2025-02-01",
+                referredByName = "Joe Bloggs",
+                referredByUsername = "user1",
+                assessmentStatus = "ready_to_place",
+                placementStatus = "departed",
+                uiUrl = "https://example.com/referral",
+              ),
+            ),
           ),
         )
       }
@@ -113,6 +175,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     )
 
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, cas1Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, emptyList())
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
 
     restTestClient.get().uri("/cases/{crn}/applications", crn)
@@ -120,5 +183,171 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
       .exchangeSuccessfully()
       .expectBody()
       .jsonPath("$.data[0].withdrawalReason").isEqualTo("DuplicatePlacementRequest")
+  }
+
+  @Test
+  fun `getApplicationHistory includes completed, archived and rejected with a withdrawal reason external referrals and excludes submitted and accepted ones`() {
+    val crn = "X12345"
+
+    val rejectedReferral = externalReferralRepository.save(
+      buildExternalReferralEntity(
+        caseId = case.id,
+        crn = crn,
+        referenceNumber = "OA-REF-REJECTED",
+        submissionDate = LocalDate.of(2026, 9, 20),
+        status = ExternalReferralStatus.REJECTED,
+        organisationName = "Rejecting Charity",
+        withdrawalReason = EntityExternalReferralWithdrawalReason.NO_CAPACITY,
+        withdrawalNote = "Rejected withdrawal reason",
+      ),
+    )
+    externalReferralRepository.save(
+      buildExternalReferralEntity(
+        caseId = case.id,
+        crn = crn,
+        referenceNumber = "OA-REF-SUBMITTED",
+        submissionDate = LocalDate.of(2026, 9, 25),
+        status = ExternalReferralStatus.SUBMITTED,
+      ),
+    )
+    externalReferralRepository.save(
+      buildExternalReferralEntity(
+        caseId = case.id,
+        crn = crn,
+        referenceNumber = "OA-REF-ACCEPTED",
+        submissionDate = LocalDate.of(2026, 9, 28),
+        status = ExternalReferralStatus.ACCEPTED,
+      ),
+    )
+
+    val archivedReferral = externalReferralRepository.save(
+      buildExternalReferralEntity(
+        caseId = case.id,
+        crn = crn,
+        referenceNumber = "OA-REF-ARCHIVED",
+        submissionDate = LocalDate.of(2026, 10, 10),
+        status = ExternalReferralStatus.ARCHIVED,
+        organisationName = "Another Charity",
+        withdrawalReason = EntityExternalReferralWithdrawalReason.NO_RESPONSE_FROM_ORGANISATION,
+        withdrawalNote = null,
+      ),
+    )
+
+    val completedReferral = externalReferralRepository.save(
+      buildExternalReferralEntity(
+        caseId = case.id,
+        crn = crn,
+        referenceNumber = "OA-REF-COMPLETED",
+        submissionDate = LocalDate.of(2026, 9, 22),
+        status = ExternalReferralStatus.COMPLETED,
+        organisationName = "Another Charity",
+        withdrawalReason = EntityExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
+        withdrawalNote = null,
+      ),
+    )
+
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, emptyList())
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, emptyList())
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
+
+    restTestClient.get().uri("/cases/{crn}/applications", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetReferralHistoryResponseBody(
+            listOf(
+              expectedReferralHistoryItem(
+                id = archivedReferral.id,
+                type = "ER",
+                status = "ARCHIVED",
+                date = "2026-10-10",
+                referredByName = NAME_OF_TEST_DATA_SETUP_USER,
+                referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
+                withdrawalReason = EntityExternalReferralWithdrawalReason.NO_RESPONSE_FROM_ORGANISATION.name,
+                withdrawalNote = null,
+              ),
+              expectedReferralHistoryItem(
+                id = completedReferral.id,
+                type = "ER",
+                status = "COMPLETED",
+                date = "2026-09-22",
+                referredByName = NAME_OF_TEST_DATA_SETUP_USER,
+                referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
+                withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE.name,
+                withdrawalNote = null,
+              ),
+              expectedReferralHistoryItem(
+                id = rejectedReferral.id,
+                type = "ER",
+                status = "REJECTED",
+                date = "2026-09-20",
+                referredByName = NAME_OF_TEST_DATA_SETUP_USER,
+                referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
+                withdrawalReason = EntityExternalReferralWithdrawalReason.NO_CAPACITY.name,
+                withdrawalNote = "Rejected withdrawal reason",
+              ),
+            ),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `getApplicationHistory excludes rejected external referrals that have no withdrawal reason`() {
+    val crn = "X12345"
+
+    externalReferralRepository.save(
+      buildExternalReferralEntity(
+        caseId = case.id,
+        crn = crn,
+        referenceNumber = "OA-REF-REJECTED-NO-REASON",
+        submissionDate = LocalDate.of(2026, 1, 20),
+        status = ExternalReferralStatus.REJECTED,
+        organisationName = "Rejecting Charity",
+        withdrawalReason = null,
+        withdrawalNote = null,
+      ),
+    )
+    val completedReferral = externalReferralRepository.save(
+      buildExternalReferralEntity(
+        caseId = case.id,
+        crn = crn,
+        referenceNumber = "OA-REF-COMPLETED",
+        submissionDate = LocalDate.of(2026, 9, 22),
+        status = ExternalReferralStatus.COMPLETED,
+        organisationName = "Another Charity",
+        withdrawalReason = EntityExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
+        withdrawalNote = "Completed withdrawal note",
+      ),
+    )
+
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, emptyList())
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, emptyList())
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
+
+    restTestClient.get().uri("/cases/{crn}/applications", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetReferralHistoryResponseBody(
+            listOf(
+              expectedReferralHistoryItem(
+                id = completedReferral.id,
+                type = "ER",
+                status = "COMPLETED",
+                date = "2026-09-22",
+                referredByName = NAME_OF_TEST_DATA_SETUP_USER,
+                referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
+                withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE.name,
+                withdrawalNote = "Completed withdrawal note",
+              ),
+            ),
+          ),
+        )
+      }
   }
 }

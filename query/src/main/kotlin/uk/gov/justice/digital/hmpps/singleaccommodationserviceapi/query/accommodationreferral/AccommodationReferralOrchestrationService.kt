@@ -6,9 +6,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS1_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 
 @Service
@@ -19,6 +21,7 @@ class AccommodationReferralOrchestrationService(
   fun fetchAllReferralsAggregated(crn: String): OrchestrationResultDto<AccommodationReferralOrchestrationDto> {
     val calls = mapOf(
       GET_CAS1_REFERRAL to { approvedPremisesCachingService.getCas1ReferralHistory(crn) },
+      GET_CAS2_REFERRAL to { approvedPremisesCachingService.getCas2ReferralHistory(crn) },
       GET_CAS3_REFERRAL to { approvedPremisesCachingService.getCas3ReferralHistory(crn) },
     )
 
@@ -28,12 +31,19 @@ class AccommodationReferralOrchestrationService(
     val cas1 =
       results.standardCallsNoIterationResults!!.getResult<List<Cas1ReferralHistory>>(GET_CAS1_REFERRAL)
         ?: emptyList()
+    val cas2 =
+      results.standardCallsNoIterationResults!!.getResult<List<Cas2ReferralHistory>>(GET_CAS2_REFERRAL)
+        ?: emptyList()
     val cas3 =
       results.standardCallsNoIterationResults!!.getResult<List<Cas3ReferralHistory>>(GET_CAS3_REFERRAL)
         ?: emptyList()
 
     return OrchestrationResultDto(
-      data = AccommodationReferralOrchestrationDto(cas1, cas3),
+      data = AccommodationReferralOrchestrationDto(
+        cas1Referrals = cas1,
+        cas2Referrals = cas2,
+        cas3Referrals = cas3,
+      ),
       upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
     )
   }

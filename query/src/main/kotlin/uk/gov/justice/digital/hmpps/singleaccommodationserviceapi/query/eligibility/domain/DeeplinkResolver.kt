@@ -13,14 +13,13 @@ class DeeplinkResolver(
   private val log = LoggerFactory.getLogger(this::class.java)
 
   fun resolve(result: ServiceResultNew, data: DomainData): ServiceResultNew {
-    val url = when (result.linkType) {
+    val url = when (result.serviceStatus.link?.type) {
       LinkType.CAS1_START_APPLICATION -> cas1UrlTemplates()?.cas1ApplicationStart
       LinkType.CAS1_VIEW_APPLICATION -> data.cas1Application?.uiUrl
 
-      // TODO: this endpoint doesn't exist in CAS yet.
-      LinkType.CAS2_START_APPLICATION -> null
-
+      LinkType.CAS2_START_APPLICATION -> cas2UrlTemplates()?.cas2ApplicationStart
       LinkType.CAS2_VIEW_APPLICATION -> data.cas2Application?.uiUrl
+
       LinkType.CAS3_START_REFERRAL -> cas3UrlTemplates()?.cas3ReferralStart
       LinkType.CAS3_VIEW_REFERRAL -> data.cas3Application?.uiUrl
       null -> return result

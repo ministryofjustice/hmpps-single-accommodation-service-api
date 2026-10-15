@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PlacementStatus
@@ -23,12 +22,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationSummaryDto
@@ -46,7 +45,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCommissionedRehabilitativeServicesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityNewToOldTransformer.toEligibilityDtoOld
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityNewToOldTransformer.toServiceStatusOld
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResultNew
@@ -114,19 +112,27 @@ class EligibilityNewToOldTransformerTest {
       Arguments.of(ServiceStatusNew.CAS3_BEDSPACE_OFFERED, ServiceStatus.BEDSPACE_OFFERED),
       Arguments.of(ServiceStatusNew.CAS3_BOOKING_CANCELLED, ServiceStatus.BOOKING_CANCELLED),
       Arguments.of(ServiceStatusNew.CAS3_BOOKING_CONFIRMED, ServiceStatus.BOOKING_CONFIRMED),
-      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION, ServiceStatus.CANNOT_START_YET),
+
       Arguments.of(ServiceStatusNew.CAS3_NOT_ARRIVED, ServiceStatus.NOT_ARRIVED),
       Arguments.of(ServiceStatusNew.CAS3_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
       Arguments.of(ServiceStatusNew.CAS3_NOT_STARTED, ServiceStatus.NOT_STARTED),
       Arguments.of(ServiceStatusNew.CAS3_NOT_SUBMITTED, ServiceStatus.NOT_SUBMITTED),
       Arguments.of(ServiceStatusNew.CAS3_REJECTED, ServiceStatus.REJECTED),
       Arguments.of(ServiceStatusNew.CAS3_SUBMITTED, ServiceStatus.SUBMITTED),
+      Arguments.of(ServiceStatusNew.CAS3_ARRIVED, ServiceStatus.ARRIVED),
 
       Arguments.of(ServiceStatusNew.CRS_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
       Arguments.of(ServiceStatusNew.CRS_NOT_REQUIRED, ServiceStatus.NOT_REQUIRED),
-      Arguments.of(ServiceStatusNew.CRS_NOT_STARTED, ServiceStatus.NOT_STARTED),
+      Arguments.of(ServiceStatusNew.CRS_NOT_STARTED_REFERRAL, ServiceStatus.NOT_STARTED),
       Arguments.of(ServiceStatusNew.CRS_SUBMITTED, ServiceStatus.SUBMITTED),
-      Arguments.of(ServiceStatusNew.CRS_UPCOMING, ServiceStatus.UPCOMING),
+      Arguments.of(ServiceStatusNew.CRS_UPCOMING_ACCOMMODATION_REFERRAL, ServiceStatus.UPCOMING),
+      Arguments.of(ServiceStatusNew.CRS_UPCOMING_REFERRAL, ServiceStatus.UPCOMING),
+      Arguments.of(ServiceStatusNew.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL, ServiceStatus.NOT_STARTED),
 
       Arguments.of(ServiceStatusNew.DTR_ACCEPTED, ServiceStatus.ACCEPTED),
       Arguments.of(ServiceStatusNew.DTR_NOT_ACCEPTED, ServiceStatus.NOT_ACCEPTED),
@@ -262,152 +268,169 @@ class EligibilityNewToOldTransformerTest {
 
     val crn = "FAKECRN1"
 
-    val cas1Action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION, service = AccommodationService.CAS1)
-    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_REFERRAL, service = AccommodationService.CAS2)
-    val cas3Action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3)
-    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, service = AccommodationService.DTR)
-    val crsAction = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, service = AccommodationService.CRS)
-    val paAction = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, service = AccommodationService.PA)
     val crs = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CRS_SUBMITTED,
-      link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
-      action = crsAction,
-      linkType = null,
+      serviceStatus = ServiceStatusNew.CRS_UPCOMING_ACCOMMODATION_REFERRAL,
       url = "crs/test",
+      actionStartDate = LocalDate.parse("2023-01-04"),
     )
     val cas1 = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS1_INFO_REQUESTED,
-      action = cas1Action,
-      link = EligibilityKeys.VIEW_APPLICATION,
-      linkType = LinkType.CAS1_VIEW_APPLICATION,
+      serviceStatus = ServiceStatusNew.CAS1_UPCOMING,
       url = "cas1/test",
+      actionStartDate = LocalDate.parse("2023-01-03"),
     )
     val cas2 = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS2_AWAITING_ARRIVAL,
-      action = cas2Action,
-      link = EligibilityKeys.VIEW_APPLICATION,
-      linkType = LinkType.CAS2_VIEW_APPLICATION,
+      serviceStatus = ServiceStatusNew.CAS2_UPCOMING,
       url = "cas2/test",
+      actionStartDate = LocalDate.parse("2023-01-02"),
     )
     val cas3 = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS3_NOT_SUBMITTED,
-      action = cas3Action,
-      link = EligibilityKeys.VIEW_REFERRAL,
-      linkType = LinkType.CAS3_VIEW_REFERRAL,
+      serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
       url = "cas3/test",
     )
     val dtr = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS1_SUBMITTED,
-      action = dtrAction,
-      link = EligibilityKeys.ADD_OUTCOME,
-      linkType = null,
+      serviceStatus = ServiceStatusNew.DTR_UPCOMING,
       url = "dtr/test",
+      actionStartDate = LocalDate.parse("2023-01-01"),
     )
     val pa = buildServiceResultNew(
-      action = paAction,
-      serviceStatus = ServiceStatusNew.PA_COMPLETED,
-      linkType = null,
+      serviceStatus = ServiceStatusNew.PA_NOT_STARTED,
       url = "pa/test",
     )
 
     val cas1ServiceResult = buildCas1ServiceResultNew(
       serviceResult = cas1,
       cas1Application = cas1ApplicationDto,
+      actionPosition = 1,
     )
     val cas2ServiceResult = buildCas2ServiceResultNew(
       serviceResult = cas2,
       cas2Application = cas2ApplicationDto,
+      actionPosition = 2,
     )
     val cas3ServiceResult = buildCas3ServiceResultNew(
       serviceResult = cas3,
       cas3Application = cas3ApplicationDto,
+      actionPosition = 4,
     )
     val dtrServiceResult = buildDtrServiceResultNew(
       serviceResult = dtr,
       caseId = dutyToReferDto.caseId,
       submission = dutyToReferDto.submission,
+      actionPosition = 0,
     )
     val crsServiceResult = buildCrsServiceResultNew(
       serviceResult = crs,
       commissionedRehabilitativeServices = commissionedRehabilitativeServicesDto,
+      actionPosition = 3,
     )
     val paServiceResult = buildPaServiceResultNew(
       serviceResult = pa,
+      actionPosition = 5,
     )
-    val caseActions = listOf(dtrAction, cas1Action, cas2Action)
-
+    val caseActions = listOf(
+      CaseAction(type = CaseActionType.SUBMIT_DTR_REFERRAL, startDate = LocalDate.parse("2023-01-01"), service = ServiceType.DTR),
+      CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.parse("2023-01-03"), service = ServiceType.CAS1),
+      CaseAction(type = CaseActionType.START_CAS2_REFERRAL, startDate = LocalDate.parse("2023-01-02"), service = ServiceType.CAS2),
+      CaseAction(type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL, startDate = LocalDate.parse("2023-01-04"), service = ServiceType.CRS),
+      CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = null, service = ServiceType.CAS3),
+      CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null, service = ServiceType.PA),
+    )
     val eligibilityDtoOld = EligibilityDto(
       crn = crn,
       cas1 = Cas1ServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.INFO_REQUESTED,
-          action = cas1Action,
-          link = cas1.link,
+          serviceStatus = ServiceStatus.UPCOMING,
+          action = CaseAction(
+            type = cas1ServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = cas1ServiceResult.serviceResult.actionStartDate,
+            service = cas1ServiceResult.serviceResult.serviceStatus.service,
+          ),
+          link = cas1.serviceStatus.link?.text,
           url = cas1.url,
-          linkType = cas1.linkType,
+          linkType = cas1.serviceStatus.link?.type,
           failureReasons = cas1.failureReasons,
-          blockingStatusReason = cas1.blockingStatusReason,
+          blockingStatusReason = cas1.serviceStatus.blockingStatusReason,
         ),
         cas1Application = cas1ApplicationDto,
       ),
       cas2 = Cas2ServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.AWAITING_ARRIVAL,
-          action = cas2Action,
-          link = cas2.link,
+          serviceStatus = ServiceStatus.UPCOMING,
+          action = CaseAction(
+            type = cas2ServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = cas2ServiceResult.serviceResult.actionStartDate,
+            service = cas2ServiceResult.serviceResult.serviceStatus.service,
+          ),
+          link = cas2.serviceStatus.link?.text,
           url = cas2.url,
-          linkType = cas2.linkType,
+          linkType = cas2.serviceStatus.link?.type,
           failureReasons = cas2.failureReasons,
-          blockingStatusReason = cas2.blockingStatusReason,
+          blockingStatusReason = cas2.serviceStatus.blockingStatusReason,
         ),
         cas2Application = cas2ApplicationDto,
       ),
       cas3 = Cas3ServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.NOT_SUBMITTED,
-          action = cas3Action,
-          link = cas3.link,
+          serviceStatus = ServiceStatus.NOT_STARTED,
+          action = CaseAction(
+            type = cas3ServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = cas3ServiceResult.serviceResult.actionStartDate,
+            service = cas3ServiceResult.serviceResult.serviceStatus.service,
+          ),
+          link = cas3.serviceStatus.link?.text,
           url = cas3.url,
-          linkType = cas3.linkType,
+          linkType = cas3.serviceStatus.link?.type,
           failureReasons = cas3.failureReasons,
-          blockingStatusReason = cas3.blockingStatusReason,
+          blockingStatusReason = cas3.serviceStatus.blockingStatusReason,
         ),
         cas3Application = cas3ApplicationDto,
       ),
       dtr = DtrServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.SUBMITTED,
-          action = dtrAction,
-          link = dtr.link,
+          serviceStatus = ServiceStatus.UPCOMING,
+          action = CaseAction(
+            type = dtrServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = dtrServiceResult.serviceResult.actionStartDate,
+            service = dtrServiceResult.serviceResult.serviceStatus.service,
+          ),
+          link = dtr.serviceStatus.link?.text,
           url = dtr.url,
-          linkType = dtr.linkType,
+          linkType = dtr.serviceStatus.link?.type,
           failureReasons = dtr.failureReasons,
-          blockingStatusReason = dtr.blockingStatusReason,
+          blockingStatusReason = dtr.serviceStatus.blockingStatusReason,
         ),
         caseId = dutyToReferDto.caseId,
         submission = dutyToReferDto.submission,
       ),
       crs = CrsServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.SUBMITTED,
-          action = crsAction,
-          link = crs.link,
+          serviceStatus = ServiceStatus.UPCOMING,
+          action = CaseAction(
+            type = crsServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = crsServiceResult.serviceResult.actionStartDate,
+            service = crsServiceResult.serviceResult.serviceStatus.service,
+          ),
+          link = crs.serviceStatus.link?.text,
           url = crs.url,
-          linkType = crs.linkType,
+          linkType = crs.serviceStatus.link?.type,
           failureReasons = crs.failureReasons,
-          blockingStatusReason = crs.blockingStatusReason,
+          blockingStatusReason = crs.serviceStatus.blockingStatusReason,
         ),
         commissionedRehabilitativeServices = commissionedRehabilitativeServicesDto,
       ),
       pa = PaServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.COMPLETED,
-          action = paAction,
-          link = pa.link,
+          serviceStatus = ServiceStatus.NOT_STARTED,
+          action = CaseAction(
+            type = paServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = paServiceResult.serviceResult.actionStartDate,
+            service = paServiceResult.serviceResult.serviceStatus.service,
+          ),
+          link = pa.serviceStatus.link?.text,
           url = pa.url,
-          linkType = pa.linkType,
+          linkType = pa.serviceStatus.link?.type,
           failureReasons = pa.failureReasons,
-          blockingStatusReason = pa.blockingStatusReason,
+          blockingStatusReason = pa.serviceStatus.blockingStatusReason,
         ),
       ),
       caseActions = caseActions,
@@ -421,7 +444,6 @@ class EligibilityNewToOldTransformerTest {
       dtr = dtrServiceResult,
       crs = crsServiceResult,
       pa = paServiceResult,
-      caseActions = caseActions,
     )
 
     val result = toEligibilityDtoOld(

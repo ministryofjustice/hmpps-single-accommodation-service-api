@@ -85,15 +85,12 @@ hmpps:
 
 case-list:
   page-size: 200
-  onboarded-teams: []
   onboarded-prison-codes:
-  v2-enabled: false
 
 bulk-load:
   page-size: 10000
 
 case-refresh:
-  enabled: true
   worker:
     fixed-delay: 500ms
     max-requests-per-run: 10
@@ -101,6 +98,19 @@ case-refresh:
     initial-backoff: 1m
     max-backoff: 30m
     abandoned-claim-timeout: 10m
+  failed-monitor:
+    cron: "0 0 12 * * *" #runs at midday, daily. This should be increased once we handle 503 errors.
+    zone: UTC
+
+inbox-events:
+  failed-monitor:
+    cron: "0 0 12 * * *"
+    zone: UTC
+
+outbox-events:
+  failed-monitor:
+    cron: "0 0 12 * * *"
+    zone: UTC
 
 scheduling:
   enabled: true
@@ -114,6 +124,15 @@ shedlock:
   inbox-event-dispatcher:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S
+  inbox-event-failure-monitor:
+    lock-at-most-for: PT30M
+    lock-at-least-for: PT5M
+  outbox-event-failure-monitor:
+    lock-at-most-for: PT30M
+    lock-at-least-for: PT5M
+  case-refresh-failure-monitor:
+    lock-at-most-for: PT30M
+    lock-at-least-for: PT5M
   case-refresh-worker:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S

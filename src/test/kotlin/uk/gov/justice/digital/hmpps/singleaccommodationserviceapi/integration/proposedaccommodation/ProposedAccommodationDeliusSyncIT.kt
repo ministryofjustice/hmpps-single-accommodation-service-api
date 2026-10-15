@@ -321,7 +321,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
       ?.firstOrNull { it.identifierType == IdentifierType.PRISON_NUMBER }
 
     assertThat(newCaseInserted).isNotNull
-    assertThat(newCaseInserted!!.tierScore).isNull()
+    assertThat(newCaseInserted!!.tierScore).isNotNull
     assertThat(newCaseCrnIdentifier).isNotNull
     assertThat(newCasePrisonNumberIdentifier).isNotNull
     assertThat(newCaseCrnIdentifier!!.identifier).isEqualTo(crn)

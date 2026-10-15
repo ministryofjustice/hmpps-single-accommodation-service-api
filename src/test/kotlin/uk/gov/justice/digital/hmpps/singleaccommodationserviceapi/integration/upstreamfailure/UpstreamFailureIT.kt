@@ -69,14 +69,14 @@ class UpstreamFailureIT : IntegrationTestBase() {
 
   @Test
   fun `getCase should return partial success when Tier call returns server error`() {
-    TierStubs.getTierServerErrorResponse(crn)
+    val upstreamUrl = TierStubs.getTierServerErrorResponse(crn)
 
     restTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedSingleCrnTierServerError(crn, prisonNumber))
+        assertThatJson(it!!).matchesExpectedJson(expectedSingleCrnTierServerError(crn, prisonNumber, upstreamUrl))
       }
   }
 

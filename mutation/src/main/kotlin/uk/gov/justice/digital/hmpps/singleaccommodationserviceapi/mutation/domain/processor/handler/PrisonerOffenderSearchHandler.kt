@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 @Component
 class PrisonerOffenderSearchHandler(
   private val caseRepository: CaseRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
   private val inboxEventHelper: InboxEventHelper,
 ) : InboxEventHandler {
 
@@ -31,7 +31,7 @@ class PrisonerOffenderSearchHandler(
       null -> InboxEventHandler.Result.IGNORED
 
       else -> {
-        caseRefreshRequestService?.requestLiveRefresh(case.id)
+        caseRefreshRequestService.requestLiveRefresh(case.id)
         log.info(
           "PRISONER_OFFENDER_SEARCH event processed successfully [inboxEventId={}, prisonNumber={}]",
           inboxEvent.id,

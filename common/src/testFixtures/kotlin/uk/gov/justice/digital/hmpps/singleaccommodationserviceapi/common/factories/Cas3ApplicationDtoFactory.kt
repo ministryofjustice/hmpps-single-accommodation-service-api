@@ -23,6 +23,7 @@ fun buildCas3ApplicationDto(
   previousBookings: List<Cas3ExternalPreviousBookingDto>? = null,
   premises: Cas3PremisesSummaryDto? = null,
   uiUrl: String = "https://cas3-ui/referrals/$id/full",
+  cancellation: Cas3ExternalPreviousBookingCancellationDto? = null,
 ) = Cas3ApplicationDto(
   id = id,
   applicationStatus = applicationStatus,
@@ -35,6 +36,7 @@ fun buildCas3ApplicationDto(
   previousBookings = previousBookings,
   premises = premises,
   uiUrl = uiUrl,
+  cancellation = cancellation,
 )
 
 fun buildCas3StaffDto(

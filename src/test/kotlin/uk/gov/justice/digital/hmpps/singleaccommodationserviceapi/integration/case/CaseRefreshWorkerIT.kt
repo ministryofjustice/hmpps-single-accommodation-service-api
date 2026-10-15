@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -58,6 +59,11 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, buildCorePersonRecord())
     createSasSystemUser()
+  }
+
+  @AfterEach
+  fun teardown() {
+    clock.reset()
   }
 
   @Test

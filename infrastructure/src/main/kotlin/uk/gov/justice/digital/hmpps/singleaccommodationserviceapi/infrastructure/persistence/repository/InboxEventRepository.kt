@@ -13,6 +13,8 @@ interface InboxEventRepository : JpaRepository<InboxEventEntity, UUID> {
 
   fun findByIdAndProcessedStatusIs(eventId: UUID, processedStatus: ProcessedStatus): InboxEventEntity?
 
+  fun countByProcessedStatus(processedStatus: ProcessedStatus): Long
+
   @Modifying
   @Query(
     """

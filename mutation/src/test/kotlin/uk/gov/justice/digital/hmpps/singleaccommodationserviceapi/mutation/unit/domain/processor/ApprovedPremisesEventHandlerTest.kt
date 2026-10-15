@@ -73,13 +73,4 @@ class ApprovedPremisesEventHandlerTest {
     assertThat(approvedPremisesEventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
-
-  @Test
-  fun `should not refresh case and should process approved premises message when refresh request service is null`() {
-    approvedPremisesEventHandler =
-      ApprovedPremisesEventHandler(caseRepository, null, inboxEventHelper)
-
-    assertThat(approvedPremisesEventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
-  }
 }

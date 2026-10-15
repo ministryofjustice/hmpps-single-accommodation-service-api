@@ -10,14 +10,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 @Service
 class AdminBulkRefreshCasesService(
   private val caseRepository: CaseRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
   fun bulkRefreshCasesByCrn(crns: List<String>, dryRun: Boolean): ApiResponseDto<BulkRefreshCasesResultDto> {
-    val refreshRequestService = caseRefreshRequestService
-      ?: throw IllegalStateException("Case refresh request service is not enabled")
-
     val normalisedCrns = crns.map { it.trim().uppercase() }
       .filter(String::isNotEmpty)
       .distinct()
@@ -28,7 +25,7 @@ class AdminBulkRefreshCasesService(
     val caseIds = casesByCrn.values.map { it.id }.distinct()
 
     if (!dryRun) {
-      refreshRequestService.requestBulkRefresh(caseIds, resetExistingAttempts = true)
+      caseRefreshRequestService.requestBulkRefresh(caseIds, resetExistingAttempts = true)
     }
 
     return ApiResponseDto(
