@@ -12,6 +12,7 @@ data class Cas3ApplicationDto(
   val applicationRejectedReason: String?,
   val assessmentStatus: Cas3AssessmentStatus?,
   val bookingStatus: Cas3BookingStatus?,
+  val cancellation: Cas3ExternalPreviousBookingCancellationDto?,
   val bookingProvisionalOfferSentDate: LocalDate?,
   val previousBookings: List<Cas3ExternalPreviousBookingDto>?,
   val premises: Cas3PremisesSummaryDto?,

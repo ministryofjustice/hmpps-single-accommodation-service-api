@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
@@ -18,10 +18,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -58,14 +59,19 @@ class DomainDataTest {
     val cas3Application = buildCas3Application(
       UUID.randomUUID(),
       applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-      submittedApplication = buildCas3SubmittedApplicationDto(
+      submittedApplication = buildCas3SubmittedApplication(
         assessmentStatus = null,
         latestBooking = buildCas3LatestBooking(
           status = null,
         ),
       ),
     )
-    val cpr = buildCorePersonRecord()
+    val cpr = buildCorePersonRecord(
+      dateOfBirth = LocalDate.parse("1990-01-01"),
+      sex = buildSex(
+        code = SexCode.M,
+      ),
+    )
 
     val tier = Tier(
       tierScore = "A1",
@@ -91,6 +97,7 @@ class DomainDataTest {
       crn = crn,
       tierScore = tier.tierScore,
       sex = cpr.sex?.code,
+      dob = cpr.dateOfBirth,
       currentAccommodation = currentAccommodation,
       nextAccommodations = nextAccommodations,
       cas1Application = cas1Application,
@@ -129,10 +136,12 @@ class DomainDataTest {
     )
     val caseEntity = buildCaseEntity(
       tierScore = tierScore,
+      dateOfBirth = LocalDate.parse("1990-01-01"),
     ) { withCrn(crn) }
     val expected = buildDomainData(
       crn = crn,
       tierScore = tierScore,
+      dob = caseEntity.dateOfBirth,
       sex = SexCode.M,
       cas1Application = null,
       cas3Application = null,

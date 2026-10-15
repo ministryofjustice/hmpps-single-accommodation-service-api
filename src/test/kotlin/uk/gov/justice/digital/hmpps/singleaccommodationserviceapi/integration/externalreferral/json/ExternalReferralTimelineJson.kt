@@ -10,7 +10,6 @@ fun expectedGetExternalReferralOutcomeTimelineResponse(
   createCommitTime: String,
   updateCommitTime: String,
   newStatus: String,
-  outcomeReason: String,
   outcomeNote: String,
 ): String = """
 {
@@ -29,11 +28,6 @@ fun expectedGetExternalReferralOutcomeTimelineResponse(
                "field":"status",
                "value":"$newStatus",
                "oldValue":"SUBMITTED"
-            },
-            {
-               "field":"outcomeReason",
-               "value":"$outcomeReason",
-               "oldValue":null
             },
             {
                "field":"outcomeNote",

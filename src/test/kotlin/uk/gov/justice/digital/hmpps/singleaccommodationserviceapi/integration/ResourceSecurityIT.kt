@@ -164,20 +164,15 @@ private val caseControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /case-list" to defaultRoles,
     "GET /cases/{crn}" to defaultRoles,
+    "POST /cases/{crn}/applications/{applicationId}/arrival" to defaultRoles,
     "GET /search/{crn}" to defaultRoles,
   )
 
 private val customCaseListControllerMap: Map<String, Set<String>> =
   mapOf(
+    "GET /case-list/custom" to defaultRoles,
+    "GET /case-list/custom/crns" to defaultRoles,
     "POST /case-list/custom" to defaultRoles,
-  )
-
-private val accommodationDataDomainControllerMap: Map<String, Set<String>> =
-  mapOf(
-    "GET /accommodation-data-domain/health" to setOf(
-      "SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER",
-      "ACCOMMODATION_DATA_DOMAIN__SINGLE_ACCOMMODATION_SERVICE",
-    ),
   )
 
 private val referenceDataControllerMap: Map<String, Set<String>> =
@@ -200,6 +195,7 @@ private val externalReferralControllerMap: Map<String, Set<String>> =
     "PUT /cases/{crn}/external-referral/{id}" to defaultRoles,
     "POST /cases/{crn}/external-referral/{id}/notes" to defaultRoles,
     "GET /cases/{crn}/external-referral/{id}/timeline" to defaultRoles,
+    "POST /cases/{crn}/external-referral/{id}/withdrawal" to defaultRoles,
   )
 
 private val controllerMap: Map<String, Map<String, Set<String>>> =
@@ -213,7 +209,6 @@ private val controllerMap: Map<String, Map<String, Set<String>>> =
     "AccommodationHistoryController" to accommodationHistoryControllerMap,
     "CaseController" to caseControllerMap,
     "CustomCaseListController" to customCaseListControllerMap,
-    "AccommodationDataDomainController" to accommodationDataDomainControllerMap,
     "ReferenceDataController" to referenceDataControllerMap,
     "AdminJobController" to adminJobControllerMap,
     "ExternalReferralController" to externalReferralControllerMap,

@@ -1,10 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -39,7 +38,7 @@ class DtrEligibilityTreeProvider(
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notRequired = builder.notRequired(AccommodationService.DTR)
+    val notRequired = builder.notRequired(ServiceType.DTR)
     val accepted = builder.outcome("accepted", ServiceResultNew(ServiceStatusNew.DTR_ACCEPTED))
 
     val completionNode = builder
@@ -69,7 +68,6 @@ class DtrEligibilityTreeProvider(
         suitability,
         onFailResult = ServiceResultNew(
           serviceStatus = ServiceStatusNew.DTR_NOT_STARTED,
-          link = EligibilityKeys.ADD_REFERRAL_DETAILS,
         ),
       )
       .onPass(completionNode)

@@ -10,6 +10,7 @@ import java.util.UUID
 @JaversSpringDataAuditable
 interface ExternalReferralRepository : JpaRepository<ExternalReferralEntity, UUID> {
   fun findByCaseId(caseId: UUID): ExternalReferralEntity?
+  fun findByCaseIdAndStatusInOrderByCreatedAtDesc(caseId: UUID, status: List<ExternalReferralStatus>): List<ExternalReferralEntity>
 
   @Query(
     """
@@ -36,8 +37,17 @@ interface ExternalReferralRepository : JpaRepository<ExternalReferralEntity, UUI
     join CaseIdentifierEntity ci on ci.caseEntity.id = er.caseId
     where ci.identifier = :crn and ci.identifierType = 'CRN'
     and (:statuses is null or er.status in :statuses)
+    and (
+      :excludeWithdrawnReferrals is null
+      or (:excludeWithdrawnReferrals = true and er.withdrawalReason is null)
+      or (:excludeWithdrawnReferrals = false and er.withdrawalReason is not null)
+    )
     order by er.submissionDate desc
   """,
   )
-  fun searchByCrn(crn: String, statuses: List<ExternalReferralStatus>?): List<ExternalReferralEntity>
+  fun searchByCrn(
+    crn: String,
+    statuses: List<ExternalReferralStatus>?,
+    excludeWithdrawnReferrals: Boolean?,
+  ): List<ExternalReferralEntity>
 }

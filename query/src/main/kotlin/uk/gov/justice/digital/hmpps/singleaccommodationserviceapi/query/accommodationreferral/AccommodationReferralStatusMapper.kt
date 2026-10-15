@@ -3,12 +3,14 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.AssessmentStatus
@@ -22,6 +24,7 @@ object AccommodationReferralStatusMapper {
     Cas1SpaceBookingStatus.ARRIVED,
     Cas1SpaceBookingStatus.UPCOMING,
     -> AccommodationReferralStatus.ACCEPTED
+
     null -> when (referral.requestForPlacementStatus) {
       RequestForPlacementStatus.REQUEST_REJECTED -> AccommodationReferralStatus.REQUEST_REJECTED
       RequestForPlacementStatus.REQUEST_WITHDRAWN -> AccommodationReferralStatus.REQUEST_WITHDRAWN
@@ -37,6 +40,7 @@ object AccommodationReferralStatusMapper {
         ApprovedPremisesApplicationStatus.REJECTED,
         ApprovedPremisesApplicationStatus.INAPPLICABLE,
         -> AccommodationReferralStatus.REJECTED
+
         else -> AccommodationReferralStatus.PENDING
       }
     }
@@ -62,6 +66,7 @@ object AccommodationReferralStatusMapper {
     Cas3BookingStatus.ARRIVED,
     Cas3BookingStatus.CONFIRMED,
     -> AccommodationReferralStatus.ACCEPTED
+
     Cas3BookingStatus.PROVISIONAL,
     Cas3BookingStatus.CLOSED,
     null,
@@ -74,6 +79,7 @@ object AccommodationReferralStatusMapper {
           AccommodationReferralStatus.ARCHIVED
         }
       }
+
       else -> AccommodationReferralStatus.PENDING
     }
   }
@@ -83,5 +89,13 @@ object AccommodationReferralStatusMapper {
     DtrStatus.ACCEPTED -> AccommodationReferralStatus.ACCEPTED
     DtrStatus.NOT_ACCEPTED -> AccommodationReferralStatus.REJECTED
     DtrStatus.WITHDRAWN -> AccommodationReferralStatus.WITHDRAWN
+  }
+
+  fun toStatus(externalReferral: ExternalReferralDto): AccommodationReferralStatus = when (externalReferral.status) {
+    ExternalReferralStatus.SUBMITTED -> AccommodationReferralStatus.SUBMITTED
+    ExternalReferralStatus.ACCEPTED -> AccommodationReferralStatus.ACCEPTED
+    ExternalReferralStatus.REJECTED -> AccommodationReferralStatus.REJECTED
+    ExternalReferralStatus.COMPLETED -> AccommodationReferralStatus.COMPLETED
+    ExternalReferralStatus.ARCHIVED -> AccommodationReferralStatus.ARCHIVED
   }
 }

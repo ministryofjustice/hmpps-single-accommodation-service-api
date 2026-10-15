@@ -3,12 +3,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -40,8 +38,6 @@ class Cas3CompletionContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_SUBMITTED)
-      assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_REFERRAL)
-      assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS3_VIEW_REFERRAL)
       assertThat(result.currentResult.url).isNull()
     }
   }

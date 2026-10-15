@@ -76,7 +76,7 @@ class ProposedAccommodationApplicationService(
       snapshot = aggregate.snapshot(),
       crn = crn,
       createdBy = user.displayName(),
-      createdAt = persistedRecord.createdAt!!,
+      createdAt = persistedRecord.createdAt,
     )
   }
 
@@ -143,14 +143,12 @@ class ProposedAccommodationApplicationService(
           uprn = aggregateSnapshot.address.uprn,
           comment = null,
           statusCode = AddressStatusCode.valueOf(aggregateSnapshot.accommodationStatus!!.code),
-          usages = aggregateSnapshot.accommodationType?.let {
-            listOf(
-              AddressUsage(
-                usageCode = AddressUsageCode.valueOf(aggregateSnapshot.accommodationType.code),
-                isActive = true,
-              ),
+          usage = aggregateSnapshot.accommodationType?.let {
+            AddressUsage(
+              usageCode = AddressUsageCode.valueOf(aggregateSnapshot.accommodationType.code),
+              isActive = true,
             )
-          } ?: emptyList(),
+          },
           contacts = emptyList(),
         ),
       )
@@ -199,7 +197,7 @@ class ProposedAccommodationApplicationService(
       snapshot = aggregate.snapshot(),
       crn = crn,
       createdBy = createdByUser.displayName(),
-      createdAt = updatedRecord.createdAt!!,
+      createdAt = updatedRecord.createdAt,
     )
   }
 

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
 
 class Cas3ApplicationTest {
 
@@ -32,7 +32,7 @@ class Cas3ApplicationTest {
         buildCas3Application(
           applicationStatus = status,
           submittedApplication = if (hasSubmittedApplication) {
-            buildCas3SubmittedApplicationDto()
+            buildCas3SubmittedApplication()
           } else {
             null
           },
@@ -69,7 +69,7 @@ class Cas3ApplicationTest {
       valid: Boolean,
     ) {
       val thrown = catchThrowable {
-        buildCas3SubmittedApplicationDto(
+        buildCas3SubmittedApplication(
           assessmentStatus = status,
           assessmentRejectionReason = if (hasRejectionReason) {
             "the rejection reason"

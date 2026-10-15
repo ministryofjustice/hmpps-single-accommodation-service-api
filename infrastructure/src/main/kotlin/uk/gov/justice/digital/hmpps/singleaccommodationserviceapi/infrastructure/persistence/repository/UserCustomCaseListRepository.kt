@@ -9,6 +9,8 @@ import java.util.UUID
 
 @Repository
 interface UserCustomCaseListRepository : JpaRepository<UserCustomCaseListEntity, UUID> {
+  fun findAllBySasUserId(sasUserId: UUID): List<UserCustomCaseListEntity>
+
   @Modifying
   @Query("delete from UserCustomCaseListEntity e where e.sasUserId = :sasUserId")
   fun deleteBySasUserId(sasUserId: UUID)
@@ -23,4 +25,20 @@ interface UserCustomCaseListRepository : JpaRepository<UserCustomCaseListEntity,
     """,
   )
   fun insertAll(sasUserId: UUID, caseIds: Array<UUID>)
+
+  @Query(
+    nativeQuery = true,
+    value = """
+      SELECT latest.crn
+      FROM (
+        SELECT DISTINCT ON (sci.case_id) sci.identifier AS crn
+        FROM sas_user_custom_case_list ucl
+        JOIN sas_case_identifier sci ON sci.case_id = ucl.sas_case_id AND sci.identifier_type = 'CRN'
+        WHERE ucl.sas_user_id = :sasUserId
+        ORDER BY sci.case_id, sci.created_at DESC
+      ) latest
+      ORDER BY latest.crn
+    """,
+  )
+  fun findLatestCrnsBySasUserId(sasUserId: UUID): List<String>
 }

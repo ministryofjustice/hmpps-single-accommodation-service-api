@@ -151,7 +151,7 @@ class AccommodationSummaryCalculator(
     .filter { it.endDate == null }
     .map { address ->
       val proposedAccommodationId = address.cprAddressId
-        ?.let { proposedAccommodationRepository.findByCprAddressId(UUID.fromString(it)) }
+        .let { proposedAccommodationRepository.findByCprAddressId(UUID.fromString(it)) }
         ?.id
       toAccommodationSummary(crn, address = address, maskDates = true, proposedAccommodationId = proposedAccommodationId)
     }
@@ -166,6 +166,7 @@ class AccommodationSummaryCalculator(
     isRiskOfNoFixedAbode(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
     else -> null
   }
+
   fun calculateCaseAccommodationStatusDate(
     caseAccommodationStatus: CaseAccommodationStatus?,
     currentAccommodation: AccommodationSummaryDto?,
@@ -173,9 +174,10 @@ class AccommodationSummaryCalculator(
     addresses: List<CanonicalAddress>?,
   ): LocalDate? = when (caseAccommodationStatus) {
     CaseAccommodationStatus.NO_FIXED_ABODE ->
-      addresses
+      currentAccommodation?.startDate ?: addresses
         ?.mapNotNull { it.endDate?.let(LocalDate::parse) }
         ?.maxOrNull()
+
     CaseAccommodationStatus.SETTLED -> nextAccommodation?.startDate ?: if (isSettledType(currentAccommodation)) currentAccommodation?.startDate else null
     CaseAccommodationStatus.TRANSIENT if isTransientNotHomelessType(currentAccommodation) -> currentAccommodation?.startDate
     CaseAccommodationStatus.TRANSIENT if !isTransientNotHomelessType(currentAccommodation) -> nextAccommodation?.startDate
@@ -198,8 +200,8 @@ class AccommodationSummaryCalculator(
   ) = isSettledType(nextAccommodation) ||
     (isSettledType(currentAccommodation) && !currentAccommodation.hasEndDate() && nextAccommodation == null)
 
-  private fun isTransient(currentAccommodation: AccommodationSummaryDto?, nextAccommodation: AccommodationSummaryDto?) = (isTransientNotHomelessType(nextAccommodation)) ||
-    (isTransientNotHomelessType(currentAccommodation) && !isMissingHomelessOrUnknown(nextAccommodation))
+  private fun isTransient(currentAccommodation: AccommodationSummaryDto?, nextAccommodation: AccommodationSummaryDto?) = isTransientNotHomelessType(nextAccommodation) ||
+    (isTransientNotHomelessType(currentAccommodation) && !currentAccommodation.hasEndDate() && nextAccommodation == null)
 
   private fun isRiskOfNoFixedAbode(
     currentAccommodation: AccommodationSummaryDto?,

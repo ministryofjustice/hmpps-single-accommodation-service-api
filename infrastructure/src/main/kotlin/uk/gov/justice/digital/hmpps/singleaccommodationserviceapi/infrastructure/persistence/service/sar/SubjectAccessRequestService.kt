@@ -108,7 +108,7 @@ class SubjectAccessRequestService(
           referenceNumber = dtr.referenceNumber,
           submissionDate = dtr.submissionDate,
           createdBy = dtrCreatedByUser,
-          createdAt = dtr.createdAt!!,
+          createdAt = dtr.createdAt,
           withdrawalReason = dtr.withdrawalReason?.let { WithdrawalReason.valueOf(it.name) },
           withdrawalReasonOther = dtr.withdrawalReasonOther,
           outcomeReason = dtr.outcomeReason?.let { OutcomeReason.valueOf(it.name) },
@@ -149,7 +149,7 @@ class SubjectAccessRequestService(
           uprn = pa.uprn,
         ),
         createdBy = createdByUser,
-        createdAt = pa.createdAt!!,
+        createdAt = pa.createdAt,
       )
 
       val paMap = mapper.convertValue(paDto, Map::class.java).toMutableMap()

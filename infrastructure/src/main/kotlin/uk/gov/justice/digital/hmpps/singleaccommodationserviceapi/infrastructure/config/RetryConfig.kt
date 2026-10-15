@@ -9,11 +9,12 @@ import org.springframework.retry.RetryListener
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.EnableRetry
 import org.springframework.retry.annotation.Retryable
+import org.springframework.security.oauth2.core.OAuth2AuthorizationException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isConnectionError
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isRetryableConnectionError
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isTimeout
 
 @Configuration
@@ -24,9 +25,12 @@ class RetryConfig {
   object DefaultRetryDecider : RetryDecider {
     override fun shouldRetry(throwable: Throwable): Boolean = when (throwable) {
       // TODO: Once we have completed the switch to WebClient, we should remove the first two entries
-      is HttpServerErrorException -> true
-      is ResourceAccessException -> true
-      is WebClientRequestException -> throwable.isConnectionError() || throwable.isTimeout()
+      is HttpServerErrorException,
+      is ResourceAccessException,
+      is OAuth2AuthorizationException,
+      -> true
+
+      is WebClientRequestException -> throwable.isRetryableConnectionError() || throwable.isTimeout()
       is WebClientResponseException -> throwable.statusCode.is5xxServerError
       else -> false
     }
@@ -60,7 +64,7 @@ interface RetryDecider {
   fun shouldRetry(throwable: Throwable): Boolean
 }
 
-@Target(AnnotationTarget.CLASS)
+@Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 @Retryable(
   maxAttemptsExpression = $$"${spring.retry.rest-client.max-attempts}",
@@ -71,4 +75,4 @@ interface RetryDecider {
   ),
   exceptionExpression = "@retryDecider.shouldRetry(#root)",
 )
-annotation class RestClientRetry
+annotation class WebClientRetry

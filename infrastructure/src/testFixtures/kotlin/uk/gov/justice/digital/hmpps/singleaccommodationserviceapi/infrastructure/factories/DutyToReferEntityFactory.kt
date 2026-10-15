@@ -23,9 +23,9 @@ fun buildDutyToReferEntity(
   outcomeReason: OutcomeReason? = null,
   submissionNote: String? = null,
   outcomeNote: String? = null,
-  createdByUserId: UUID? = null,
+  createdByUserId: UUID = UUID.randomUUID(),
   createdAt: Instant = Instant.now(),
-  lastUpdatedByUserId: UUID? = null,
+  lastUpdatedByUserId: UUID = UUID.randomUUID(),
   lastUpdatedAt: Instant = Instant.now(),
 ) = DutyToReferEntity(
   id = id,
@@ -50,8 +50,10 @@ fun buildDutyToReferEntity(
 fun buildDutyToReferNoteEntity(
   id: UUID = UUID.randomUUID(),
   note: String = "Test note",
-  createdByUserId: UUID? = UUID.randomUUID(),
+  createdByUserId: UUID = UUID.randomUUID(),
   createdAt: Instant = Instant.now(),
+  lastUpdatedByUserId: UUID = UUID.randomUUID(),
+  lastUpdatedAt: Instant = Instant.now(),
   dutyToReferEntity: DutyToReferEntity,
 ) = DutyToReferNoteEntity(
   id,
@@ -60,4 +62,6 @@ fun buildDutyToReferNoteEntity(
 ).apply {
   this.createdByUserId = createdByUserId
   this.createdAt = createdAt
+  this.lastUpdatedByUserId = lastUpdatedByUserId
+  this.lastUpdatedAt = lastUpdatedAt
 }

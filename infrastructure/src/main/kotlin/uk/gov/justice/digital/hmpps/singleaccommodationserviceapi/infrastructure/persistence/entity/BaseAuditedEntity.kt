@@ -17,21 +17,21 @@ import java.util.UUID
 open class BaseAuditedEntity {
   @DiffIgnore
   @CreatedBy
-  @Column(name = "created_by_user_id")
-  var createdByUserId: UUID? = null
+  @Column(name = "created_by_user_id", nullable = false)
+  lateinit var createdByUserId: UUID
 
   @DiffIgnore
   @CreatedDate
-  @Column(name = "created_at")
-  var createdAt: Instant? = null
+  @Column(name = "created_at", nullable = false)
+  lateinit var createdAt: Instant
 
   @DiffIgnore
   @LastModifiedBy
-  @Column(name = "last_updated_by_user_id")
-  var lastUpdatedByUserId: UUID? = null
+  @Column(name = "last_updated_by_user_id", nullable = false)
+  lateinit var lastUpdatedByUserId: UUID
 
   @DiffIgnore
   @LastModifiedDate
-  @Column(name = "last_updated_at")
-  var lastUpdatedAt: Instant? = null
+  @Column(name = "last_updated_at", nullable = false)
+  lateinit var lastUpdatedAt: Instant
 }

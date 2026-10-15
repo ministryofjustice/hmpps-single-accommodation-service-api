@@ -1,14 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
@@ -19,11 +17,11 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
 
   val arrived = "arrived"
   val notArrived = "notArrived"
-  val cancelled = "cancelled"
+  val placementCancelled = "placementCancelled"
   val placementRequestNotStarted = "placementRequestNotStarted"
-  val requestWithdrawn = "requestWithdrawn"
-  val requestUnsubmitted = "requestUnsubmitted"
-  val requestRejected = "requestRejected"
+  val placementRequestWithdrawn = "placementRequestWithdrawn"
+  val placementRequestUnsubmitted = "placementRequestUnsubmitted"
+  val placementRequestRejected = "placementRequestRejected"
   val placementRequestSubmitted = "placementRequestSubmitted"
   val infoRequested = "infoRequested"
   val submitted = "submitted"
@@ -31,53 +29,33 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
   override val outcomes = mapOf(
     arrived to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_ARRIVED,
-      link = EligibilityKeys.VIEW_APPLICATION,
-      linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
     notArrived to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_NOT_ARRIVED,
-      link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
-      linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
-    cancelled to ServiceResultSpec(
+    placementCancelled to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_CANCELLED,
-      link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
-      linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
     placementRequestNotStarted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_STARTED,
-      link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
-      linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
-    requestWithdrawn to ServiceResultSpec(
+    placementRequestWithdrawn to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_WITHDRAWN,
-      link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
-      linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
-    requestUnsubmitted to ServiceResultSpec(
-      serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_STARTED,
-      link = EligibilityKeys.CREATE_PLACEMENT_REQUEST,
-      linkType = LinkType.CAS1_VIEW_APPLICATION,
+    placementRequestUnsubmitted to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED,
     ),
-    requestRejected to ServiceResultSpec(
+    placementRequestRejected to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_REJECTED,
-      link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
-      linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
     placementRequestSubmitted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED,
-      link = EligibilityKeys.VIEW_APPLICATION,
-      linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
     infoRequested to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_INFO_REQUESTED,
-      link = EligibilityKeys.VIEW_APPLICATION,
-      linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
     submitted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_SUBMITTED,
-      link = EligibilityKeys.VIEW_APPLICATION,
-      linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
   )
 
@@ -101,19 +79,20 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
   private fun toServiceResultAfterPlacement(placementStatus: Cas1PlacementStatus) = when (placementStatus) {
     Cas1PlacementStatus.ARRIVED -> outcome(arrived)
     Cas1PlacementStatus.NOT_ARRIVED -> outcome(notArrived)
-    Cas1PlacementStatus.CANCELLED -> outcome(cancelled)
+    Cas1PlacementStatus.CANCELLED -> outcome(placementCancelled)
     else -> outcome(placementRequestNotStarted)
   }
 
   private fun toServiceResultBeforePlacement(requestForPlacementStatus: Cas1RequestForPlacementStatus) = when (requestForPlacementStatus) {
-    Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> outcome(requestWithdrawn)
-    Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED -> outcome(requestUnsubmitted)
-    Cas1RequestForPlacementStatus.REQUEST_REJECTED -> outcome(requestRejected)
+    Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> outcome(placementRequestWithdrawn)
+    Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED -> outcome(placementRequestUnsubmitted)
+    Cas1RequestForPlacementStatus.REQUEST_REJECTED -> outcome(placementRequestRejected)
     else -> outcome(placementRequestSubmitted)
   }
 
   private fun toServiceResultPriorToPlacementRequest(applicationStatus: Cas1ApplicationStatus?) = when (applicationStatus) {
     Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION -> outcome(infoRequested)
+    Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST -> outcome(placementRequestUnsubmitted)
     else -> outcome(submitted)
   }
 }

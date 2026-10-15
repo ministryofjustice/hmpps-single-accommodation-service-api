@@ -55,6 +55,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationNoteEntity
@@ -983,6 +984,35 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       assertThat(nextAccommodation.address.postTown).isEqualTo("AP Town")
 
       assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
+      assertThat(caseRefreshRequestRepository.findAll()).noneMatch { it.caseId == createdCase.id }
+    }
+
+    @Test
+    fun `should create a partial case and request a refresh when it is missing and the tier API returns a server error`() {
+      val newCrn = UUID.randomUUID().toString()
+      val nomsNumber = "newlyDiscoveredNomsNumber"
+      stubCurrentAccommodationIsCas1(newCrn)
+      SasAndDeliusStubs.stubGetCase(
+        deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        crn = newCrn,
+        response = buildCase(crn = newCrn, nomsNumber = nomsNumber),
+      )
+      SasAndDeliusStubs.stubGetCase(
+        crn = newCrn,
+        response = buildCase(crn = newCrn, nomsNumber = nomsNumber),
+      )
+      TierStubs.getTierServerErrorResponse(newCrn)
+
+      restTestClient.get().uri("/cases/{crn}/proposed-accommodations", newCrn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+
+      val createdCase = caseRepository.findByCrn(newCrn)!!
+      assertThat(createdCase.tierScore).isNull()
+      assertThat(createdCase.firstName).isEqualTo("First")
+      assertThat(createdCase.lastName).isEqualTo("Last")
+      val refreshRequest = caseRefreshRequestRepository.findAll().single { it.caseId == createdCase.id }
+      assertThat(refreshRequest.priority).isEqualTo(CaseRefreshPriority.LIVE)
     }
 
     @Test

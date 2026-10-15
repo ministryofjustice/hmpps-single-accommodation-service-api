@@ -2,12 +2,15 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.w
 
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.notFound
+import com.github.tomakehurst.wiremock.client.WireMock.ok
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
+import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1UrlTemplates
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3UrlTemplates
@@ -74,6 +77,13 @@ object ApprovedPremisesStubs {
     )
   }
 
+  fun getCas2SuitableApplicationOKResponse(crn: String, response: Cas2Application) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas2/external/cases/$crn/applications/suitable"))
+        .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
+
   fun getCas1SuitableApplicationNotFoundResponse(crn: String) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas1/external/cases/$crn/applications/suitable"))
@@ -110,6 +120,27 @@ object ApprovedPremisesStubs {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/${casService.urlPath}/external/referrals/$crn"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
+
+  fun postCas2ArrivalOKResponse(crn: String, applicationId: String) {
+    sasWiremock.stubFor(
+      post(urlPathEqualTo("/cas2/external/cases/$crn/applications/$applicationId/arrival"))
+        .willReturn(ok()),
+    )
+  }
+
+  fun postCas2ArrivalNotFoundResponse(crn: String, applicationId: String) {
+    sasWiremock.stubFor(
+      post(urlPathEqualTo("/cas2/external/cases/$crn/applications/$applicationId/arrival"))
+        .willReturn(notFound()),
+    )
+  }
+
+  fun postCas2ArrivalServerErrorResponse(crn: String, applicationId: String) {
+    sasWiremock.stubFor(
+      post(urlPathEqualTo("/cas2/external/cases/$crn/applications/$applicationId/arrival"))
+        .willReturn(serverError()),
     )
   }
 }

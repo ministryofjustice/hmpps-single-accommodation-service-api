@@ -4,11 +4,9 @@ import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -38,8 +36,6 @@ class Cas2CompletionContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_SUBMITTED)
-      assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_APPLICATION)
-      assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS2_VIEW_APPLICATION)
       assertThat(result.currentResult.url).isNull()
     }
   }

@@ -13,7 +13,7 @@ class DeeplinkResolver(
   private val log = LoggerFactory.getLogger(this::class.java)
 
   fun resolve(result: ServiceResultNew, data: DomainData): ServiceResultNew {
-    val url = when (result.linkType) {
+    val url = when (result.serviceStatus.link?.type) {
       LinkType.CAS1_START_APPLICATION -> cas1UrlTemplates()?.cas1ApplicationStart
       LinkType.CAS1_VIEW_APPLICATION -> data.cas1Application?.uiUrl
 

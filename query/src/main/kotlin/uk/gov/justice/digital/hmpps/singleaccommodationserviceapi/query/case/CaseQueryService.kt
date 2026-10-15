@@ -18,12 +18,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
+import java.time.Clock
 
 @Service
 class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
+  private val clock: Clock,
 ) {
   fun getCaseList(teamCode: String?): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
@@ -76,7 +78,7 @@ class CaseQueryService(
         }
       }
     }
-      .sortedWith(compareBy(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus })
+      .sortCases(clock)
     return when (peopleType) {
       PeopleType.NFA_RISK ->
         caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
@@ -85,7 +87,6 @@ class CaseQueryService(
       else -> caseDtos
     }
   }
-
   fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)
 
   fun getCase(crn: String): ApiResponseDto<CaseDto> {

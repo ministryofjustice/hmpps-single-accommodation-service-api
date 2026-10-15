@@ -3,47 +3,62 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.service.annotation.GetExchange
+import org.springframework.web.service.annotation.PostExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.getOrNullWhenNotFound
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.WebClientRetry
 
 interface ApprovedPremisesClient {
+  @WebClientRetry
   @GetExchange(value = "/cas1/external/cases/{crn}/premises/current")
   fun getCas1CurrentPremises(@PathVariable crn: String): Cas1PremisesSummary
 
+  @WebClientRetry
   @GetExchange(value = "/cas3/external/cases/{crn}/premises/current")
   fun getCas3CurrentPremises(@PathVariable crn: String): Cas3BookingPremises
 
+  @WebClientRetry
   @GetExchange(value = "/cas1/external/cases/{crn}/applications/suitable")
   fun getSuitableCas1ApplicationInternal(@PathVariable crn: String): Cas1Application
 
+  @WebClientRetry
   @GetExchange(value = "/cas2/external/cases/{crn}/applications/suitable")
   fun getSuitableCas2ApplicationInternal(@PathVariable crn: String): Cas2Application
 
+  @WebClientRetry
   @GetExchange(value = "/cas3/external/cases/{crn}/applications/suitable")
   fun getSuitableCas3ApplicationInternal(@PathVariable crn: String): Cas3Application
 
+  @WebClientRetry
   @GetExchange(value = "/cas1/external/referrals/{crn}")
   fun getCas1Referral(@PathVariable crn: String): List<Cas1ReferralHistory>
 
+  @WebClientRetry
   @GetExchange(value = "/cas2/external/referrals/{crn}")
   fun getCas2ReferralHistory(@PathVariable crn: String): List<Cas2ReferralHistory>
 
+  @WebClientRetry
   @GetExchange(value = "/cas3/external/referrals/{crn}")
   fun getCas3ReferralHistory(@PathVariable crn: String): List<Cas3ReferralHistory>
 
+  @WebClientRetry
   @GetExchange(value = "/cas1/external/url-templates")
   fun getCas1UrlTemplatesInternal(): Cas1UrlTemplates
 
+  @WebClientRetry
   @GetExchange(value = "/cas2/external/url-templates")
   fun getCas2UrlTemplatesInternal(): Cas2UrlTemplates
 
+  @WebClientRetry
   @GetExchange(value = "/cas3/external/url-templates")
   fun getCas3UrlTemplatesInternal(): Cas3UrlTemplates
+
+  @PostExchange(value = "/cas2/external/cases/{crn}/applications/{applicationId}/arrival")
+  fun postCas2Arrival(@PathVariable crn: String, @PathVariable applicationId: String, @RequestBody cas2Arrival: Cas2Arrival)
 }
 
-@RestClientRetry
 @Service
 class ApprovedPremisesCachingService(
   private val approvedPremisesClient: ApprovedPremisesClient,
@@ -80,4 +95,8 @@ class ApprovedPremisesCachingService(
 
   @Cacheable(ApiCallKeys.GET_CAS_3_URL_TEMPLATES, sync = true)
   fun getCas3UrlTemplates() = approvedPremisesClient.getCas3UrlTemplatesInternal()
+
+  fun postCas2Arrival(crn: String, applicationId: String, cas2Arrival: Cas2Arrival) {
+    approvedPremisesClient.postCas2Arrival(crn, applicationId, cas2Arrival)
+  }
 }
