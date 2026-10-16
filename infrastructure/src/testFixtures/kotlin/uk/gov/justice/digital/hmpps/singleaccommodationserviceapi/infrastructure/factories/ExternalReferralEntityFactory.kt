@@ -23,6 +23,7 @@ fun buildExternalReferralEntity(
   email: String? = null,
   phoneNumber: String? = null,
   withdrawalReason: ExternalReferralWithdrawalReason? = null,
+  otherReason: String? = null,
   withdrawalNote: String? = null,
   outcomeNote: String? = null,
   createdByUserId: UUID = UUID.randomUUID(),
@@ -42,6 +43,7 @@ fun buildExternalReferralEntity(
   email = email,
   phoneNumber = phoneNumber,
   withdrawalReason = withdrawalReason,
+  otherReason = otherReason,
   withdrawalNote = withdrawalNote,
   outcomeNote = outcomeNote,
 ).apply {

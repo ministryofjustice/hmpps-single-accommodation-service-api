@@ -132,8 +132,9 @@ object AccommodationReferralTransformer {
       placementAddress = null,
       placementStatus = null,
       uiUrl = null,
-      withdrawalReason = null,
-      withdrawalNote = null,
+      withdrawalReason = externalReferral.withdrawalReason?.name,
+      withdrawalNote = externalReferral.withdrawalNote,
+      otherReason = externalReferral.otherReason,
     )
   }
 }

@@ -211,21 +211,7 @@ enum class ServiceStatusNew(
     service = ServiceType.CAS2,
     link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS2_VIEW_APPLICATION),
   ),
-  CAS2_NOT_STARTED_COMMUNITY(
-    service = ServiceType.CAS2,
-    link = Link(text = EligibilityKeys.START_REFERRAL, type = LinkType.CAS2_START_APPLICATION),
-  ),
-  CAS2_NOT_STARTED_PRISON(
-    service = ServiceType.CAS2,
-    proposedAction = CaseActionType.START_CAS2_REFERRAL,
-    link = Link(text = EligibilityKeys.START_APPLICATION, type = LinkType.CAS2_START_APPLICATION),
-  ),
-  CAS2_NOT_STARTED_CAS1(
-    service = ServiceType.CAS2,
-    proposedAction = CaseActionType.START_CAS2_REFERRAL,
-    link = Link(text = EligibilityKeys.START_APPLICATION, type = LinkType.CAS2_START_APPLICATION),
-  ),
-  CAS2_NOT_STARTED_CAS2(
+  CAS2_NOT_STARTED(
     service = ServiceType.CAS2,
     proposedAction = CaseActionType.START_CAS2_REFERRAL,
     link = Link(text = EligibilityKeys.START_APPLICATION, type = LinkType.CAS2_START_APPLICATION),
@@ -432,7 +418,6 @@ enum class LinkType {
 }
 
 enum class FailureReason {
-  S_TIER,
   MALE_NOT_HIGH_RISK_TIER,
   NON_MALE_NOT_HIGH_RISK_TIER,
   INVALID_CURRENT_ACCOMMODATION_TYPE,
@@ -444,6 +429,9 @@ enum class FailureReason {
   SUITABLE_CAS3_APPLICATION,
   IS_SETTLED,
   UNDER_18,
+  IN_CAS2_ACCOMMODATION,
+  IN_CAS3_ACCOMMODATION,
+  IN_COMMUNITY,
 }
 
 enum class BlockingReason {

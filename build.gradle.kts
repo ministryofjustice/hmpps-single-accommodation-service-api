@@ -89,7 +89,19 @@ tasks.named("check") {
   dependsOn("validateFlywayFilenames")
 }
 
+val guavaDependency = libs.guava
+
 allprojects {
+  pluginManager.withPlugin("java") {
+    dependencies {
+      constraints {
+        add("implementation", guavaDependency.get()) {
+          because("Fix CVE-2026-102554")
+        }
+      }
+    }
+  }
+
   pluginManager.apply("org.owasp.dependencycheck")
   dependencyCheck {
     skipConfigurations.addAll(listOf("detekt", "detektPlugins"))
@@ -111,7 +123,30 @@ allprojects {
     useJUnitPlatform {
       excludeTags("integration")
     }
+    filter {
+      excludeTestsMatching("*PactTest")
+    }
   }
+
+  if (this != rootProject) {
+    tasks.register<Test>("pactTest") {
+      group = "verification"
+      description = "Runs consumer-side Pact tests"
+      testClassesDirs = sourceSets.test.get().output.classesDirs
+      classpath = sourceSets.test.get().runtimeClasspath
+      useJUnitPlatform()
+      filter {
+        includeTestsMatching("*PactTest")
+        isFailOnNoMatchingTests = false
+      }
+    }
+  }
+}
+
+tasks.register("pactTest") {
+  group = "verification"
+  description = "Runs all consumer-side Pact tests"
+  dependsOn(subprojects.map { it.tasks.named("pactTest") })
 }
 
 tasks.named<Test>("unitTest") {

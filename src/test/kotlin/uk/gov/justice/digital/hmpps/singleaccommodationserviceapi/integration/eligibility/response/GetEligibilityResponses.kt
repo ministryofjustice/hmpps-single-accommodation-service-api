@@ -32,9 +32,9 @@ fun expectedGetEligibilityResponse(
     "crn": "$crn",
     "cas1": {
       "serviceResult": {
-        "serviceStatus": "PLACEMENT_BOOKED",
-        "action": null,
-        "link": "View application",
+        "serviceStatus": "PLACEMENT_CANCELLED",
+        "action": {"type":"CREATE_PLACEMENT","startDate":null,"service":"CAS1"},
+        "link": "Create new placement request",
         "url": "$cas1ApplicationUrl",
         "linkType": "CAS1_VIEW_APPLICATION",
         "failureReasons": [],
@@ -74,11 +74,11 @@ fun expectedGetEligibilityResponse(
           "durationDays": 12
         },
         "placement": {
-          "status": "UPCOMING",
+          "status": "CANCELLED",
           "actualArrivalDate": null,
           "actualDepartureDate": null,
           "expectedDepartureDate": null,
-          "cancellationReason": null,
+          "cancellationReason": "Oops",
           "premises": {
             "startDate": "$startDate",
             "endDate": "$endDate",
@@ -126,7 +126,7 @@ fun expectedGetEligibilityResponse(
         "id": "$cas1ApplicationId",
         "applicationStatus": "PLACEMENT_ALLOCATED",
         "requestForPlacementStatus": "PLACEMENT_BOOKED",
-        "placementStatus": "UPCOMING"
+        "placementStatus": "CANCELLED"
       }
     },
     "cas2": {
@@ -154,14 +154,15 @@ fun expectedGetEligibilityResponse(
           "latestAssessmentStatus": "CANCELLED",
           "offerDeclinedReason": null,
           "cancelledReason": "cancelled reason",
-          "submittedAt": "2024-01-02T12:00:00Z"
+          "submittedAt": "2024-01-02T12:00:00Z",
+          "markedAsArrivedDateTime": null
         },
         "cohort":"INTENSIVE_SUPERVISION_COURTS"
       }
     },
     "cas3": {
       "serviceResult": {
-        "serviceStatus": "BOOKING_CONFIRMED",
+        "serviceStatus": "BOOKING_CANCELLED",
         "action": null,
         "link": "View referral",
         "url": "$cas3ReferralUrl",
@@ -180,7 +181,7 @@ fun expectedGetEligibilityResponse(
         },
         "applicationRejectedReason": "Oops",
         "assessmentStatus": "REJECTED",
-        "bookingStatus": "CONFIRMED",
+        "bookingStatus": "CANCELLED",
         "cancellation": {
               "cancellationDate": "2023-01-03",
               "cancellationReason": "Mistake"
@@ -252,17 +253,18 @@ fun expectedGetEligibilityResponse(
       },
       "pa":{
          "serviceResult":{
-            "serviceStatus":"COMPLETED",
+            "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[],
+            "failureReasons":["SUITABLE_CAS1_APPLICATION","SUITABLE_CAS3_APPLICATION"],
             "blockingStatusReason": null
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type":"CREATE_PLACEMENT","startDate":null, "service": "CAS1"}
       ]
    }
 }
@@ -351,7 +353,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
    },
    "upstreamFailures":[
       {
-         "endpoint":"getTierByCrn",
+         "endpoint":"getTierV3ByCrn",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
          "message": "500 Internal Server Error from GET $upstreamUrl",
@@ -435,9 +437,9 @@ fun expectedGetEligibilityResponseTierNotFound(
     },
     "cas2": {
       "serviceResult": {
-        "serviceStatus": "CAS2_NOT_STARTED_COMMUNITY",
-        "action": null,
-        "link": "Start referral",
+        "serviceStatus": "NOT_STARTED",
+        "action": {"type":"START_CAS2_REFERRAL","startDate":null,"service":"CAS2"},
+        "link": "Start application",
         "url": null,
         "linkType": "CAS2_START_APPLICATION",
         "failureReasons": [],
@@ -532,7 +534,8 @@ fun expectedGetEligibilityResponseTierNotFound(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type":"START_CAS2_REFERRAL","startDate":null,"service":"CAS2"}
       ]
    }
 }
@@ -595,9 +598,9 @@ fun expectedGetEligibilityNotEligibleSTierFail(
     },
     "cas2": {
       "serviceResult": {
-        "serviceStatus": "CAS2_NOT_STARTED_COMMUNITY",
-        "action": null,
-        "link": "Start referral",
+        "serviceStatus": "NOT_STARTED",
+        "action": {"type":"START_CAS2_REFERRAL","startDate":null,"service":"CAS2"},
+        "link": "Start application",
         "url": null,
         "linkType": "CAS2_START_APPLICATION",
         "failureReasons": [],
@@ -691,7 +694,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type":"START_CAS2_REFERRAL","startDate":null,"service":"CAS2"}
       ]
    }
 }
@@ -721,7 +725,7 @@ fun expectedGetEligibilityResponseCannotStartYet(
       },
       "cas2": {
         "serviceResult": {
-          "serviceStatus": "CAS2_NOT_STARTED_PRISON",
+          "serviceStatus": "NOT_STARTED",
           "action":{
           "type":"START_CAS2_REFERRAL",
           "startDate":null,"service":"CAS2"

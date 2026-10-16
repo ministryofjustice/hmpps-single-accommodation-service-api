@@ -164,6 +164,7 @@ private val caseControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /case-list" to defaultRoles,
     "GET /cases/{crn}" to defaultRoles,
+    "POST /cases/{crn}/applications/{applicationId}/arrival" to defaultRoles,
     "GET /search/{crn}" to defaultRoles,
   )
 
@@ -183,6 +184,7 @@ private val adminJobControllerMap: Map<String, Set<String>> =
   mapOf(
     "POST /admin/bulk-load-cases" to setOf("SAS_ADMIN_RW"),
     "POST /admin/bulk-refresh-cases-by-crn" to setOf("SAS_ADMIN_RW"),
+    "POST /admin/bulk-refresh-all-cases" to setOf("SAS_ADMIN_RW"),
     "PUT /admin/replay-failed-inbox-events" to setOf("SAS_ADMIN_RW"),
   )
 
@@ -194,6 +196,7 @@ private val externalReferralControllerMap: Map<String, Set<String>> =
     "PUT /cases/{crn}/external-referral/{id}" to defaultRoles,
     "POST /cases/{crn}/external-referral/{id}/notes" to defaultRoles,
     "GET /cases/{crn}/external-referral/{id}/timeline" to defaultRoles,
+    "POST /cases/{crn}/external-referral/{id}/withdrawal" to defaultRoles,
   )
 
 private val controllerMap: Map<String, Map<String, Set<String>>> =

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus.NOT_ARRIVED
@@ -33,6 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.re
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralWithdrawalReason as EntityExternalReferralWithdrawalReason
 
 class AccommodationReferralControllerIT : IntegrationTestBase() {
 
@@ -184,7 +186,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `getApplicationHistory includes rejected external referrals and excludes submitted and accepted ones`() {
+  fun `getApplicationHistory includes completed, archived and rejected with a withdrawal reason external referrals and excludes submitted and accepted ones`() {
     val crn = "X12345"
 
     val rejectedReferral = externalReferralRepository.save(
@@ -195,8 +197,8 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         submissionDate = LocalDate.of(2026, 9, 20),
         status = ExternalReferralStatus.REJECTED,
         organisationName = "Rejecting Charity",
-        withdrawalReason = null,
-        withdrawalNote = null,
+        withdrawalReason = EntityExternalReferralWithdrawalReason.NO_CAPACITY,
+        withdrawalNote = "Rejected withdrawal reason",
       ),
     )
     externalReferralRepository.save(
@@ -226,7 +228,8 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         submissionDate = LocalDate.of(2026, 10, 10),
         status = ExternalReferralStatus.ARCHIVED,
         organisationName = "Another Charity",
-        withdrawalReason = null,
+        withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON,
+        otherReason = "Archived other reason",
         withdrawalNote = null,
       ),
     )
@@ -239,7 +242,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         submissionDate = LocalDate.of(2026, 9, 22),
         status = ExternalReferralStatus.COMPLETED,
         organisationName = "Another Charity",
-        withdrawalReason = null,
+        withdrawalReason = EntityExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
         withdrawalNote = null,
       ),
     )
@@ -263,8 +266,9 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
                 date = "2026-10-10",
                 referredByName = NAME_OF_TEST_DATA_SETUP_USER,
                 referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
-                withdrawalReason = null,
+                withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON.name,
                 withdrawalNote = null,
+                otherReason = "Archived other reason",
               ),
               expectedReferralHistoryItem(
                 id = completedReferral.id,
@@ -273,8 +277,18 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
                 date = "2026-09-22",
                 referredByName = NAME_OF_TEST_DATA_SETUP_USER,
                 referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
-                withdrawalReason = null,
+                withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE.name,
                 withdrawalNote = null,
+              ),
+              expectedReferralHistoryItem(
+                id = rejectedReferral.id,
+                type = "ER",
+                status = "REJECTED",
+                date = "2026-09-20",
+                referredByName = NAME_OF_TEST_DATA_SETUP_USER,
+                referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
+                withdrawalReason = EntityExternalReferralWithdrawalReason.NO_CAPACITY.name,
+                withdrawalNote = "Rejected withdrawal reason",
               ),
             ),
           ),
@@ -283,7 +297,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `getApplicationHistory excludes rejected external referrals that have no outcome reason`() {
+  fun `getApplicationHistory excludes rejected external referrals that have no withdrawal reason`() {
     val crn = "X12345"
 
     externalReferralRepository.save(
@@ -306,8 +320,8 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         submissionDate = LocalDate.of(2026, 9, 22),
         status = ExternalReferralStatus.COMPLETED,
         organisationName = "Another Charity",
-        withdrawalReason = null,
-        withdrawalNote = null,
+        withdrawalReason = EntityExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
+        withdrawalNote = "Completed withdrawal note",
       ),
     )
 
@@ -330,8 +344,8 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
                 date = "2026-09-22",
                 referredByName = NAME_OF_TEST_DATA_SETUP_USER,
                 referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
-                withdrawalReason = null,
-                withdrawalNote = null,
+                withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE.name,
+                withdrawalNote = "Completed withdrawal note",
               ),
             ),
           ),

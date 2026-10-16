@@ -928,7 +928,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         crn = newCrn,
         response = buildCase(crn = newCrn, nomsNumber = nomsNumber),
       )
-      TierStubs.getTierOKResponse(newCrn, buildTier(tierScore = "A2"))
+      TierStubs.getTierOKResponse(newCrn, buildTier(tierScore = "B"))
       PrisonerSearchStubs.getPrisonerOKResponse(
         prisonNumber = nomsNumber,
         response = buildPrisoner(
@@ -962,7 +962,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         .exchangeSuccessfully()
 
       val createdCase = caseRepository.findByCrn(newCrn)!!
-      assertThat(createdCase.tierScore).isEqualTo("A2")
+      assertThat(createdCase.tierScore).isEqualTo("B")
       assertThat(createdCase.firstName).isEqualTo("First")
       assertThat(createdCase.lastName).isEqualTo("Last")
       assertThat(createdCase.roshLevelCode).isEqualTo("RVHR")

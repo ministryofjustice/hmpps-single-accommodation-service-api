@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildExternalReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.externalreferral.ExternalReferralTransformer
@@ -19,33 +20,6 @@ class ExternalReferralTransformerTest {
 
   @Nested
   inner class ToExternalReferralDto {
-    private val createdByName = "Joe Bloggs"
-    private val createdByUsername = "JBLOGGS"
-
-    @Test
-    fun `should map all fields correctly`() {
-      val caseId = UUID.randomUUID()
-      val crn = UUID.randomUUID().toString()
-      val entity = buildExternalReferralEntity(
-        caseId = caseId,
-        status = EntityExternalReferralStatus.SUBMITTED,
-      )
-
-      val dto = ExternalReferralTransformer.toExternalReferralDto(
-        entity,
-        crn,
-        createdByName,
-        createdByUsername,
-      )
-
-      assertThat(dto.caseId).isEqualTo(caseId)
-      assertThat(dto.crn).isEqualTo(crn)
-      assertThat(dto.status).isEqualTo(ExternalReferralStatus.SUBMITTED)
-      assertThat(dto.submission).isNotNull()
-      assertThat(dto.submission.createdBy).isEqualTo(createdByName)
-      assertThat(dto.submission.createdByUsername).isEqualTo(createdByUsername)
-    }
-
     @Test
     fun `should map all fields correctly with user entity`() {
       val caseId = UUID.randomUUID()
@@ -53,7 +27,10 @@ class ExternalReferralTransformerTest {
       val user = buildUserEntity(forename = "Joe", surname = "Bloggs", username = "JBLOGGS")
       val entity = buildExternalReferralEntity(
         caseId = caseId,
-        status = EntityExternalReferralStatus.SUBMITTED,
+        status = EntityExternalReferralStatus.ARCHIVED,
+        withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON,
+        otherReason = "Other reason",
+        withdrawalNote = "Withdrawal note",
       )
 
       val dto = ExternalReferralTransformer.toExternalReferralDto(
@@ -64,7 +41,10 @@ class ExternalReferralTransformerTest {
 
       assertThat(dto.caseId).isEqualTo(caseId)
       assertThat(dto.crn).isEqualTo(crn)
-      assertThat(dto.status).isEqualTo(ExternalReferralStatus.SUBMITTED)
+      assertThat(dto.status).isEqualTo(ExternalReferralStatus.ARCHIVED)
+      assertThat(dto.withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.ANOTHER_REASON)
+      assertThat(dto.otherReason).isEqualTo("Other reason")
+      assertThat(dto.withdrawalNote).isEqualTo("Withdrawal note")
       assertThat(dto.submission).isNotNull()
       assertThat(dto.submission.createdBy).isEqualTo(user.displayName())
       assertThat(dto.submission.createdByUsername).isEqualTo("JBLOGGS")
@@ -114,7 +94,6 @@ class ExternalReferralTransformerTest {
     @Test
     fun `should map outcomeNote when populated`() {
       val entity = buildExternalReferralEntity(
-        withdrawalReason = EntityExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION,
         outcomeNote = "An outcome note",
       )
 

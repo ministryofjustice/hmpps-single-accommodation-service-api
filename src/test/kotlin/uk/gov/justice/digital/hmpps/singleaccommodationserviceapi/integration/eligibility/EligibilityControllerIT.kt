@@ -14,7 +14,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
@@ -49,7 +52,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.asJsonValue
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityNotEligibleSTierFail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponseCannotStartYet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponseTierNotFound
@@ -105,6 +107,14 @@ class EligibilityControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
           ),
           endDate = LocalDate.now().plusDays(1),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A02.name,
+              ),
+              isActive = true,
+            ),
+          ),
         ),
       ),
     )
@@ -139,7 +149,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get eligibility for crn`() {
-    val tier = buildTier("A1")
+    val tier = buildTier("A")
     val premises = buildCas1PremisesSummary(
       startDate = LocalDate.now(),
       endDate = LocalDate.now(),
@@ -177,11 +187,11 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
       placement = buildCas1PlacementSummary(
         premises = premises,
-        status = Cas1PlacementStatus.UPCOMING,
+        status = Cas1PlacementStatus.CANCELLED,
         actualArrivalDate = null,
         expectedDepartureDate = null,
         actualDepartureDate = null,
-        cancellationReason = null,
+        cancellationReason = "Oops",
       ),
       assessment = buildCas1AssessmentSummary(
         decision = "accepted",
@@ -232,7 +242,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
         assessmentStatus = Cas3AssessmentStatus.REJECTED,
         assessmentRejectionReason = "Oops",
         latestBooking = buildCas3LatestBooking(
-          status = Cas3BookingStatus.CONFIRMED,
+          status = Cas3BookingStatus.CANCELLED,
           provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
           cancellation = buildCas3ExternalPreviousBookingCancellation(
             cancellationDate = LocalDate.parse("2023-01-03"),
@@ -431,14 +441,14 @@ class EligibilityControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should include S_TIER failureReason in CAS1 eligibility JSON for an S tier candidate`() {
+  fun `should include failureReason when defined`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
     val cas1Application = buildCas1Application(
       application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.REJECTED, id = cas1ApplicationId, createdAt = OffsetDateTime.parse("2023-01-01T12:00:00.000Z")),
     )
 
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A1S"))
+    TierStubs.getTierOKResponse(crn = crn, buildTier("E"))
     ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
       crn = crn,
       response = cas1Application,
@@ -463,33 +473,14 @@ class EligibilityControllerIT : IntegrationTestBase() {
     restTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(
-          expectedGetEligibilityNotEligibleSTierFail(
-            crn = crn,
-            cas1ApplicationId = cas1ApplicationId,
-            cas3ApplicationId = cas3ApplicationId,
-            dutyToReferCaseId = dutyToReferCaseId,
-            dutyToReferId = existingEntity.id,
-            localAuthorityAreaId = localAuthorityArea.id,
-            localAuthorityAreaName = localAuthorityArea.name,
-            submissionDate = existingEntity.submissionDate.toString(),
-            referenceNumber = "DTR-REF-001",
-            createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-            createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
-            crsSubmissionDate = crsSubmissionDate.toString(),
-            crsUrl = crsUrl,
-            cas3ReferralUrl = cas3ReferralUiUrl,
-          ),
-        )
-      }
+      .expectBody()
+      .jsonPath("$.data.cas1.serviceResult.failureReasons[0]").isEqualTo("MALE_NOT_HIGH_RISK_TIER")
   }
 
   @Test
   fun `should succeed when prisoner search returns 404`() {
     PrisonerSearchStubs.getPrisonerNotFoundResponse(prisonNumber = prisonNumber)
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
 
     val entity = buildCaseEntity(id = dutyToReferCaseId) {
       withCrn(crn)
@@ -504,7 +495,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should succeed when case has no prison number`() {
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
 
     val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
     caseRepository.save(entity)

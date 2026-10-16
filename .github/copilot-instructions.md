@@ -9,6 +9,20 @@
 ## Trust these instructions first
 Use this file as the default operating guide. Only search the repo when these instructions are incomplete or proved wrong.
 
+## Scope discipline
+- Do **not** refactor code in the same area while making a requested change.
+- Do **not** get sidetracked by warnings, recommendations, or cleanup opportunities unless the task explicitly asks for them.
+- Do **not** manually format or reformat code as part of unrelated changes; rely on running `./gradlew ktlintFormat --no-daemon` when formatting is needed.
+- Focus solely on the task you were asked to do, and keep changes as small and targeted as possible.
+
+## Tooling safety
+- For focused integration tests in this repo, use the root task explicitly: `./gradlew :integrationTest --tests '...' --no-daemon`.
+
+## Avoid duplication
+- Avoid introducing duplicated code when making changes; prefer existing helpers, fixtures, builders, and shared utilities where appropriate.
+- In reviews, call out meaningful duplication and suggest consolidation, especially repeated test data setup, fixture construction, or repeated mapping logic.
+- Keep any deduplication work scoped to the task at hand unless the request explicitly asks for broader cleanup.
+
 ## Fast repo map
 - `src/main/kotlin/.../SingleAccommodationServiceApi.kt` — main entrypoint.
 - `src/main/kotlin/.../api/controller/` — REST controllers.

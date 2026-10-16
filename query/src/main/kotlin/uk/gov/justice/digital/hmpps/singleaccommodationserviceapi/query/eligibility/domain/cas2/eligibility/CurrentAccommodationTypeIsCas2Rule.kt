@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
@@ -8,15 +8,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 @Component
-class STierEligibilityRule : Rule {
-  override val description = "FAIL if candidate is S Tier"
+class CurrentAccommodationTypeIsCas2Rule : Rule {
+  override val description = "FAIL if individual is in CAS2"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = TierRiskScores.isSTier(data.tierScore)
+    val isFail = data.currentAccommodationTypeEntity?.isCas2 == true
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
-      failureReason = if (isFail) FailureReason.S_TIER else null,
+      failureReason = if (isFail) FailureReason.IN_CAS2_ACCOMMODATION else null,
     )
   }
 }
