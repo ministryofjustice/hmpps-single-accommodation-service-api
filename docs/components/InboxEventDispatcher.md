@@ -50,6 +50,19 @@ hmpps:
 
 The dispatcher runs on a schedule (every 5 seconds, after the previous run completes) and uses ShedLock to ensure only one instance processes at a time in multi-instance deployments.
 
+## Inbox retention
+
+`InboxEventCleanupJob` runs daily at 06:00 Europe/London (including daylight saving).
+It deletes inbox rows whose `createdAt` is strictly earlier than the configured
+retention period before the run, regardless of processing status. The retention
+period is configured by `inbox-events.cleanup.retention-days` (default: `90`). 
+Rows exactly at the cutoff are retained.
+Age is based on when the row was created, not when the upstream event occurred.
+
+The schedule is configured by `inbox-events.cleanup.cron` (`0 0 6 * * *`) and
+`inbox-events.cleanup.zone` (`Europe/London`). ShedLock prevents concurrent cleanup
+runs across application instances, using `shedlock.inbox-event-cleanup` lock settings.
+
 ## Adding a New Handler
 
 To handle a new event type, follow these steps:
