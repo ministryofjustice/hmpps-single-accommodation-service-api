@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.service.annotation.GetExchange
 import org.springframework.web.service.annotation.PostExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.WebClientRetry
 
 interface ApprovedPremisesAndDeliusClient {
@@ -18,6 +19,10 @@ interface ApprovedPremisesAndDeliusClient {
   @WebClientRetry
   @GetExchange(value = "/staff/{username}")
   fun getStaffDetail(@PathVariable username: String): StaffDetail?
+
+  @WebClientRetry
+  @GetExchange(value = "/probation-cases/{crn}/sexual-offence-registrations")
+  fun getSexualOffenceRegistrations(@PathVariable crn: String): SexualOffenceRegistrations?
 }
 
 @Service
@@ -27,6 +32,9 @@ class ApprovedPremisesAndDeliusCachingService(
 
   @Cacheable(ApiCallKeys.GET_STAFF_DETAIL, key = "#username", sync = true)
   fun getStaffDetail(username: String) = approvedPremisesAndDeliusClient.getStaffDetail(username)
+
+  @Cacheable(ApiCallKeys.GET_SEXUAL_OFFENCE_REGISTRATIONS, key = "#crn", sync = true)
+  fun getSexualOffenceRegistrations(crn: String) = approvedPremisesAndDeliusClient.getSexualOffenceRegistrations(crn)
 
   fun postCaseSummaries(crns: List<String>) = approvedPremisesAndDeliusClient.postCaseSummaries(crns)
 }
