@@ -108,7 +108,7 @@ class DecisionTreeBuilderTest {
   @Test
   fun `confirmed preserves failureReasons when status is NOT_ELIGIBLE`() {
     val builder = DecisionTreeBuilder(engine)
-    val failureReasons = listOf(FailureReason.S_TIER)
+    val failureReasons = listOf(FailureReason.IS_SETTLED)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_NOT_ELIGIBLE, failureReasons = failureReasons),
@@ -125,7 +125,7 @@ class DecisionTreeBuilderTest {
     val builder = DecisionTreeBuilder(engine)
     val context = EvaluationContext(
       data = buildDomainData(),
-      currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_NOT_STARTED, failureReasons = listOf(FailureReason.S_TIER)),
+      currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_NOT_STARTED, failureReasons = listOf(FailureReason.IS_SETTLED)),
     )
 
     val result = builder.confirmed().eval(context)
@@ -176,7 +176,7 @@ class DecisionTreeBuilderTest {
   @Test
   fun `notEligible carries failureReasons from current context`() {
     val builder = DecisionTreeBuilder(engine)
-    val failureReasons = listOf(FailureReason.S_TIER, FailureReason.MALE_NOT_HIGH_RISK_TIER)
+    val failureReasons = listOf(FailureReason.IS_SETTLED, FailureReason.MALE_NOT_HIGH_RISK_TIER)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResultNew(
@@ -233,7 +233,7 @@ class DecisionTreeBuilderTest {
   @Test
   fun `notRequired carries failureReasons from current context`() {
     val builder = DecisionTreeBuilder(engine)
-    val failureReasons = listOf(FailureReason.S_TIER, FailureReason.MALE_NOT_HIGH_RISK_TIER)
+    val failureReasons = listOf(FailureReason.IS_SETTLED, FailureReason.MALE_NOT_HIGH_RISK_TIER)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResultNew(
@@ -251,7 +251,7 @@ class DecisionTreeBuilderTest {
   @Test
   fun `currentOutcome carries context`() {
     val builder = DecisionTreeBuilder(engine)
-    val failureReasons = listOf(FailureReason.S_TIER, FailureReason.NON_MALE_NOT_HIGH_RISK_TIER)
+    val failureReasons = listOf(FailureReason.IS_SETTLED, FailureReason.NON_MALE_NOT_HIGH_RISK_TIER)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResultNew(
