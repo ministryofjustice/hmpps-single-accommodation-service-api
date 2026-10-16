@@ -304,7 +304,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
     val case = buildCase(crn, nomsNumber = prisonNumber)
 
     SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
-    TierStubs.getTierOKResponse(crn, response = buildTier(crn))
+    TierStubs.getTierOKResponse(crn, response = buildTier())
 
     shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
       crn,

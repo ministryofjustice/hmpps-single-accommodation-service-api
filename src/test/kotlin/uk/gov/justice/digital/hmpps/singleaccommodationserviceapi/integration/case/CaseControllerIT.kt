@@ -309,7 +309,7 @@ class CaseControllerIT : IntegrationTestBase() {
       .jsonPath("$.data.length()").isEqualTo(1)
 
     val createdCase = caseRepository.findByCrn(crn)!!
-    assertThat(createdCase.tierScore).isEqualTo("A2")
+    assertThat(createdCase.tierScore).isEqualTo("B")
     assertThat(createdCase.firstName).isEqualTo(deliusName.forename)
     assertThat(createdCase.lastName).isEqualTo(deliusName.surname)
 
@@ -375,7 +375,7 @@ class CaseControllerIT : IntegrationTestBase() {
       getCaseListResponse()
 
       val createdCase = caseRepository.findByCrn(crn)!!
-      assertThat(createdCase.tierScore).isEqualTo("A2")
+      assertThat(createdCase.tierScore).isEqualTo("B")
       assertThat(createdCase.firstName).isEqualTo("NewForename")
       assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
     }
@@ -875,7 +875,7 @@ class CaseControllerIT : IntegrationTestBase() {
     val case = buildCase(crn = crn, nomsNumber = nomsNumber, staff = staff, name = deliusName, dateOfBirth = dateOfBirth)
 
     stubCorePersonRecord(crn = crn, prisonNumber = nomsNumber, firstName = deliusName.forename, lastName = deliusName.surname)
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A2"))
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"))
     PrisonerSearchStubs.getPrisonerOKResponse(
       prisonNumber = nomsNumber,
       response = buildPrisoner(

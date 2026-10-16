@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.FailureType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER_V3
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
@@ -56,7 +56,7 @@ class CaseCreationServiceTest {
     private val caseMapper = CaseMapper()
 
     private val tierFailure = UpstreamFailure(
-      callKey = GET_TIER,
+      callKey = GET_TIER_V3,
       type = FailureType.UPSTREAM_HTTP_ERROR,
       errorDetail = ErrorDetail(httpStatus = HttpStatus.INTERNAL_SERVER_ERROR, message = "Internal Server Error"),
     )
