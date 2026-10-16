@@ -418,7 +418,6 @@ enum class LinkType {
 }
 
 enum class FailureReason {
-  S_TIER,
   MALE_NOT_HIGH_RISK_TIER,
   NON_MALE_NOT_HIGH_RISK_TIER,
   INVALID_CURRENT_ACCOMMODATION_TYPE,
