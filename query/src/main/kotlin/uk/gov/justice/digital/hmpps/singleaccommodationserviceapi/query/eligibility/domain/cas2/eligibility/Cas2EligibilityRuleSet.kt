@@ -12,6 +12,7 @@ class Cas2EligibilityRuleSet(
   currentAccommodationTypeIsCas2: CurrentAccommodationTypeIsCas2Rule,
   currentAccommodationTypeIsCommunity: CurrentAccommodationTypeIsCommunityRule,
   noNextAccommodation: NoNextAccommodationRule,
+  cas2TierEligibilityRule: SingleLetterTierRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(
     under18,
@@ -19,6 +20,7 @@ class Cas2EligibilityRuleSet(
     currentAccommodationTypeIsCas2,
     currentAccommodationTypeIsCommunity,
     noNextAccommodation,
+    cas2TierEligibilityRule,
   )
 
   override fun getRules(): List<Rule> = rules

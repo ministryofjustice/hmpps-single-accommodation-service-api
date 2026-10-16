@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas2Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas3Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCommunityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.SingleLetterTierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Under18Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 
@@ -24,6 +25,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
     ClockConfig::class,
     Under18Rule::class,
     NoNextAccommodationRule::class,
+    SingleLetterTierRule::class,
   ],
 )
 class Cas2EligibilityRuleSetTest {
@@ -37,6 +39,7 @@ class Cas2EligibilityRuleSetTest {
     CurrentAccommodationTypeIsCas3Rule::class.simpleName,
     CurrentAccommodationTypeIsCas2Rule::class.simpleName,
     CurrentAccommodationTypeIsCommunityRule::class.simpleName,
+    SingleLetterTierRule::class.simpleName,
   )
 
   @Test
@@ -44,7 +47,7 @@ class Cas2EligibilityRuleSetTest {
     val ruleSetRules = cas2EligibilityRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(5)
+      .hasSize(6)
       .containsExactlyInAnyOrderElementsOf(expectedCas2EligibilityRuleNames)
   }
 }
