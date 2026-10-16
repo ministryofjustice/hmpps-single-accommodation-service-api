@@ -612,33 +612,43 @@ class EligibilityServiceTest {
     fun loadCas2Scenarios(): List<Cas2Scenario> {
       val rows = CsvReader().read("/cas2-eligibility-scenarios.csv")
 
-      return rows.mapIndexed { idx, row ->
+      return rows.flatMapIndexed { idx, row ->
+
+        val accommodationTypes = row["currentAccommodationType"].expandCurrentAccommodationType()
+
         try {
-          Cas2Scenario(
-            testCaseId = row["testCaseId"]!!,
-            description = row["description"],
-            referenceDate = row["referenceDate"]!!.toLocalDate(),
-            hasNextAccommodation = row["hasNextAccommodation"]!!,
-            currentAccommodationType = row["currentAccommodationType"],
-            currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
-            isApplicationPresent = row["isApplicationPresent"]!!,
-            submittedAt = row["submittedAt"]?.toLocalDate(),
-            cas2ApplicationStatus = row["cas2ApplicationStatus"]?.let { Cas2AssessmentStatus.forValue(it) },
-            expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
-            expectedCas2Action = row["expectedCas2Action"]?.let { CaseActionType.valueOf(it) },
-            expectedCas2Link = row["expectedCas2Link"],
-            expectedCas2Url = row["expectedCas2Url"],
-            u18 = row["u18"]?.toBoolean(),
-            expectedFailureReasons = row["expectedFailureReasons"]
-              ?.takeIf { it.isNotBlank() }
-              ?.split(",")
-              ?.map { FailureReason.valueOf(it.trim()) }
-              ?: emptyList(),
-          )
+          accommodationTypes.map { accommodationType ->
+            Cas2Scenario(
+              testCaseId = row["testCaseId"]!!,
+              description = row["description"],
+              referenceDate = row["referenceDate"]!!.toLocalDate(),
+              hasNextAccommodation = row["hasNextAccommodation"]!!,
+              currentAccommodationType = accommodationType,
+              currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
+              isApplicationPresent = row["isApplicationPresent"]!!,
+              submittedAt = row["submittedAt"]?.toLocalDate(),
+              cas2ApplicationStatus = row["cas2ApplicationStatus"]?.let { Cas2AssessmentStatus.forValue(it) },
+              expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
+              expectedCas2Action = row["expectedCas2Action"]?.let { CaseActionType.valueOf(it) },
+              expectedCas2Link = row["expectedCas2Link"],
+              expectedCas2Url = row["expectedCas2Url"],
+              u18 = row["u18"]?.toBoolean(),
+              expectedFailureReasons = row["expectedFailureReasons"]
+                ?.takeIf { it.isNotBlank() }
+                ?.split(",")
+                ?.map { FailureReason.valueOf(it.trim()) }
+                ?: emptyList(),
+            )
+          }
         } catch (e: Exception) {
           throw IllegalStateException("CAS2 CSV row $idx failed: $row", e)
         }
       }
+    }
+
+    private fun String?.expandCurrentAccommodationType() = when (this) {
+      "A10-A11" -> listOf("A10", "A11")
+      else -> listOf(this)
     }
 
     @Test
