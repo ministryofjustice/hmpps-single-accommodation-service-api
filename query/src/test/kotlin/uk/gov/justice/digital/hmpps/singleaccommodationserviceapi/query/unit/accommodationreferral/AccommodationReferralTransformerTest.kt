@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildExternalReferralDto
@@ -113,13 +114,16 @@ class AccommodationReferralTransformerTest {
   fun `should transform external referral to accommodation referral dto`() {
     val orchestrationDto = buildAccommodationReferralOrchestrationDto(cas1Referrals = emptyList(), cas2Referrals = emptyList(), cas3Referrals = emptyList())
     val externalReferral = buildExternalReferralDto(
-      status = ExternalReferralStatus.REJECTED,
+      status = ExternalReferralStatus.ARCHIVED,
       submission = buildExternalReferralSubmissionDto(
         createdBy = "Joe Bloggs",
         createdByUsername = "JBLOGGS",
         organisationName = "Some charity",
         outcomeNote = "Some reason for rejection",
       ),
+      withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON,
+      otherReason = "Some other reason",
+      withdrawalNote = "Some note",
     )
 
     val result = AccommodationReferralTransformer.transformReferrals(
@@ -132,7 +136,7 @@ class AccommodationReferralTransformerTest {
     val externalReferralResult = result.first()
     assertThat(externalReferralResult.id).isEqualTo(externalReferral.submission.id)
     assertThat(externalReferralResult.type).isEqualTo(AccommodationService.ER)
-    assertThat(externalReferralResult.status).isEqualTo(AccommodationReferralStatus.REJECTED)
+    assertThat(externalReferralResult.status).isEqualTo(AccommodationReferralStatus.ARCHIVED)
     assertThat(externalReferralResult.date).isEqualTo(externalReferral.submission.submissionDate)
     assertThat(externalReferralResult.referralRejectionReason).isNull()
     assertThat(externalReferralResult.referralRejectionReasonDetail).isNull()
@@ -142,7 +146,8 @@ class AccommodationReferralTransformerTest {
     assertThat(externalReferralResult.placementStatus).isNull()
     assertThat(externalReferralResult.uiUrl).isNull()
     assertThat(externalReferralResult.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs", username = "JBLOGGS"))
-    assertThat(externalReferralResult.withdrawalReason).isNull()
-    assertThat(externalReferralResult.withdrawalNote).isNull()
+    assertThat(externalReferralResult.withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.ANOTHER_REASON.name)
+    assertThat(externalReferralResult.otherReason).isEqualTo("Some other reason")
+    assertThat(externalReferralResult.withdrawalNote).isEqualTo("Some note")
   }
 }

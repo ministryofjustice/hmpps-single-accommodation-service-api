@@ -42,8 +42,10 @@ class ExternalReferralController(
     @PathVariable crn: String,
     @Parameter(description = "Filter results to only referrals with one of these statuses.")
     @RequestParam(required = false) statuses: List<ExternalReferralStatus>?,
+    @Parameter(description = "Exclude referrals that have a withdrawal reason.")
+    @RequestParam(required = false) excludeWithdrawnReferrals: Boolean?,
   ): ResponseEntity<ApiResponseDto<List<ExternalReferralDto>>> {
-    val referrals = externalReferralQueryService.searchExternalReferrals(crn, statuses)
+    val referrals = externalReferralQueryService.searchExternalReferrals(crn, statuses, excludeWithdrawnReferrals)
     return ResponseEntity.ok(ApiResponseDto(referrals))
   }
 

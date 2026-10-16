@@ -110,7 +110,7 @@ class ExternalReferralQueryServiceTest {
     @Test
     fun `should return empty list when no referrals found`() {
       every {
-        externalReferralRepository.searchByCrn(crn, null)
+        externalReferralRepository.searchByCrn(crn, null, null)
       } returns emptyList()
 
       val result = service.searchExternalReferrals(crn, null)
@@ -138,6 +138,7 @@ class ExternalReferralQueryServiceTest {
         externalReferralRepository.searchByCrn(
           crn,
           listOf(EntityExternalReferralStatus.SUBMITTED, EntityExternalReferralStatus.ACCEPTED),
+          null,
         )
       } returns listOf(newestEntity, oldestEntity)
       every { userRepository.findAllById(setOf(createdByUserId)) } returns listOf(userEntity)
@@ -156,7 +157,7 @@ class ExternalReferralQueryServiceTest {
     @Test
     fun `should treat an empty statuses list the same as no filter`() {
       every {
-        externalReferralRepository.searchByCrn(crn, null)
+        externalReferralRepository.searchByCrn(crn, null, null)
       } returns emptyList()
 
       val result = service.searchExternalReferrals(crn, emptyList())

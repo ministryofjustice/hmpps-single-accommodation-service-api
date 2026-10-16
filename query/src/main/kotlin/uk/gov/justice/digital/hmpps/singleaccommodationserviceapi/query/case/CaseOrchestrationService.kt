@@ -106,7 +106,7 @@ class CaseOrchestrationService(
     val calls = mapOf(
       ApiCallKeys.GET_CASE to { sasAndDeliusCachingService.getCase(username, crn) },
       ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },
-      ApiCallKeys.GET_TIER to { tierCachingService.getTier(crn) },
+      ApiCallKeys.GET_TIER_V3 to { tierCachingService.getTier(crn) },
     )
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = calls,
@@ -114,7 +114,7 @@ class CaseOrchestrationService(
 
     val case = results.standardCallsNoIterationResults!!.getResult<Case>(ApiCallKeys.GET_CASE)
     val cpr = results.standardCallsNoIterationResults!!.getResult<CorePersonRecord>(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
-    val tier = results.standardCallsNoIterationResults!!.getResult<Tier>(ApiCallKeys.GET_TIER)
+    val tier = results.standardCallsNoIterationResults!!.getResult<Tier>(ApiCallKeys.GET_TIER_V3)
 
     return OrchestrationResultDto(
       data = CaseOrchestrationDto(

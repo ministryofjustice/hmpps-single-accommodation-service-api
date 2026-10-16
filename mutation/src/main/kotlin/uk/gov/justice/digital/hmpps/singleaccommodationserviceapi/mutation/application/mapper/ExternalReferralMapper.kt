@@ -27,6 +27,7 @@ object ExternalReferralMapper {
     email = snapshot.email,
     phoneNumber = snapshot.phoneNumber,
     withdrawalReason = snapshot.withdrawalReason?.let { EntityExternalReferralWithdrawalReason.valueOf(it.name) },
+    otherReason = snapshot.otherReason,
     withdrawalNote = snapshot.withdrawalNote,
     outcomeNote = snapshot.outcomeNote,
   )
@@ -41,6 +42,7 @@ object ExternalReferralMapper {
     entity.email = snapshot.email
     entity.phoneNumber = snapshot.phoneNumber
     entity.withdrawalReason = snapshot.withdrawalReason?.let { EntityExternalReferralWithdrawalReason.valueOf(it.name) }
+    entity.otherReason = snapshot.otherReason
     entity.withdrawalNote = snapshot.withdrawalNote
     entity.outcomeNote = snapshot.outcomeNote
     entity.addMissingNotes(snapshot.notes)
@@ -69,6 +71,7 @@ object ExternalReferralMapper {
     email = entity.email,
     phoneNumber = entity.phoneNumber,
     withdrawalReason = entity.withdrawalReason?.let { ExternalReferralWithdrawalReason.valueOf(it.name) },
+    otherReason = entity.otherReason,
     withdrawalNote = entity.withdrawalNote,
     outcomeNote = entity.outcomeNote,
     notes = entity.notes.map {
@@ -103,6 +106,7 @@ object ExternalReferralMapper {
       outcomeNote = snapshot.outcomeNote,
     ),
     withdrawalReason = snapshot.withdrawalReason,
+    otherReason = snapshot.otherReason,
     withdrawalNote = snapshot.withdrawalNote,
   )
 }

@@ -282,7 +282,10 @@ class ExternalReferralApplicationServiceTest {
     val result = externalReferralApplicationService.withdrawalExternalReferral(
       crn,
       referralId,
-      ExternalReferralWithdrawalDto(withdrawalReason = withdrawalReason),
+      ExternalReferralWithdrawalDto(
+        withdrawalReason = withdrawalReason,
+        otherReason = "Some other reason".takeIf { withdrawalReason == ExternalReferralWithdrawalReason.ANOTHER_REASON },
+      ),
     )
 
     assertThat(result.status).isEqualTo(expectedStatus)

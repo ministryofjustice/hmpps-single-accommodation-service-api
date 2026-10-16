@@ -242,7 +242,7 @@ class CaseTransformerTest {
     dateOfBirth = LocalDate.of(2000, 12, 3),
     crn = crn,
     prisonNumber = "YY09876Y",
-    tierScore = "A1",
+    tierScore = "A",
     riskLevel = RiskLevel.VERY_HIGH,
     pncReference = "Some PNC Reference",
     assignedTo = AssignedToDto(

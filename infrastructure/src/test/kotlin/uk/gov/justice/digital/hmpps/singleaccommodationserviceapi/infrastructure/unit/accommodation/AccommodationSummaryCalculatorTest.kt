@@ -79,6 +79,7 @@ class AccommodationSummaryCalculatorTest {
     isPrison = false,
     isCas1 = false,
     isCas2 = false,
+    isCas3 = false,
     isHomeless = isHomeless,
   )
 
