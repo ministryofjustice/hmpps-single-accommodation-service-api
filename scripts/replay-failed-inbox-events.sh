@@ -10,33 +10,32 @@ print_usage() {
   echo "  replay-failed-inbox-events - replay failed inbox events"
   echo ""
   echo "Synopsis:"
-  echo "  $0 <dev|test|preprod|prod> <username> <all|uuid1 [uuid2 ...]>"
+  echo "  $0 <dev|test|preprod|prod> <all|uuid1 [uuid2 ...]>"
   echo ""
   echo "Description:"
   echo "  Replays failed inbox events in the specified environment. You can either replay all failed"
   echo "  events or specify individual event UUIDs."
   echo ""
   echo "Examples:"
-  echo "  $0 dev john.smith all"
-  echo "  $0 test john.smith 8ccddd53-df2d-4ead-bd8c-b72211c20371"
-  echo "  $0 preprod john.smith uuid1 uuid2 uuid3"
+  echo "  $0 dev all"
+  echo "  $0 test 8ccddd53-df2d-4ead-bd8c-b72211c20371"
+  echo "  $0 preprod uuid1 uuid2 uuid3"
 }
 
-if [ $# -lt 3 ]; then
+if [ $# -lt 2 ]; then
   print_usage
   exit 1
 fi
 
 ENVIRONMENT="$1"
-USERNAME="$2"
-shift 2
+shift 1
 
 REPLAY_ARGS=("$@")
 
 validate_environment "$ENVIRONMENT"
 
 ENV_NAME="$(get_service_url_suffix "$ENVIRONMENT")"
-AUTH_TOKEN="$(get_admin_auth_token "$ENVIRONMENT" "$USERNAME")"
+AUTH_TOKEN="$(get_admin_auth_token "$ENVIRONMENT")"
 
 echo "For service call using environment: $ENV_NAME"
 BASE_URL="https://single-accommodation-service-api${ENV_NAME}.hmpps.service.justice.gov.uk/admin/replay-failed-inbox-events"
