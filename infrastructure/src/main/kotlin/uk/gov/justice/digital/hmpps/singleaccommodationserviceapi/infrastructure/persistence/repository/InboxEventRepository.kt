@@ -6,9 +6,15 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
+import java.time.Instant
 import java.util.UUID
 
 interface InboxEventRepository : JpaRepository<InboxEventEntity, UUID> {
+
+  @Modifying
+  @Query("delete from InboxEventEntity iee where iee.createdAt < :cutoff")
+  fun deleteCreatedBefore(cutoff: Instant): Int
+
   fun findAllByProcessedStatus(processedStatus: ProcessedStatus, pageable: Pageable): List<InboxEventEntity>
 
   fun findByIdAndProcessedStatusIs(eventId: UUID, processedStatus: ProcessedStatus): InboxEventEntity?
