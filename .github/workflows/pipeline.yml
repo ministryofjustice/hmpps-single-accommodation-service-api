@@ -62,7 +62,7 @@ jobs:
       contents: read
     name: Pact Consumer Tests and Publish Contracts
     needs: app_version
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_test_publish.yml@feat/add-pact-test-publish-workflow
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_test_publish.yml@v2
     with:
       app_version: '${{ needs.app_version.outputs.version }}'
       pact_test_task: pactTest
@@ -70,20 +70,7 @@ jobs:
       webhook_name: hmpps-person-record
       webhook_id: ctNyAoj2Rx6pJYuJSpYChw
       webhook_provider_repository: hmpps-person-record
-      webhook_definitions_ref: ci/trigger-apply-webhooks
     secrets: inherit
-#  trigger_pact_provider_verification:
-#    permissions:
-#      contents: read
-#      id-token: write
-#    name: Trigger Pact Provider Verification
-#    needs:
-#      - app_version
-#      - pact_test
-#    uses: ./.github/workflows/trigger_pact_provider_verification.yml
-#    with:
-#      app_version: '${{ needs.app_version.outputs.version }}'
-#    secrets: inherit
   unit_test:
     permissions:
       contents: read
