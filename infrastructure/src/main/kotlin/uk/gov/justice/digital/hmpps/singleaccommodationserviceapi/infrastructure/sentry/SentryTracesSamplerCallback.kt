@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.util.pattern.PathPatternParser
 
 @Component
-class TracesSamplerCallback(
+class SentryTracesSamplerCallback(
   @Value("\${sentry.traces-sample-rate:0.01}")
   private val tracesSampleRate: Double,
 ) : SentryOptions.TracesSamplerCallback {
