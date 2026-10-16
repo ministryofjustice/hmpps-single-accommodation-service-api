@@ -71,4 +71,3 @@ class SingleLetterTierRuleTest {
       .isEqualTo(description)
   }
 }
-

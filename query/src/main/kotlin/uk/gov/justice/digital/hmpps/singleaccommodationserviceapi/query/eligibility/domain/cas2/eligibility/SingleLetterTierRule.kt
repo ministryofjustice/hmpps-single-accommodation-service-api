@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.TierRiskScores
 
 @Component
-class SingleLetterTierRule: Rule {
+class SingleLetterTierRule : Rule {
   override val description = "FAIL if candidate is not Tier A through G"
 
   override fun evaluate(data: DomainData): RuleResult {
