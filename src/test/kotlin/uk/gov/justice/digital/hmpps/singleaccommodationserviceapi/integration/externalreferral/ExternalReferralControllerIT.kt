@@ -248,7 +248,10 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           organisationName = "Organisation name",
           website = "https://www.charity.org",
           submissionNote = "A submission note",
-          status = EntityExternalReferralStatus.SUBMITTED,
+          status = EntityExternalReferralStatus.ARCHIVED,
+          withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON,
+          otherReason = "Some other reason",
+          withdrawalNote = "A withdrawal note",
         ),
       )
 
@@ -265,13 +268,16 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           crn = crn,
           submissionDate = "2026-02-20",
           referenceNumber = "REF-001",
-          status = ExternalReferralStatus.SUBMITTED.name,
+          status = ExternalReferralStatus.ARCHIVED.name,
           createdBy = NAME_OF_TEST_DATA_SETUP_USER,
           createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
           createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
           organisationName = "Organisation name",
           website = "https://www.charity.org",
           submissionNote = "A submission note",
+          withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON.name,
+          otherReason = "Some other reason",
+          withdrawalNote = "A withdrawal note",
         ),
       )
     }
@@ -524,6 +530,28 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
     }
 
     @Test
+    fun `should return other reason for an archived referral with another reason`() {
+      val archived = externalReferralRepository.save(
+        buildExternalReferralEntity(
+          caseId = case.id,
+          crn = crn,
+          status = EntityExternalReferralStatus.ARCHIVED,
+          withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON,
+          otherReason = "Some other reason",
+          withdrawalNote = "A withdrawal note",
+        ),
+      )
+
+      val result = searchExternalReferrals(statuses = listOf("ARCHIVED"))
+
+      assertThatJson(result).matchesExpectedJson(
+        expectedSearchExternalReferralResponseBody(
+          listOf(expectedResponseBodyFor(archived)),
+        ),
+      )
+    }
+
+    @Test
     fun `should return 403 on search when user does not have required role`() {
       restTestClient.get().uri("/cases/{crn}/external-referral/search", crn)
         .withDeliusUserJwt(roles = listOf("ROLE_SOME_OTHER_ROLE"))
@@ -664,6 +692,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       submissionNote = entity.submissionNote,
       outcomeNote = entity.outcomeNote,
       withdrawalReason = entity.withdrawalReason?.name,
+      otherReason = entity.otherReason,
       withdrawalNote = entity.withdrawalNote,
     )
   }
