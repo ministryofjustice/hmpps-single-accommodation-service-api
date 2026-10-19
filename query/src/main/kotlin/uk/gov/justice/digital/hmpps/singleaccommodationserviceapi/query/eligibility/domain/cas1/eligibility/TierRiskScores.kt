@@ -14,6 +14,18 @@ internal object TierRiskScores {
     "D",
   )
 
+  private val singleLetterTiers = setOf(
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+  )
+
+  fun isSingleLetterTier(tierScore: String?) = tierScore in singleLetterTiers
+
   fun isHighRiskForMale(tierScore: String?) = tierScore in maleHighRiskTiers
 
   fun isHighRiskForNonMale(tierScore: String?) = tierScore in nonMaleHighRiskTiers

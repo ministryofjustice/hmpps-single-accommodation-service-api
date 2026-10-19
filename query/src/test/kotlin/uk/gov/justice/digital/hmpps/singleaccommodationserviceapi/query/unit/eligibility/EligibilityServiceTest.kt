@@ -92,6 +92,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas2Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas3Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCommunityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.SingleLetterTierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Under18Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2ApplicationSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityContextUpdater
@@ -199,6 +200,7 @@ class EligibilityServiceTest {
     CurrentAccommodationTypeIsCas2Rule(),
     CurrentAccommodationTypeIsCommunityRule(),
     NoNextAccommodationRule(),
+    SingleLetterTierRule(),
   )
   val cas2UpcomingContextUpdater = Cas2UpcomingContextUpdater()
   var cas2UpcomingRuleSet = Cas2UpcomingRuleSet(ReleaseWithin15DaysRule(clock))
@@ -616,31 +618,35 @@ class EligibilityServiceTest {
 
         val accommodationTypes = row["currentAccommodationType"].expandCurrentAccommodationType()
         val applicationStatuses = row["cas2ApplicationStatus"].expandCas2ApplicationStatus()
+        val tierScores = row["tierScore"].expandTierScore()
 
         try {
           accommodationTypes.flatMap { accommodationType ->
-            applicationStatuses.map { applicationStatus ->
-              Cas2Scenario(
-                testCaseId = row["testCaseId"]!!,
-                description = row["description"],
-                referenceDate = row["referenceDate"]!!.toLocalDate(),
-                hasNextAccommodation = row["hasNextAccommodation"]!!,
-                currentAccommodationType = accommodationType,
-                currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
-                isApplicationPresent = row["isApplicationPresent"]!!,
-                submittedAt = row["submittedAt"]?.toLocalDate(),
-                cas2ApplicationStatus = applicationStatus,
-                expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
-                expectedCas2Action = row["expectedCas2Action"]?.let { CaseActionType.valueOf(it) },
-                expectedCas2Link = row["expectedCas2Link"],
-                expectedCas2Url = row["expectedCas2Url"],
-                u18 = row["u18"]?.toBoolean(),
-                expectedFailureReasons = row["expectedFailureReasons"]
-                  ?.takeIf { it.isNotBlank() }
-                  ?.split(",")
-                  ?.map { FailureReason.valueOf(it.trim()) }
-                  ?: emptyList(),
-              )
+            applicationStatuses.flatMap { applicationStatus ->
+              tierScores.map { tierScore ->
+                Cas2Scenario(
+                  testCaseId = row["testCaseId"]!!,
+                  description = row["description"],
+                  referenceDate = row["referenceDate"]!!.toLocalDate(),
+                  hasNextAccommodation = row["hasNextAccommodation"]!!,
+                  currentAccommodationType = accommodationType,
+                  currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
+                  tierScore = tierScore,
+                  isApplicationPresent = row["isApplicationPresent"]!!,
+                  submittedAt = row["submittedAt"]?.toLocalDate(),
+                  cas2ApplicationStatus = applicationStatus,
+                  expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
+                  expectedCas2Action = row["expectedCas2Action"]?.let { CaseActionType.valueOf(it) },
+                  expectedCas2Link = row["expectedCas2Link"],
+                  expectedCas2Url = row["expectedCas2Url"],
+                  u18 = row["u18"]?.toBoolean(),
+                  expectedFailureReasons = row["expectedFailureReasons"]
+                    ?.takeIf { it.isNotBlank() }
+                    ?.split(",")
+                    ?.map { FailureReason.valueOf(it.trim()) }
+                    ?: emptyList(),
+                )
+              }
             }
           }
         } catch (e: Exception) {
@@ -658,6 +664,12 @@ class EligibilityServiceTest {
       "any" -> Cas2AssessmentStatus.entries.toList()
       null -> listOf(null)
       else -> listOf(Cas2AssessmentStatus.forValue(this))
+    }
+
+    private fun String?.expandTierScore() = when (this) {
+      "A-G" -> listOf("A", "B", "C", "D", "E", "F", "G")
+      "MISSING-OR-NOT-SUPERVISED" -> listOf("MISSING", "NOT_SUPERVISED")
+      else -> listOf(this)
     }
 
     @Test
@@ -732,6 +744,7 @@ class EligibilityServiceTest {
           } else {
             aged18
           },
+          tierScore = s.tierScore,
         )
 
         val result = eligibilityService.evaluate(cas2Tree, data)
@@ -1312,12 +1325,38 @@ class EligibilityServiceTest {
           isCas2 = true,
         ),
         cas2Application = null,
+        tierScore = "A",
       )
 
       val result = eligibilityService.evaluate(cas2Tree, data)
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
       assertThat(result.failureReasons).containsExactly(FailureReason.IN_CAS2_ACCOMMODATION)
+    }
+
+    @Test
+    fun `Cas2 surfaces INVALID_TIER when candidate has a MISSING tier score value`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        dob = today.minusYears(18),
+        currentAccommodation = buildAccommodationSummaryDto(
+          endDate = today.plusDays(1),
+          type = buildAccommodationTypeDto(code = "A10"),
+        ),
+        currentAccommodationTypeEntity = buildAccommodationTypeEntity(
+          code = "A10",
+          isCas1 = true,
+          isPrison = false,
+          isCas2 = false,
+        ),
+        cas2Application = null,
+        tierScore = "MISSING",
+      )
+
+      val result = eligibilityService.evaluate(cas2Tree, data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
+      assertThat(result.failureReasons).containsExactly(FailureReason.INVALID_TIER)
     }
 
     @Test
@@ -1337,6 +1376,7 @@ class EligibilityServiceTest {
           isCas3 = true,
         ),
         cas2Application = null,
+        tierScore = "A",
       )
 
       val result = eligibilityService.evaluate(cas2Tree, data)
@@ -1361,6 +1401,7 @@ class EligibilityServiceTest {
           isCas2 = false,
         ),
         cas2Application = null,
+        tierScore = "A",
       )
 
       val result = eligibilityService.evaluate(cas2Tree, data)
@@ -1450,9 +1491,9 @@ data class Cas1Scenario(
 data class Cas2Scenario(
   val testCaseId: String,
   val description: String?,
-  val hasNextAccommodation: String,
-  val u18: Boolean?,
+  val tierScore: String?,
   val referenceDate: LocalDate,
+  val hasNextAccommodation: String,
   val currentAccommodationType: String?,
   val currentAccommodationEndDate: LocalDate?,
   val isApplicationPresent: String,
@@ -1462,6 +1503,7 @@ data class Cas2Scenario(
   val expectedCas2Action: CaseActionType?,
   val expectedCas2Link: String?,
   val expectedCas2Url: String?,
+  val u18: Boolean?,
   val expectedFailureReasons: List<FailureReason>,
 )
 

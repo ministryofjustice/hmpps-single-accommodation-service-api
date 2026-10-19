@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
@@ -332,11 +333,17 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get eligibility for cas 3 blocking reason`() {
-    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+    // eligible for CAS2 but not CAS1
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "E"))
+
+    val entity = buildCaseEntity(
+      id = dutyToReferCaseId,
+    ) {
       withCrn(crn)
       withPrisonNumber(prisonNumber)
     }
     caseRepository.save(entity)
+
     PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.IN))
 
     val cas3Application = buildCas3Application(
@@ -347,12 +354,13 @@ class EligibilityControllerIT : IntegrationTestBase() {
         submittedDate = LocalDate.of(2025, 1, 2),
       ),
     )
+
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
 
     restTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityResponseCannotStartYet(
@@ -397,7 +405,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     restTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityResponseTierNotFound(
