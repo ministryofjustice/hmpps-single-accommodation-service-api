@@ -20,7 +20,7 @@ class UserService(
   private val nomisUserRolesService: NomisUserRolesService,
 ) {
 
-  private fun getPrincipal() = httpAuthService.getPrincipalOrThrow(acceptableSources = listOf(AuthSource.DELIUS.source, AuthSource.NOMIS.source))
+  private fun getPrincipal() = httpAuthService.getPrincipalOrThrow()
 
   fun getUsername() = getPrincipal().username
 
