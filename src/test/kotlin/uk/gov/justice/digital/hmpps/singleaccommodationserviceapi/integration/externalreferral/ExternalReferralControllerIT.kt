@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.ex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.expectedGetExternalReferralOutcomeTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.expectedGetExternalReferralResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.expectedGetExternalReferralTimelineResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.expectedGetExternalReferralWithdrawalTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.expectedSearchExternalReferralResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.externalReferralNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.externalReferralWithdrawalRequestBody
@@ -1436,6 +1437,55 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
               updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
               newStatus = EntityExternalReferralStatus.REJECTED.name,
               outcomeNote = "Another outcome note",
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should return external referral timeline when it is withdrawn with another reason and a note`() {
+      val createdExternalReferral = restTestClient.post().uri("/cases/{crn}/external-referral", crn)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createExternalReferralRequestBody(
+            submissionDate = "2026-01-15",
+            referenceNumber = "REF-001",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult().responseBody!!
+
+      val createdExternalReferralId = ObjectMapper().readTree(createdExternalReferral).get("submission").get("id").asText()
+
+      restTestClient.post().uri("/cases/{crn}/external-referral/{id}/withdrawal", crn, createdExternalReferralId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          externalReferralWithdrawalRequestBody(
+            withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON.name,
+            otherReason = "An other reason",
+            withdrawalNote = "A withdrawal note",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+
+      val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdExternalReferralId))
+      assertThat(commitTimesAsc).hasSize(2)
+
+      restTestClient.get().uri("/cases/{crn}/external-referral/{id}/timeline", crn, createdExternalReferralId)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetExternalReferralWithdrawalTimelineResponse(
+              externalReferralId = UUID.fromString(createdExternalReferralId),
+              caseId = case.id,
+              crn = crn,
+              createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
+              updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
             ),
           )
         }
