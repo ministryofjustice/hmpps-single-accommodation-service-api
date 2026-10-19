@@ -76,7 +76,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.NonMaleRiskEligibilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.STierEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationRelevantExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationSuitabilityRule
@@ -181,7 +180,6 @@ class EligibilityServiceTest {
   var cas1CompletionRuleSet = Cas1CompletionRuleSet(Cas1ApplicationCompletionRule())
   var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(Cas1ApplicationPresentRule(), Cas1ApplicationSuitabilityRule(), Cas1ApplicationRelevantExpiredRule())
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
-    STierEligibilityRule(),
     MaleRiskEligibilityRule(),
     NonMaleRiskEligibilityRule(),
   )
@@ -614,33 +612,52 @@ class EligibilityServiceTest {
     fun loadCas2Scenarios(): List<Cas2Scenario> {
       val rows = CsvReader().read("/cas2-eligibility-scenarios.csv")
 
-      return rows.mapIndexed { idx, row ->
+      return rows.flatMapIndexed { idx, row ->
+
+        val accommodationTypes = row["currentAccommodationType"].expandCurrentAccommodationType()
+        val applicationStatuses = row["cas2ApplicationStatus"].expandCas2ApplicationStatus()
+
         try {
-          Cas2Scenario(
-            testCaseId = row["testCaseId"]!!,
-            description = row["description"],
-            referenceDate = row["referenceDate"]!!.toLocalDate(),
-            hasNextAccommodation = row["hasNextAccommodation"]!!,
-            currentAccommodationType = row["currentAccommodationType"],
-            currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
-            isApplicationPresent = row["isApplicationPresent"]!!,
-            submittedAt = row["submittedAt"]?.toLocalDate(),
-            cas2ApplicationStatus = row["cas2ApplicationStatus"]?.let { Cas2AssessmentStatus.forValue(it) },
-            expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
-            expectedCas2Action = row["expectedCas2Action"]?.let { CaseActionType.valueOf(it) },
-            expectedCas2Link = row["expectedCas2Link"],
-            expectedCas2Url = row["expectedCas2Url"],
-            u18 = row["u18"]?.toBoolean(),
-            expectedFailureReasons = row["expectedFailureReasons"]
-              ?.takeIf { it.isNotBlank() }
-              ?.split(",")
-              ?.map { FailureReason.valueOf(it.trim()) }
-              ?: emptyList(),
-          )
+          accommodationTypes.flatMap { accommodationType ->
+            applicationStatuses.map { applicationStatus ->
+              Cas2Scenario(
+                testCaseId = row["testCaseId"]!!,
+                description = row["description"],
+                referenceDate = row["referenceDate"]!!.toLocalDate(),
+                hasNextAccommodation = row["hasNextAccommodation"]!!,
+                currentAccommodationType = accommodationType,
+                currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
+                isApplicationPresent = row["isApplicationPresent"]!!,
+                submittedAt = row["submittedAt"]?.toLocalDate(),
+                cas2ApplicationStatus = applicationStatus,
+                expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
+                expectedCas2Action = row["expectedCas2Action"]?.let { CaseActionType.valueOf(it) },
+                expectedCas2Link = row["expectedCas2Link"],
+                expectedCas2Url = row["expectedCas2Url"],
+                u18 = row["u18"]?.toBoolean(),
+                expectedFailureReasons = row["expectedFailureReasons"]
+                  ?.takeIf { it.isNotBlank() }
+                  ?.split(",")
+                  ?.map { FailureReason.valueOf(it.trim()) }
+                  ?: emptyList(),
+              )
+            }
+          }
         } catch (e: Exception) {
           throw IllegalStateException("CAS2 CSV row $idx failed: $row", e)
         }
       }
+    }
+
+    private fun String?.expandCurrentAccommodationType() = when (this) {
+      "A10-A11" -> listOf("A10", "A11")
+      else -> listOf(this)
+    }
+
+    private fun String?.expandCas2ApplicationStatus() = when (this) {
+      "any" -> Cas2AssessmentStatus.entries.toList()
+      null -> listOf(null)
+      else -> listOf(Cas2AssessmentStatus.forValue(this))
     }
 
     @Test
@@ -1201,27 +1218,11 @@ class EligibilityServiceTest {
     private val today = LocalDate.parse("01/01/2025", dateFormatter)
 
     @Test
-    fun `Cas1 surfaces S_TIER when candidate is on an S tier`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        sex = SexCode.M,
-        tierScore = "A1S",
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        cas1Application = null,
-      )
-
-      val result = eligibilityService.evaluate(cas1Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.S_TIER)
-    }
-
-    @Test
     fun `Cas1 surfaces MALE_NOT_HIGH_RISK_TIER for male candidate on a low-risk tier`() {
       clock.setNow(today)
       val data = buildDomainData(
         sex = SexCode.M,
-        tierScore = "C3",
+        tierScore = "D",
         currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
         cas1Application = null,
       )
@@ -1237,7 +1238,7 @@ class EligibilityServiceTest {
       clock.setNow(today)
       val data = buildDomainData(
         sex = SexCode.F,
-        tierScore = "D3",
+        tierScore = "E",
         currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
         cas1Application = null,
       )

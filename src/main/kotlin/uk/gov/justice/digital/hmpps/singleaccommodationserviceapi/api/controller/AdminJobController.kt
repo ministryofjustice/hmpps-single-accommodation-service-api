@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshAllCasesCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesByCrnCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedInboxEventsResponse
@@ -37,6 +38,12 @@ class AdminJobController(
   @PostMapping("/admin/bulk-refresh-cases-by-crn")
   fun bulkRefreshCasesByCrn(@RequestBody request: BulkRefreshCasesByCrnCommand): ResponseEntity<ApiResponseDto<BulkRefreshCasesResultDto>> = ResponseEntity.ok(
     adminBulkRefreshCasesService.bulkRefreshCasesByCrn(crns = request.crns, dryRun = request.dryRun),
+  )
+
+  @PreAuthorize("hasRole('ROLE_SAS_ADMIN_RW')")
+  @PostMapping("/admin/bulk-refresh-all-cases")
+  fun bulkRefreshAllCases(@RequestBody request: BulkRefreshAllCasesCommand): ResponseEntity<ApiResponseDto<BulkRefreshCasesResultDto>> = ResponseEntity.ok(
+    adminBulkRefreshCasesService.buildRefreshAllCases(dryRun = request.dryRun),
   )
 
   @PreAuthorize("hasRole('ROLE_SAS_ADMIN_RW')")
