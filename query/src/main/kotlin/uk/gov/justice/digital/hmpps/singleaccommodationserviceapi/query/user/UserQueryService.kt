@@ -11,11 +11,7 @@ class UserQueryService(
   private val httpAuthService: HttpAuthService,
   private val approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService,
 ) {
-  fun getTeams() =
-    approvedPremisesAndDeliusCachingService
-      .getStaffDetail(httpAuthService.getUsername().value)
-      .teams
-      .toUserTeams()
+  fun getTeams() = (getUserData() as DeliusUserDto).teams
 
   fun getUserData(): User {
     val principal = httpAuthService.getPrincipalOrThrow()
@@ -29,7 +25,7 @@ class UserQueryService(
 
         DeliusUserDto(
           username = principal.username.value,
-          teams = user.teams.toUserTeams(),
+          teams = user.teams.toTeamDtos(),
           probationAreaCode = user.probationArea.code,
         )
       }
@@ -40,7 +36,7 @@ class UserQueryService(
     }
   }
 
-  private fun List<Team>.toUserTeams() = this.map { team ->
+  private fun List<Team>.toTeamDtos() = this.map { team ->
     TeamDto(name = team.name, code = team.code)
   }
 }

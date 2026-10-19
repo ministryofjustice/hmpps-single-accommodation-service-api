@@ -43,8 +43,7 @@ class UserService(
   fun getAndUpsertDeliusUser(username: Username): UserEntity {
     val preExistingUser = userRepository.findByUsernameAndAuthSource(username, authSource = AuthSourceEntity.DELIUS)
     if (preExistingUser == null) {
-      val staffDetail =
-        approvedPremisesAndDeliusCachingService.getStaffDetail(username.value).orThrowNotFound("username" to username)
+      val staffDetail = approvedPremisesAndDeliusCachingService.getStaffDetail(username.value)
       val newUser = createDeliusUser(username, staffDetail)
       userRepository.createUser(newUser)
       return newUser

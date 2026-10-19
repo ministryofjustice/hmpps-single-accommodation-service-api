@@ -106,5 +106,3 @@ class UserQueryServiceTest {
     authSource = authSource,
   )
 }
-
-
