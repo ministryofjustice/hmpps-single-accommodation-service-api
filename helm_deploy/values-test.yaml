@@ -33,7 +33,6 @@ generic-service:
     EVENT_DETAILS-URL_PROPOSED-ACCOMMODATION-UPDATED: https://single-accommodation-service-api-test.hmpps.service.justice.gov.uk/accommodations/#id
     EVENT_DETAILS-URL_DUTY-TO-REFER-UPDATED: https://single-accommodation-service-api-test.hmpps.service.justice.gov.uk/duty-to-refers/#id
     SCHEDULING_ENABLED: true
-    TIER_V3-ENABLED: false
 
   namespace_secrets:
     hmpps-envoy-https-proxy-env:

@@ -247,7 +247,7 @@ class DecisionNodeTest {
         data = buildDomainData(),
         currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED),
       )
-      val ruleFailureReasons = listOf(FailureReason.S_TIER, FailureReason.MALE_NOT_HIGH_RISK_TIER)
+      val ruleFailureReasons = listOf(FailureReason.IS_SETTLED, FailureReason.MALE_NOT_HIGH_RISK_TIER)
       val capturedContext = slot<EvaluationContext>()
 
       every { engine.execute(ruleSet, initialContext.data) } returns
@@ -269,7 +269,7 @@ class DecisionNodeTest {
       assertThat(capturedContext.captured.currentResult.serviceStatus)
         .isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
       assertThat(capturedContext.captured.currentResult.failureReasons)
-        .containsExactly(FailureReason.S_TIER, FailureReason.MALE_NOT_HIGH_RISK_TIER)
+        .containsExactly(FailureReason.IS_SETTLED, FailureReason.MALE_NOT_HIGH_RISK_TIER)
     }
 
     @Test
@@ -281,7 +281,7 @@ class DecisionNodeTest {
       val contextUpdater = object : ContextUpdater() {
         override fun toServiceResult(context: EvaluationContext): ServiceResultNew = buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS1_NOT_ELIGIBLE,
-          failureReasons = listOf(FailureReason.S_TIER),
+          failureReasons = listOf(FailureReason.IS_SETTLED),
         )
       }
 
@@ -308,7 +308,7 @@ class DecisionNodeTest {
       ruleSetNode.eval(initialContext)
 
       assertThat(capturedContext.captured.currentResult.failureReasons)
-        .containsExactly(FailureReason.S_TIER)
+        .containsExactly(FailureReason.IS_SETTLED)
     }
   }
 }
