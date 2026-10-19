@@ -63,7 +63,9 @@ class InboxEventCleanupJobIT : IntegrationTestBase() {
 
     inboxEventCleanupJob.deleteOldEvents()
 
-    assertThat(inboxEventRepository.findAll().map { it.id }).hasSize(2)
+    val remainingEvents = inboxEventRepository.findAll()
+    assertThat(remainingEvents).hasSize(retained.size)
+    assertThat(remainingEvents.all { it.createdAt >= cutoff }).isTrue()
 
     inboxEventCleanupJob.deleteOldEvents()
 
