@@ -24,6 +24,7 @@ import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import reactor.netty.http.client.PrematureCloseException
 import java.net.ConnectException
 import java.net.SocketException
 import java.net.URI
@@ -114,6 +115,12 @@ class RetryConfigTest {
       ),
       WebClientRequestException(
         SocketException("Connection reset by peer"),
+        HttpMethod.GET,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
+      WebClientRequestException(
+        PrematureCloseException.TEST_EXCEPTION,
         HttpMethod.GET,
         URI.create("https://example.com/api/test"),
         HttpHeaders.EMPTY,

@@ -228,7 +228,8 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         submissionDate = LocalDate.of(2026, 10, 10),
         status = ExternalReferralStatus.ARCHIVED,
         organisationName = "Another Charity",
-        withdrawalReason = EntityExternalReferralWithdrawalReason.NO_RESPONSE_FROM_ORGANISATION,
+        withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON,
+        otherReason = "Archived other reason",
         withdrawalNote = null,
       ),
     )
@@ -265,8 +266,9 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
                 date = "2026-10-10",
                 referredByName = NAME_OF_TEST_DATA_SETUP_USER,
                 referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
-                withdrawalReason = EntityExternalReferralWithdrawalReason.NO_RESPONSE_FROM_ORGANISATION.name,
+                withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON.name,
                 withdrawalNote = null,
+                otherReason = "Archived other reason",
               ),
               expectedReferralHistoryItem(
                 id = completedReferral.id,
