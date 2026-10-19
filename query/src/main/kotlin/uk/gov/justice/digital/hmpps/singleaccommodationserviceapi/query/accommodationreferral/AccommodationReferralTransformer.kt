@@ -134,6 +134,7 @@ object AccommodationReferralTransformer {
       uiUrl = null,
       withdrawalReason = externalReferral.withdrawalReason?.name,
       withdrawalNote = externalReferral.withdrawalNote,
+      otherReason = externalReferral.otherReason,
     )
   }
 }

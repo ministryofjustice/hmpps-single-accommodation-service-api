@@ -14,11 +14,21 @@ class AdminBulkRefreshCasesService(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  fun bulkRefreshCasesByCrn(crns: List<String>, dryRun: Boolean): ApiResponseDto<BulkRefreshCasesResultDto> {
+  fun buildRefreshAllCases(dryRun: Boolean) = bulkRefreshCasesByCrn(
+    crns = caseRepository.findAllCrns(),
+    dryRun = dryRun,
+    errorIfNoCrns = false,
+  )
+
+  fun bulkRefreshCasesByCrn(
+    crns: List<String>,
+    dryRun: Boolean,
+    errorIfNoCrns: Boolean = true,
+  ): ApiResponseDto<BulkRefreshCasesResultDto> {
     val normalisedCrns = crns.map { it.trim().uppercase() }
       .filter(String::isNotEmpty)
       .distinct()
-      .ifEmpty { throw CrnsRequiredException() }
+      .ifEmpty { if (errorIfNoCrns) throw CrnsRequiredException() else emptyList() }
 
     val casesByCrn = caseRepository.mapByCrns(normalisedCrns)
     val crnsNotFound = normalisedCrns.filterNot(casesByCrn::containsKey)

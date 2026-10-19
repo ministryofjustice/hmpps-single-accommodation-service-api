@@ -36,7 +36,7 @@ class CaseSnapshotAssemblerTest {
     val crn = "X12345"
     val cpr = buildCorePersonRecord()
     val prisoner = buildPrisoner()
-    val tier = buildTier(tierScore = "A1")
+    val tier = buildTier(tierScore = "A")
     val currentAccommodation = buildAccommodationSummaryDto(crn = crn)
     val nextAccommodation = buildAccommodationSummaryDto(crn = crn)
     val case = buildCase(crn = crn, roshLevel = buildRoshLevel(code = "RMRH"))

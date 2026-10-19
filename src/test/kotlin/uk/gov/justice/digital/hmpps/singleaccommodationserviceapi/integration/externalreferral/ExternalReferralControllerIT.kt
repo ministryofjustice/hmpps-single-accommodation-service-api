@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.ex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.expectedGetExternalReferralOutcomeTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.expectedGetExternalReferralResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.expectedGetExternalReferralTimelineResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.expectedGetExternalReferralWithdrawalTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.expectedSearchExternalReferralResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.externalReferralNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json.externalReferralWithdrawalRequestBody
@@ -248,7 +249,10 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           organisationName = "Organisation name",
           website = "https://www.charity.org",
           submissionNote = "A submission note",
-          status = EntityExternalReferralStatus.SUBMITTED,
+          status = EntityExternalReferralStatus.ARCHIVED,
+          withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON,
+          otherReason = "Some other reason",
+          withdrawalNote = "A withdrawal note",
         ),
       )
 
@@ -265,13 +269,16 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           crn = crn,
           submissionDate = "2026-02-20",
           referenceNumber = "REF-001",
-          status = ExternalReferralStatus.SUBMITTED.name,
+          status = ExternalReferralStatus.ARCHIVED.name,
           createdBy = NAME_OF_TEST_DATA_SETUP_USER,
           createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
           createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
           organisationName = "Organisation name",
           website = "https://www.charity.org",
           submissionNote = "A submission note",
+          withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON.name,
+          otherReason = "Some other reason",
+          withdrawalNote = "A withdrawal note",
         ),
       )
     }
@@ -524,6 +531,28 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
     }
 
     @Test
+    fun `should return other reason for an archived referral with another reason`() {
+      val archived = externalReferralRepository.save(
+        buildExternalReferralEntity(
+          caseId = case.id,
+          crn = crn,
+          status = EntityExternalReferralStatus.ARCHIVED,
+          withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON,
+          otherReason = "Some other reason",
+          withdrawalNote = "A withdrawal note",
+        ),
+      )
+
+      val result = searchExternalReferrals(statuses = listOf("ARCHIVED"))
+
+      assertThatJson(result).matchesExpectedJson(
+        expectedSearchExternalReferralResponseBody(
+          listOf(expectedResponseBodyFor(archived)),
+        ),
+      )
+    }
+
+    @Test
     fun `should return 403 on search when user does not have required role`() {
       restTestClient.get().uri("/cases/{crn}/external-referral/search", crn)
         .withDeliusUserJwt(roles = listOf("ROLE_SOME_OTHER_ROLE"))
@@ -664,6 +693,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       submissionNote = entity.submissionNote,
       outcomeNote = entity.outcomeNote,
       withdrawalReason = entity.withdrawalReason?.name,
+      otherReason = entity.otherReason,
       withdrawalNote = entity.withdrawalNote,
     )
   }
@@ -1407,6 +1437,55 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
               updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
               newStatus = EntityExternalReferralStatus.REJECTED.name,
               outcomeNote = "Another outcome note",
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should return external referral timeline when it is withdrawn with another reason and a note`() {
+      val createdExternalReferral = restTestClient.post().uri("/cases/{crn}/external-referral", crn)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createExternalReferralRequestBody(
+            submissionDate = "2026-01-15",
+            referenceNumber = "REF-001",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult().responseBody!!
+
+      val createdExternalReferralId = ObjectMapper().readTree(createdExternalReferral).get("submission").get("id").asText()
+
+      restTestClient.post().uri("/cases/{crn}/external-referral/{id}/withdrawal", crn, createdExternalReferralId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          externalReferralWithdrawalRequestBody(
+            withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON.name,
+            otherReason = "An other reason",
+            withdrawalNote = "A withdrawal note",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+
+      val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdExternalReferralId))
+      assertThat(commitTimesAsc).hasSize(2)
+
+      restTestClient.get().uri("/cases/{crn}/external-referral/{id}/timeline", crn, createdExternalReferralId)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetExternalReferralWithdrawalTimelineResponse(
+              externalReferralId = UUID.fromString(createdExternalReferralId),
+              caseId = case.id,
+              crn = crn,
+              createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
+              updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
             ),
           )
         }

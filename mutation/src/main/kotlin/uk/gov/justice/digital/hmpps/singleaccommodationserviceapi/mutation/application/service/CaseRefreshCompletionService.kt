@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_PRISONER
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER_V3
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
@@ -84,7 +84,7 @@ class CaseMutationOrchestrationService(
 
   fun getCurrentCaseResult(crn: String, prisonNumber: String? = null): OrchestrationResultDto<CaseMutationOrchestrationDto> = orchestrateCase(
     crn = crn,
-    loadTier = { tierClient.getTier(crn) },
+    loadTier = { tierClient.getTierV3(crn) },
     loadPersonRecord = { corePersonRecordClient.getByCrn(crn) },
     loadCas1CurrentPremises = { approvedPremisesClient.getCas1CurrentPremises(crn) },
     loadCas3CurrentPremises = { approvedPremisesClient.getCas3CurrentPremises(crn) },
@@ -106,7 +106,7 @@ class CaseMutationOrchestrationService(
     loadPrisoner: (() -> Prisoner)? = null,
   ): OrchestrationResultDto<CaseMutationOrchestrationDto> {
     val calls = buildMap {
-      put(GET_TIER, loadTier)
+      put(GET_TIER_V3, loadTier)
       put(GET_CORE_PERSON_RECORD_BY_CRN, loadPersonRecord)
       put(GET_CAS_1_CURRENT_PREMISES, loadCas1CurrentPremises)
       put(GET_CAS_3_CURRENT_PREMISES, loadCas3CurrentPremises)
@@ -124,7 +124,7 @@ class CaseMutationOrchestrationService(
       data = CaseMutationOrchestrationDto(
         crn = crn,
         cpr = results.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD_BY_CRN),
-        tier = results.getResult<Tier>(GET_TIER),
+        tier = results.getResult<Tier>(GET_TIER_V3),
         cas1CurrentPremises = results.getResult<Cas1PremisesSummary>(GET_CAS_1_CURRENT_PREMISES),
         cas3CurrentPremises = results.getResult<Cas3BookingPremises>(GET_CAS_3_CURRENT_PREMISES),
         cas1Application = results.getResult<Cas1Application>(GET_CAS_1_APPLICATION),
