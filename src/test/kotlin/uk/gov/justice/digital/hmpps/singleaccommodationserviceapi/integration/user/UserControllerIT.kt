@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.user
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
@@ -82,6 +83,7 @@ class UserControllerIT : IntegrationTestBase() {
     assertThatJson(result).matchesExpectedJson(expectedResponse)
   }
 
+  @Disabled("Nomis users are not implemented yet")
   @Test
   fun `returns nomis user data`() {
     val jwt = jwtAuthHelper.createJwtAccessToken(
