@@ -17,6 +17,7 @@ Use this file as the default operating guide. Only search the repo when these in
 
 ## Tooling safety
 - For focused integration tests in this repo, use the root task explicitly: `./gradlew :integrationTest --tests '...' --no-daemon`.
+- Never use heredocs directly in `run_in_terminal`. Use a temporary file instead.
 
 ## Avoid duplication
 - Avoid introducing duplicated code when making changes; prefer existing helpers, fixtures, builders, and shared utilities where appropriate.
