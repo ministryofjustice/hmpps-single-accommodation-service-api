@@ -48,6 +48,8 @@ requests
 | summarize count(), avg(duration) by tostring(customDimensions["user.probation.region"])
 ```
 
+[Query can be found here](https://portal.azure.com#@747381f4-e81f-4a43-bf68-ced6a1e14edf/blade/Microsoft_OperationsManagementSuite_Workspace/Logs.ReactView/resourceId/%2Fsubscriptions%2Fc27cfedb-f5e9-45e6-9642-0fad1a5c94e7%2FresourceGroups%2Fnomisapi-t3-rg%2Fproviders%2Fmicrosoft.insights%2Fcomponents%2Fnomisapi-t3/source/LogsBlade.AnalyticsShareLinkToQuery/q/H4sIAAAAAAAAE5XMSwqDQAwA0L2nCK5mQDxFb1G6GG2YZpFE82mxeHihN%2Bj%2B8Qz3RA8fTvi80BDIRQN5i6Os6aF8I0ZxUvH7mI42b6ZLC1KZDTupjI86nODJ3Iy%2BCKumRKkTtHcvz7SfrbAcEOphJP2P%2BQKjbWqwoAAAAA%3D%3D/timespan/P7D/limit/1000)
+
 Requests without the header have no such attribute. Child spans (dependencies) do not inherit it, because attributes are set only on the server span.
 
 ## How the tests work
