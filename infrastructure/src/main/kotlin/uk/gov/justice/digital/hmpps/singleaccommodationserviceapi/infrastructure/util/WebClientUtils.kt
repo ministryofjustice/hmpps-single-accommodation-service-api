@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import io.netty.channel.ConnectTimeoutException
 import io.netty.handler.timeout.ReadTimeoutException
 import org.springframework.web.reactive.function.client.WebClientRequestException
+import reactor.netty.http.client.PrematureCloseException
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketException
@@ -18,7 +19,7 @@ fun WebClientRequestException.isRetryableConnectionError() = when (cause) {
 fun WebClientRequestException.isTimeout() = cause is ReadTimeoutException || cause is ConnectTimeoutException
 
 private fun Throwable?.isConnectionErrorCause(): Boolean = when (this) {
-  is SocketException -> true
+  is SocketException, is PrematureCloseException -> true
   is IOException -> javaClass.name == "io.netty.channel.unix.Errors\$NativeIoException" || (message?.contains("Connection reset", ignoreCase = true) == true)
   else -> false
 }
