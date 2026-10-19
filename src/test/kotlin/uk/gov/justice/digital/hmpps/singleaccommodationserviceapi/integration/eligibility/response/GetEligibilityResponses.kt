@@ -353,7 +353,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
    },
    "upstreamFailures":[
       {
-         "endpoint":"getTierByCrn",
+         "endpoint":"getTierV3ByCrn",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
          "message": "500 Internal Server Error from GET $upstreamUrl",

@@ -20,7 +20,7 @@ object ApiCallKeys {
   const val GET_USER_ACCESS = "getUserAccess"
 
   // tier service
-  const val GET_TIER = "getTierByCrn"
+  const val GET_TIER_V3 = "getTierV3ByCrn"
 
   // Approved Premises service
   const val GET_CAS_1_CURRENT_PREMISES = "getCas1CurrentPremises"

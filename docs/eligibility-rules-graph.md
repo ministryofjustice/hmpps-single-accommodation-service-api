@@ -13,7 +13,7 @@ flowchart TD
   Cas1Completion{"Cas1Completion (1)"}
   placementBooked["placementBooked"]
   confirmed["confirmed"]
-  Cas1Eligibility["Cas1Eligibility (3)"]
+  Cas1Eligibility["Cas1Eligibility (2)"]
   notEligible["notEligible"]
   Cas1Completion -->|PASS| placementBooked
   Cas1Completion -->|FAIL| confirmed
@@ -72,9 +72,8 @@ flowchart TD
 **confirmed** (Outcome)
 
 **Cas1Eligibility** (RuleSet)
-- [`STierEligibilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/eligibility/STierEligibilityRule.kt): FAIL if candidate is S Tier
-- [`MaleRiskEligibilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/eligibility/MaleRiskEligibilityRule.kt): FAIL if candidate is Male and is not Tier A3 - B1
-- [`NonMaleRiskEligibilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/eligibility/NonMaleRiskEligibilityRule.kt): FAIL if candidate is not Male and is not Tier A3 - C3
+- [`MaleRiskEligibilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/eligibility/MaleRiskEligibilityRule.kt): FAIL if candidate is Male and is not Tier A, B or C
+- [`NonMaleRiskEligibilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/eligibility/NonMaleRiskEligibilityRule.kt): FAIL if candidate is not Male and is not Tier A, B, C or D
 
 
 **notEligible** (Outcome)
@@ -413,13 +412,12 @@ flowchart TD
 | DtrPresentRule | FAIL if DTR status is not present | DtrSuitability | DTR |
 | HasNextAccommodationRule | FAIL if candidate has no next accommodation | PaCompletion | PA |
 | IsSettledRule | FAIL if candidate is settled | CrsEligibility | CRS |
-| MaleRiskEligibilityRule | FAIL if candidate is Male and is not Tier A3 - B1 | Cas1Eligibility | CAS1 |
+| MaleRiskEligibilityRule | FAIL if candidate is Male and is not Tier A, B or C | Cas1Eligibility | CAS1 |
 | NoNextAccommodationRule | FAIL if candidate has next accommodation | Cas2Eligibility, Cas3Eligibility, CrsEligibility, DtrEligibility | CAS2, CAS3, CRS, DTR |
-| NonMaleRiskEligibilityRule | FAIL if candidate is not Male and is not Tier A3 - C3 | Cas1Eligibility | CAS1 |
+| NonMaleRiskEligibilityRule | FAIL if candidate is not Male and is not Tier A, B, C or D | Cas1Eligibility | CAS1 |
 | ReleaseWithin15DaysRule | FAIL if not within 15 days of release from current accommodation | Cas2Upcoming | CAS2 |
 | ReleaseWithinEightWeeksRule | FAIL if not within 8 weeks of release from current accommodation | DtrUpcoming | DTR |
 | ReleaseWithinOneYearRule | FAIL if not within 1 year of release from current accommodation | Cas1Upcoming | CAS1 |
-| STierEligibilityRule | FAIL if candidate is S Tier | Cas1Eligibility | CAS1 |
 | Under18Rule | FAIL if individual is under 18 years old | Cas2Eligibility | CAS2 |
 
 ## Context updater catalogue

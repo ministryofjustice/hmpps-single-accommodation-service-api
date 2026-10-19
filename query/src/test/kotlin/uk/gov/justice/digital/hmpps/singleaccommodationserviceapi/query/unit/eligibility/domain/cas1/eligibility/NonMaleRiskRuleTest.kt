@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import java.util.stream.Stream
 
 class NonMaleRiskRuleTest {
-  private val description = "FAIL if candidate is not Male and is not Tier A3 - C3"
+  private val description = "FAIL if candidate is not Male and is not Tier A, B, C or D"
 
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.eligibility.NonMaleRiskRuleTest#provideSexAndTierToPass")
@@ -45,52 +45,24 @@ class NonMaleRiskRuleTest {
   @Test
   fun `rule has correct description`() {
     val result = NonMaleRiskEligibilityRule().description
-    assertThat(result).isEqualTo("FAIL if candidate is not Male and is not Tier A3 - C3")
+    assertThat(result).isEqualTo("FAIL if candidate is not Male and is not Tier A, B, C or D")
   }
 
   private companion object {
 
-    private val highRiskTiers = listOf(
-      "A3",
-      "A2",
-      "A1",
-      "A3S",
-      "A2S",
-      "A1S",
-      "B3",
-      "B2",
-      "B1",
-      "B3S",
-      "B2S",
-      "B1S",
-      "C3",
-      "C3S",
-    )
-
-    private val lowRiskTiers = listOf(
-      "C2",
-      "C1",
-      "C2S",
-      "C1S",
-      "D3",
-      "D2",
-      "D1",
-      "D3S",
-      "D2S",
-      "D1S",
-    )
-
-    private val allTiers = highRiskTiers + lowRiskTiers
+    val nonMalePassingTiers = listOf("A", "B", "C", "D")
+    val nonMaleFailingTiers = listOf("E", "F", "G", "MISSING", "NOT_SUPERVISED")
+    val allTiers = listOf("A", "B", "C", "D", "E", "F", "G", "MISSING", "NOT_SUPERVISED")
 
     @JvmStatic
     fun provideSexAndTierToPass(): Stream<Arguments> {
-      val femaleArguments = highRiskTiers.map {
+      val femaleArguments = nonMalePassingTiers.map {
         Arguments.of(SexCode.F, it)
       }
-      val notRecordedArguments = highRiskTiers.map {
+      val notRecordedArguments = nonMalePassingTiers.map {
         Arguments.of(SexCode.N, it)
       }
-      val notSpecifiedArguments = highRiskTiers.map {
+      val notSpecifiedArguments = nonMalePassingTiers.map {
         Arguments.of(SexCode.NS, it)
       }
       val maleArguments = allTiers.map {
@@ -101,13 +73,13 @@ class NonMaleRiskRuleTest {
 
     @JvmStatic
     fun provideSexAndTierToFail(): Stream<Arguments> {
-      val femaleArguments = lowRiskTiers.map {
+      val femaleArguments = nonMaleFailingTiers.map {
         Arguments.of(SexCode.F, it)
       }
-      val notRecordedArguments = lowRiskTiers.map {
+      val notRecordedArguments = nonMaleFailingTiers.map {
         Arguments.of(SexCode.N, it)
       }
-      val notSpecifiedArguments = lowRiskTiers.map {
+      val notSpecifiedArguments = nonMaleFailingTiers.map {
         Arguments.of(SexCode.NS, it)
       }
       return (femaleArguments + notRecordedArguments + notSpecifiedArguments).stream()

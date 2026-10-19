@@ -40,8 +40,8 @@ class TierCalculationChangedIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should process incoming HMPPS TIER_CALCULATION_CHANGED domain events on existing record`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
-    val tier = buildTier(tierScore = "A3")
+    caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+    val tier = buildTier(tierScore = "C")
     TierStubs.getTierOKResponse(crn, response = tier)
 
     publishTierEvent()
@@ -54,9 +54,9 @@ class TierCalculationChangedIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `process multiple incoming HMPPS TIER_CALCULATION_CHANGED domain events for the same CRN`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
 
-    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A2"))
+    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "B"))
     publishTierEvent()
     publishTierEvent()
     publishTierEvent()
@@ -71,7 +71,7 @@ class TierCalculationChangedIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should not process incoming HMPPS TIER_CALCULATION_CHANGED domain events on unknown record`() {
-    val tier = buildTier(tierScore = "A3")
+    val tier = buildTier(tierScore = "C")
     TierStubs.getTierOKResponse(crn, response = tier)
 
     assertThat(caseRepository.findAll()).hasSize(0)
