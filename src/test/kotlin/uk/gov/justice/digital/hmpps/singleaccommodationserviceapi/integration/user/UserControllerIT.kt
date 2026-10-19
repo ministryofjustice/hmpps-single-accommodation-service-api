@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.user
 
 import org.junit.jupiter.api.Test
+import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
@@ -37,7 +38,7 @@ class UserControllerIT : IntegrationTestBase() {
     val result = restTestClient.get().uri("/user/teams")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     assertThatJson(result).matchesExpectedJson(expectedResponse)
@@ -72,10 +73,10 @@ class UserControllerIT : IntegrationTestBase() {
         }
       }
     """.trimIndent()
-    val result = restTestClient.get().uri("/user/me")
+    val result = restTestClient.get().uri("/users/me")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     assertThatJson(result).matchesExpectedJson(expectedResponse)
@@ -96,10 +97,10 @@ class UserControllerIT : IntegrationTestBase() {
     )
 
     val expectedResponse = """{"data":{"username":"$USERNAME_OF_LOGGED_IN_NOMIS_USER"}}"""
-    val result = restTestClient.get().uri("/user/me")
+    val result = restTestClient.get().uri("/users/me")
       .withNomisUserJwt(jwt = jwt)
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     assertThatJson(result).matchesExpectedJson(expectedResponse)

@@ -119,7 +119,7 @@ private val defaultRoles = setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTIT
 private val userControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /user/teams" to defaultRoles,
-    "GET /user/me" to defaultRoles,
+    "GET /users/me" to defaultRoles,
   )
 
 private val dutyToReferControllerMap: Map<String, Set<String>> =

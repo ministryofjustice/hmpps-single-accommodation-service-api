@@ -8,12 +8,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.Use
 
 @RestController
 class UserController(private val userQueryService: UserQueryService) {
-  @Deprecated("Use /user/me")
+  @Deprecated("Use /users/me")
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/user/teams")
   fun getTeams() = ApiResponseDto(userQueryService.getTeams())
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
-  @GetMapping("/user/me")
+  @GetMapping("/users/me")
   fun getUserData() = ApiResponseDto(userQueryService.getUserData())
 }

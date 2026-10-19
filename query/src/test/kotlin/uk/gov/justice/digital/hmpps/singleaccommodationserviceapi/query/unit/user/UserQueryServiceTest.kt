@@ -48,7 +48,7 @@ class UserQueryServiceTest {
       buildTeam(code = "TEAM2", name = "Team 2"),
     )
 
-    every { httpAuthService.getUsername() } returns principal.username
+    every { httpAuthService.getPrincipalOrThrow() } returns principal
     every { approvedPremisesAndDeliusCachingService.getStaffDetail(principal.username.value) } returns buildStaffDetail(
       username = principal.username.value,
       teams = teams,
