@@ -24,12 +24,12 @@ class DtrUpcomingRuleSetTest {
   lateinit var dtrUpcomingRuleSet: DtrUpcomingRuleSet
 
   private val expectedDtrUpcomingRuleNames = listOf(
-    ReleaseWithinEightWeeksRule::class.simpleName,
+    ReleaseWithinEightWeeksRule::class.java.simpleName,
   )
 
   @Test
   fun `all DtrUpcomingRule components are included in DtrUpcomingRuleSet`() {
-    val ruleSetRules = dtrUpcomingRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = dtrUpcomingRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(1)

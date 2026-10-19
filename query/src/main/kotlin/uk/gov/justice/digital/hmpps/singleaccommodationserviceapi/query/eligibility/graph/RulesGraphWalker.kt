@@ -35,17 +35,18 @@ object RulesGraphWalker {
             kind = GraphNodeKind.OUTCOME,
           )
         }
+
         is RuleSetNode -> {
           val graphNode = GraphNode(
             id = uniqueId(slug(node.ruleSetName), node, usedIds),
             title = node.ruleSetName,
             kind = GraphNodeKind.RULE_SET,
-            rules = node.ruleSet.getRules().map { rule ->
+            rules = node.ruleSet.getRules().map { priorityRule ->
               RuleInfo(
-                className = rule::class.simpleName
+                className = priorityRule.rule::class.simpleName
                   ?: error("Rules should not be defined as anonymous classes"),
-                description = rule.description,
-                sourcePath = sourceLinkPath(rule::class),
+                description = priorityRule.rule.description,
+                sourcePath = sourceLinkPath(priorityRule.rule::class),
               )
             },
             contextUpdater = contextUpdaterInfo(node.contextUpdater),

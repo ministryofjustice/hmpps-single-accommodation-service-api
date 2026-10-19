@@ -22,12 +22,12 @@ class CrsCompletionRuleSetTest {
   lateinit var crsCompletionRuleSet: CrsCompletionRuleSet
 
   private val expectedCrsCompletionRuleNames = listOf(
-    CrsSubmittedRule::class.simpleName,
+    CrsSubmittedRule::class.java.simpleName,
   )
 
   @Test
   fun `all CrsCompletionRule components are included in CrsCompletionRuleSet`() {
-    val ruleSetRules = crsCompletionRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = crsCompletionRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(1)

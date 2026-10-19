@@ -22,12 +22,12 @@ class DtrEligibilityRuleSetTest {
   lateinit var dtrEligibilityRuleSet: DtrEligibilityRuleSet
 
   private val expectedDtrEligibilityRuleNames = listOf(
-    NoNextAccommodationRule::class.simpleName,
+    NoNextAccommodationRule::class.java.simpleName,
   )
 
   @Test
   fun `all DtrEligibilityRule components are included in DtrEligibilityRuleSet`() {
-    val ruleSetRules = dtrEligibilityRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = dtrEligibilityRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(1)

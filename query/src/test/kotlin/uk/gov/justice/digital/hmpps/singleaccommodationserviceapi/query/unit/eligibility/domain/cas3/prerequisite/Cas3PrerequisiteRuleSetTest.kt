@@ -28,14 +28,14 @@ class Cas3PrerequisiteRuleSetTest {
   lateinit var cas3PrerequisiteRuleSet: Cas3PrerequisiteRuleSet
 
   private val expectedCas3PrerequisiteRuleNames = listOf(
-    DtrExpiredReferralRule::class.simpleName,
-    CrsSubmittedRuleMale::class.simpleName,
-    CrsSubmittedRuleNonMale::class.simpleName,
+    DtrExpiredReferralRule::class.java.simpleName,
+    CrsSubmittedRuleMale::class.java.simpleName,
+    CrsSubmittedRuleNonMale::class.java.simpleName,
   )
 
   @Test
   fun `all Cas3PrerequisiteRule components are included in Cas3PrerequisiteRuleSet`() {
-    val ruleSetRules = cas3PrerequisiteRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = cas3PrerequisiteRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(3)
