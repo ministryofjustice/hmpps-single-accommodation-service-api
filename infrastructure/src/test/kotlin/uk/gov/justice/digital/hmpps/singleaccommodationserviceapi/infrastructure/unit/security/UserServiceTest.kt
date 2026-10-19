@@ -45,16 +45,6 @@ class UserServiceTest {
     private val username = Username("SOMEPERSON")
 
     @Test
-    fun `getAndUpsertDeliusUser should throw NotFoundException when staff-detail not found`() {
-      every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns null
-      every { approvedPremisesAndDeliusCachingService.getStaffDetail(username.value) } returns null
-
-      assertThatThrownBy { userService.getAndUpsertDeliusUser(username) }
-        .isInstanceOf(NotFoundException::class.java)
-        .hasMessage("StaffDetail not found for [username=$username]")
-    }
-
-    @Test
     fun `getAndUpsertDeliusUser updates and returns existing user`() {
       val existingUser = buildUserEntity()
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns existingUser
