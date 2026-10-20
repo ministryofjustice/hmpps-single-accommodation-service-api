@@ -41,6 +41,7 @@ class Cas3EligibilityTreeProvider(
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS3)
+    // ideally this would use confirmed, but we need to re-organise the diagram
     val cannotStartYet = builder.currentOutcome()
     val arrived = builder.outcome(
       "arrived",

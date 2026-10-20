@@ -10,8 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class DtrCompletionContextUpdater : ContextUpdater() {
 
-  override val description = set("status from DTR")
-
   val notAccepted = "notAccepted"
   val submitted = "submitted"
 

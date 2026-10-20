@@ -13,8 +13,6 @@ class Cas2CompletionContextUpdater(
   private val sentryService: SentryService,
 ) : ContextUpdater() {
 
-  override val description = set("Started and continue CAS2 application")
-
   val submitted = "submitted"
   val moreInfoRequested = "moreInfoRequested"
   val awaitingDecision = "awaitingDecision"

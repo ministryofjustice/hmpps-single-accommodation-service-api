@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 enum class GraphNodeKind {
   RULE_SET,
+  CONTEXT_UPDATER,
   OUTCOME,
 }
 

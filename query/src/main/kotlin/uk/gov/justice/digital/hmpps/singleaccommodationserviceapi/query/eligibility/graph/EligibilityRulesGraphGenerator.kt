@@ -8,7 +8,7 @@ object EligibilityRulesGraphGenerator {
     providers: Collection<EligibilityTreeProvider>,
   ): GenerationResult {
     val graphs = providers
-      .map { RulesGraphWalker.walk(it) }
+      .map { RulesGraphWalker().walk(it) }
       .sortedBy { it.treeName }
     val text = RulesGraphMarkdownRenderer.render(graphs)
     return GenerationResult(text)

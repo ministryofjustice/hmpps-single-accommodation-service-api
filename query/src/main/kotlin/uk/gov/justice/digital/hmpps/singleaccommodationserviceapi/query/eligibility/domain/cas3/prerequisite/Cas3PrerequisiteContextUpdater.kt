@@ -11,8 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas3PrerequisiteContextUpdater : ContextUpdater() {
 
-  override val description = set("Cannot start yet from outstanding DTR/CRS")
-
   val dtrAndCrsAccommodation = "dtrAndCrsAccommodation"
   val dtrAndCrs = "dtrAndCrs"
   val crsAccommodation = "crsAccommodation"

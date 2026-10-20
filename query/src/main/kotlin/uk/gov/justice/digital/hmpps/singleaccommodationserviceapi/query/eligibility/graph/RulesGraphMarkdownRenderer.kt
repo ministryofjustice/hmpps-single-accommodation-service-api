@@ -134,23 +134,30 @@ object RulesGraphMarkdownRenderer {
   private fun label(node: GraphNode): String = when (node.kind) {
     GraphNodeKind.RULE_SET -> ruleSetLabel(node)
     GraphNodeKind.OUTCOME -> node.title
+    GraphNodeKind.CONTEXT_UPDATER -> node.title
   }
 
   private fun mermaidShape(node: GraphNode): String {
     val text = escape(label(node))
-    val diamond = node.kind == GraphNodeKind.RULE_SET && node.contextUpdater != null
-    return if (diamond) "{\"$text\"}" else "[\"$text\"]"
+    val roundBox = node.kind == GraphNodeKind.RULE_SET
+    return if (roundBox) "(\"$text\")" else "[\"$text\"]"
   }
 
   private fun ruleSetLabel(node: GraphNode): String {
     val count = node.rules.size
-    return if (count == 0) "${node.title} (always PASS)" else "${node.title} ($count)"
+    return if (count == 0) {
+      "${node.title} (always PASS)"
+    } else {
+      "${node.title} ($count)" + "\n\n" + node.ruleSet!!.getRules()
+        .joinToString(separator = "\n- ", prefix = "- ") { it.description ?: "anonymous" }
+    }
   }
 
   private fun renderNode(node: GraphNode): String = buildString {
     val kind = when (node.kind) {
       GraphNodeKind.RULE_SET -> "RuleSet"
       GraphNodeKind.OUTCOME -> "Outcome"
+      GraphNodeKind.CONTEXT_UPDATER -> "ContextUpdater"
     }
     append("**${node.title}** ($kind)")
     if (node.kind == GraphNodeKind.RULE_SET) {
