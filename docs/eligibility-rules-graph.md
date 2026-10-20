@@ -84,7 +84,7 @@ flowchart TD
 flowchart TD
   Cas2Upcoming{"Cas2Upcoming (1)"}
   Cas2Suitability{"Cas2Suitability (2)"}
-  Cas2Completion{"Cas2Completion (1)"}
+  Cas2Completion{"Cas2Completion (2)"}
   awaitingArrival["awaitingArrival"]
   confirmed["confirmed"]
   Cas2Eligibility["Cas2Eligibility (6)"]
@@ -127,6 +127,7 @@ flowchart TD
 
 **Cas2Completion** (RuleSet)
 - [`Cas2ApplicationAwaitingArrivalRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/completion/Cas2ApplicationAwaitingArrivalRule.kt): FAIL if application is not awaiting arrival
+- [`Cas2ApplicationArrivedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/completion/Cas2ApplicationArrivedRule.kt): FAIL if application is arrived
 - FAIL: [`Cas2CompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/completion/Cas2CompletionContextUpdater.kt) - Set Started and continue CAS2 application
 
 | Status | Action | Link type |
@@ -138,6 +139,7 @@ flowchart TD
 | CAS2_PLACE_OFFERED | REPLY_TO_CAS2_PLACE_OFFER (CAS2) | CAS2_VIEW_APPLICATION |
 | CAS2_OFFER_ACCEPTED | - | CAS2_VIEW_APPLICATION |
 | CAS2_UNKNOWN | - | - |
+| CAS2_ARRIVED | - | CAS2_VIEW_APPLICATION |
 
 
 **awaitingArrival** (Outcome)
@@ -390,6 +392,7 @@ flowchart TD
 | Cas1ApplicationPresentRule | FAIL if candidate does not have an application | Cas1Suitability | CAS1 |
 | Cas1ApplicationRelevantExpiredRule | FAIL if expired application is not upcoming or arrived | Cas1Suitability | CAS1 |
 | Cas1ApplicationSuitabilityRule | FAIL if candidate does not have a suitable application | Cas1Suitability | CAS1 |
+| Cas2ApplicationArrivedRule | FAIL if application is arrived | Cas2Completion | CAS2 |
 | Cas2ApplicationAwaitingArrivalRule | FAIL if application is not awaiting arrival | Cas2Completion | CAS2 |
 | Cas2ApplicationSubmittedRule | FAIL if candidate does not have a submitted application | Cas2Suitability | CAS2 |
 | Cas2SuitableStatusRule | FAIL if candidate has an unsuitable status | Cas2Suitability | CAS2 |
@@ -476,6 +479,7 @@ Used by: Cas2Completion (CAS2)
 | CAS2_PLACE_OFFERED | REPLY_TO_CAS2_PLACE_OFFER (CAS2) | CAS2_VIEW_APPLICATION |
 | CAS2_OFFER_ACCEPTED | - | CAS2_VIEW_APPLICATION |
 | CAS2_UNKNOWN | - | - |
+| CAS2_ARRIVED | - | CAS2_VIEW_APPLICATION |
 
 
 Set Not started and start CAS2 application

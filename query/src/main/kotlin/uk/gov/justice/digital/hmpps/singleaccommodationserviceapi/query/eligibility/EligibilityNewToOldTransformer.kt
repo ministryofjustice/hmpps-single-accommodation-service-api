@@ -51,6 +51,7 @@ object EligibilityNewToOldTransformer {
     ServiceStatusNew.CAS2_UNKNOWN -> ServiceStatus.UNKNOWN
     ServiceStatusNew.CAS2_UPCOMING -> ServiceStatus.UPCOMING
     ServiceStatusNew.CAS2_WITHDRAWN -> ServiceStatus.WITHDRAWN
+    ServiceStatusNew.CAS2_ARRIVED -> ServiceStatus.ARRIVED
 
     ServiceStatusNew.CAS3_BEDSPACE_OFFERED -> ServiceStatus.BEDSPACE_OFFERED
     ServiceStatusNew.CAS3_BOOKING_CANCELLED -> ServiceStatus.BOOKING_CANCELLED

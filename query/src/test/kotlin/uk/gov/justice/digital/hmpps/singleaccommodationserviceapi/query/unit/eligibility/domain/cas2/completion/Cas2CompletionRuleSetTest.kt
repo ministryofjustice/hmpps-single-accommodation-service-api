@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationArrivedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationAwaitingArrivalRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionRuleSet
 
@@ -15,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
   classes = [
     Cas2CompletionRuleSet::class,
     Cas2ApplicationAwaitingArrivalRule::class,
+    Cas2ApplicationArrivedRule::class,
     ClockConfig::class,
   ],
 )
@@ -25,6 +27,7 @@ class Cas2CompletionRuleSetTest {
 
   private val expectedCas2CompletionRuleNames = listOf(
     Cas2ApplicationAwaitingArrivalRule::class.java.simpleName,
+    Cas2ApplicationArrivedRule::class.java.simpleName,
   )
 
   @Test
@@ -32,7 +35,7 @@ class Cas2CompletionRuleSetTest {
     val ruleSetRules = cas2CompletionRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(1)
+      .hasSize(2)
       .containsExactlyInAnyOrderElementsOf(expectedCas2CompletionRuleNames)
   }
 }

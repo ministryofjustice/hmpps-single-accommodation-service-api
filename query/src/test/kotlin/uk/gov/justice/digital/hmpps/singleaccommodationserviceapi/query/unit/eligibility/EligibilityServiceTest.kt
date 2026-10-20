@@ -85,6 +85,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithinOneYearRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationArrivedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationAwaitingArrivalRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionRuleSet
@@ -192,7 +193,10 @@ class EligibilityServiceTest {
   var cas2ApplicationStartUrl = "CAS2_APPLICATION_START_URL"
   var cas2CompletionContextUpdater = Cas2CompletionContextUpdater(sentryService)
 
-  var cas2CompletionRuleSet = Cas2CompletionRuleSet(Cas2ApplicationAwaitingArrivalRule())
+  var cas2CompletionRuleSet = Cas2CompletionRuleSet(
+    Cas2ApplicationAwaitingArrivalRule(),
+    Cas2ApplicationArrivedRule(),
+  )
   var cas2SuitabilityRuleSet = Cas2SuitabilityRuleSet(Cas2ApplicationSubmittedRule(), Cas2SuitableStatusRule())
   var cas2EligibilityRuleSet = Cas2EligibilityRuleSet(
     Under18Rule(clock),
@@ -631,6 +635,7 @@ class EligibilityServiceTest {
                   hasNextAccommodation = row["hasNextAccommodation"]!!,
                   currentAccommodationType = accommodationType,
                   currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
+                  markedAsArrived = row["markedAsArrived"]!!.toBoolean(),
                   tierScore = tierScore,
                   isApplicationPresent = row["isApplicationPresent"]!!,
                   submittedAt = row["submittedAt"]?.toLocalDate(),
@@ -685,6 +690,11 @@ class EligibilityServiceTest {
             submittedApplication = if (s.submittedAt != null) {
               buildCas2SubmittedApplicationSummary(
                 latestAssessmentStatus = s.cas2ApplicationStatus,
+                markedArrivedDateTime = if (s.markedAsArrived) {
+                  s.referenceDate.atStartOfDay().toInstant(ZoneOffset.UTC)
+                } else {
+                  null
+                },
                 submittedAt = s.submittedAt.atStartOfDay().atOffset(ZoneOffset.UTC),
                 cancelledReason = if (s.cas2ApplicationStatus == Cas2AssessmentStatus.CANCELLED) {
                   "cancelled reason"
@@ -1491,14 +1501,15 @@ data class Cas1Scenario(
 data class Cas2Scenario(
   val testCaseId: String,
   val description: String?,
+  val hasNextAccommodation: String,
   val tierScore: String?,
   val referenceDate: LocalDate,
-  val hasNextAccommodation: String,
   val currentAccommodationType: String?,
   val currentAccommodationEndDate: LocalDate?,
   val isApplicationPresent: String,
   val submittedAt: LocalDate?,
   val cas2ApplicationStatus: Cas2AssessmentStatus?,
+  val markedAsArrived: Boolean,
   val expectedCas2Status: ServiceStatusNew?,
   val expectedCas2Action: CaseActionType?,
   val expectedCas2Link: String?,
