@@ -1,9 +1,14 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CategoryType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Name
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.OffenceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Officer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.RoshLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistration
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrationCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Team
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.LocalDate
@@ -75,4 +80,26 @@ fun buildRoshLevel(
 ) = RoshLevel(
   code = code,
   description = description,
+)
+
+fun buildSexualOffenceRegistrations(
+  crn: String = "XX12345X",
+  sexualOffenceRegistrations: List<SexualOffenceRegistration>? = listOf(buildSexualOffenceRegistration()),
+) = SexualOffenceRegistrations(
+  crn = crn,
+  sexualOffenceRegistrations = sexualOffenceRegistrations,
+)
+
+fun buildSexualOffenceRegistration(
+  type: OffenceType = OffenceType(SexualOffenceRegistrationCode.ARSO, SexualOffenceRegistrationCode.ARSO.description),
+  category: CategoryType? = null,
+  startDate: LocalDate = LocalDate.of(2025, 1, 1),
+  nextReviewDate: LocalDate? = null,
+  endDate: LocalDate? = null,
+) = SexualOffenceRegistration(
+  type = type,
+  category = category,
+  startDate = startDate,
+  nextReviewDate = nextReviewDate,
+  endDate = endDate,
 )

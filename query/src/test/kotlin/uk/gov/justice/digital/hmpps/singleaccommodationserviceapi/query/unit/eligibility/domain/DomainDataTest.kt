@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -42,6 +43,7 @@ class DomainDataTest {
     val dutyToRefer = buildDutyToReferDto()
 
     val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
+    val sexualOffenceRegistrations = buildSexualOffenceRegistrations(crn = crn)
 
     val currentAccommodation = buildAccommodationSummaryDto(
       endDate = endDate,
@@ -106,6 +108,7 @@ class DomainDataTest {
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
       currentAccommodationTypeEntity = currentAccommodationTypeEntity,
+      sexualOffenceRegistrations = sexualOffenceRegistrations,
     )
 
     val result = DomainData(
@@ -120,6 +123,7 @@ class DomainDataTest {
       nextAccommodations = nextAccommodations,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
+      sexualOffenceRegistrations = sexualOffenceRegistrations,
     )
 
     assertThat(result).isEqualTo(expected)
