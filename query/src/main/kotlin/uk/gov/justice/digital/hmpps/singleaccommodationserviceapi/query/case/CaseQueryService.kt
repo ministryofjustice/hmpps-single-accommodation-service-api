@@ -8,9 +8,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pe
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
@@ -23,6 +26,7 @@ import java.time.Clock
 @Service
 class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
+  private val limitedAccessService: LimitedAccessService,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
   private val clock: Clock,
@@ -30,7 +34,11 @@ class CaseQueryService(
   fun getCaseList(teamCode: String?): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
     val caseOrchestrationResult = caseOrchestrationService.getCaseList(user.username, teamCode)
-    val caseList = caseOrchestrationResult.data.map { toPersonDto(it) }
+    hasUserAccessData(caseOrchestrationResult.upstreamFailures)
+
+    val cases = caseOrchestrationResult.data.cases
+    val limitedAccessCrns = limitedAccessService.getLimitedAccessCrns(cases.map { it.crn }, caseOrchestrationResult.data.caseAccess)
+    val caseList = cases.map { toPersonDto(it, limited = it.crn in limitedAccessCrns) }
     return toApiResponseDto(
       data = caseList,
       upstreamFailures = caseOrchestrationResult.upstreamFailures,
@@ -93,7 +101,7 @@ class CaseQueryService(
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCase(user.username, crn)
     hasMandatoryCaseData(orchestrationResult)
-    val case = orchestrationResult.data.case?.let { toPersonDto(it) }
+    val case = orchestrationResult.data.case?.let { toPersonDto(it, limited = it.hasExclusionOrRestriction()) }
 
     val caseOrchestrationDto = orchestrationResult.data
     val data = toCaseDto(
@@ -113,13 +121,21 @@ class CaseQueryService(
     }
   }
 
+  private fun hasUserAccessData(upstreamFailures: List<UpstreamFailure>) {
+    upstreamFailures.firstOrNull { it.callKey.startsWith(GET_USER_ACCESS) }?.let {
+      throw UpstreamFailureException(UpstreamFailureTransformer.toUpstreamFailureDto(it))
+    }
+  }
+
   fun getCaseFromDelius(crn: String): ApiResponseDto<PersonDto?> {
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCaseFromDelius(user.username, crn)
     hasMandatoryCaseData(orchestrationResult)
-    val case = orchestrationResult.data.case?.let { toPersonDto(it) }
+    val case = orchestrationResult.data.case?.let { toPersonDto(it, limited = it.hasExclusionOrRestriction()) }
     return toApiResponseDto(data = case, upstreamFailures = orchestrationResult.upstreamFailures)
   }
+
+  private fun Case.hasExclusionOrRestriction() = userExcluded == true || userRestricted == true
 
   private fun PersonDto.matchesUser(username: Username) = username.value.equals(this.assignedTo.username, ignoreCase = true)
 
