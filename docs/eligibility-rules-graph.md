@@ -87,7 +87,7 @@ flowchart TD
   Cas2Completion{"Cas2Completion (1)"}
   awaitingArrival["awaitingArrival"]
   confirmed["confirmed"]
-  Cas2Eligibility["Cas2Eligibility (5)"]
+  Cas2Eligibility["Cas2Eligibility (6)"]
   notEligible["notEligible"]
   Cas2Completion -->|PASS| awaitingArrival
   Cas2Completion -->|FAIL| confirmed
@@ -150,6 +150,7 @@ flowchart TD
 - [`CurrentAccommodationTypeIsCas2Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/CurrentAccommodationTypeIsCas2Rule.kt): FAIL if individual is in CAS2
 - [`CurrentAccommodationTypeIsCommunityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/CurrentAccommodationTypeIsCommunityRule.kt): FAIL if individual is in the community
 - [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/NoNextAccommodationRule.kt): FAIL if candidate has next accommodation
+- [`SingleLetterTierRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/SingleLetterTierRule.kt): FAIL if candidate is not Tier A through G
 
 
 **notEligible** (Outcome)
@@ -418,6 +419,7 @@ flowchart TD
 | ReleaseWithin15DaysRule | FAIL if not within 15 days of release from current accommodation | Cas2Upcoming | CAS2 |
 | ReleaseWithinEightWeeksRule | FAIL if not within 8 weeks of release from current accommodation | DtrUpcoming | DTR |
 | ReleaseWithinOneYearRule | FAIL if not within 1 year of release from current accommodation | Cas1Upcoming | CAS1 |
+| SingleLetterTierRule | FAIL if candidate is not Tier A through G | Cas2Eligibility | CAS2 |
 | Under18Rule | FAIL if individual is under 18 years old | Cas2Eligibility | CAS2 |
 
 ## Context updater catalogue

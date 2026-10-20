@@ -78,7 +78,8 @@ Use this file as the default operating guide. Only search the repo when these in
 - To regenerate fixtures, run the SAR integration tests with `SAR_GENERATE_ACTUAL=true` and use `:integrationTest` (not the unqualified task name) because integration tasks exist in the root and subprojects.
 - Changes to SAR-relevant entities, schema, or Flyway migrations may require updating SAR fixtures and schema-related expectations alongside the code change.
 
-```text
+
+```
 hmpps-single-accommodation-service-api/
 ├── src/                 # Main Spring Boot app: bootstrap, config, health, REST controllers (api/controller)
 ├── common/              # Shared DTOs, exceptions, small helpers (+ testFixtures: DTO factories)
@@ -214,3 +215,10 @@ docker compose up -d
 ## Root files worth knowing
 `build.gradle.kts`, `settings.gradle.kts`, `gradle/libs.versions.toml`, `docker-compose.yml`, `Dockerfile`, `detekt/detekt.yml`, `.editorconfig`, `.pre-commit-config.yaml`, `README.md`, `sonar-project.properties`, `.github/workflows/*`.
 
+## CSV fixture editing rules
+- Treat CSV fixture files as plain data files, not as JSON or Kotlin strings.
+- Preserve the exact column order and row count when editing CSV fixtures.
+- For multi-value `expectedFailureReasons`, keep the whole list in a single CSV field and wrap it in double quotes, for example: `"IN_COMMUNITY, INVALID_TIER"`.
+- Do not introduce escaped triple quotes such as `"""IN_COMMUNITY, INVALID_TIER"""`; that is a CSV-escaping artifact, not the intended file value.
+- Only update rows that match the explicit condition in the request; do not modify unrelated rows.
+- After editing, read the affected rows back to confirm the actual file content matches the requested CSV representation.

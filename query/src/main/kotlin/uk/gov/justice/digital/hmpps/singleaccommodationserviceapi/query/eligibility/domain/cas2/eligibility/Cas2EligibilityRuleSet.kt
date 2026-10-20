@@ -12,9 +12,11 @@ class Cas2EligibilityRuleSet(
   currentAccommodationTypeIsCas2: CurrentAccommodationTypeIsCas2Rule,
   currentAccommodationTypeIsCommunity: CurrentAccommodationTypeIsCommunityRule,
   noNextAccommodation: NoNextAccommodationRule,
+  singleLetterTierRule: SingleLetterTierRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(
     PrioritisedRule(under18, 0),
+    PrioritisedRule(singleLetterTierRule, 0),
     PrioritisedRule(currentAccommodationTypeIsCas3, 2),
     PrioritisedRule(currentAccommodationTypeIsCas2, 2),
     PrioritisedRule(currentAccommodationTypeIsCommunity, 2),
