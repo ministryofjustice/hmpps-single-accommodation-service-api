@@ -15,7 +15,7 @@ awaitility = "4.3.0"
 javers = "7.11.9"
 guava = "33.7.2-jre"
 postgres = "42.7.14"
-sentry = "8.57.0"
+sentry = "8.61.0"
 pact = "4.6.5"
 sar-test-support = "2.8.4"
 
