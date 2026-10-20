@@ -5,11 +5,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.UserCaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -17,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedAccessService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.sortCases
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.time.Clock
@@ -27,6 +27,7 @@ class CustomCaseListQueryService(
   private val caseRepository: CaseRepository,
   private val userCustomCaseListRepository: UserCustomCaseListRepository,
   private val customCaseListOrchestrationService: CustomCaseListOrchestrationService,
+  private val limitedAccessService: LimitedAccessService,
   private val clock: Clock,
 ) {
   fun getCustomCaseList(): ApiResponseDto<List<CaseDto>> {
@@ -37,9 +38,9 @@ class CustomCaseListQueryService(
     val caseEntities = caseRepository.findAllWithIdentifiersByIdIn(caseIds)
     val crns = caseEntities.map { it.latestCrn() }
     val orchestrationResult = customCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, crns)
-    val userCaseAccess = getUserCaseAccessOrThrow(orchestrationResult)
+    hasUserAccessData(orchestrationResult.upstreamFailures)
 
-    val limitedAccessCrns = getLimitedAccessCrns(crns, userCaseAccess)
+    val limitedAccessCrns = limitedAccessService.getLimitedAccessCrns(crns, orchestrationResult.data.caseAccess)
     val caseSummariesByCrn = orchestrationResult.data.caseSummaries.associateBy { it.crn }
     val caseDtos = caseEntities.map {
       val crn = it.latestCrn()
@@ -53,13 +54,10 @@ class CustomCaseListQueryService(
     return toApiResponseDto(data = userCustomCaseListRepository.findLatestCrnsBySasUserId(user.id))
   }
 
-  private fun getUserCaseAccessOrThrow(
-    orchestrationResult: OrchestrationResultDto<CustomCaseListOrchestrationDto>,
-  ): UserCaseAccess {
-    orchestrationResult.upstreamFailures.firstOrNull { it.callKey == GET_USER_ACCESS }?.let {
+  private fun hasUserAccessData(upstreamFailures: List<UpstreamFailure>) {
+    upstreamFailures.firstOrNull { it.callKey.startsWith(GET_USER_ACCESS) }?.let {
       throw UpstreamFailureException(UpstreamFailureTransformer.toUpstreamFailureDto(it))
     }
-    return requireNotNull(orchestrationResult.data.userCaseAccess)
   }
 
   private fun CaseEntity.toCustomCaseListCaseDto(caseSummary: CaseSummary?) = toCaseDto(
@@ -69,11 +67,6 @@ class CustomCaseListQueryService(
     riskLevel = roshLevelCode?.let { RiskLevel.findByCode(it) },
     pncReference = null,
     assignedTo = toAssignedToDto(),
-    limitedAccess = caseSummary?.let { it.currentExclusion || it.currentRestriction },
+    limitedAccess = caseSummary?.let { it.currentExclusion || it.currentRestriction } ?: false,
   )
-
-  private fun getLimitedAccessCrns(crns: List<String>, userCaseAccess: UserCaseAccess): Set<String> {
-    val accessByCrn = userCaseAccess.access.associateBy { it.crn }
-    return crns.filter { crn -> accessByCrn[crn]?.let { it.userExcluded || it.userRestricted } ?: true }.toSet()
-  }
 }

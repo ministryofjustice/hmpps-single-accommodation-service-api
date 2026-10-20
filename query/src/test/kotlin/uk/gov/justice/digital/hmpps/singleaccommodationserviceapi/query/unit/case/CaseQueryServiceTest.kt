@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -17,8 +18,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
@@ -33,8 +39,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.FullPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedAccessService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseListOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildLimitedPersonDto
@@ -67,12 +76,16 @@ class CaseQueryServiceTest {
   @MockK
   lateinit var caseRepository: CaseRepository
 
+  @MockK
+  lateinit var limitedAccessService: LimitedAccessService
+
   lateinit var caseQueryService: CaseQueryService
 
   @BeforeEach
   fun setUpCaseQueryService() {
     caseQueryService = CaseQueryService(
       caseOrchestrationService = caseOrchestrationService,
+      limitedAccessService = limitedAccessService,
       userService = userService,
       caseRepository = caseRepository,
       clock = clock,
@@ -161,11 +174,12 @@ class CaseQueryServiceTest {
       val roshLevel = buildRoshLevel(code = "RMRH", description = "Medium Risk")
       val case2 = buildCase(crn = crnTwo, name = buildName("Bob"), nomsNumber = "12234", roshLevel = roshLevel)
 
-      val caseList = OrchestrationResultDto(data = listOf(case1, case2))
+      val caseList = OrchestrationResultDto(data = buildCaseListOrchestrationDto(cases = listOf(case1, case2)))
 
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 
       every { caseOrchestrationService.getCaseList(username, "testTeam") } returns caseList
+      every { limitedAccessService.getLimitedAccessCrns(any(), any()) } returns emptySet()
 
       val result = caseQueryService.getCaseList("testTeam")
       assertThat(result.data).hasSize(2)
@@ -193,6 +207,57 @@ class CaseQueryServiceTest {
       assertThat(lastPerson.assignedTo.username).isEqualTo(case2.staff.username)
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
       assertThat(lastPerson.riskLevel).isEqualTo(RiskLevel.MEDIUM)
+    }
+
+    @Test
+    fun `should return cases the limited access service marks as limited as a LimitedPersonDto`() {
+      stubCaseList(
+        cases = listOf(buildCase(crn = crnOne), buildCase(crn = crnTwo)),
+        limitedCrns = setOf(crnTwo),
+      )
+
+      val result = caseQueryService.getCaseList(null)
+
+      assertThat(result.data.single { it.crn == crnOne }).isInstanceOf(FullPersonDto::class.java)
+      assertThat(result.data.single { it.crn == crnTwo }).isInstanceOf(LimitedPersonDto::class.java)
+    }
+
+    @Test
+    fun `should throw an upstream failure exception when any access check batch fails`() {
+      stubCaseList(
+        cases = listOf(buildCase(crn = crnOne)),
+        upstreamFailures = listOf(buildUpstreamFailure(callKey = GET_USER_ACCESS + 1)),
+      )
+
+      assertThatThrownBy { caseQueryService.getCaseList(null) }
+        .isInstanceOf(UpstreamFailureException::class.java)
+    }
+
+    @Test
+    fun `should return the case list with upstream failures when a Delius page fails`() {
+      stubCaseList(
+        cases = listOf(buildCase(crn = crnOne)),
+        upstreamFailures = listOf(buildUpstreamFailure(callKey = GET_CASE_LIST + username + 1)),
+      )
+
+      val result = caseQueryService.getCaseList(null)
+
+      assertThat(result.data).hasSize(1)
+      assertThat(result.upstreamFailures).hasSize(1)
+    }
+
+    private fun stubCaseList(
+      cases: List<Case>,
+      limitedCrns: Set<String> = emptySet(),
+      upstreamFailures: List<UpstreamFailure> = emptyList(),
+    ) {
+      val caseListOrchestrationDto = buildCaseListOrchestrationDto(cases = cases)
+      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
+      every { caseOrchestrationService.getCaseList(username, null) } returns OrchestrationResultDto(
+        data = caseListOrchestrationDto,
+        upstreamFailures = upstreamFailures,
+      )
+      every { limitedAccessService.getLimitedAccessCrns(cases.map { it.crn }, caseListOrchestrationDto.caseAccess) } returns limitedCrns
     }
   }
 
@@ -654,7 +719,7 @@ class CaseQueryServiceTest {
         data = caseOrchestrationDto,
       )
 
-      val person = toPersonDto(caseOrchestrationDto.case!!)
+      val person = toPersonDto(caseOrchestrationDto.case!!, limited = false)
 
       val result = caseQueryService.getCase(crnOne)
       assertThat(result.data).isEqualTo(
@@ -707,7 +772,7 @@ class CaseQueryServiceTest {
 
       val result = caseQueryService.getCaseFromDelius(crnOne)
 
-      assertThat(result.data).isEqualTo(toPersonDto(caseOrchestrationDto.case!!))
+      assertThat(result.data).isEqualTo(toPersonDto(caseOrchestrationDto.case!!, limited = false))
       assertThat(result.upstreamFailures).isEmpty()
     }
 

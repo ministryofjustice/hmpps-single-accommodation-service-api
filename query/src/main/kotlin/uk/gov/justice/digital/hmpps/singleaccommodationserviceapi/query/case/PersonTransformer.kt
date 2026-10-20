@@ -7,7 +7,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 object PersonTransformer {
   fun toPersonDto(
     case: Case,
-  ): PersonDto = if (case.userExcluded == true || case.userRestricted == true) {
+    limited: Boolean,
+  ): PersonDto = if (limited) {
     LimitedPersonDto(
       crn = case.crn,
       nomsNumber = case.nomsNumber,
@@ -28,6 +29,7 @@ object PersonTransformer {
       riskLevel = case.getRiskLevel(),
       teamCode = case.team.code,
       assignedTo = case.getAssignedTo(),
+      // TODO - we should no longer rely on driving this flag via case summary - we should read it from postCaseSummaries or alternative
       limitedAccess = case.limitedAccess ?: false,
     )
   }
