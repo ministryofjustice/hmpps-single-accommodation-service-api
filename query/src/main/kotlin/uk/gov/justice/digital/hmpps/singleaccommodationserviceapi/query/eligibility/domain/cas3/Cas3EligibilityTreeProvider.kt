@@ -48,27 +48,27 @@ class Cas3EligibilityTreeProvider(
     )
 
     val prerequisiteNode = builder
-      .ruleSet("Cas3Prerequisite", prerequisite, cas3PrerequisiteContextUpdater)
+      .ruleSet("Cas3Prerequisite", prerequisite)
       .onPass(confirmed)
-      .onFail(cannotStartYet)
+      .onFail(cannotStartYet).applyContextUpdaterOnFailure(cas3PrerequisiteContextUpdater)
       .build()
 
     val eligibilityWithPrereqNode = builder
       .ruleSet("Cas3Eligibility", eligibility)
       .onPass(prerequisiteNode)
-      .onFail(notEligible)
+      .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     val completionNode = builder
-      .ruleSet("Cas3Completion", completion, completionContextUpdater)
+      .ruleSet("Cas3Completion", completion)
       .onPass(arrived)
-      .onFail(confirmed)
+      .onFail(confirmed).applyContextUpdaterOnFailure(completionContextUpdater)
       .build()
 
     return builder
-      .ruleSet("Cas3Suitability", suitability, suitabilityContextUpdater)
+      .ruleSet("Cas3Suitability", suitability)
       .onPass(completionNode)
-      .onFail(eligibilityWithPrereqNode)
+      .onFail(eligibilityWithPrereqNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
       .build()
   }
 

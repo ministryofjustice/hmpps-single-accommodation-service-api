@@ -36,7 +36,7 @@ class RulesGraphTest {
       val root = builder
         .ruleSet("ExampleEligibility", StubRuleSet(listOf(StubRule("FAIL if example"))))
         .onPass(pass)
-        .onFail(fail)
+        .onFail(fail).propagateContextOnFailure()
         .build()
 
       val graph = RulesGraphWalker.walk("EXAMPLE", root)
@@ -62,10 +62,9 @@ class RulesGraphTest {
         .ruleSet(
           "ExampleEligibility",
           StubRuleSet(listOf(Cas1ApplicationPresentRule(), CrsSubmittedRule())),
-          Cas1SuitabilityContextUpdater(),
         )
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(ServiceType.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1SuitabilityContextUpdater())
         .build()
 
       val graph = RulesGraphWalker.walk("EXAMPLE", root)
@@ -86,12 +85,12 @@ class RulesGraphTest {
       val eligibility = builder
         .ruleSet("Eligibility", StubRuleSet(listOf(StubRule("eligible"))))
         .onPass(confirmed)
-        .onFail(builder.notEligible(ServiceType.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
       val upcoming = builder
-        .ruleSet("Upcoming", StubRuleSet(listOf(StubRule("upcoming"))), StubContextUpdater())
+        .ruleSet("Upcoming", StubRuleSet(listOf(StubRule("upcoming"))))
         .onPass(confirmed)
-        .onFail(eligibility)
+        .onFail(eligibility).applyContextUpdaterOnFailure(StubContextUpdater())
         .build()
 
       val graph = RulesGraphWalker.walk("SHARED", upcoming)
@@ -106,7 +105,7 @@ class RulesGraphTest {
       val confirmed = builder.confirmed()
       val upcoming = builder
         .ruleSet("Upcoming", StubRuleSet(listOf(StubRule("window"))))
-        .continueWith(confirmed)
+        .continueWith(confirmed).propagateContextOnFailure()
         .build()
 
       val graph = RulesGraphWalker.walk("DTR", upcoming)
@@ -135,7 +134,7 @@ class RulesGraphTest {
       val root = builder
         .ruleSet("ExampleEligibility", StubRuleSet(listOf(StubRule("FAIL if example"))))
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(ServiceType.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
       val graph = RulesGraphWalker.walk("EXAMPLE", root)
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
@@ -158,10 +157,9 @@ class RulesGraphTest {
         .ruleSet(
           "ExampleEligibility",
           StubRuleSet(listOf(Cas1ApplicationPresentRule(), CrsSubmittedRule())),
-          Cas1SuitabilityContextUpdater(),
         )
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(ServiceType.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1SuitabilityContextUpdater())
         .build()
       val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker.walk("EXAMPLE", root)))
 
@@ -179,9 +177,9 @@ class RulesGraphTest {
     @Test
     fun `render lists named FAIL updater below the diagram and in the catalogue`() {
       val root = builder
-        .ruleSet("Upcoming", StubRuleSet(listOf(StubRule("window"))), StubContextUpdater())
+        .ruleSet("Upcoming", StubRuleSet(listOf(StubRule("window"))))
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(ServiceType.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(StubContextUpdater())
         .build()
       val graph = RulesGraphWalker.walk("EXAMPLE", root)
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
@@ -199,10 +197,9 @@ class RulesGraphTest {
         .ruleSet(
           "PaCompletion",
           StubRuleSet(listOf(StubRule("complete"))),
-          ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED),
         )
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(ServiceType.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1)).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED))
         .build()
       val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker.walk("PA", root)))
 
@@ -222,7 +219,7 @@ class RulesGraphTest {
       val root = builder
         .ruleSet("Named", StubRuleSet(listOf(anonymous)))
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(ServiceType.CAS1))
+        .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
 
       assertThatThrownBy { RulesGraphWalker.walk("BROKEN", root) }
@@ -237,12 +234,12 @@ class RulesGraphTest {
       val first = builder
         .ruleSet("Same", StubRuleSet(listOf(StubRule("first"))))
         .onPass(confirmed)
-        .onFail(notEligible)
+        .onFail(notEligible).propagateContextOnFailure()
         .build()
       val root = builder
         .ruleSet("Same", StubRuleSet(listOf(StubRule("second"))))
         .onPass(first)
-        .onFail(notEligible)
+        .onFail(notEligible).propagateContextOnFailure()
         .build()
 
       assertThatThrownBy { RulesGraphWalker.walk("BROKEN", root) }

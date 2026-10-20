@@ -48,19 +48,19 @@ class CrsEligibilityTreeProvider(
     val eligibilityNode = builder
       .ruleSet("CrsEligibility", eligibility)
       .onPass(confirmed)
-      .onFail(notRequired)
+      .onFail(notRequired).propagateContextOnFailure()
       .build()
 
     val completionNode = builder
-      .ruleSet("CrsCompletion", completion, completionContextUpdater)
+      .ruleSet("CrsCompletion", completion)
       .onPass(confirmed)
-      .onFail(eligibilityNode)
+      .onFail(eligibilityNode).applyContextUpdaterOnFailure(completionContextUpdater)
       .build()
 
     return builder
-      .ruleSet("CrsUpcoming", upcoming, upcomingContextUpdater)
+      .ruleSet("CrsUpcoming", upcoming)
       .onPass(completionNode)
-      .onFail(eligibilityNode)
+      .onFail(eligibilityNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
   }
 }
