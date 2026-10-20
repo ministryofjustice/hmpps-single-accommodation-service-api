@@ -58,6 +58,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -93,6 +94,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas2Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas3Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCommunityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.SexualOffenceRegistrationsRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.SingleLetterTierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Under18Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2ApplicationSubmittedRule
@@ -205,6 +207,7 @@ class EligibilityServiceTest {
     CurrentAccommodationTypeIsCommunityRule(),
     NoNextAccommodationRule(),
     SingleLetterTierRule(),
+    SexualOffenceRegistrationsRule(),
   )
   val cas2UpcomingContextUpdater = Cas2UpcomingContextUpdater()
   var cas2UpcomingRuleSet = Cas2UpcomingRuleSet(ReleaseWithin15DaysRule(clock))
@@ -393,6 +396,7 @@ class EligibilityServiceTest {
       val dutyToRefer = buildDutyToReferDto(crn, UUID.randomUUID(), DtrStatus.SUBMITTED, submission = null)
       val crs = buildCommissionedRehabilitativeServices(status = CrsReferralStatus.LIVE)
       val prisoner = buildPrisoner()
+      val registrations = buildSexualOffenceRegistrations(crn)
       val orchestrationDto = OrchestrationResultDto(
         data = EligibilityOrchestrationDto(
           crn = crn,
@@ -405,6 +409,7 @@ class EligibilityServiceTest {
           prisoner = prisoner,
           cas1CurrentPremises = cas1CurrentPremises,
           cas3CurrentPremises = cas3CurrentPremises,
+          sexualOffenceRegistrations = registrations,
         ),
       )
       val caseEntity = buildCaseEntity(id = caseId)
@@ -430,6 +435,7 @@ class EligibilityServiceTest {
         cas3Application = cas3Application,
         commissionedRehabilitativeServices = crs,
         dutyToRefer = dutyToRefer,
+        sexualOffenceRegistrations = registrations,
       )
 
       assertThat(result).isEqualTo(expected)
@@ -459,6 +465,7 @@ class EligibilityServiceTest {
         cas1CurrentPremises = null,
         cas3CurrentPremises = null,
         prisoner = null,
+        sexualOffenceRegistrations = null,
       )
 
       every { accommodationTypeRepository.findAll() } returns emptyList()
@@ -468,6 +475,7 @@ class EligibilityServiceTest {
       val result = eligibilityService.buildDomainData(crn, orchestrationDto, caseEntity = null)
 
       assertThat(result.commissionedRehabilitativeServices).isEqualTo(latestLiveReferral)
+      assertThat(result.sexualOffenceRegistrations).isNull()
     }
   }
 
@@ -490,6 +498,7 @@ class EligibilityServiceTest {
           prisoner = null,
           cas1CurrentPremises = null,
           cas3CurrentPremises = null,
+          sexualOffenceRegistrations = null,
         ),
         upstreamFailures = listOf(
           upstreamFailure,
@@ -645,6 +654,7 @@ class EligibilityServiceTest {
                   expectedCas2Link = row["expectedCas2Link"],
                   expectedCas2Url = row["expectedCas2Url"],
                   u18 = row["u18"]?.toBoolean(),
+                  hasSexualOffenceRegistrations = row["hasSexualOffenceRegistrations"]!!.lowercase().toBooleanStrict(),
                   expectedFailureReasons = row["expectedFailureReasons"]
                     ?.takeIf { it.isNotBlank() }
                     ?.split(",")
@@ -755,6 +765,11 @@ class EligibilityServiceTest {
             aged18
           },
           tierScore = s.tierScore,
+          sexualOffenceRegistrations = if (s.hasSexualOffenceRegistrations) {
+            buildSexualOffenceRegistrations(crn = s.testCaseId)
+          } else {
+            null
+          },
         )
 
         val result = eligibilityService.evaluate(cas2Tree, data)
@@ -1515,6 +1530,7 @@ data class Cas2Scenario(
   val expectedCas2Link: String?,
   val expectedCas2Url: String?,
   val u18: Boolean?,
+  val hasSexualOffenceRegistrations: Boolean,
   val expectedFailureReasons: List<FailureReason>,
 )
 

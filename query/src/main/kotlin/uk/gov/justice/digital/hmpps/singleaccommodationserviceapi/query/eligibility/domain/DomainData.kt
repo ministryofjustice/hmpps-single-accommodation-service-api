@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
@@ -26,6 +27,7 @@ data class DomainData(
   val cas3Application: Cas3Application?,
   val dutyToRefer: DutyToReferDto?,
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
+  val sexualOffenceRegistrations: SexualOffenceRegistrations?,
 ) {
   constructor(
     crn: String,
@@ -39,6 +41,7 @@ data class DomainData(
     dutyToRefer: DutyToReferDto?,
     commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
     accommodationTypes: List<AccommodationTypeEntity>,
+    sexualOffenceRegistrations: SexualOffenceRegistrations?,
   ) : this(
     crn = crn,
     tierScore = tier?.tierScore,
@@ -52,6 +55,7 @@ data class DomainData(
     cas3Application = cas3Application,
     dutyToRefer = dutyToRefer,
     commissionedRehabilitativeServices = commissionedRehabilitativeServices,
+    sexualOffenceRegistrations = sexualOffenceRegistrations,
   )
 
   constructor(
@@ -72,5 +76,6 @@ data class DomainData(
     cas3Application = null,
     dutyToRefer = dutyToRefer,
     commissionedRehabilitativeServices = null,
+    sexualOffenceRegistrations = null,
   )
 }

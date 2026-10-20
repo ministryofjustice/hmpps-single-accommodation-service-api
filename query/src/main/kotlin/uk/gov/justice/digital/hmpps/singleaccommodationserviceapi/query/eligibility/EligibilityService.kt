@@ -151,6 +151,7 @@ class EligibilityService(
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = suitableCrsReferral,
       accommodationTypes = accommodationTypes,
+      sexualOffenceRegistrations = eligibilityOrchestrationDto.sexualOffenceRegistrations,
     )
   }
 }
