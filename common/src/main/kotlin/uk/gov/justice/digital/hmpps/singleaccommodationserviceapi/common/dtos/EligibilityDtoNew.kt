@@ -256,6 +256,10 @@ enum class ServiceStatusNew(
     service = ServiceType.CAS2,
     link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS2_VIEW_APPLICATION),
   ),
+  CAS2_ARRIVED(
+    service = ServiceType.CAS2,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS2_VIEW_APPLICATION),
+  ),
   CAS2_WITHDRAWN(
     service = ServiceType.CAS2,
     link = Link(text = EligibilityKeys.START_NEW_APPLICATION, type = LinkType.CAS2_START_APPLICATION),

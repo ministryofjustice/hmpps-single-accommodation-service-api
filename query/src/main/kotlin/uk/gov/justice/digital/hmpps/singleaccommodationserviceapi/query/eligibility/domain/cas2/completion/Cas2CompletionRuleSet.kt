@@ -7,7 +7,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas2CompletionRuleSet(
   applicationAwaitingArrival: Cas2ApplicationAwaitingArrivalRule,
+  arrivedRule: Cas2ApplicationArrivedRule,
 ) : RuleSet {
-  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(applicationAwaitingArrival))
+  private val rules: List<PrioritisedRule> = listOf(
+    PrioritisedRule(applicationAwaitingArrival),
+    PrioritisedRule(arrivedRule),
+  )
   override fun getRules(): List<PrioritisedRule> = rules
 }
