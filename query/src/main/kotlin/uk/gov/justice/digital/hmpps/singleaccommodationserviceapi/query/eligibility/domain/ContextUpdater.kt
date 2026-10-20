@@ -5,6 +5,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import java.time.LocalDate
 
+/**
+ * Context Updaters are used to update the [EvaluationContext.currentResult] value when rule sets fail
+ *
+ * There are two pre-defined implementations available:
+ * * - [ContextUpdater.constant] - Always set the value of [EvaluationContext.currentResult] to the same given value
+ * * - [ContextUpdater.identity] - Leaves the [EvaluationContext.currentResult] as-is
+ */
 abstract class ContextUpdater {
   open val propagatesFailureReasons: Boolean = false
   open val description: String get() = this::class.simpleName ?: "Update result"
@@ -15,7 +22,9 @@ abstract class ContextUpdater {
     val contextWithFailureReasons = context.copy(
       currentResult = context.currentResult.copy(failureReasons = failureReasons),
     )
+
     val updatedServiceResult = toServiceResult(contextWithFailureReasons)
+
     val reasonsToApply = if (propagatesFailureReasons) failureReasons else emptyList()
 
     return context.copy(
@@ -29,7 +38,7 @@ abstract class ContextUpdater {
   protected fun set(text: String): String = "Set $text"
 
   companion object {
-    /** Returns a ContextUpdater that replaces the current ServiceResult with [result], ignoring the context. */
+    /** Always set the value of [EvaluationContext.currentResult] to the same given value */
     fun constant(result: ServiceResultNew): ContextUpdater = object : ContextUpdater() {
       override val description = set(result.serviceStatus.name)
 
@@ -44,7 +53,7 @@ abstract class ContextUpdater {
       override fun toServiceResult(context: EvaluationContext): ServiceResultNew = result
     }
 
-    /** Returns a ContextUpdater that leaves the current ServiceResult unchanged and propagates failure reasons. */
+    /** Leaves the [EvaluationContext.currentResult] unchanged and propagates failure reasons. */
     fun identity(): ContextUpdater = object : ContextUpdater() {
       override val propagatesFailureReasons = true
       override val description = "identity"

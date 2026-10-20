@@ -5,7 +5,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.OutcomeNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
@@ -17,7 +16,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 class RuleSetNodeBuilderTest {
   private val ruleSetName = "TestRuleSet"
   private val ruleSet: RuleSet = mockk()
-  private val contextUpdater: ContextUpdater = mockk()
   private val engine: RulesEngine = mockk()
 
   @Test
@@ -26,7 +24,7 @@ class RuleSetNodeBuilderTest {
       buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
     }
 
-    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
+    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, engine)
     val result = builder.onPass(onPassNode)
 
     assertThat(result).isSameAs(builder)
@@ -38,7 +36,7 @@ class RuleSetNodeBuilderTest {
       buildServiceResultNew()
     }
 
-    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
+    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, engine)
     val result = builder.onFail(onFailNode)
 
     assertThat(result).isSameAs(builder)
@@ -53,7 +51,7 @@ class RuleSetNodeBuilderTest {
       buildServiceResultNew()
     }
 
-    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
+    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, engine)
     val chainedBuilder = builder.onPass(onPassNode).onFail(onFailNode)
 
     assertThat(chainedBuilder).isSameAs(builder)
@@ -65,8 +63,8 @@ class RuleSetNodeBuilderTest {
       buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
     }
 
-    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
-    val chainedBuilder = builder.continueWith(node)
+    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, engine)
+    val chainedBuilder = builder.propagateContextOnFailure().continueWith(node)
 
     assertThat(chainedBuilder).isSameAs(builder)
     assertThat(builder.build()).isInstanceOf(RuleSetNode::class.java)
@@ -81,9 +79,9 @@ class RuleSetNodeBuilderTest {
       buildServiceResultNew()
     }
 
-    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
+    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, engine)
       .onPass(onPassNode)
-      .onFail(onFailNode)
+      .onFail(onFailNode).propagateContextOnFailure()
 
     val result = builder.build()
 
@@ -97,11 +95,12 @@ class RuleSetNodeBuilderTest {
       buildServiceResultNew()
     }
 
-    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
+    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, engine)
       .onFail(onFailNode)
 
     assertThatThrownBy { builder.build() }
       .isInstanceOf(IllegalArgumentException::class.java)
+      .hasMessage("onPass node not set for RuleSetNode TestRuleSet")
   }
 
   @Test
@@ -110,18 +109,34 @@ class RuleSetNodeBuilderTest {
       buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
     }
 
-    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
+    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, engine)
       .onPass(onPassNode)
 
     assertThatThrownBy { builder.build() }
       .isInstanceOf(IllegalArgumentException::class.java)
+      .hasMessage("onFail node not set for RuleSetNode TestRuleSet")
   }
 
   @Test
   fun `build throws exception when neither onPass nor onFail are set`() {
-    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
+    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, engine)
 
     assertThatThrownBy { builder.build() }
       .isInstanceOf(IllegalArgumentException::class.java)
+      .hasMessage("onPass node not set for RuleSetNode TestRuleSet")
+  }
+
+  @Test
+  fun `build throws exception when no failure outcome (context updater) set`() {
+    val nextNode: DecisionNode = OutcomeNode { _ ->
+      buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
+    }
+
+    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, engine)
+      .onPass(nextNode).onFail(nextNode)
+
+    assertThatThrownBy { builder.build() }
+      .isInstanceOf(IllegalArgumentException::class.java)
+      .hasMessage("contextUpdater required for RuleSetNode TestRuleSet (set a failure action)")
   }
 }

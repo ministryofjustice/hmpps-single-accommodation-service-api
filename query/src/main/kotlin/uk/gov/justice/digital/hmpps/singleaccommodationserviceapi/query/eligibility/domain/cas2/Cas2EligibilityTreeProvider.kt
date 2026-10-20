@@ -49,25 +49,25 @@ class Cas2EligibilityTreeProvider(
     val eligibilityNode = builder
       .ruleSet("Cas2Eligibility", eligibility)
       .onPass(confirmed)
-      .onFail(notEligible)
+      .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     val completionNode = builder
-      .ruleSet("Cas2Completion", completion, completionContextUpdater)
+      .ruleSet("Cas2Completion", completion)
       .onPass(placementBooked)
-      .onFail(confirmed)
+      .onFail(confirmed).applyContextUpdaterOnFailure(completionContextUpdater)
       .build()
 
     val suitabilityNode = builder
-      .ruleSet("Cas2Suitability", suitability, suitabilityContextUpdater)
+      .ruleSet("Cas2Suitability", suitability)
       .onPass(completionNode)
-      .onFail(eligibilityNode)
+      .onFail(eligibilityNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
       .build()
 
     return builder
-      .ruleSet("Cas2Upcoming", upcoming, upcomingContextUpdater)
+      .ruleSet("Cas2Upcoming", upcoming)
       .onPass(suitabilityNode)
-      .onFail(eligibilityNode)
+      .onFail(eligibilityNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
   }
 
