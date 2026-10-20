@@ -17,33 +17,14 @@ class DecisionTreeBuilder(
   @param:Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
 ) {
-  /**
-   * Starts building a RuleSetNode with the given ruleset and context updater. Returns a RuleSetNodeBuilder
-   */
   fun ruleSet(
     name: String,
     ruleSet: RuleSet,
-    contextUpdater: ContextUpdater,
-  ) = RuleSetNodeBuilder(name, ruleSet, contextUpdater, engine)
-
-  /**
-   * On FAIL, replace the current ServiceResult with [onFailResult].
-   * Use when the FAIL outcome is a static refinement that does not depend on the existing context.
-   */
-  fun ruleSet(
-    name: String,
-    ruleSet: RuleSet,
-    onFailResult: ServiceResultNew,
-  ) = ruleSet(name, ruleSet, ContextUpdater.constant(onFailResult))
-
-  /**
-   * On FAIL, leave the current ServiceResult unchanged.
-   * Use when the FAIL branch ends in a terminal outcome that ignores the context anyway.
-   */
-  fun ruleSet(
-    name: String,
-    ruleSet: RuleSet,
-  ) = ruleSet(name, ruleSet, ContextUpdater.identity())
+  ) = RuleSetNodeBuilder(
+    name = name,
+    ruleSet = ruleSet,
+    engine = engine,
+  )
 
   /** Creates a terminal outcome node that returns a fixed ServiceResult. */
   fun outcome(name: String, result: ServiceResultNew) = OutcomeNode(name) { _ -> result }

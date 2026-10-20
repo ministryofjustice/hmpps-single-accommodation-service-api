@@ -35,19 +35,13 @@ class PaEligibilityTreeProvider(
     val eligibilityNode = builder
       .ruleSet("PaEligibility", eligibility)
       .onPass(confirmed)
-      .onFail(notEligible)
+      .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     return builder
-      .ruleSet(
-        "PaCompletion",
-        completion,
-        onFailResult = ServiceResultNew(
-          serviceStatus = ServiceStatusNew.PA_NOT_STARTED,
-        ),
-      )
+      .ruleSet("PaCompletion", completion)
       .onPass(confirmed)
-      .onFail(eligibilityNode)
+      .onFail(eligibilityNode).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.PA_NOT_STARTED))
       .build()
   }
 }
