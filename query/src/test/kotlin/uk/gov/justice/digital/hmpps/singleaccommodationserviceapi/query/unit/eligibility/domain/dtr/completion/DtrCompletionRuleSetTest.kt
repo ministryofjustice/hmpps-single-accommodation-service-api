@@ -22,12 +22,12 @@ class DtrCompletionRuleSetTest {
   lateinit var dtrCompletionRuleSet: DtrCompletionRuleSet
 
   private val expectedDtrCompletionRuleNames = listOf(
-    DtrApplicationCompleteRule::class.simpleName,
+    DtrApplicationCompleteRule::class.java.simpleName,
   )
 
   @Test
   fun `all DtrCompletionRule components are included in DtrCompletionRuleSet`() {
-    val ruleSetRules = dtrCompletionRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = dtrCompletionRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(1)

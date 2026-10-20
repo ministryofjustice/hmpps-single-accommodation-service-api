@@ -30,15 +30,15 @@ class Cas3SuitabilityRuleSetTest {
   lateinit var cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet
 
   private val expectedCas3SuitabilityRuleNames = listOf(
-    Cas3ApplicationPresentSuitabilityRule::class.simpleName,
-    Cas3BookingSuitabilityRule::class.simpleName,
-    Cas3ApplicationSuitabilityRule::class.simpleName,
-    Cas3AssessmentSuitabilityRule::class.simpleName,
+    Cas3ApplicationPresentSuitabilityRule::class.java.simpleName,
+    Cas3BookingSuitabilityRule::class.java.simpleName,
+    Cas3ApplicationSuitabilityRule::class.java.simpleName,
+    Cas3AssessmentSuitabilityRule::class.java.simpleName,
   )
 
   @Test
   fun `all Cas3SuitabilityRule components are included in Cas3SuitabilityRuleSet`() {
-    val ruleSetRules = cas3SuitabilityRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = cas3SuitabilityRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(4)

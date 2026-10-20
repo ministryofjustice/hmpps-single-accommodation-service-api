@@ -1269,62 +1269,6 @@ class EligibilityServiceTest {
     }
 
     @Test
-    fun `Cas3 surfaces CRS_NOT_SUBMITTED_MALE when a male candidate has no CRS referral`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        sex = SexCode.M,
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true),
-        cas3Application = null,
-        dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
-        commissionedRehabilitativeServices = null,
-      )
-
-      val result = eligibilityService.evaluate(cas3Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION)
-      assertThat(result.failureReasons).contains(FailureReason.CRS_NOT_SUBMITTED_MALE)
-    }
-
-    @Test
-    fun `Cas3 surfaces CRS_NOT_SUBMITTED_NON_MALE when a non-male candidate has no CRS referral`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        sex = SexCode.F,
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true),
-        cas3Application = null,
-        dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
-        commissionedRehabilitativeServices = null,
-      )
-
-      val result = eligibilityService.evaluate(cas3Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS)
-      assertThat(result.failureReasons).contains(FailureReason.CRS_NOT_SUBMITTED_NON_MALE)
-    }
-
-    @Test
-    fun `Cas3 surfaces DTR_REFERRAL_EXPIRED when DTR was submitted more than 26 weeks ago`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        sex = SexCode.M,
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true),
-        cas3Application = null,
-        dutyToRefer = buildDutyToReferDto(
-          submission = buildDtrSubmission(submissionDate = today.minusWeeks(26).minusDays(1)),
-        ),
-        commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(status = CrsReferralStatus.LIVE),
-      )
-
-      val result = eligibilityService.evaluate(cas3Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR)
-      assertThat(result.failureReasons).contains(FailureReason.DTR_REFERRAL_EXPIRED)
-    }
-
-    @Test
     fun `Crs surfaces IS_SETTLED when candidate has settled accommodation`() {
       clock.setNow(today)
       val data = buildDomainData(

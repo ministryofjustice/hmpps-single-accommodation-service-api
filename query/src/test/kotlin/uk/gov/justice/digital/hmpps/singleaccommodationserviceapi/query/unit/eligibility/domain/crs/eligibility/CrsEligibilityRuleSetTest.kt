@@ -26,13 +26,13 @@ class CrsEligibilityRuleSetTest {
   lateinit var crsEligibilityRuleSet: CrsEligibilityRuleSet
 
   private val expectedCrsEligibilityRuleNames = listOf(
-    NoNextAccommodationRule::class.simpleName,
-    IsSettledRule::class.simpleName,
+    NoNextAccommodationRule::class.java.simpleName,
+    IsSettledRule::class.java.simpleName,
   )
 
   @Test
   fun `all CrsEligibilityRule components are included in CrsEligibilityRuleSet`() {
-    val ruleSetRules = crsEligibilityRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = crsEligibilityRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(2)
