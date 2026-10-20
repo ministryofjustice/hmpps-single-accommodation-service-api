@@ -5,7 +5,7 @@ import java.util.UUID
 
 fun buildLocalAuthorityAreaEntity(
   id: UUID = UUID.randomUUID(),
-  code: String = "E09000001",
+  code: String = UUID.randomUUID().toString(),
   name: String = "City of London",
   active: Boolean = true,
 ) = LocalAuthorityAreaEntity(

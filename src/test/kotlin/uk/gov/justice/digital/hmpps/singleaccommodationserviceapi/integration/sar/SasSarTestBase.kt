@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelperConfig
 import java.util.UUID
 
@@ -15,8 +16,8 @@ import java.util.UUID
 class SasSarTestBase : SubjectAccessRequestServiceTestBase() {
 
   @BeforeEach
-  fun clearData() {
-    databaseUtils.truncate()
+  fun setup() {
+    databaseUtils.truncate(*DatabaseUtils.SasTables.entries.toTypedArray())
   }
 
   protected fun createCase(crn: String, nomsNumber: String, id: UUID = UUID.randomUUID()): CaseEntity {
