@@ -24,13 +24,13 @@ class Cas3EligibilityRuleSetTest {
   lateinit var cas3EligibilityRuleSet: Cas3EligibilityRuleSet
 
   private val expectedCas3EligibilityRuleNames = listOf(
-    CurrentAccommodationTypeRule::class.simpleName,
-    NoNextAccommodationRule::class.simpleName,
+    CurrentAccommodationTypeRule::class.java.simpleName,
+    NoNextAccommodationRule::class.java.simpleName,
   )
 
   @Test
   fun `all Cas3EligibilityRule components are included in Cas3EligibilityRuleSet`() {
-    val ruleSetRules = cas3EligibilityRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = cas3EligibilityRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(2)

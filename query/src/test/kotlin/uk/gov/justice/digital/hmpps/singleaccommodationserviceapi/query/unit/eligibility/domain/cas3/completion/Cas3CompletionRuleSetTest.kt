@@ -24,12 +24,12 @@ class Cas3CompletionRuleSetTest {
   lateinit var cas3CompletionRuleSet: Cas3CompletionRuleSet
 
   private val expectedCas3CompletionRuleNames = listOf(
-    Cas3ApplicationArrivedRule::class.simpleName,
+    Cas3ApplicationArrivedRule::class.java.simpleName,
   )
 
   @Test
   fun `all Cas3CompletionRule components are included in Cas3CompletionRuleSet`() {
-    val ruleSetRules = cas3CompletionRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = cas3CompletionRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(1)

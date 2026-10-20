@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 
@@ -10,6 +10,6 @@ class CrsEligibilityRuleSet(
   noNextAccommodation: NoNextAccommodationRule,
   isSettledRule: IsSettledRule,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(noNextAccommodation, isSettledRule)
-  override fun getRules(): List<Rule> = rules
+  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(noNextAccommodation, 1), PrioritisedRule(isSettledRule, 0))
+  override fun getRules(): List<PrioritisedRule> = rules
 }

@@ -26,13 +26,13 @@ class Cas1EligibilityRuleSetTest {
   lateinit var cas1EligibilityRuleSet: Cas1EligibilityRuleSet
 
   private val expectedCas1EligibilityRuleNames = listOf(
-    MaleRiskEligibilityRule::class.simpleName,
-    NonMaleRiskEligibilityRule::class.simpleName,
+    MaleRiskEligibilityRule::class.java.simpleName,
+    NonMaleRiskEligibilityRule::class.java.simpleName,
   )
 
   @Test
   fun `all Cas1EligibilityRule components are included in Cas1EligibilityRuleSet`() {
-    val ruleSetRules = cas1EligibilityRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = cas1EligibilityRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(2)

@@ -24,12 +24,12 @@ class Cas2UpcomingRuleSetTest {
   lateinit var cas2UpcomingRuleSet: Cas2UpcomingRuleSet
 
   private val expectedCas2UpcomingRuleNames = listOf(
-    ReleaseWithin15DaysRule::class.simpleName,
+    ReleaseWithin15DaysRule::class.java.simpleName,
   )
 
   @Test
   fun `all Cas2UpcomingRule components are included in Cas2UpcomingRuleSet`() {
-    val ruleSetRules = cas2UpcomingRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = cas2UpcomingRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(1)

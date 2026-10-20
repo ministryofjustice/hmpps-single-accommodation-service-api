@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 
@@ -13,13 +13,13 @@ class Cas2EligibilityRuleSet(
   currentAccommodationTypeIsCommunity: CurrentAccommodationTypeIsCommunityRule,
   noNextAccommodation: NoNextAccommodationRule,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(
-    under18,
-    currentAccommodationTypeIsCas3,
-    currentAccommodationTypeIsCas2,
-    currentAccommodationTypeIsCommunity,
-    noNextAccommodation,
+  private val rules: List<PrioritisedRule> = listOf(
+    PrioritisedRule(under18, 0),
+    PrioritisedRule(currentAccommodationTypeIsCas3, 2),
+    PrioritisedRule(currentAccommodationTypeIsCas2, 2),
+    PrioritisedRule(currentAccommodationTypeIsCommunity, 2),
+    PrioritisedRule(noNextAccommodation, 3),
   )
 
-  override fun getRules(): List<Rule> = rules
+  override fun getRules(): List<PrioritisedRule> = rules
 }

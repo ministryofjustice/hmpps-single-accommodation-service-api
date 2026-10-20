@@ -231,11 +231,11 @@ class DecisionTreeBuilderTest {
   @Test
   fun `notRequired carries failureReasons from current context`() {
     val builder = DecisionTreeBuilder(engine)
-    val failureReasons = listOf(FailureReason.IS_SETTLED, FailureReason.MALE_NOT_HIGH_RISK_TIER)
+    val failureReasons = listOf(FailureReason.HAS_NEXT_ACCOMMODATION)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,
+        serviceStatus = ServiceStatusNew.DTR_NOT_REQUIRED,
         failureReasons = failureReasons,
       ),
     )

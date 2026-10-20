@@ -24,12 +24,12 @@ class Cas1CompletionRuleSetTest {
   lateinit var cas1CompletionRuleSet: Cas1CompletionRuleSet
 
   private val expectedCas1CompletionRuleNames = listOf(
-    Cas1ApplicationCompletionRule::class.simpleName,
+    Cas1ApplicationCompletionRule::class.java.simpleName,
   )
 
   @Test
   fun `all Cas1CompletionRule components are included in Cas1CompletionRuleSet`() {
-    val ruleSetRules = cas1CompletionRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = cas1CompletionRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(1)
