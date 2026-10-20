@@ -85,6 +85,7 @@ class ProposedAccommodationController(
     val currentAccommodation = accommodationQueryService.getCurrentAccommodation(crn)
     handleUpstreamFailure(currentAccommodation.upstreamFailures)
     val createdProposedAccommodation = proposedAccommodationApplicationService.createProposedAccommodation(crn, currentAccommodation.data, request)
+    waitForUpstreamCprUpdateToPropagate()
     return ResponseEntity(createdProposedAccommodation, HttpStatus.CREATED)
   }
 
@@ -112,8 +113,11 @@ class ProposedAccommodationController(
     val currentAccommodation = accommodationQueryService.getCurrentAccommodation(crn)
     handleUpstreamFailure(currentAccommodation.upstreamFailures)
     val updatedProposedAccommodation = proposedAccommodationApplicationService.updateProposedAccommodation(id, crn, request, currentAccommodation.data)
+    waitForUpstreamCprUpdateToPropagate()
     return ResponseEntity.ok(updatedProposedAccommodation)
   }
+
+  private fun waitForUpstreamCprUpdateToPropagate() = Thread.sleep(1000)
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PostMapping("/cases/{crn}/proposed-accommodations/{id}/arrival")
