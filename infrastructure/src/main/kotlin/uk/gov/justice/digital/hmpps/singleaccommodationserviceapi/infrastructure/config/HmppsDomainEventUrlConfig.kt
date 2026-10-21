@@ -19,6 +19,7 @@ class HmppsDomainEventUrlConfig(
       SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED -> null
       SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_PERSON_ARRIVED -> UrlTemplate(proposedAccommodationUpdatedEventDetailsUrl)
       SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED -> UrlTemplate(dutyToReferUpdatedEventDetailsUrl)
+      SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_CREATED -> UrlTemplate(dutyToReferUpdatedEventDetailsUrl)
     }
     return template?.resolve("id", id.toString())
   }
