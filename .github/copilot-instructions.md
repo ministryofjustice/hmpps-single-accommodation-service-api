@@ -66,6 +66,7 @@ Use this file as the default operating guide. Only search the repo when these in
 
 ## Testing
 - Unit tests are plain JVM tests: use JUnit 5, AssertJ, and MockK with factories/builders; avoid loading Spring unless a test explicitly needs it.
+- Do not create unit tests for controllers; prefer focused integration tests for controller behavior, auth/role checks, and response payloads. Unit tests are only appropriate for lower-level service/query logic, not Spring MVC controllers.
 - Integration tests use the real Spring context and `IntegrationTestBase`, plus Postgres/Redis/LocalStack from `docker compose`.
 - Keep tests deterministic and package-aligned with the code under test; prefer focused tests while iterating and the full suite before handoff for broad changes.
 - For HTTP endpoints, cover the expected auth, happy path, validation/error path, and side effects/persistence changes.

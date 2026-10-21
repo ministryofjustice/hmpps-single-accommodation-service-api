@@ -75,3 +75,7 @@ sentry:
 case-list:
   onboarded-prison-codes:
     - SAS
+
+frontend:
+  duty-to-refer:
+    view: https://single-accommodation-service-dev.hmpps.service.justice.gov.uk/cases/#crn/dtr/#dtrId/details
