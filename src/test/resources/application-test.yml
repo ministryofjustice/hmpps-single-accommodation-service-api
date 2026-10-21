@@ -150,3 +150,7 @@ logging:
     root: WARN
     uk.gov.justice.digital.hmpps.singleaccommodationserviceapi: INFO
     uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry: DEBUG
+
+frontend:
+  duty-to-refer:
+    view: https://single-accommodation-service-test.hmpps.service.justice.gov.uk/cases/#crn/dtr/#dtrId/details

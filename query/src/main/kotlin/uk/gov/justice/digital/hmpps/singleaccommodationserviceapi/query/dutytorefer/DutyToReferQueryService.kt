@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrEventDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
@@ -34,6 +35,7 @@ class DutyToReferQueryService(
   private val localAuthorityAreaRepository: LocalAuthorityAreaRepository,
   private val caseRepository: CaseRepository,
   private val auditService: AuditService,
+  private val dutyToReferTransformer: DutyToReferTransformer,
   private val clock: Clock,
 ) {
   private fun isActiveDtr(dtr: DutyToReferEntity): Boolean = dtr.status != WITHDRAWN && !isDtrExpired(dtr.submissionDate, clock)
@@ -59,7 +61,7 @@ class DutyToReferQueryService(
     return dtrEntities.map { dtrEntity ->
       val createdByUser = users[dtrEntity.createdByUserId]
       val localAuthorityArea = localAuthorities[dtrEntity.localAuthorityAreaId]
-      DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!, localAuthorityArea!!.name)
+      dutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!, localAuthorityArea!!.name)
     }
   }
 
@@ -67,7 +69,7 @@ class DutyToReferQueryService(
     ?.let { dtrEntity ->
       val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId)
       val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(dtrEntity.localAuthorityAreaId)
-      DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
+      dutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
     }
 
   fun getDutyToRefer(crn: String, id: UUID): DutyToReferDto {
@@ -75,7 +77,7 @@ class DutyToReferQueryService(
     val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(entity.localAuthorityAreaId)
 
-    return DutyToReferTransformer.toDutyToReferDto(
+    return dutyToReferTransformer.toDutyToReferDto(
       entity,
       crn,
       createdByUser!!.displayName(),
@@ -90,11 +92,21 @@ class DutyToReferQueryService(
     val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(dtrEntity.localAuthorityAreaId)
 
-    return DutyToReferTransformer.toDutyToReferDto(
+    return dutyToReferTransformer.toDutyToReferDto(
       dtrEntity,
       crn = caseEntity.latestCrn(),
       createdByUser!!.displayName(),
       localAuthorityArea!!.name,
+    )
+  }
+
+  fun getEventDetailsDto(id: UUID): DtrEventDetailsDto {
+    val dtrEntity = dutyToReferRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
+    val caseEntity = caseRepository.findWithIdentifiersById(dtrEntity.caseId).orThrowNotFound("id" to id)
+
+    return dutyToReferTransformer.toDutyToReferEventDetailsDto(
+      dtrEntity,
+      crn = caseEntity.latestCrn(),
     )
   }
 

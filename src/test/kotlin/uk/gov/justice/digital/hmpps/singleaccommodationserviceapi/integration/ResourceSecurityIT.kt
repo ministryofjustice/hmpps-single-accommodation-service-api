@@ -129,6 +129,11 @@ private val dutyToReferControllerMap: Map<String, Set<String>> =
     "POST /cases/{crn}/dtr/{id}/notes" to defaultRoles,
   )
 
+private val eventDetailsControllerMap: Map<String, Set<String>> =
+  mapOf(
+    "GET /event-details/duty-to-refers/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__PROBATION_INTEGRATION"),
+  )
+
 private val eligibilityControllerMap: Map<String, Set<String>> =
   mapOf("GET /cases/{crn}/eligibility" to defaultRoles)
 
@@ -203,6 +208,7 @@ private val controllerMap: Map<String, Map<String, Set<String>>> =
   mapOf(
     "UserController" to userControllerMap,
     "DutyToReferController" to dutyToReferControllerMap,
+    "EventDetailsController" to eventDetailsControllerMap,
     "EligibilityController" to eligibilityControllerMap,
     "ProposedAccommodationController" to proposedAccommodationControllerMap,
     "AccommodationController" to accommodationControllerMap,
