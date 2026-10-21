@@ -438,6 +438,7 @@ enum class FailureReason {
   IN_CAS3_ACCOMMODATION,
   IN_COMMUNITY,
   SEXUAL_OFFENCE_REGISTRATIONS_PRESENT,
+  IN_PRISON_NO_RELEASE_DATE,
 }
 
 enum class BlockingReason {
