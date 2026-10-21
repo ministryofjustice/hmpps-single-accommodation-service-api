@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.customcaselist.CustomCaseListQueryService
 
 private val CRN_REGEX = Regex("(?i)^[A-Z][0-9]{6}$")
-private const val CRN_FORMAT_MESSAGE = "Enter a valid format for all CRNs. For example, DO16821"
+private const val CRN_FORMAT_MESSAGE = "Enter a valid format for all CRNs. For example, D016821"
 
 @Validated
 @RestController
