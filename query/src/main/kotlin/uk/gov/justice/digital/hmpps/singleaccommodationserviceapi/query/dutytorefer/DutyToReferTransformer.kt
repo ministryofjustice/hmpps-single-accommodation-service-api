@@ -1,19 +1,24 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrEventDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LocalAuthorityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.UrlTemplate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
 @Service
-class DutyToReferTransformer {
-
+class DutyToReferTransformer(
+  @Value("\${frontend.duty-to-refer.view}")
+  val dutyToReferViewUrl: UrlTemplate,
+) {
   fun toDutyToReferDto(
     entity: DutyToReferEntity,
     crn: String,
@@ -83,4 +88,18 @@ class DutyToReferTransformer {
   )
 
   fun toStatus(status: EntityDtrStatus): DtrStatus = DtrStatus.valueOf(status.name)
+
+  fun toDutyToReferEventDetailsDto(
+    dtrEntity: DutyToReferEntity,
+    crn: String,
+  ): DtrEventDetailsDto = DtrEventDetailsDto(
+    id = dtrEntity.id,
+    crn = crn,
+    viewUrl = dutyToReferViewUrl.resolve(
+      mapOf(
+        "crn" to crn,
+        "dtrId" to dtrEntity.id.toString(),
+      ),
+    ),
+  )
 }

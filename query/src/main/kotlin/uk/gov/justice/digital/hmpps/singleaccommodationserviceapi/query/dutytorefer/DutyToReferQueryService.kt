@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrEventDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
@@ -96,6 +97,16 @@ class DutyToReferQueryService(
       crn = caseEntity.latestCrn(),
       createdByUser!!.displayName(),
       localAuthorityArea!!.name,
+    )
+  }
+
+  fun getEventDetailsDto(id: UUID): DtrEventDetailsDto {
+    val dtrEntity = dutyToReferRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
+    val caseEntity = caseRepository.findWithIdentifiersById(dtrEntity.caseId).orThrowNotFound("id" to id)
+
+    return dutyToReferTransformer.toDutyToReferEventDetailsDto(
+      dtrEntity,
+      crn = caseEntity.latestCrn(),
     )
   }
 
