@@ -1,12 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar
 
-import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.transaction.support.TransactionTemplate
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildLocalAuthorityAreaEntity
@@ -14,34 +8,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
-import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelper
 import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
 class SasSarComplianceTest : SasSarTestBase() {
-
-  @Autowired
-  lateinit var webTestClient: WebTestClient
-
-  @Autowired
-  lateinit var sarIntegrationTestHelper: SarIntegrationTestHelper
-
-  @Autowired
-  lateinit var sasSarIntegrationTestHelper: SasSarIntegrationTestHelper
-
-  @Autowired
-  lateinit var jdbcTemplate: JdbcTemplate
-
-  @Autowired
-  lateinit var testClock: MutableTestClock
-
-  @Autowired
-  lateinit var entityManager: EntityManager
-
-  @Autowired
-  lateinit var transactionTemplate: TransactionTemplate
 
   private val testCrn = "X320741"
   private val testCaseId = UUID.fromString("936a692e-e1e7-49b1-b44f-1c4497f74fe2")
@@ -114,15 +86,6 @@ class SasSarComplianceTest : SasSarTestBase() {
       fixUpdatedAndCreatedTimestamps(DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION, testPaId, fixedTimestamp)
       fixUpdatedAndCreatedTimestamps(DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION_NOTE, testNoteId, fixedTimestamp)
     }
-  }
-
-  private fun fixUpdatedAndCreatedTimestamps(table: DatabaseUtils.SasTables, id: UUID, timestamp: Timestamp) {
-    jdbcTemplate.update(
-      "update ${table.tableName} set created_at = ?, last_updated_at = ? where id = ?",
-      timestamp,
-      timestamp,
-      id,
-    )
   }
 
   @Test
