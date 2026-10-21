@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
@@ -74,6 +73,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.CurrentAccommodationIsPrisonOrCas1Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.NonMaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationPresentRule
@@ -186,6 +186,7 @@ class EligibilityServiceTest {
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
     MaleRiskEligibilityRule(),
     NonMaleRiskEligibilityRule(),
+    CurrentAccommodationIsPrisonOrCas1Rule(),
   )
   val cas1UpcomingContextUpdater = Cas1UpcomingContextUpdater()
   var cas1UpcomingRuleSet = Cas1UpcomingRuleSet(ReleaseWithinOneYearRule(clock))
@@ -527,30 +528,35 @@ class EligibilityServiceTest {
     fun loadCas1Scenarios(): List<Cas1Scenario> {
       val rows = CsvReader().read("/cas1-eligibility-scenarios.csv")
 
-      return rows.mapIndexed { idx, row ->
+      return rows.flatMapIndexed { idx, row ->
+        val accommodationTypes = row["currentAccommodationType"].expandCurrentAccommodationType()
+
         try {
-          Cas1Scenario(
-            testCaseId = row["testCaseId"]!!,
-            description = row["description"],
-            referenceDate = row["referenceDate"]!!.toLocalDate(),
-            sex = row["sex"]?.let { SexCode.valueOf(it) },
-            tierScore = row["tierScore"],
-            currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
-            cas1ApplicationStatus = row["cas1ApplicationStatus"]?.let { Cas1ApplicationStatus.valueOf(it) },
-            cas1RequestForPlacementStatus = row["cas1RequestForPlacementStatus"]?.let {
-              Cas1RequestForPlacementStatus.valueOf(
-                it,
-              )
-            },
-            cas1PlacementStatus = row["cas1PlacementStatus"]?.let { Cas1PlacementStatus.valueOf(it) },
-            expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatusNew.valueOf(it) },
-            expectedCas1Url = row["expectedCas1Url"],
-            expectedFailureReasons = row["expectedFailureReasons"]
-              ?.takeIf { it.isNotBlank() }
-              ?.split(",")
-              ?.map { FailureReason.valueOf(it.trim()) }
-              ?: emptyList(),
-          )
+          accommodationTypes.map { accommodationType ->
+            Cas1Scenario(
+              testCaseId = row["testCaseId"]!!,
+              description = row["description"],
+              referenceDate = row["referenceDate"]!!.toLocalDate(),
+              sex = row["sex"]?.let { SexCode.valueOf(it) },
+              tierScore = row["tierScore"],
+              currentAccommodationType = accommodationType,
+              currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
+              cas1ApplicationStatus = row["cas1ApplicationStatus"]?.let { Cas1ApplicationStatus.valueOf(it) },
+              cas1RequestForPlacementStatus = row["cas1RequestForPlacementStatus"]?.let {
+                Cas1RequestForPlacementStatus.valueOf(
+                  it,
+                )
+              },
+              cas1PlacementStatus = row["cas1PlacementStatus"]?.let { Cas1PlacementStatus.valueOf(it) },
+              expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatusNew.valueOf(it) },
+              expectedCas1Url = row["expectedCas1Url"],
+              expectedFailureReasons = row["expectedFailureReasons"]
+                ?.takeIf { it.isNotBlank() }
+                ?.split(",")
+                ?.map { FailureReason.valueOf(it.trim()) }
+                ?: emptyList(),
+            )
+          }
         } catch (e: Exception) {
           throw IllegalStateException("CAS1 CSV row $idx failed: $row", e)
         }
@@ -578,14 +584,27 @@ class EligibilityServiceTest {
             ),
           )
         }
-        val currentAccommodation = s.currentAccommodationEndDate?.let {
-          buildAccommodationSummaryDto(endDate = it)
+        val currentAccommodation = s.currentAccommodationType?.let {
+          buildAccommodationSummaryDto(
+            type = buildAccommodationTypeDto(code = it),
+            endDate = s.currentAccommodationEndDate,
+          )
         }
+
+        val currentAccommodationTypeEntity = s.currentAccommodationType?.let {
+          buildAccommodationTypeEntity(
+            code = it,
+            isPrison = it == "HMP",
+            isCas1 = it == "A02",
+          )
+        }
+
         val data = buildDomainData(
           crn = s.testCaseId,
           tierScore = s.tierScore,
           sex = s.sex,
           currentAccommodation = currentAccommodation,
+          currentAccommodationTypeEntity = currentAccommodationTypeEntity,
           cas1Application = cas1Application,
         )
 
@@ -662,11 +681,6 @@ class EligibilityServiceTest {
           throw IllegalStateException("CAS2 CSV row $idx failed: $row", e)
         }
       }
-    }
-
-    private fun String?.expandCurrentAccommodationType() = when (this) {
-      "A10-A11" -> listOf("A10", "A11")
-      else -> listOf(this)
     }
 
     private fun String?.expandCas2ApplicationStatus() = when (this) {
@@ -916,7 +930,6 @@ class EligibilityServiceTest {
               ?.split(",")
               ?.map { FailureReason.valueOf(it.trim()) }
               ?: emptyList(),
-            expectedBlockingReason = row["expectedBlockingReason"]?.let { BlockingReason.valueOf(it) },
           )
         } catch (e: Exception) {
           throw IllegalStateException("Row $idx failed: $row", e)
@@ -1023,7 +1036,6 @@ class EligibilityServiceTest {
 
         assertThat(result.actionStartDate).isNull()
         assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CAS3)
-        assertThat(result.serviceStatus.blockingStatusReason).isEqualTo(s.expectedBlockingReason)
 
         val expectedUrl = when (s.expectedCas3Url) {
           null -> null
@@ -1494,6 +1506,32 @@ class EligibilityServiceTest {
       assertThat(result.failureReasons).contains(FailureReason.SUITABLE_CAS3_APPLICATION)
     }
   }
+
+  private fun String?.expandCurrentAccommodationType() = when (this) {
+    "A10-A11" -> listOf("A10", "A11")
+    "notPrisonOrCas1" -> listOf(
+      "A16",
+      "A10",
+      "A11",
+      "A17",
+      "A07B",
+      "A07A",
+      "A14",
+      "A13",
+      "A08A",
+      "A08C",
+      "A08",
+      "A01A",
+      "A15",
+      "A12",
+      "A01C",
+      "A01D",
+      "A04",
+      "A03",
+    )
+
+    else -> listOf(this)
+  }
 }
 
 data class Cas1Scenario(
@@ -1502,6 +1540,7 @@ data class Cas1Scenario(
   val referenceDate: LocalDate,
   val sex: SexCode?,
   val tierScore: String?,
+  val currentAccommodationType: String?,
   val currentAccommodationEndDate: LocalDate?,
   val cas1ApplicationStatus: Cas1ApplicationStatus?,
   val cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
@@ -1559,7 +1598,6 @@ data class Cas3Scenario(
   val sexCode: SexCode?,
   val expectedCas3Url: String?,
   val expectedFailureReasons: List<FailureReason>,
-  val expectedBlockingReason: BlockingReason?,
 )
 
 data class CrsScenario(
