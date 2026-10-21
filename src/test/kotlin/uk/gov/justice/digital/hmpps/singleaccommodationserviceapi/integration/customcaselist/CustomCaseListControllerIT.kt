@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -185,7 +186,24 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
   fun `returns BadRequest when a crn format is invalid`(crn: String) {
     postCustomCaseList(listOf(crn)).expectStatus().isBadRequest
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("Validation failure: CRN must be in format A123456: $crn")
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: Enter a valid format for all CRNs. For example, DO16821. $crn is not a valid CRN format")
+
+    assertThat(userCustomCaseListRepository.findAll()).isEmpty()
+  }
+  companion object {
+    @JvmStatic
+    fun invalidValues() = listOf(
+      listOf("123456", "AB12345"),
+      listOf("A12345", "A1234567", "A12B456"),
+    )
+  }
+
+  @ParameterizedTest
+  @MethodSource("invalidValues")
+  fun `returns BadRequest when multiple crn formats are invalid`(crnList: List<String>) {
+    postCustomCaseList(crnList).expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: Enter a valid format for all CRNs. For example, DO16821. ${crnList.joinToString()} are not valid CRN formats")
 
     assertThat(userCustomCaseListRepository.findAll()).isEmpty()
   }
@@ -194,14 +212,14 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
   fun `returns BadRequest for an empty crn list`() {
     postCustomCaseList(emptyList()).expectStatus().isBadRequest
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: Between 1 and 500 CRNs must be provided")
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: Enter 500 CRNs or fewer")
   }
 
   @Test
   fun `returns BadRequest when more than 500 crns are provided`() {
     postCustomCaseList(List(501) { "A123456" }).expectStatus().isBadRequest
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: Between 1 and 500 CRNs must be provided")
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: Enter 500 CRNs or fewer")
 
     assertThat(userCustomCaseListRepository.findAll()).isEmpty()
   }
