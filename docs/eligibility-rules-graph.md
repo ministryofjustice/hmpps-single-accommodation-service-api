@@ -87,7 +87,7 @@ flowchart TD
   Cas2Completion{"Cas2Completion (2)"}
   awaitingArrival["awaitingArrival"]
   confirmed["confirmed"]
-  Cas2Eligibility["Cas2Eligibility (7)"]
+  Cas2Eligibility["Cas2Eligibility (8)"]
   notEligible["notEligible"]
   Cas2Completion -->|PASS| awaitingArrival
   Cas2Completion -->|FAIL| confirmed
@@ -150,6 +150,7 @@ flowchart TD
 - [`Under18Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/Under18Rule.kt): FAIL if individual is under 18 years old
 - [`SingleLetterTierRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/SingleLetterTierRule.kt): FAIL if candidate is not Tier A through G
 - [`SexualOffenceRegistrationsRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/SexualOffenceRegistrationsRule.kt): FAIL if individual has sexual offence registrations.
+- [`InPrisonNoReleaseDateRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/InPrisonNoReleaseDateRule.kt): FAIL if the individual is in Prison and has no currentAccommodationEndDate
 - [`CurrentAccommodationTypeIsCas3Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/CurrentAccommodationTypeIsCas3Rule.kt): FAIL if individual is in CAS3
 - [`CurrentAccommodationTypeIsCas2Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/CurrentAccommodationTypeIsCas2Rule.kt): FAIL if individual is in CAS2
 - [`CurrentAccommodationTypeIsCommunityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/CurrentAccommodationTypeIsCommunityRule.kt): FAIL if individual is in the community
@@ -416,6 +417,7 @@ flowchart TD
 | DtrNotWithdrawnRule | FAIL if DTR referral has been withdrawn | DtrSuitability | DTR |
 | DtrPresentRule | FAIL if DTR status is not present | DtrSuitability | DTR |
 | HasNextAccommodationRule | FAIL if candidate has no next accommodation | PaCompletion | PA |
+| InPrisonNoReleaseDateRule | FAIL if the individual is in Prison and has no currentAccommodationEndDate | Cas2Eligibility | CAS2 |
 | IsSettledRule | FAIL if candidate is settled | CrsEligibility | CRS |
 | MaleRiskEligibilityRule | FAIL if candidate is Male and is not Tier A, B or C | Cas1Eligibility | CAS1 |
 | NoNextAccommodationRule | FAIL if candidate has next accommodation | Cas2Eligibility, Cas3Eligibility, CrsEligibility, DtrEligibility | CAS2, CAS3, CRS, DTR |
