@@ -34,6 +34,7 @@ class DutyToReferQueryService(
   private val localAuthorityAreaRepository: LocalAuthorityAreaRepository,
   private val caseRepository: CaseRepository,
   private val auditService: AuditService,
+  private val dutyToReferTransformer: DutyToReferTransformer,
   private val clock: Clock,
 ) {
   private fun isActiveDtr(dtr: DutyToReferEntity): Boolean = dtr.status != WITHDRAWN && !isDtrExpired(dtr.submissionDate, clock)
@@ -59,7 +60,7 @@ class DutyToReferQueryService(
     return dtrEntities.map { dtrEntity ->
       val createdByUser = users[dtrEntity.createdByUserId]
       val localAuthorityArea = localAuthorities[dtrEntity.localAuthorityAreaId]
-      DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!, localAuthorityArea!!.name)
+      dutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!, localAuthorityArea!!.name)
     }
   }
 
@@ -67,7 +68,7 @@ class DutyToReferQueryService(
     ?.let { dtrEntity ->
       val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId)
       val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(dtrEntity.localAuthorityAreaId)
-      DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
+      dutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
     }
 
   fun getDutyToRefer(crn: String, id: UUID): DutyToReferDto {
@@ -75,7 +76,7 @@ class DutyToReferQueryService(
     val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(entity.localAuthorityAreaId)
 
-    return DutyToReferTransformer.toDutyToReferDto(
+    return dutyToReferTransformer.toDutyToReferDto(
       entity,
       crn,
       createdByUser!!.displayName(),
@@ -90,7 +91,7 @@ class DutyToReferQueryService(
     val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(dtrEntity.localAuthorityAreaId)
 
-    return DutyToReferTransformer.toDutyToReferDto(
+    return dutyToReferTransformer.toDutyToReferDto(
       dtrEntity,
       crn = caseEntity.latestCrn(),
       createdByUser!!.displayName(),

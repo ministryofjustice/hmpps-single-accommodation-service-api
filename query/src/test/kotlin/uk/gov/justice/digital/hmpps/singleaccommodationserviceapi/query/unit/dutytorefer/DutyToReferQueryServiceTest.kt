@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.dutytorefer
 
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -30,6 +30,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.Instant
 import java.time.LocalDate
@@ -55,12 +56,24 @@ class DutyToReferQueryServiceTest {
   @MockK
   lateinit var auditService: AuditService
 
-  @InjectMockKs
   lateinit var service: DutyToReferQueryService
 
   private val caseId = UUID.randomUUID()
   private val crn = UUID.randomUUID().toString()
   private val clock = MutableClock()
+
+  @BeforeEach
+  fun setupService() {
+    service = DutyToReferQueryService(
+      dutyToReferRepository,
+      userRepository,
+      localAuthorityAreaRepository,
+      caseRepository,
+      auditService,
+      DutyToReferTransformer(),
+      clock,
+    )
+  }
 
   @Nested
   inner class GetDutyToReferByCrnAndCaseEntity {

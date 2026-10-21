@@ -28,7 +28,7 @@ class DutyToReferTransformerTest {
         status = EntityDtrStatus.SUBMITTED,
       )
 
-      val dto = DutyToReferTransformer.toDutyToReferDto(entity, crn, createdByName, "Test Local Authority")
+      val dto = DutyToReferTransformer().toDutyToReferDto(entity, crn, createdByName, "Test Local Authority")
 
       assertThat(dto.caseId).isEqualTo(caseId)
       assertThat(dto.crn).isEqualTo(crn)
@@ -55,7 +55,7 @@ class DutyToReferTransformerTest {
       )
       val localAuthorityAreaName = "Test Local Authority"
 
-      val result = DutyToReferTransformer.toSubmission(entity, createdByName, localAuthorityAreaName)
+      val result = DutyToReferTransformer().toSubmission(entity, createdByName, localAuthorityAreaName)
 
       assertThat(result.id).isEqualTo(id)
       assertThat(result.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
@@ -70,7 +70,7 @@ class DutyToReferTransformerTest {
     fun `should handle nullable fields correctly`() {
       val entity = buildDutyToReferEntity(referenceNumber = null)
 
-      val result = DutyToReferTransformer.toSubmission(entity, createdByName, null)
+      val result = DutyToReferTransformer().toSubmission(entity, createdByName, null)
 
       assertThat(result.localAuthority.localAuthorityAreaName).isNull()
       assertThat(result.referenceNumber).isNull()
@@ -87,7 +87,7 @@ class DutyToReferTransformerTest {
         outcomeNote = "An outcome note",
       )
 
-      val result = DutyToReferTransformer.toSubmission(entity, createdByName, "Test LA")
+      val result = DutyToReferTransformer().toSubmission(entity, createdByName, "Test LA")
 
       assertThat(result.submissionNote).isEqualTo("A submission note")
       assertThat(result.outcomeNote).isEqualTo("An outcome note")
@@ -103,7 +103,7 @@ class DutyToReferTransformerTest {
       val entity = buildDutyToReferEntity(localAuthorityAreaId = localAuthorityAreaId)
       val localAuthorityAreaName = "Test Local Authority"
 
-      val result = DutyToReferTransformer.toLocalAuthority(entity, localAuthorityAreaName)
+      val result = DutyToReferTransformer().toLocalAuthority(entity, localAuthorityAreaName)
 
       assertThat(result.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
       assertThat(result.localAuthorityAreaName).isEqualTo(localAuthorityAreaName)
@@ -113,7 +113,7 @@ class DutyToReferTransformerTest {
     fun `should handle null name`() {
       val entity = buildDutyToReferEntity()
 
-      val result = DutyToReferTransformer.toLocalAuthority(entity, null)
+      val result = DutyToReferTransformer().toLocalAuthority(entity, null)
 
       assertThat(result.localAuthorityAreaId).isEqualTo(entity.localAuthorityAreaId)
       assertThat(result.localAuthorityAreaName).isNull()
@@ -126,7 +126,7 @@ class DutyToReferTransformerTest {
     @ParameterizedTest
     @EnumSource(EntityDtrStatus::class)
     fun `should map all DtrStatus values correctly`(entityStatus: EntityDtrStatus) {
-      val result = DutyToReferTransformer.toStatus(entityStatus)
+      val result = DutyToReferTransformer().toStatus(entityStatus)
       assertThat(result.name).isEqualTo(entityStatus.name)
     }
   }
