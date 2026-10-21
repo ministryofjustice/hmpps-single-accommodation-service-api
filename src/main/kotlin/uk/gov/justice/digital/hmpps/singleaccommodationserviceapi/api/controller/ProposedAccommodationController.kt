@@ -130,6 +130,7 @@ class ProposedAccommodationController(
     val currentAccommodation = accommodationQueryService.getCurrentAccommodation(crn)
     handleUpstreamFailure(currentAccommodation.upstreamFailures)
     proposedAccommodationApplicationService.arriveProposedAccommodation(id, crn, request, currentAccommodation.data)
+    waitForUpstreamCprUpdateToPropagate()
     return ResponseEntity(HttpStatus.CREATED)
   }
 }

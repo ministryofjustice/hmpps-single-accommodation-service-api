@@ -94,6 +94,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas2Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas3Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCommunityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.InPrisonNoReleaseDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.SexualOffenceRegistrationsRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.SingleLetterTierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Under18Rule
@@ -208,6 +209,7 @@ class EligibilityServiceTest {
     NoNextAccommodationRule(),
     SingleLetterTierRule(),
     SexualOffenceRegistrationsRule(),
+    InPrisonNoReleaseDateRule(),
   )
   val cas2UpcomingContextUpdater = Cas2UpcomingContextUpdater()
   var cas2UpcomingRuleSet = Cas2UpcomingRuleSet(ReleaseWithin15DaysRule(clock))
@@ -1254,6 +1256,32 @@ class EligibilityServiceTest {
   inner class FailureReasonsSmoke {
 
     private val today = LocalDate.parse("01/01/2025", dateFormatter)
+
+    @Test
+    fun `Cas2 surfaces IN_PRISON_NO_RELEASE_DATE when candidate is in prison without a release date`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        dob = today.minusYears(18),
+        tierScore = "A",
+        currentAccommodation = buildAccommodationSummaryDto(
+          endDate = null,
+          type = buildAccommodationTypeDto(code = "HMP"),
+        ),
+        currentAccommodationTypeEntity = buildAccommodationTypeEntity(
+          code = "HMP",
+          isPrison = true,
+          isCas1 = false,
+          isCas2 = false,
+          isCas3 = false,
+        ),
+        cas2Application = null,
+      )
+
+      val result = eligibilityService.evaluate(cas2Tree, data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
+      assertThat(result.failureReasons).containsExactly(FailureReason.IN_PRISON_NO_RELEASE_DATE)
+    }
 
     @Test
     fun `Cas1 surfaces MALE_NOT_HIGH_RISK_TIER for male candidate on a low-risk tier`() {
