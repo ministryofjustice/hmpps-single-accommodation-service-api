@@ -30,7 +30,7 @@ generic-service:
     SERVICE_TIER_BASE-URL: https://hmpps-tier-dev.hmpps.service.justice.gov.uk
     SERVICE_NOMIS-USER-ROLES_BASE-URL: https://nomis-user-roles-api-dev.prison.service.justice.gov.uk
     EVENT_DETAILS-URL_PROPOSED-ACCOMMODATION-UPDATED: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk/accommodations/#id
-    EVENT_DETAILS-URL_DUTY-TO-REFER-UPDATED: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk/event-details/duty-to-refers/#id
+    EVENT_DETAILS-URL_DUTY-TO-REFER: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk/event-details/duty-to-refers/#id
 
     FRONTEND_DUTY-TO-REFER_VIEW: https://single-accommodation-service-dev.hmpps.service.justice.gov.uk/cases/#crn/dtr/#dtrId/details
 

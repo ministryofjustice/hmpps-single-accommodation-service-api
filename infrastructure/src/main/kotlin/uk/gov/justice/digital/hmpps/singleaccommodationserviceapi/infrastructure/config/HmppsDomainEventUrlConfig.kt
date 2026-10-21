@@ -9,8 +9,8 @@ import java.util.UUID
 class HmppsDomainEventUrlConfig(
   @Value($$"${event.details-url.proposed-accommodation-updated}")
   val proposedAccommodationUpdatedEventDetailsUrl: String,
-  @Value($$"${event.details-url.duty-to-refer-updated}")
-  val dutyToReferUpdatedEventDetailsUrl: String,
+  @Value($$"${event.details-url.duty-to-refer}")
+  val dutyToReferEventDetailsUrl: String,
 ) {
 
   fun getUrlForDomainEventId(domainEventType: SingleAccommodationServiceDomainEventType, id: UUID): String? {
@@ -18,8 +18,8 @@ class HmppsDomainEventUrlConfig(
       SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED -> UrlTemplate(proposedAccommodationUpdatedEventDetailsUrl)
       SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED -> null
       SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_PERSON_ARRIVED -> UrlTemplate(proposedAccommodationUpdatedEventDetailsUrl)
-      SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED -> UrlTemplate(dutyToReferUpdatedEventDetailsUrl)
-      SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_CREATED -> UrlTemplate(dutyToReferUpdatedEventDetailsUrl)
+      SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED -> UrlTemplate(dutyToReferEventDetailsUrl)
+      SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_CREATED -> UrlTemplate(dutyToReferEventDetailsUrl)
     }
     return template?.resolve("id", id.toString())
   }
