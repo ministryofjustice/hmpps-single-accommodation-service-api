@@ -186,7 +186,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
   fun `returns BadRequest when a crn format is invalid`(crn: String) {
     postCustomCaseList(listOf(crn)).expectStatus().isBadRequest
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("Validation failure: Enter a valid format for all CRNs. For example, DO16821. $crn is not a valid CRN format")
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: Enter a valid format for all CRNs. For example, D016821. $crn is not a valid CRN format")
 
     assertThat(userCustomCaseListRepository.findAll()).isEmpty()
   }
@@ -203,7 +203,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
   fun `returns BadRequest when multiple crn formats are invalid`(crnList: List<String>) {
     postCustomCaseList(crnList).expectStatus().isBadRequest
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("Validation failure: Enter a valid format for all CRNs. For example, DO16821. ${crnList.joinToString()} are not valid CRN formats")
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: Enter a valid format for all CRNs. For example, D016821. ${crnList.joinToString()} are not valid CRN formats")
 
     assertThat(userCustomCaseListRepository.findAll()).isEmpty()
   }
