@@ -15,8 +15,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.DeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.TeamDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.UserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.UserQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.UserType
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
@@ -84,7 +84,8 @@ class UserQueryServiceTest {
     val result = userQueryService.getUserData()
 
     assertThat(result).isEqualTo(
-      DeliusUserDto(
+      UserDto(
+        userType = UserType.DELIUS,
         username = principal.username.value,
         teams = listOf(
           TeamDto(name = "Team 1", code = "TEAM1"),
@@ -93,7 +94,6 @@ class UserQueryServiceTest {
         probationAreaCode = "PA123",
       ),
     )
-    assertThat((result as DeliusUserDto).userType).isEqualTo(UserType.DELIUS)
   }
 
   @Test

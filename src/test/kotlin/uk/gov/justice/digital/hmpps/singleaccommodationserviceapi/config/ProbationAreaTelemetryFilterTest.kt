@@ -22,6 +22,8 @@ class ProbationAreaTelemetryFilterTest {
   private val response = mockk<ServletResponse>(relaxed = true)
   private val chain = mockk<FilterChain>(relaxed = true)
 
+  private val telemetryKey = "requestIdentifier"
+
   @AfterEach
   fun tearDown() {
     unmockkAll()
@@ -35,7 +37,7 @@ class ProbationAreaTelemetryFilterTest {
     mockkStatic(Baggage::class)
     mockkStatic(Span::class)
     every { Baggage.current() } returns baggage
-    every { baggage.getEntryValue(PROBATION_AREA) } returns "London"
+    every { baggage.getEntryValue(telemetryKey) } returns "London"
     every { Span.current() } returns span
 
     filter.doFilter(request, response, chain)
@@ -43,7 +45,7 @@ class ProbationAreaTelemetryFilterTest {
     verifyOrder {
       Baggage.current()
       Span.current()
-      span.setAttribute(PROBATION_AREA, "London")
+      span.setAttribute(telemetryKey, "London")
       chain.doFilter(request, response)
     }
     confirmVerified(span, chain)
@@ -57,7 +59,7 @@ class ProbationAreaTelemetryFilterTest {
     mockkStatic(Baggage::class)
     mockkStatic(Span::class)
     every { Baggage.current() } returns baggage
-    every { baggage.getEntryValue(PROBATION_AREA) } returns null
+    every { baggage.getEntryValue(telemetryKey) } returns null
     every { Span.current() } returns span
 
     filter.doFilter(request, response, chain)
@@ -78,7 +80,7 @@ class ProbationAreaTelemetryFilterTest {
     mockkStatic(Baggage::class)
     mockkStatic(Span::class)
     every { Baggage.current() } returns baggage
-    every { baggage.getEntryValue(PROBATION_AREA) } returns "   "
+    every { baggage.getEntryValue(telemetryKey) } returns "   "
     every { Span.current() } returns span
 
     filter.doFilter(request, response, chain)
@@ -105,23 +107,19 @@ class ProbationAreaTelemetryFilterTest {
     mockkStatic(Baggage::class)
     mockkStatic(Span::class)
     every { Baggage.current() } returnsMany listOf(firstBaggage, secondBaggage)
-    every { firstBaggage.getEntryValue(PROBATION_AREA) } returns "London"
-    every { secondBaggage.getEntryValue(PROBATION_AREA) } returns null
+    every { firstBaggage.getEntryValue(telemetryKey) } returns "London"
+    every { secondBaggage.getEntryValue(telemetryKey) } returns null
     every { Span.current() } returnsMany listOf(firstSpan, secondSpan)
 
     filter.doFilter(firstRequest, firstResponse, chain)
     filter.doFilter(secondRequest, secondResponse, chain)
 
     verifyOrder {
-      firstSpan.setAttribute(PROBATION_AREA, "London")
+      firstSpan.setAttribute(telemetryKey, "London")
       chain.doFilter(firstRequest, firstResponse)
       chain.doFilter(secondRequest, secondResponse)
     }
     verify { secondSpan wasNot Called }
     confirmVerified(firstSpan, secondSpan, chain)
-  }
-
-  private companion object {
-    const val PROBATION_AREA = "probationArea"
   }
 }
