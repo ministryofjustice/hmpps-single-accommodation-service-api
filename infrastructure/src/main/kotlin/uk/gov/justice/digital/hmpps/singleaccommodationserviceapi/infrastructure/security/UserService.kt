@@ -70,8 +70,7 @@ class UserService(
   )
 
   fun getAndUpdateNomisUserOrCreate(username: Username, jwt: Jwt): UserEntity {
-    val nomisUserDetails =
-      nomisUserRolesService.getUserDetailsForMe(jwt).orThrowNotFound("username" to username)
+    val nomisUserDetails = nomisUserRolesService.getNomisUserDetail(httpAuthService.getUsername())
     val existingUser = userRepository.findByUsernameAndAuthSource(username = username, authSource = AuthSourceEntity.NOMIS)
     if (existingUser != null) {
       existingUser.email = nomisUserDetails.primaryEmail

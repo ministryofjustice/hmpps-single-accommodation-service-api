@@ -20,6 +20,9 @@ object ApiCallKeys {
   // probation-access-control service
   const val GET_USER_ACCESS = "getUserAccess"
 
+  // nomis user roles
+  const val GET_NOMIS_USER_DETAIL = "getUserDetails"
+
   // tier service
   const val GET_TIER_V3 = "getTierV3ByCrn"
 

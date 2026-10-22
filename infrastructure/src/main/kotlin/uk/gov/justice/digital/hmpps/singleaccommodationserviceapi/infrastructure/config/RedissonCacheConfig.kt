@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_SEXUAL_OFFENCE_REGISTRATIONS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_STAFF_DETAIL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER_V3
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_NOMIS_USER_DETAIL
 
 @Configuration
 @Profile("dev", "preprod", "prod")
@@ -123,6 +124,7 @@ class RedissonCacheConfig {
       FULL_CASE_LIST to CacheConfig(600_000, 600_000),
       GET_CRS to CacheConfig(60_000, 30_000),
       GET_PRISONER to CacheConfig(60_000, 30_000),
+      GET_NOMIS_USER_DETAIL to CacheConfig(600_000, 600_000),
     )
     return RedissonSpringCacheManager(redissonClient, configs)
   }

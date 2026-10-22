@@ -1,28 +1,21 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import org.springframework.http.HttpStatus
+import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 
 object NomisUserRolesStubs {
 
-  fun stubMe(
-    jwt: String,
+  fun stubNomisUserDetailsResponse(
+    username: String,
     response: NomisUserDetail,
   ) {
     sasWiremock.stubFor(
       WireMock
-        .get(WireMock.urlPathEqualTo("/me"))
-        .willReturn(
-          WireMock
-            .aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withHeader("authorization", "Bearer $jwt")
-            .withStatus(HttpStatus.OK.value())
-            .withBody(jsonMapper.writeValueAsString(response)),
-        ),
+        .get(WireMock.urlPathEqualTo("/user/$username"))
+        .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }
 }
