@@ -50,6 +50,31 @@ class DutyToReferAggregate private constructor(
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
 
   companion object {
+    fun create(
+      caseId: UUID,
+      localAuthorityAreaId: UUID,
+      submissionDate: LocalDate,
+      referenceNumber: String?,
+      status: DtrStatus,
+      withdrawalReason: WithdrawalReason? = null,
+      withdrawalReasonOther: String? = null,
+      outcomeReason: OutcomeReason? = null,
+      submissionNote: String? = null,
+      outcomeNote: String? = null,
+    ) = hydrateNew(caseId).apply {
+      updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = referenceNumber,
+        status = status,
+        withdrawalReason = withdrawalReason,
+        withdrawalReasonOther = withdrawalReasonOther,
+        outcomeReason = outcomeReason,
+        submissionNote = submissionNote,
+        outcomeNote = outcomeNote,
+      )
+    }
+
     fun hydrateNew(caseId: UUID) = DutyToReferAggregate(
       id = UUID.randomUUID(),
       caseId = caseId,
