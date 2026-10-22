@@ -101,6 +101,7 @@ class CaseQueryService(
       case,
       caseOrchestrationDto.cpr,
       caseOrchestrationDto.tier,
+      caseOrchestrationDto.sexualOffenceRegistrations,
     )
     return toApiResponseDto(data = data, upstreamFailures = orchestrationResult.upstreamFailures)
   }

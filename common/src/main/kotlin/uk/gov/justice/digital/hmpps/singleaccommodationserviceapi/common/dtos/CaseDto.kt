@@ -19,7 +19,20 @@ data class CaseDto(
   val userAccess: UserAccess,
   val limitedAccess: Boolean?,
   val accommodationSummaries: AccommodationSummariesDto? = null,
+  val sexualOffenceRegistrations: List<SexualOffenceRegistrationCode> = emptyList(),
 )
+
+enum class SexualOffenceRegistrationCode(val code: String, val description: String) {
+  RSC("RSC", "(SC1 & SC2)"),
+  ANSO("ANSO", "Non Registered Sex Offender"),
+  ARSO("ARSO", "Registered Sex Offender"),
+  RCHD("RCHD", "Risk to Children"),
+  SHPO("SHPO", "Sexual Harm Prevention Order / Sexual Risk Order"),
+  CSEP("CSEP", "Child Sexual Exploitation – Perpetrator"),
+  ALT13("ALT13", "ALT Child Sexual Exploitation history"),
+  ALT3("ALT3", "ALT Registered Sex Offender"),
+  SOPS("SOPS", "Sex Offences Prevention Order"),
+}
 
 data class AssignedToDto(
   val forename: String,
@@ -38,6 +51,7 @@ enum class RiskLevel(val code: String) {
     fun findByCode(code: String) = RiskLevel.entries.firstOrNull { it.code == code }
   }
 }
+
 enum class PeopleType {
   HOUSED,
   NFA_RISK,
