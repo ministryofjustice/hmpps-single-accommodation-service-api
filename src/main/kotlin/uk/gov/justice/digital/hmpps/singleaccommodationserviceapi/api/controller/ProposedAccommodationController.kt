@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.No
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationArrivalCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.SingleAccommodationServiceApiExceptionHandler.Companion.handleUpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AccommodationSyncService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
@@ -45,11 +46,8 @@ class ProposedAccommodationController(
     @RequestParam(required = false, defaultValue = "false") excludeVerificationFailed: Boolean,
     @RequestParam(required = false, defaultValue = "false") confirmedOnly: Boolean,
   ): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
-    val persistedCase = caseQueryService.getPersistedCase(crn) ?: run {
-      val result = caseQueryService.getCaseFromDelius(crn)
-      handleUpstreamFailure(result.upstreamFailures)
-      caseCreationService.upsertCase(crn, result.data!!.nomsNumber)
-    }
+    val persistedCase = caseQueryService.getPersistedCase(crn).orThrowNotFound("crn" to crn)
+
     if (!persistedCase.hasSyncedCprProposedAccommodation) {
       val cprAccommodations = accommodationQueryService.getAllAccommodations(crn)
       handleUpstreamFailure(cprAccommodations.upstreamFailures)
