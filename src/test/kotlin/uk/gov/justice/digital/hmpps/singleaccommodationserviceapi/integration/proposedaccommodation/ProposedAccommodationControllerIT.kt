@@ -889,6 +889,15 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     }
 
     @Test
+    fun `should return 404 when requested case does not exist for proposed-accommodations`() {
+      val missingCrn = "X000000"
+      restTestClient.get().uri("/cases/{crn}/proposed-accommodations", missingCrn)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
     fun `should return empty list when no proposed-accommodations exist for crn`() {
       restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
         .withDeliusUserJwt()
