@@ -13,7 +13,7 @@ flowchart TD
   Cas1Completion{"Cas1Completion (1)"}
   placementBooked["placementBooked"]
   confirmed["confirmed"]
-  Cas1Eligibility["Cas1Eligibility (2)"]
+  Cas1Eligibility["Cas1Eligibility (3)"]
   notEligible["notEligible"]
   Cas1Completion -->|PASS| placementBooked
   Cas1Completion -->|FAIL| confirmed
@@ -74,6 +74,7 @@ flowchart TD
 **Cas1Eligibility** (RuleSet)
 - [`MaleRiskEligibilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/eligibility/MaleRiskEligibilityRule.kt): FAIL if candidate is Male and is not Tier A, B or C
 - [`NonMaleRiskEligibilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/eligibility/NonMaleRiskEligibilityRule.kt): FAIL if candidate is not Male and is not Tier A, B, C or D
+- [`CurrentAccommodationIsPrisonOrCas1Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/eligibility/CurrentAccommodationIsPrisonOrCas1Rule.kt): FAIL if individual is not currently in prison or CAS1 accommodation
 
 
 **notEligible** (Outcome)
@@ -408,6 +409,7 @@ flowchart TD
 | CrsSubmittedRuleMale | FAIL if CRS not submitted and male | Cas3Prerequisite | CAS3 |
 | CrsSubmittedRuleNonMale | FAIL if CRS not submitted and not male | Cas3Prerequisite | CAS3 |
 | CrsUpcomingRule | FAIL if not within 12 weeks of release from current accommodation | CrsUpcoming | CRS |
+| CurrentAccommodationIsPrisonOrCas1Rule | FAIL if individual is not currently in prison or CAS1 accommodation | Cas1Eligibility | CAS1 |
 | CurrentAccommodationTypeIsCas2Rule | FAIL if individual is in CAS2 | Cas2Eligibility | CAS2 |
 | CurrentAccommodationTypeIsCas3Rule | FAIL if individual is in CAS3 | Cas2Eligibility | CAS2 |
 | CurrentAccommodationTypeIsCommunityRule | FAIL if individual is in the community | Cas2Eligibility | CAS2 |
