@@ -62,6 +62,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.CAS1_UPCOMING_WEEKS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityNewToOldTransformer.toEligibilityDtoOld
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
@@ -531,7 +532,7 @@ class EligibilityServiceTest {
   @Nested
   inner class Cas1EligibilityScenarios {
 
-    fun loadCas1Scenarios(): List<Cas1Scenario> {
+    fun loadCas1EligibilityScenarios(): List<Cas1EligibilityScenario> {
       val rows = CsvReader().read("/cas1-eligibility-scenarios.csv")
 
       return rows.flatMapIndexed { idx, row ->
@@ -539,7 +540,7 @@ class EligibilityServiceTest {
 
         try {
           accommodationTypes.map { accommodationType ->
-            Cas1Scenario(
+            Cas1EligibilityScenario(
               testCaseId = row["testCaseId"]!!,
               description = row["description"],
               referenceDate = row["referenceDate"]!!.toLocalDate(),
@@ -547,13 +548,6 @@ class EligibilityServiceTest {
               tierScore = row["tierScore"],
               currentAccommodationType = accommodationType,
               currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
-              cas1ApplicationStatus = row["cas1ApplicationStatus"]?.let { Cas1ApplicationStatus.valueOf(it) },
-              cas1RequestForPlacementStatus = row["cas1RequestForPlacementStatus"]?.let {
-                Cas1RequestForPlacementStatus.valueOf(
-                  it,
-                )
-              },
-              cas1PlacementStatus = row["cas1PlacementStatus"]?.let { Cas1PlacementStatus.valueOf(it) },
               expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatusNew.valueOf(it) },
               expectedCas1Url = row["expectedCas1Url"],
               expectedFailureReasons = row["expectedFailureReasons"]
@@ -564,32 +558,40 @@ class EligibilityServiceTest {
             )
           }
         } catch (e: Exception) {
-          throw IllegalStateException("CAS1 CSV row $idx failed: $row", e)
+          throw IllegalStateException("Row $idx failed: $row", e)
         }
+      }
+    }
+
+    fun loadCas1ApplicationScenarios(): List<Cas1ApplicationScenario> = CsvReader().read("/cas1-application-scenarios.csv").mapIndexed { idx, row ->
+      try {
+        Cas1ApplicationScenario(
+          testCaseId = row["testCaseId"]!!,
+          description = row["description"],
+          referenceDate = row["referenceDate"]!!.toLocalDate(),
+          currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
+          isEligible = row["isEligible"]!!.lowercase().toBooleanStrict(),
+          cas1ApplicationStatus = row["cas1ApplicationStatus"]?.let { Cas1ApplicationStatus.valueOf(it) },
+          cas1RequestForPlacementStatus = row["cas1RequestForPlacementStatus"]?.let {
+            Cas1RequestForPlacementStatus.valueOf(it)
+          },
+          cas1PlacementStatus = row["cas1PlacementStatus"]?.let { Cas1PlacementStatus.valueOf(it) },
+          expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatusNew.valueOf(it) },
+          expectedCas1Url = row["expectedCas1Url"],
+        )
+      } catch (e: Exception) {
+        throw IllegalStateException("Row $idx failed: $row", e)
       }
     }
 
     @Test
     fun `should calculate eligibility for cas1 for all scenarios`() {
-      val scenarios = loadCas1Scenarios()
+      val scenarios = loadCas1EligibilityScenarios()
 
       runScenarios(scenarios) { s ->
 
         clock.setNow(s.referenceDate)
 
-        val cas1Application = s.cas1ApplicationStatus?.let {
-          buildCas1Application(
-            application = buildCas1ApplicationSummary(
-              status = it,
-            ),
-            placement = buildCas1PlacementSummary(
-              status = s.cas1PlacementStatus,
-            ),
-            requestForPlacement = buildCas1RequestForPlacementSummary(
-              status = s.cas1RequestForPlacementStatus,
-            ),
-          )
-        }
         val currentAccommodation = s.currentAccommodationType?.let {
           buildAccommodationSummaryDto(
             type = buildAccommodationTypeDto(code = it),
@@ -611,7 +613,7 @@ class EligibilityServiceTest {
           sex = s.sex,
           currentAccommodation = currentAccommodation,
           currentAccommodationTypeEntity = currentAccommodationTypeEntity,
-          cas1Application = cas1Application,
+          cas1Application = null,
         )
 
         val result = eligibilityService.evaluate(cas1Tree, data)
@@ -622,7 +624,7 @@ class EligibilityServiceTest {
 
         assertThat(result.actionStartDate).isEqualTo(
           if (result.serviceStatus.isUpcoming) {
-            s.currentAccommodationEndDate?.minusWeeks(28)
+            s.currentAccommodationEndDate?.minusWeeks(CAS1_UPCOMING_WEEKS)
           } else {
             null
           },
@@ -631,13 +633,63 @@ class EligibilityServiceTest {
         val expectedUrl = when (s.expectedCas1Url) {
           null -> null
           "/applications/start" -> cas1ApplicationStartUrl
-          else -> cas1Application?.uiUrl
+          else -> error("Unexpected CAS1 eligibility URL: ${s.expectedCas1Url}")
         }
         assertThat(result.url).isEqualTo(expectedUrl)
 
         assertThat(result.failureReasons)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
+      }
+    }
+
+    @Test
+    fun `should calculate application for cas1 for all scenarios`() {
+      val scenarios = loadCas1ApplicationScenarios()
+
+      runScenarios(scenarios) { s ->
+        clock.setNow(s.referenceDate)
+
+        val cas1Application = s.cas1ApplicationStatus?.let {
+          buildCas1Application(
+            application = buildCas1ApplicationSummary(status = it),
+            placement = buildCas1PlacementSummary(status = s.cas1PlacementStatus),
+            requestForPlacement = buildCas1RequestForPlacementSummary(status = s.cas1RequestForPlacementStatus),
+          )
+        }
+
+        val data = buildDomainData(
+          crn = s.testCaseId,
+          tierScore = if (s.isEligible) "A" else "D",
+          sex = SexCode.M,
+          currentAccommodation = buildAccommodationSummaryDto(
+            type = buildAccommodationTypeDto(code = "A02"),
+            endDate = s.currentAccommodationEndDate,
+          ),
+          currentAccommodationTypeEntity = buildAccommodationTypeEntity(code = "A02", isCas1 = true),
+          cas1Application = cas1Application,
+        )
+
+        val result = eligibilityService.evaluate(cas1Tree, data)
+
+        assertThat(result.serviceStatus)
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas1Status}")
+          .isEqualTo(s.expectedCas1Status)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusWeeks(CAS1_UPCOMING_WEEKS)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CAS1)
+        val expectedUrl = when (s.expectedCas1Url) {
+          null -> null
+          "/applications/start" -> cas1ApplicationStartUrl
+          "/applications/{applicationId}" -> cas1Application?.uiUrl
+          else -> error("Unexpected CAS1 application URL: ${s.expectedCas1Url}")
+        }
+        assertThat(result.url).isEqualTo(expectedUrl)
       }
     }
   }
@@ -677,7 +729,7 @@ class EligibilityServiceTest {
             }
           }
         } catch (e: Exception) {
-          throw IllegalStateException("CAS2 CSV row $idx failed: $row", e)
+          throw IllegalStateException("Row $idx failed: $row", e)
         }
       }
     }
@@ -696,7 +748,7 @@ class EligibilityServiceTest {
               description = row["description"],
               referenceDate = row["referenceDate"]!!.toLocalDate(),
               currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
-              isEligible = row["isEligible"]!!.toBoolean(),
+              isEligible = row["isEligible"]!!.lowercase().toBooleanStrict(),
               submittedAt = row["submittedAt"]?.toLocalDate(),
               cas2ApplicationStatus = applicationStatus,
               expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
@@ -705,7 +757,7 @@ class EligibilityServiceTest {
             )
           }
         } catch (e: Exception) {
-          throw IllegalStateException("CAS2 CSV row $idx failed: $row", e)
+          throw IllegalStateException("Row $idx failed: $row", e)
         }
       }
     }
@@ -785,7 +837,7 @@ class EligibilityServiceTest {
 
         assertThat(result.actionStartDate).isEqualTo(
           if (result.serviceStatus.isUpcoming) {
-            s.currentAccommodationEndDate?.minusDays(15)
+            s.currentAccommodationEndDate?.minusDays(UPCOMING_DAYS)
           } else {
             null
           },
@@ -794,7 +846,7 @@ class EligibilityServiceTest {
         val expectedUrl = when (s.expectedCas2Url) {
           null -> null
           "/applications/start" -> "CAS2_APPLICATION_START_URL${s.testCaseId}"
-          else -> null
+          else -> error("Unexpected CAS2 eligibility URL: ${s.expectedCas2Url}")
         }
         assertThat(result.url).isEqualTo(expectedUrl)
 
@@ -805,7 +857,7 @@ class EligibilityServiceTest {
     }
 
     @Test
-    fun `should calculate for cas2 applications for all scenarios`() {
+    fun `should calculate application for cas2 for all scenarios`() {
       val scenarios = loadCas2ApplicationScenarios()
 
       runScenarios(scenarios) { s ->
@@ -866,7 +918,7 @@ class EligibilityServiceTest {
 
         assertThat(result.actionStartDate).isEqualTo(
           if (result.serviceStatus.isUpcoming) {
-            s.currentAccommodationEndDate?.minusDays(15)
+            s.currentAccommodationEndDate?.minusDays(UPCOMING_DAYS)
           } else {
             null
           },
@@ -876,7 +928,7 @@ class EligibilityServiceTest {
           null -> null
           "/applications/start" -> "CAS2_APPLICATION_START_URL${s.testCaseId}"
           "/applications/{applicationId}" -> cas2Application.uiUrl
-          else -> null
+          else -> error("Unexpected CAS2 application URL: ${s.expectedCas2Url}")
         }
         assertThat(result.url).isEqualTo(expectedUrl)
       }
@@ -907,7 +959,7 @@ class EligibilityServiceTest {
               ?: emptyList(),
           )
         } catch (e: Exception) {
-          throw IllegalStateException("DTR CSV row $idx failed: $row", e)
+          throw IllegalStateException("Row $idx failed: $row", e)
         }
       }
     }
@@ -991,8 +1043,8 @@ class EligibilityServiceTest {
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             expectedCas3Status = row["expectedCas3Status"]?.let { ServiceStatusNew.valueOf(it) },
             expectedCas3Url = row["expectedCas3Url"]?.takeIf { it.isNotBlank() },
-            isEligible = row["isEligible"]!!.toBoolean(),
-            isStarted = row["isStarted"]!!.toBoolean(),
+            isEligible = row["isEligible"]!!.lowercase().toBooleanStrict(),
+            isStarted = row["isStarted"]!!.lowercase().toBooleanStrict(),
             cas3ApplicationStatus = row["cas3ApplicationStatus"]?.let { Cas3ApplicationStatus.valueOf(it) },
             cas3AssessmentStatus = row["cas3AssessmentStatus"]?.let { Cas3AssessmentStatus.valueOf(it) },
             cas3BookingStatus = row["cas3BookingStatus"]?.let { Cas3BookingStatus.valueOf(it) },
@@ -1106,12 +1158,12 @@ class EligibilityServiceTest {
         val result = eligibilityService.evaluate(cas3Tree, data)
 
         assertThat(result.serviceStatus)
-          .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCas3Status}")
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas3Status}")
           .isEqualTo(s.expectedCas3Status)
 
         assertThat(result.actionStartDate).isEqualTo(
           if (result.serviceStatus.isUpcoming) {
-            s.currentAccommodationEndDate?.minusDays(15)
+            s.currentAccommodationEndDate?.minusDays(UPCOMING_DAYS)
           } else {
             null
           },
@@ -1122,7 +1174,7 @@ class EligibilityServiceTest {
           null -> null
           "/referrals/start" -> cas3ReferralStartUrl
           "/referrals/{referralId}/full" -> cas3Application?.uiUrl
-          else -> s.expectedCas3Url
+          else -> error("Unexpected CAS3 application URL: ${s.expectedCas3Url}")
         }
         assertThat(result.url).isEqualTo(expectedUrl)
       }
@@ -1187,12 +1239,12 @@ class EligibilityServiceTest {
         val result = eligibilityService.evaluate(cas3Tree, data)
 
         assertThat(result.serviceStatus)
-          .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCas3Status}")
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas3Status}")
           .isEqualTo(s.expectedCas3Status)
 
         assertThat(result.actionStartDate).isEqualTo(
           if (result.serviceStatus.isUpcoming) {
-            s.currentAccommodationEndDate?.minusDays(15)
+            s.currentAccommodationEndDate?.minusDays(UPCOMING_DAYS)
           } else {
             null
           },
@@ -1202,7 +1254,7 @@ class EligibilityServiceTest {
         val expectedUrl = when (s.expectedCas3Url) {
           null -> null
           "/referrals/start" -> cas3ReferralStartUrl
-          else -> s.expectedCas3Url
+          else -> error("Unexpected CAS3 eligibility URL: ${s.expectedCas3Url}")
         }
         assertThat(result.url).isEqualTo(expectedUrl)
         assertThat(result.failureReasons)
@@ -1285,7 +1337,7 @@ class EligibilityServiceTest {
         val result = eligibilityService.evaluate(crsTree, data)
 
         assertThat(result.serviceStatus)
-          .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCrsStatus}")
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCrsStatus}")
           .isEqualTo(s.expectedCrsStatus)
 
         assertThat(result.actionStartDate).isEqualTo(
@@ -1384,7 +1436,7 @@ class EligibilityServiceTest {
         val result = eligibilityService.evaluate(paTree, data)
 
         assertThat(result.serviceStatus)
-          .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedPaStatus}")
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedPaStatus}")
           .isEqualTo(s.expectedPaStatus)
 
         assertThat(result.actionStartDate).isNull()
@@ -1395,277 +1447,6 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
       }
-    }
-  }
-
-  @Nested
-  inner class FailureReasonsSmoke {
-
-    private val today = LocalDate.parse("01/01/2025", dateFormatter)
-
-    @Test
-    fun `Cas2 surfaces IN_PRISON_NO_RELEASE_DATE when candidate is in prison without a release date`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        dob = today.minusYears(18),
-        tierScore = "A",
-        currentAccommodation = buildAccommodationSummaryDto(
-          endDate = null,
-          type = buildAccommodationTypeDto(code = "HMP"),
-        ),
-        currentAccommodationTypeEntity = buildAccommodationTypeEntity(
-          code = "HMP",
-          isPrison = true,
-          isCas1 = false,
-          isCas2 = false,
-          isCas3 = false,
-        ),
-        cas2Application = null,
-      )
-
-      val result = eligibilityService.evaluate(cas2Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).containsExactly(FailureReason.IN_PRISON_NO_RELEASE_DATE)
-    }
-
-    @Test
-    fun `Cas1 surfaces MALE_NOT_HIGH_RISK_TIER for male candidate on a low-risk tier`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        sex = SexCode.M,
-        tierScore = "D",
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        cas1Application = null,
-      )
-
-      val result = eligibilityService.evaluate(cas1Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.MALE_NOT_HIGH_RISK_TIER)
-    }
-
-    @Test
-    fun `Cas1 surfaces NON_MALE_NOT_HIGH_RISK_TIER for non-male candidate on a low-risk tier`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        sex = SexCode.F,
-        tierScore = "E",
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        cas1Application = null,
-      )
-
-      val result = eligibilityService.evaluate(cas1Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.NON_MALE_NOT_HIGH_RISK_TIER)
-    }
-
-    @Test
-    fun `Cas3 surfaces INVALID_CURRENT_ACCOMMODATION_TYPE when accommodation is not prison or CAS1 or CAS2`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        currentAccommodation = buildAccommodationSummaryDto(
-          endDate = today.plusDays(1),
-        ),
-        currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrison = false, isCas1 = false, isCas2 = false),
-        cas1Application = null,
-        cas3Application = null,
-        dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
-      )
-
-      val result = eligibilityService.evaluate(cas3Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.INVALID_CURRENT_ACCOMMODATION_TYPE)
-    }
-
-    @Test
-    fun `Crs surfaces IS_SETTLED when candidate has settled accommodation`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusWeeks(13)),
-        currentAccommodationTypeEntity = buildAccommodationTypeEntity(settledType = AccommodationSettledType.SETTLED),
-      )
-
-      val result = eligibilityService.evaluate(crsTree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CRS_NOT_REQUIRED)
-      assertThat(result.failureReasons).contains(FailureReason.IS_SETTLED)
-    }
-
-    @Test
-    fun `Cas2 surfaces UNDER_18 when candidate is under 18`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        dob = today.minusYears(18).plusDays(1),
-        cas2Application = null,
-      )
-
-      val result = eligibilityService.evaluate(cas2Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.UNDER_18)
-    }
-
-    @Test
-    fun `Cas2 surfaces IN_CAS2_ACCOMMODATION when candidate is in CAS2`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        dob = today.minusYears(18),
-        currentAccommodation = buildAccommodationSummaryDto(
-          endDate = today.plusDays(1),
-          type = buildAccommodationTypeDto(code = "A10"),
-        ),
-        currentAccommodationTypeEntity = buildAccommodationTypeEntity(
-          code = "A10",
-          isCas1 = false,
-          isPrison = false,
-          isCas2 = true,
-        ),
-        cas2Application = null,
-        tierScore = "A",
-      )
-
-      val result = eligibilityService.evaluate(cas2Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).containsExactly(FailureReason.IN_CAS2_ACCOMMODATION)
-    }
-
-    @Test
-    fun `Cas2 surfaces INVALID_TIER when candidate has a MISSING tier score value`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        dob = today.minusYears(18),
-        currentAccommodation = buildAccommodationSummaryDto(
-          endDate = today.plusDays(1),
-          type = buildAccommodationTypeDto(code = "A10"),
-        ),
-        currentAccommodationTypeEntity = buildAccommodationTypeEntity(
-          code = "A10",
-          isCas1 = true,
-          isPrison = false,
-          isCas2 = false,
-        ),
-        cas2Application = null,
-        tierScore = "MISSING",
-      )
-
-      val result = eligibilityService.evaluate(cas2Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).containsExactly(FailureReason.INVALID_TIER)
-    }
-
-    @Test
-    fun `Cas2 surfaces IN_CAS3_ACCOMMODATION when candidate is in CAS3`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        dob = today.minusYears(18),
-        currentAccommodation = buildAccommodationSummaryDto(
-          endDate = today.plusDays(1),
-          type = buildAccommodationTypeDto(code = "A17"),
-        ),
-        currentAccommodationTypeEntity = buildAccommodationTypeEntity(
-          code = "A17",
-          isCas1 = false,
-          isPrison = false,
-          isCas2 = false,
-          isCas3 = true,
-        ),
-        cas2Application = null,
-        tierScore = "A",
-      )
-
-      val result = eligibilityService.evaluate(cas2Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).containsExactly(FailureReason.IN_CAS3_ACCOMMODATION)
-    }
-
-    @Test
-    fun `Cas2 surfaces IN_COMMUNITY when candidate is in community accommodation`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        dob = today.minusYears(18),
-        currentAccommodation = buildAccommodationSummaryDto(
-          endDate = today.plusDays(1),
-          type = buildAccommodationTypeDto(code = "A01A"),
-        ),
-        currentAccommodationTypeEntity = buildAccommodationTypeEntity(
-          code = "A01A",
-          isCas1 = false,
-          isPrison = false,
-          isCas2 = false,
-        ),
-        cas2Application = null,
-        tierScore = "A",
-      )
-
-      val result = eligibilityService.evaluate(cas2Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).containsExactly(FailureReason.IN_COMMUNITY)
-    }
-
-    @Test
-    fun `Dtr surfaces HAS_NEXT_ACCOMMODATION when candidate has next accommodation`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        currentAccommodation = buildAccommodationSummaryDto(
-          endDate = today.plusDays(1),
-          type = buildAccommodationTypeDto(code = "A03"),
-        ),
-        nextAccommodations = listOf(buildAccommodationSummaryDto()),
-      )
-
-      val result = eligibilityService.evaluate(dtrTree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.DTR_NOT_REQUIRED)
-      assertThat(result.failureReasons).contains(FailureReason.HAS_NEXT_ACCOMMODATION)
-    }
-
-    @Test
-    fun `Pa surfaces SUITABLE_CAS1_APPLICATION when candidate has a suitable CAS1 application`() {
-      val data = buildDomainData(
-        nextAccommodations = emptyList(),
-        cas1Application = buildCas1Application(
-          application = buildCas1ApplicationSummary(
-            status = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
-          ),
-          requestForPlacement = null,
-          placement = null,
-        ),
-        cas3Application = null,
-      )
-
-      val result = eligibilityService.evaluate(paTree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.PA_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.SUITABLE_CAS1_APPLICATION)
-    }
-
-    @Test
-    fun `Pa surfaces SUITABLE_CAS3_APPLICATION when candidate has a suitable CAS3 application`() {
-      val data = buildDomainData(
-        nextAccommodations = emptyList(),
-        cas1Application = null,
-        cas3Application = buildCas3Application(
-          applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-          submittedApplication = buildCas3SubmittedApplication(
-            assessmentStatus = null,
-            latestBooking = buildCas3LatestBooking(
-              status = null,
-            ),
-          ),
-        ),
-      )
-
-      val result = eligibilityService.evaluate(paTree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.PA_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.SUITABLE_CAS3_APPLICATION)
     }
   }
 
@@ -1699,7 +1480,7 @@ class EligibilityServiceTest {
   }
 }
 
-data class Cas1Scenario(
+data class Cas1EligibilityScenario(
   val testCaseId: String,
   val description: String?,
   val referenceDate: LocalDate,
@@ -1707,12 +1488,22 @@ data class Cas1Scenario(
   val tierScore: String?,
   val currentAccommodationType: String?,
   val currentAccommodationEndDate: LocalDate?,
+  val expectedCas1Status: ServiceStatusNew?,
+  val expectedCas1Url: String?,
+  val expectedFailureReasons: List<FailureReason>,
+)
+
+data class Cas1ApplicationScenario(
+  val testCaseId: String,
+  val description: String?,
+  val referenceDate: LocalDate,
+  val currentAccommodationEndDate: LocalDate?,
+  val isEligible: Boolean,
   val cas1ApplicationStatus: Cas1ApplicationStatus?,
   val cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
   val cas1PlacementStatus: Cas1PlacementStatus?,
   val expectedCas1Status: ServiceStatusNew?,
   val expectedCas1Url: String?,
-  val expectedFailureReasons: List<FailureReason>,
 )
 
 data class Cas2EligibilityScenario(
@@ -1808,6 +1599,8 @@ data class PaScenario(
   val expectedPaStatus: ServiceStatusNew?,
   val expectedFailureReasons: List<FailureReason>,
 )
+
+private const val UPCOMING_DAYS = 15L
 
 private fun <T> runScenarios(
   scenarios: List<T>,
