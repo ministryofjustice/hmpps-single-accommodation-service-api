@@ -33,7 +33,7 @@ DRY_RUN=true
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --dry-run=true|--dry-run)
+    --dry-run=true)
       DRY_RUN=true
       shift
       ;;
@@ -41,13 +41,18 @@ while [ $# -gt 0 ]; do
       DRY_RUN=false
       shift
       ;;
-    --live-run)
-      DRY_RUN=false
+    --dry-run)
+      DRY_RUN=true
       shift
       ;;
     --help|-h)
       print_usage
       exit 0
+      ;;
+    --*)
+      echo "Error: Unknown option: $1" >&2
+      print_usage >&2
+      exit 1
       ;;
     *)
       TEAM_CODES+=("$1")
