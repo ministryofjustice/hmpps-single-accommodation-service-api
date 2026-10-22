@@ -24,6 +24,7 @@ class SasSarFixtureAsserter(
     fromDate: LocalDate? = null,
     toDate: LocalDate? = null,
     laaId: UUID,
+    laaName: String,
   ) {
     val response = sasSarHelper.requestSarData(prn, crn, fromDate, toDate, webTestClient, SubjectAccessRequestResponse::class.java)
     val actualJson = sarHelper.toJson(response)
@@ -31,9 +32,12 @@ class SasSarFixtureAsserter(
     if (generateActual()) {
       sarHelper.saveContentToFile(actualJson, generatedApiResponseFilename)
     } else {
-      assertThatJson(actualJson)
-        .`as`("Response content json")
-        .isEqualTo(sarHelper.getResourceAsString(expectedApiResponseResourcePath).replace("00000000-0000-0000-0000-000000000000", laaId.toString()))
+      val expected = sarHelper.getResourceAsString(expectedApiResponseResourcePath)
+        .replace("%LAA_ID%", laaId.toString())
+        .replace("%LAA_NAME%", laaName)
+
+      assertThatJson(actualJson).`as`("Response content json").isEqualTo(expected)
+
       assertThat(response.attachments?.isNotEmpty() == true)
         .`as`("Response has attachments")
         .isEqualTo(sarHelper.attachmentsExpected)
@@ -45,6 +49,7 @@ class SasSarFixtureAsserter(
     crn: String? = null,
     fromDate: LocalDate? = null,
     toDate: LocalDate? = null,
+    laaName: String,
   ) {
     val dataResponse = sasSarHelper.requestSarData(prn, crn, fromDate, toDate, webTestClient, SubjectAccessRequestResponse::class.java)
     val templateResponse = sasSarHelper.requestSarTemplate(webTestClient)
@@ -60,7 +65,7 @@ class SasSarFixtureAsserter(
     } else {
       sarHelper.assertHtmlEquals(
         renderResult,
-        sarHelper.getResourceAsString(expectedReportResourcePath),
+        sarHelper.getResourceAsString(expectedReportResourcePath).replace("%LAA_NAME%", laaName),
       )
     }
   }

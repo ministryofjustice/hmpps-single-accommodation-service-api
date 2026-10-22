@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NA
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.createDtrRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.dtrNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDtrResponseBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDutyToReferCreatedDomainEventJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDutyToReferUpdatedDomainEventJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDutyToReferTimelineResponse
@@ -249,11 +250,11 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     assertPublishedSNSEvent(
       dutyToReferId = persistedRecord.id,
-      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_CREATED,
     )
 
-    val message = waitForMessage(persistedRecord.id)
-    assertThatJson(message.payload).matchesExpectedJson(expectedDutyToReferUpdatedDomainEventJson(persistedRecord.id))
+    val message = waitForMessage(persistedRecord.id, SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_CREATED)
+    assertThatJson(message.payload).matchesExpectedJson(expectedDutyToReferCreatedDomainEventJson(persistedRecord.id))
   }
 
   @Test
@@ -301,7 +302,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     )
     assertPublishedSNSEvent(
       dutyToReferId = newRecord.id,
-      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_CREATED,
     )
 
     val outboxRecords = outboxEventRepository.findAll()
@@ -1318,10 +1319,10 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     assertThat(updatedRecord.outcomeNote).isEqualTo(outcomeNoteText)
   }
 
-  private fun waitForMessage(aggregateId: UUID): OutboxEventEntity = outboxEventHelper.waitForMessage(
+  private fun waitForMessage(aggregateId: UUID, eventType: SingleAccommodationServiceDomainEventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED): OutboxEventEntity = outboxEventHelper.waitForMessage(
     aggregateId = aggregateId,
     aggregateType = "DutyToRefer",
-    eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+    eventType = eventType,
     processedStatus = ProcessedStatus.PROCESSED,
   )
 

@@ -27,6 +27,10 @@ enum class SingleAccommodationServiceDomainEventType(
     "sas.duty-to-refer.updated",
     "SAS duty to refer has been updated",
   ),
+  SAS_DUTY_TO_REFER_CREATED(
+    "sas.duty-to-refer.created",
+    "SAS duty to refer has been created",
+  ),
   ;
 
   companion object {
