@@ -52,19 +52,6 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
     select distinct c
     from CaseEntity c
     join c.caseIdentifiers ci
-    where ((:crns is not null and ci.identifierType = 'CRN' and ci.identifier in :crns)
-       or (:prisonNumbers is not null and ci.identifierType = 'PRISON_NUMBER' and ci.identifier in :prisonNumbers))
-      and c.archived = false
-  """,
-  )
-  fun findAllByIdentifiers(crns: List<String>?, prisonNumbers: List<String>?): List<CaseEntity>
-
-  @EntityGraph(attributePaths = ["caseIdentifiers"])
-  @Query(
-    """
-    select distinct c
-    from CaseEntity c
-    join c.caseIdentifiers ci
     where ci.identifierType = 'CRN' and ci.identifier in :crns
       and c.archived = false
   """,
