@@ -15,8 +15,6 @@ class CrsCompletionContextUpdater(
 
   val url = crsUiBaseUrl
 
-  override val description = set("Not started and submit CRS referral")
-
   val notStartedMale = "notStartedMale"
   val notStartedNonMale = "notStartedNonMale"
 

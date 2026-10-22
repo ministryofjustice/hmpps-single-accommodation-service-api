@@ -11,8 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class CrsUpcomingContextUpdater : ContextUpdater() {
 
-  override val description = set("Upcoming and submit CRS referral")
-
   val upcomingMale = "upcomingMale"
   val upcomingNonMale = "upcomingNonMale"
 

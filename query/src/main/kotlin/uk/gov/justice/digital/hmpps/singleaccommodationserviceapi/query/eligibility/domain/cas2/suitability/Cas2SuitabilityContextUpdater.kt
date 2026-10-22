@@ -13,8 +13,6 @@ class Cas2SuitabilityContextUpdater(
   private val sentryService: SentryService,
 ) : ContextUpdater() {
 
-  override val description = set("Not started and start CAS2 application")
-
   val notStarted = "notStarted"
   val notSubmitted = "notSubmitted"
   val offerDeclined = "offerDeclined"

@@ -9,17 +9,18 @@ import kotlin.reflect.KClass
 
 private const val QUERY_MAIN_KOTLIN = "../query/src/main/kotlin"
 
-object RulesGraphWalker {
+/**
+ * Produces a RulesGraph (nodes and edges) for a given EligibilityTreeProvider
+ */
+class RulesGraphWalker {
+
+  val nodes = LinkedHashMap<Any, GraphNode>()
+  val usedNodeIds = mutableMapOf<String, Any>()
+  val edges = mutableListOf<GraphEdge>()
 
   fun walk(provider: EligibilityTreeProvider): RulesGraph = walk(treeName(provider), provider.tree())
 
   fun walk(treeName: String, root: DecisionNode): RulesGraph {
-    // Map of nodes converted to Graph items
-    val nodes = LinkedHashMap<DecisionNode, GraphNode>()
-    // Map of node ids
-    val usedIds = mutableMapOf<String, DecisionNode>()
-    // Node Edges
-    val edges = mutableListOf<GraphEdge>()
     // record the nodes we are currently visiting
     val visitingStack = mutableSetOf<DecisionNode>()
 
@@ -29,34 +30,32 @@ object RulesGraphWalker {
       visitingStack += node
       when (node) {
         is OutcomeNode -> {
-          nodes[node] = GraphNode(
-            id = uniqueId(slug(node.name), node, usedIds),
-            title = node.name,
-            kind = GraphNodeKind.OUTCOME,
-          )
+          nodes[node] = node.toGraphNode()
         }
 
         is RuleSetNode -> {
-          val graphNode = GraphNode(
-            id = uniqueId(slug(node.ruleSetName), node, usedIds),
-            title = node.ruleSetName,
-            kind = GraphNodeKind.RULE_SET,
-            rules = node.ruleSet.getRules().map { priorityRule ->
-              RuleInfo(
-                className = priorityRule.rule::class.simpleName
-                  ?: error("Rules should not be defined as anonymous classes"),
-                description = priorityRule.rule.description,
-                sourcePath = sourceLinkPath(priorityRule.rule::class),
-              )
-            },
-            contextUpdater = contextUpdaterInfo(node.contextUpdater),
-            ruleSet = node.ruleSet,
-          )
+          val graphNode = node.toGraphNode()
           nodes[node] = graphNode
+
           visit(node.onPass)
-          visit(node.onFail)
           edges += GraphEdge(graphNode.id, nodes.getValue(node.onPass).id, "PASS")
-          edges += GraphEdge(graphNode.id, nodes.getValue(node.onFail).id, "FAIL")
+
+          val onFailSourceNode = if (node.contextUpdater === ContextUpdater.identity()) {
+            graphNode
+          } else {
+            node.contextUpdater.let { contextUpdater ->
+              val contextUpdaterNode = contextUpdater.toGraphNode()
+
+              nodes[contextUpdater] = contextUpdaterNode
+
+              edges += GraphEdge(from = graphNode.id, to = contextUpdaterNode.id, label = "FAIL")
+
+              contextUpdaterNode
+            }
+          }
+
+          visit(node.onFail)
+          edges += GraphEdge(onFailSourceNode.id, nodes.getValue(node.onFail).id, "FAIL")
         }
       }
       visitingStack -= node
@@ -66,19 +65,48 @@ object RulesGraphWalker {
     return RulesGraph(treeName, nodes.values.toList(), edges)
   }
 
+  private fun OutcomeNode.toGraphNode() = GraphNode(
+    id = ensureUniqueId(slug(name), this),
+    title = name,
+    kind = GraphNodeKind.OUTCOME,
+  )
+
+  private fun RuleSetNode.toGraphNode() = GraphNode(
+    id = ensureUniqueId(slug(ruleSetName), this),
+    title = ruleSetName,
+    kind = GraphNodeKind.RULE_SET,
+    rules = ruleSet.getRules().map { priorityRule ->
+      RuleInfo(
+        className = priorityRule.rule::class.simpleName
+          ?: error("Rules should not be defined as anonymous classes"),
+        description = priorityRule.rule.description,
+        sourcePath = sourceLinkPath(priorityRule.rule::class),
+      )
+    },
+    contextUpdater = contextUpdaterInfo(contextUpdater),
+    ruleSet = ruleSet,
+  )
+
+  private fun ContextUpdater.toGraphNode() = GraphNode(
+    id = ensureUniqueId(slug(description), this),
+    title = description,
+    kind = GraphNodeKind.CONTEXT_UPDATER,
+    contextUpdater = null,
+  )
+
   fun treeName(provider: EligibilityTreeProvider): String = provider::class.simpleName
     ?.removeSuffix("EligibilityTreeProvider")
     ?.uppercase()
     ?: provider.javaClass.simpleName
-}
 
-private fun uniqueId(base: String, node: DecisionNode, used: MutableMap<String, DecisionNode>): String {
-  val existing = used[base]
-  require(existing == null || existing === node) {
-    "Duplicate graph node id '$base'. Give RuleSet and outcomes unique names."
+  private fun ensureUniqueId(base: String, node: Any): String {
+    val existing = usedNodeIds[base]
+    require(existing == null || existing === node) {
+      "Duplicate graph node id '$base'. Give RuleSet and outcomes unique names."
+    }
+    usedNodeIds[base] = node
+    return base
   }
-  used[base] = node
-  return base
 }
 
 internal fun slug(raw: String): String {
