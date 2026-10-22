@@ -9,11 +9,9 @@ import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isTimeout
-import java.net.http.HttpTimeoutException
 import java.time.LocalDateTime
 
 data class CallsPerIdentifier(
@@ -136,27 +134,7 @@ class AggregatorService(
         )
       }
       is WebClientRequestException -> {
-        val isTimeout = exception.isTimeout()
-        if (isTimeout) {
-          log.error("Timeout for call {}: {}", logPrefix, exception.message)
-          AggregatorCallOutcome.Failure(
-            FailureType.TIMEOUT,
-            ErrorDetail(httpStatus = null, message = exception.message ?: "Request timed out"),
-            identifier = identifier,
-          )
-        } else {
-          log.error("Unknown error for call {}: {}", logPrefix, exception.message, exception)
-          AggregatorCallOutcome.Failure(
-            FailureType.UNKNOWN_ERROR,
-            ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
-            identifier = identifier,
-          )
-        }
-      }
-      // TODO: Once we have completed the switch to WebClient, we should remove this
-      is ResourceAccessException -> {
-        val isTimeout = exception.cause is HttpTimeoutException
-        if (isTimeout) {
+        if (exception.isTimeout()) {
           log.error("Timeout for call {}: {}", logPrefix, exception.message)
           AggregatorCallOutcome.Failure(
             FailureType.TIMEOUT,
