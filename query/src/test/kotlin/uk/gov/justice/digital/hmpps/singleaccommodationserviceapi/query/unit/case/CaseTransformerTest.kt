@@ -229,7 +229,7 @@ class CaseTransformerTest {
       crn = crn,
       cpr = caseOrchestrationDto.cpr,
       tier = caseOrchestrationDto.tier,
-      person = toPersonDto(caseOrchestrationDto.case!!),
+      person = toPersonDto(caseOrchestrationDto.case!!, limited = false),
     )
 
     assertThat(result).isEqualTo(expectedCaseDto)

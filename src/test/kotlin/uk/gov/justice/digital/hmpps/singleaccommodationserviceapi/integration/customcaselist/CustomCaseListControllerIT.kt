@@ -325,7 +325,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `returns the cases with an upstream failure and no limited access flag when delius case summaries are unavailable`() {
+    fun `returns the cases with an upstream failure and a false limited access flag when delius case summaries are unavailable`() {
       addToCustomCaseList(caseRepository.save(buildCaseEntity(firstName = "Joe") { withCrn("A123456") }).id)
       ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
       ProbationIntegrationDeliusStubs.postCaseSummariesServerError()
@@ -336,7 +336,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
         .jsonPath("$.data[0].crn").isEqualTo("A123456")
         .jsonPath("$.data[0].forename").isEqualTo("Joe")
         .jsonPath("$.data[0].userAccess").isEqualTo("FULL")
-        .jsonPath("$.data[0].limitedAccess").doesNotExist()
+        .jsonPath("$.data[0].limitedAccess").isEqualTo(false)
         .jsonPath("$.upstreamFailures.length()").isEqualTo(1)
         .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("postCaseSummaries")
 

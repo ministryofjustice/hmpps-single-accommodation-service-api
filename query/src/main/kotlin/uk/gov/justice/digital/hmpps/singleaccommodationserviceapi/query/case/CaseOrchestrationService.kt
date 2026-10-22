@@ -26,14 +26,15 @@ class CaseOrchestrationService(
   val sasAndDeliusCachingService: SasAndDeliusCachingService,
   val corePersonRecordCachingService: CorePersonRecordCachingService,
   val tierCachingService: TierCachingService,
+  val limitedAccessService: LimitedAccessService,
   @param:Value($$"${case-list.page-size:100}") val pageSize: Long,
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
   private val initialPage = 0L
 
-  @Cacheable(FULL_CASE_LIST)
-  fun getCaseList(username: String, teamCode: String?): OrchestrationResultDto<List<Case>> {
+  @Cacheable(FULL_CASE_LIST, unless = "!#result.upstreamFailures.isEmpty()")
+  fun getCaseList(username: String, teamCode: String?): OrchestrationResultDto<CaseListOrchestrationDto> {
     log.debug("Retrieving case list from Delius for username {}", username)
     val initialCall = mapOf(
       getCallKey(username, initialPage) to {
@@ -68,9 +69,14 @@ class CaseOrchestrationService(
         getRemainingCases(list.page, username, teamCode)
       } ?: (emptyList<Case>() to emptyList())
 
+    val cases = caseList?.cases?.plus(additionalCases) ?: emptyList()
+    val caseAccessResults = aggregatorService.orchestrateAsyncCalls(
+      standardCallsNoIteration = limitedAccessService.userAccessCalls(username, cases.map { it.crn }),
+    ).standardCallsNoIterationResults!!
+
     return OrchestrationResultDto(
-      data = caseList?.cases?.plus(additionalCases) ?: emptyList(),
-      upstreamFailures = initialResultSet.getFailures() + additionalFailures,
+      data = CaseListOrchestrationDto(cases = cases, caseAccess = limitedAccessService.getCaseAccess(caseAccessResults)),
+      upstreamFailures = initialResultSet.getFailures() + additionalFailures + caseAccessResults.getFailures(),
     )
   }
 
