@@ -19,6 +19,6 @@ class ProbationAreaTelemetryFilter : Filter {
   }
 
   companion object {
-    private const val BAGGAGE_KEY = "probationArea"
+    private const val BAGGAGE_KEY = "requestIdentifier"
   }
 }
