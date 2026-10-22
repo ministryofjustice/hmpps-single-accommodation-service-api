@@ -639,43 +639,64 @@ class EligibilityServiceTest {
   @Nested
   inner class Cas2EligibilityScenarios {
 
-    fun loadCas2Scenarios(): List<Cas2Scenario> {
+    fun loadCas2EligibilityScenarios(): List<Cas2EligibilityScenario> {
       val rows = CsvReader().read("/cas2-eligibility-scenarios.csv")
 
       return rows.flatMapIndexed { idx, row ->
 
         val accommodationTypes = row["currentAccommodationType"].expandCurrentAccommodationType()
-        val applicationStatuses = row["cas2ApplicationStatus"].expandCas2ApplicationStatus()
         val tierScores = row["tierScore"].expandTierScore()
 
         try {
           accommodationTypes.flatMap { accommodationType ->
-            applicationStatuses.flatMap { applicationStatus ->
-              tierScores.map { tierScore ->
-                Cas2Scenario(
-                  testCaseId = row["testCaseId"]!!,
-                  description = row["description"],
-                  referenceDate = row["referenceDate"]!!.toLocalDate(),
-                  hasNextAccommodation = row["hasNextAccommodation"]!!,
-                  currentAccommodationType = accommodationType,
-                  currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
-                  markedAsArrived = row["markedAsArrived"]!!.toBoolean(),
-                  tierScore = tierScore,
-                  isApplicationPresent = row["isApplicationPresent"]!!,
-                  submittedAt = row["submittedAt"]?.toLocalDate(),
-                  cas2ApplicationStatus = applicationStatus,
-                  expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
-                  expectedCas2Url = row["expectedCas2Url"],
-                  u18 = row["u18"]?.toBoolean(),
-                  hasSexualOffenceRegistrations = row["hasSexualOffenceRegistrations"]!!.lowercase().toBooleanStrict(),
-                  expectedFailureReasons = row["expectedFailureReasons"]
-                    ?.takeIf { it.isNotBlank() }
-                    ?.split(",")
-                    ?.map { FailureReason.valueOf(it.trim()) }
-                    ?: emptyList(),
-                )
-              }
+            tierScores.map { tierScore ->
+              Cas2EligibilityScenario(
+                testCaseId = row["testCaseId"]!!,
+                description = row["description"],
+                referenceDate = row["referenceDate"]!!.toLocalDate(),
+                hasNextAccommodation = row["hasNextAccommodation"]!!,
+                currentAccommodationType = accommodationType,
+                currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
+                tierScore = tierScore,
+                expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
+                expectedCas2Url = row["expectedCas2Url"],
+                u18 = row["u18"]?.toBoolean(),
+                hasSexualOffenceRegistrations = row["hasSexualOffenceRegistrations"]!!.lowercase().toBooleanStrict(),
+                expectedFailureReasons = row["expectedFailureReasons"]
+                  ?.takeIf { it.isNotBlank() }
+                  ?.split(",")
+                  ?.map { FailureReason.valueOf(it.trim()) }
+                  ?: emptyList(),
+              )
             }
+          }
+        } catch (e: Exception) {
+          throw IllegalStateException("CAS2 CSV row $idx failed: $row", e)
+        }
+      }
+    }
+
+    fun loadCas2ApplicationScenarios(): List<Cas2ApplicationScenario> {
+      val rows = CsvReader().read("/cas2-application-scenarios.csv")
+
+      return rows.flatMapIndexed { idx, row ->
+
+        val applicationStatuses = row["cas2ApplicationStatus"].expandCas2ApplicationStatus()
+
+        try {
+          applicationStatuses.map { applicationStatus ->
+            Cas2ApplicationScenario(
+              testCaseId = row["testCaseId"]!!,
+              description = row["description"],
+              referenceDate = row["referenceDate"]!!.toLocalDate(),
+              currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
+              isEligible = row["isEligible"]!!.toBoolean(),
+              submittedAt = row["submittedAt"]?.toLocalDate(),
+              cas2ApplicationStatus = applicationStatus,
+              expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
+              expectedCas2Url = row["expectedCas2Url"],
+              markedAsArrived = row["markedAsArrived"]!!.toBoolean(),
+            )
           }
         } catch (e: Exception) {
           throw IllegalStateException("CAS2 CSV row $idx failed: $row", e)
@@ -697,41 +718,11 @@ class EligibilityServiceTest {
 
     @Test
     fun `should calculate eligibility for cas2 for all scenarios`() {
-      val scenarios = loadCas2Scenarios()
+      val scenarios = loadCas2EligibilityScenarios()
 
       runScenarios(scenarios) { s ->
 
         clock.setNow(s.referenceDate)
-
-        val cas2Application = if (s.isApplicationPresent == "TRUE") {
-          buildCas2Application(
-            submittedApplication = if (s.submittedAt != null) {
-              buildCas2SubmittedApplicationSummary(
-                latestAssessmentStatus = s.cas2ApplicationStatus,
-                markedArrivedDateTime = if (s.markedAsArrived) {
-                  s.referenceDate.atStartOfDay().toInstant(ZoneOffset.UTC)
-                } else {
-                  null
-                },
-                submittedAt = s.submittedAt.atStartOfDay().atOffset(ZoneOffset.UTC),
-                cancelledReason = if (s.cas2ApplicationStatus == Cas2AssessmentStatus.CANCELLED) {
-                  "cancelled reason"
-                } else {
-                  null
-                },
-                offerDeclinedReason = if (s.cas2ApplicationStatus == Cas2AssessmentStatus.OFFER_DECLINED) {
-                  "offerDeclined reason"
-                } else {
-                  null
-                },
-              )
-            } else {
-              null
-            },
-          )
-        } else {
-          null
-        }
 
         val currentAccommodation = s.currentAccommodationType?.let {
           buildAccommodationSummaryDto(
@@ -755,7 +746,7 @@ class EligibilityServiceTest {
           crn = s.testCaseId,
           currentAccommodation = currentAccommodation,
           nextAccommodations = nextAccommodations,
-          cas2Application = cas2Application,
+          cas2Application = null,
           currentAccommodationTypeEntity = s.currentAccommodationType?.let {
             buildAccommodationTypeEntity(
               code = it,
@@ -797,13 +788,91 @@ class EligibilityServiceTest {
         val expectedUrl = when (s.expectedCas2Url) {
           null -> null
           "/applications/start" -> cas2ApplicationStartUrl
-          else -> cas2Application?.uiUrl
+          else -> null
         }
         assertThat(result.url).isEqualTo(expectedUrl)
 
         assertThat(result.failureReasons)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
+      }
+    }
+
+    @Test
+    fun `should calculate for cas2 applications for all scenarios`() {
+      val scenarios = loadCas2ApplicationScenarios()
+
+      runScenarios(scenarios) { s ->
+
+        clock.setNow(s.referenceDate)
+
+        val cas2Application = buildCas2Application(
+          submittedApplication = if (s.submittedAt != null) {
+            buildCas2SubmittedApplicationSummary(
+              latestAssessmentStatus = s.cas2ApplicationStatus,
+              markedArrivedDateTime = if (s.markedAsArrived) {
+                s.referenceDate.atStartOfDay().toInstant(ZoneOffset.UTC)
+              } else {
+                null
+              },
+              submittedAt = s.submittedAt.atStartOfDay().atOffset(ZoneOffset.UTC),
+              cancelledReason = if (s.cas2ApplicationStatus == Cas2AssessmentStatus.CANCELLED) {
+                "cancelled reason"
+              } else {
+                null
+              },
+              offerDeclinedReason = if (s.cas2ApplicationStatus == Cas2AssessmentStatus.OFFER_DECLINED) {
+                "offerDeclined reason"
+              } else {
+                null
+              },
+            )
+          } else {
+            null
+          },
+        )
+
+        val data = buildDomainData(
+          crn = s.testCaseId,
+          currentAccommodation = buildAccommodationSummaryDto(
+            endDate = s.currentAccommodationEndDate,
+            type = buildAccommodationTypeDto(
+              code = "A02",
+            ),
+          ),
+          nextAccommodations = emptyList(),
+          cas2Application = cas2Application,
+          currentAccommodationTypeEntity = buildAccommodationTypeEntity(
+            code = "A02",
+            isCas1 = true,
+            isCas2 = !s.isEligible,
+          ),
+          dob = LocalDate.now(clock).minusYears(18),
+          tierScore = "A",
+          sexualOffenceRegistrations = null,
+        )
+
+        val result = eligibilityService.evaluate(cas2Tree, data)
+
+        assertThat(result.serviceStatus)
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas2Status}")
+          .isEqualTo(s.expectedCas2Status)
+
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusDays(15)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CAS2)
+        val expectedUrl = when (s.expectedCas2Url) {
+          null -> null
+          "/applications/start" -> cas2ApplicationStartUrl
+          "/applications/{applicationId}" -> cas2Application.uiUrl
+          else -> null
+        }
+        assertThat(result.url).isEqualTo(expectedUrl)
       }
     }
   }
@@ -1550,7 +1619,7 @@ data class Cas1Scenario(
   val expectedFailureReasons: List<FailureReason>,
 )
 
-data class Cas2Scenario(
+data class Cas2EligibilityScenario(
   val testCaseId: String,
   val description: String?,
   val hasNextAccommodation: String,
@@ -1558,15 +1627,24 @@ data class Cas2Scenario(
   val referenceDate: LocalDate,
   val currentAccommodationType: String?,
   val currentAccommodationEndDate: LocalDate?,
-  val isApplicationPresent: String,
-  val submittedAt: LocalDate?,
-  val cas2ApplicationStatus: Cas2AssessmentStatus?,
-  val markedAsArrived: Boolean,
   val expectedCas2Status: ServiceStatusNew?,
   val expectedCas2Url: String?,
   val u18: Boolean?,
   val hasSexualOffenceRegistrations: Boolean,
   val expectedFailureReasons: List<FailureReason>,
+)
+
+data class Cas2ApplicationScenario(
+  val testCaseId: String,
+  val description: String?,
+  val referenceDate: LocalDate,
+  val currentAccommodationEndDate: LocalDate?,
+  val isEligible: Boolean,
+  val submittedAt: LocalDate?,
+  val cas2ApplicationStatus: Cas2AssessmentStatus?,
+  val expectedCas2Status: ServiceStatusNew?,
+  val expectedCas2Url: String?,
+  val markedAsArrived: Boolean,
 )
 
 data class DtrScenario(
