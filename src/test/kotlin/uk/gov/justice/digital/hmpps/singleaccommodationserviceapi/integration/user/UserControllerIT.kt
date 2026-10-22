@@ -70,7 +70,8 @@ class UserControllerIT : IntegrationTestBase() {
             {"name": "TEAMNAME1", "code": "TEAM1"},
             {"name": "TEAMNAME2", "code": "TEAM2"}
           ],
-          "probationAreaCode": "PA123"
+          "probationAreaCode": "PA123",
+          "userType": "DELIUS"
         }
       }
     """.trimIndent()
@@ -95,10 +96,13 @@ class UserControllerIT : IntegrationTestBase() {
 
     NomisUserRolesStubs.stubMe(
       jwt = jwt,
-      response = buildNomisUserDetail(username = USERNAME_OF_LOGGED_IN_NOMIS_USER),
+      response = buildNomisUserDetail(
+        username = USERNAME_OF_LOGGED_IN_NOMIS_USER,
+        activeCaseloadId = "MDI",
+      ),
     )
 
-    val expectedResponse = """{"data":{"username":"$USERNAME_OF_LOGGED_IN_NOMIS_USER"}}"""
+    val expectedResponse = """{"data":{"username":"$USERNAME_OF_LOGGED_IN_NOMIS_USER","prisonCode":"MDI","userType":"NOMIS"}}"""
     val result = restTestClient.get().uri("/users/me")
       .withNomisUserJwt(jwt = jwt)
       .exchangeSuccessfully()

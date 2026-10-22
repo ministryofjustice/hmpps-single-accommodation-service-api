@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.Team
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 
@@ -10,15 +11,22 @@ import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 class UserQueryService(
   private val httpAuthService: HttpAuthService,
   private val approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService,
+  private val nomisUserRolesService: NomisUserRolesService,
 ) {
   fun getTeams() = (getUserData() as DeliusUserDto).teams
 
-  fun getUserData(): User {
+  fun getUserData(): UserDto {
     val principal = httpAuthService.getPrincipalOrThrow()
     return when (principal.authSource) {
-      AuthSource.NOMIS -> NomisUserDto(
-        username = principal.username.value,
-      )
+      AuthSource.NOMIS -> {
+        val jwt = httpAuthService.getJwt()
+        val nomisUser = nomisUserRolesService.getUserDetailsForMe(jwt)
+
+        NomisUserDto(
+          username = principal.username.value,
+          prisonCode = nomisUser?.activeCaseloadId,
+        )
+      }
 
       AuthSource.DELIUS -> {
         val user = approvedPremisesAndDeliusCachingService.getStaffDetail(principal.username.value)

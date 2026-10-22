@@ -3,21 +3,22 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.us
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeam
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.DeliusUserDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.NomisUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.TeamDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.UserQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.UserType
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import java.util.UUID
 
@@ -30,6 +31,9 @@ class UserQueryServiceTest {
   @MockK
   lateinit var approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService
 
+  @MockK
+  lateinit var nomisUserRolesService: NomisUserRolesService
+
   lateinit var userQueryService: UserQueryService
 
   @BeforeEach
@@ -37,6 +41,7 @@ class UserQueryServiceTest {
     userQueryService = UserQueryService(
       httpAuthService = httpAuthService,
       approvedPremisesAndDeliusCachingService = approvedPremisesAndDeliusCachingService,
+      nomisUserRolesService = nomisUserRolesService,
     )
   }
 
@@ -76,7 +81,9 @@ class UserQueryServiceTest {
       teams = teams,
     )
 
-    assertThat(userQueryService.getUserData()).isEqualTo(
+    val result = userQueryService.getUserData()
+
+    assertThat(result).isEqualTo(
       DeliusUserDto(
         username = principal.username.value,
         teams = listOf(
@@ -86,18 +93,18 @@ class UserQueryServiceTest {
         probationAreaCode = "PA123",
       ),
     )
+    assertThat((result as DeliusUserDto).userType).isEqualTo(UserType.DELIUS)
   }
 
   @Test
-  fun `getUserData returns nomis user data`() {
-    val principal = principal(AuthSource.NOMIS)
+  fun `getUserData throws for unsupported auth source`() {
+    val principal = principal(AuthSource.NONE)
 
     every { httpAuthService.getPrincipalOrThrow() } returns principal
 
-    assertThat(userQueryService.getUserData()).isEqualTo(
-      NomisUserDto(username = principal.username.value),
-    )
-    verify(exactly = 0) { approvedPremisesAndDeliusCachingService.getStaffDetail("nomis.user") }
+    assertThatThrownBy { userQueryService.getUserData() }
+      .isInstanceOf(IllegalStateException::class.java)
+      .hasMessage("Could not find DELIUS or NOMIS auth source")
   }
 
   private fun principal(authSource: AuthSource) = UserPrincipal(
