@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.DutyToReferCreatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.DutyToReferUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusException
@@ -53,7 +54,7 @@ class DutyToReferAggregateTest {
 
     val domainEvents = aggregate.pullDomainEvents()
     assertThat(domainEvents).hasSize(1)
-    assertThat(domainEvents.first()).isInstanceOf(DutyToReferUpdatedDomainEvent::class.java)
+    assertThat(domainEvents.first()).isInstanceOf(DutyToReferCreatedDomainEvent::class.java)
     assertThat(domainEvents.first().aggregateId).isEqualTo(snapshot.id)
   }
 
