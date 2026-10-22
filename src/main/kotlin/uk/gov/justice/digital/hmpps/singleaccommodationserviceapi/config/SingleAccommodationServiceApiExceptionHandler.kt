@@ -29,8 +29,10 @@ class SingleAccommodationServiceApiExceptionHandler(
     .body(
       ErrorResponse(
         status = BAD_REQUEST,
+        errorCode = e.errorKey,
         userMessage = "Domain exception: ${e.message}",
-        developerMessage = e.message,
+        developerMessage = e.errorMessage,
+        moreInfo = e.errorMessage,
       ),
     ).also { log.error("Domain exception: {}", e.message) }
 
