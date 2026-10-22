@@ -10,6 +10,7 @@ data class ProposedAccommodationDto(
   val crn: String,
   val accommodationType: AccommodationTypeDto?,
   val verificationStatus: VerificationStatus?,
+  val verificationReason: String? = null,
   val nextAccommodationStatus: NextAccommodationStatus?,
   val address: AccommodationAddressDetails,
   val createdBy: String,
@@ -24,9 +25,22 @@ data class ProposedAccommodationDto(
 data class ProposedAccommodationDetailCommand(
   val accommodationTypeCode: String?,
   val verificationStatus: VerificationStatus,
+  val verificationReason: String? = null,
   val nextAccommodationStatus: NextAccommodationStatus,
   val address: AccommodationAddressDetails,
-)
+) {
+  init {
+    require(
+      if (verificationStatus == VerificationStatus.NOT_CHECKED_YET) {
+        verificationReason == null
+      } else {
+        !verificationReason.isNullOrBlank()
+      },
+    ) {
+      "verificationReason must be null when verificationStatus is NOT_CHECKED_YET and non-blank otherwise"
+    }
+  }
+}
 
 data class ProposedAccommodationArrivalCommand(
   val arrivalDate: LocalDate,
