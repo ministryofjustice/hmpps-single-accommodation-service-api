@@ -8,15 +8,46 @@ permissions:
   packages: write
 
 jobs:
+  app_version:
+    permissions:
+      contents: read
+    name: Create app version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.app_version.outputs.version }}
+    steps:
+      - id: app_version
+        name: Create app version
+        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/build-test-and-deploy/create_app_version@85dea2c43d9d69b5143817f8b84b71cf30d15df5 # WORKFLOW_VERSION
+
+  build_jar:
+    permissions:
+      contents: read
+    name: Build application jar
+    needs:
+      - app_version
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
+    with:
+      java-version: '25'
+      gradle-command: 'BUILD_NUMBER=${{ needs.app_version.outputs.version }} ./gradlew assemble'
+      upload-test-artifacts: false
+      upload-build-artifacts: true
+    secrets: inherit
+
   docker_build:
     name: Build docker image from hmpps-github-actions
+    needs:
+      - app_version
+      - build_jar
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@v2 # WORKFLOW_VERSION
     with:
       docker_registry: 'ghcr.io'
       registry_org: 'ministryofjustice'
+      image_version: '${{ needs.app_version.outputs.version }}'
       push: true
       docker_multiplatform: false
       tag_latest: false
+      download_build_artifacts: true
 
   deploy_test:
     name: Deploy to the test environment
