@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
-import org.springframework.test.web.servlet.client.expectBody
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
@@ -173,7 +173,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
       )
 
-      restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}", crn, entity.id)
+      webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}", crn, entity.id)
         .withDeliusUserJwt()
         .exchangeSuccessfully()
         .expectBody<String>()
@@ -267,7 +267,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         uprn = "100023336956",
       )
 
-      val response = restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+      val response = webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
         .withDeliusUserJwt()
         .exchangeSuccessfully()
         .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
@@ -433,7 +433,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       )
 
       val response =
-        restTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=true", crn)
+        webTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=true", crn)
           .withDeliusUserJwt()
           .exchangeSuccessfully()
           .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
@@ -580,7 +580,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       )
 
       val response =
-        restTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=false", crn)
+        webTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=false", crn)
           .withDeliusUserJwt()
           .exchangeSuccessfully()
           .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
@@ -767,7 +767,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       )
 
       val response =
-        restTestClient.get().uri("/cases/{crn}/proposed-accommodations?confirmedOnly=true", crn)
+        webTestClient.get().uri("/cases/{crn}/proposed-accommodations?confirmedOnly=true", crn)
           .withDeliusUserJwt()
           .exchangeSuccessfully()
           .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
@@ -861,7 +861,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       )
 
       val response =
-        restTestClient.get().uri("/cases/{crn}/proposed-accommodations?confirmedOnly=false", crn)
+        webTestClient.get().uri("/cases/{crn}/proposed-accommodations?confirmedOnly=false", crn)
           .withDeliusUserJwt()
           .exchangeSuccessfully()
           .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
@@ -890,7 +890,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     @Test
     fun `should return 404 when requested case does not exist for proposed-accommodations`() {
       val missingCrn = "X000000"
-      restTestClient.get().uri("/cases/{crn}/proposed-accommodations", missingCrn)
+      webTestClient.get().uri("/cases/{crn}/proposed-accommodations", missingCrn)
         .withDeliusUserJwt()
         .exchange()
         .expectStatus().isNotFound
@@ -898,7 +898,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
 
     @Test
     fun `should return empty list when no proposed-accommodations exist for crn`() {
-      restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+      webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
         .withDeliusUserJwt()
         .exchangeSuccessfully()
         .expectBody<String>()
@@ -983,9 +983,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       contacts = emptyList(),
     )
     CorePersonRecordStubs.postAddress(crn, request = expectedCprRequestBody, response = buildProbationCreateAddressResponse(crn, cprAddressId))
-    val createProposedAccommodationResponseBody = restTestClient.post().uri("/cases/$crn/proposed-accommodations")
+    val createProposedAccommodationResponseBody = webTestClient.post().uri("/cases/$crn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = addressUsageCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1018,10 +1018,10 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       cacheValue = buildCorePersonRecord(),
     )
     val addressUsageCode = AddressUsageCode.A01A
-    val createdProposedAccommodation = restTestClient.post()
+    val createdProposedAccommodation = webTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations", crn)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           subBuildingName = "test sub building name",
           buildingName = "test building name",
@@ -1080,9 +1080,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should receive Bad Request when create proposed-accommodation with null accommodation-type`() {
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = null,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1109,9 +1109,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun `should receive 5xx Error for create proposed-accommodation when current accommodation has 5xx upstream failure`() {
     val currentAccommodation5xxWireMockedCrn = "X123"
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn = currentAccommodation5xxWireMockedCrn)
-    restTestClient.post().uri("/cases/$currentAccommodation5xxWireMockedCrn/proposed-accommodations")
+    webTestClient.post().uri("/cases/$currentAccommodation5xxWireMockedCrn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1137,9 +1137,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun `should receive NOT_FOUND Error for create proposed-accommodation when current accommodation has NOT_FOUND upstream failure`() {
     val currentAccommodation4xxWireMockedCrn = "X123"
     CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crn = currentAccommodation4xxWireMockedCrn)
-    restTestClient.post().uri("/cases/$currentAccommodation4xxWireMockedCrn/proposed-accommodations")
+    webTestClient.post().uri("/cases/$currentAccommodation4xxWireMockedCrn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1199,9 +1199,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     )
     CorePersonRecordStubs.postAddress(crn, request = expectedCprRequestBody, response = buildProbationCreateAddressResponse(crn, cprAddressId))
 
-    val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = addressUsageCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1321,9 +1321,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         startDate = LocalDate.now(),
       ),
     )
-    val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = newAccommodationTypeCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1439,9 +1439,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
     val addressUsageCode = AddressUsageCode.A01A
-    val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           nextAccommodationStatus = unconfirmedStatus.name,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1516,9 +1516,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun `should receive 5xx Error for update proposed-accommodation when current accommodation has upstream failures`() {
     val noCurrentAccommodationWireMockedCrn = "X123"
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn = noCurrentAccommodationWireMockedCrn)
-    restTestClient.put().uri("/cases/$noCurrentAccommodationWireMockedCrn/proposed-accommodations/${UUID.randomUUID()}")
+    webTestClient.put().uri("/cases/$noCurrentAccommodationWireMockedCrn/proposed-accommodations/${UUID.randomUUID()}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.PASSED.name,
@@ -1543,9 +1543,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET.name,
@@ -1563,9 +1563,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun `should return 404 when updating nonexistent proposed-accommodation`() {
     val nonExistentId = UUID.randomUUID()
 
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/$nonExistentId")
+    webTestClient.put().uri("/cases/$crn/proposed-accommodations/$nonExistentId")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.PASSED.name,
@@ -1599,9 +1599,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/${otherEntity.id}")
+    webTestClient.put().uri("/cases/$crn/proposed-accommodations/${otherEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A07B",
           verificationStatus = EntityVerificationStatus.PASSED.name,
@@ -1616,10 +1616,10 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   @Test
   fun `should return proposed accommodation timeline when single 'Unconfirmed' proposed accommodation created`() {
     val accommodationTypeCode = "A01A"
-    val createdProposedAccommodation = restTestClient.post()
+    val createdProposedAccommodation = webTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations", crn)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           subBuildingName = null,
           accommodationTypeCode = accommodationTypeCode,
@@ -1640,7 +1640,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     assertThat(commitTimesAsc).hasSize(1)
 
     val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(accommodationTypeCode)
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -1668,10 +1668,10 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       .readTree(createProposedAccommodationResponseBody)
       .get("id").asText()
 
-    restTestClient.post()
+    webTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations/{id}/notes", crn, createdProposedAccommodationId)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = "Test note",
         ),
@@ -1701,9 +1701,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       deliusUsername = usernameOfNewDeliusUser,
       response = newDeliusUserStaffDetail,
     )
-    restTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
+    webTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           subBuildingName = "another sub building name",
           buildingName = expectedCprRequestBody.buildingName!!,
@@ -1722,9 +1722,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       .withDeliusUserJwt(username = usernameOfNewDeliusUser)
       .exchangeSuccessfully()
 
-    restTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
+    webTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           subBuildingName = null,
           buildingName = expectedCprRequestBody.buildingName!!,
@@ -1747,7 +1747,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     val createNoteCommitTime = proposedAccommodationRepository.findAllWithNotesByCrnOrderByCreatedAtDesc(crn).first()
       .notes.first().createdAt
 
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -1796,9 +1796,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     )
     val note1Value = "Test note 1"
     val note2Value = "Test note 2"
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = note1Value,
         ),
@@ -1809,9 +1809,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     var proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllWithNotesByCrnOrderByCreatedAtDesc(crn).first()
     assertThat(proposedAccommodationPersistedResult.notes.first().note).isEqualTo(note1Value)
 
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = note2Value,
         ),
@@ -1827,9 +1827,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should not create a note for proposed-accommodation when accommodation not found`() {
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${UUID.randomUUID()}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${UUID.randomUUID()}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = "Test note",
         ),
@@ -1853,9 +1853,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
       ),
     )
-    restTestClient.post().uri("/cases/$unknownCrn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$unknownCrn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = "Test note",
         ),
@@ -1878,9 +1878,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
     val note = ""
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(note),
       )
       .withDeliusUserJwt()
@@ -1901,9 +1901,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
     val note = "a".repeat(4001)
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(note),
       )
       .withDeliusUserJwt()
@@ -1954,9 +1954,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         ),
       )
 
-      restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+      webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(
+        .bodyValue(
           proposedAccommodationArrivalRequestBody(
             arrivalDate = fixedInstant.toString(),
           ),
@@ -2048,9 +2048,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         ),
       )
 
-      restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+      webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(
+        .bodyValue(
           proposedAccommodationArrivalRequestBody(
             arrivalDate = fixedInstant.toString(),
           ),
@@ -2104,9 +2104,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         ),
       )
 
-      restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+      webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(
+        .bodyValue(
           proposedAccommodationArrivalRequestBody(
             arrivalDate = fixedInstant.toString(),
             arrivalMethod = ArrivalMethod.WITHOUT_VERIFICATION,
@@ -2199,9 +2199,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         ),
       )
 
-      restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+      webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(
+        .bodyValue(
           proposedAccommodationArrivalRequestBody(
             arrivalDate = fixedInstant.toString(),
             arrivalMethod = ArrivalMethod.WITHOUT_VERIFICATION,

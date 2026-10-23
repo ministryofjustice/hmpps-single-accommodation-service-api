@@ -19,7 +19,6 @@ dependencies {
 
   implementation(libs.hmpps.starter)
   implementation(libs.spring.data.jpa)
-  implementation(libs.spring.restclient)
   implementation(libs.spring.webclient)
   implementation(libs.spring.flyway)
 
@@ -32,7 +31,6 @@ dependencies {
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.hmpps.sqs)
   testImplementation(libs.coroutines.core)
-  testImplementation(libs.spring.resttestclient)
 
   testImplementation(libs.wiremock)
   testImplementation(libs.mockk)

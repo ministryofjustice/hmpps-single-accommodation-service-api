@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -151,7 +152,7 @@ class CaseControllerIT : IntegrationTestBase() {
     // SAS knows about 2 cases
     assertThat(caseRepository.findAll()).hasSize(2)
 
-    restTestClient.get().uri { it.path("/case-list").build() }
+    webTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -201,7 +202,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
     assertThat(caseRepository.findAll().size).isEqualTo(cases.size)
 
-    val result = restTestClient.get().uri { it.path("/case-list").build() }
+    val result = webTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
 
@@ -209,7 +210,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
     assertThat(caseRepository.findAll().size).isEqualTo(20)
 
-    result.expectBody(String::class.java)
+    result.expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetCaseListResponse())
       }
@@ -303,7 +304,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
     assertThat(caseRepository.findByCrn(crn)).isNull()
 
-    restTestClient.get().uri { it.path("/case-list").build() }
+    webTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -385,7 +386,7 @@ class CaseControllerIT : IntegrationTestBase() {
     fun `should create a partial case and request a refresh on search when the tier API returns a server error`() {
       TierStubs.getTierServerErrorResponse(crn)
 
-      restTestClient.get().uri("/search/$crn")
+      webTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()
         .exchangeSuccessfully()
 
@@ -448,7 +449,7 @@ class CaseControllerIT : IntegrationTestBase() {
     }
     caseRepository.saveAndFlush(preSeededCaseEntity)
 
-    restTestClient.get().uri { it.path("/case-list").build() }
+    webTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -484,7 +485,7 @@ class CaseControllerIT : IntegrationTestBase() {
     assertThat(caseRepository.findAll()).hasSize(0)
 
     // request with no parameters defaults to only the cases assigned to the user, so should only return `assignedCase`
-    restTestClient.get().uri { it.path("/case-list").build() }
+    webTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -500,7 +501,7 @@ class CaseControllerIT : IntegrationTestBase() {
       pageSize = pageSize.toInt(),
     )
 
-    restTestClient.get().uri { it.path("/case-list").queryParam("teamCode", team.code).build() }
+    webTestClient.get().uri { it.path("/case-list").queryParam("teamCode", team.code).build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -519,7 +520,7 @@ class CaseControllerIT : IntegrationTestBase() {
     val failures = mutableListOf<String>()
 
     caseListFilters().forEach { filter ->
-      val response = restTestClient.get().uri {
+      val response = webTestClient.get().uri {
         it.path("/case-list")
           .queryParam(filter.queryParameter, filter.value).build()
       }
@@ -553,10 +554,10 @@ class CaseControllerIT : IntegrationTestBase() {
       seedAllCaseEntities(listOf(case), "A1")
 
       assertThat(caseRepository.findAll().size).isEqualTo(1)
-      val result = restTestClient.get().uri { it.path("/search/$crn").build() }
+      val result = webTestClient.get().uri { it.path("/search/$crn").build() }
         .withDeliusUserJwt()
         .exchangeSuccessfully()
-      result.expectBody(String::class.java)
+      result.expectBody<String>()
         .value {
           assertThatJson(it!!).matchesExpectedJson(expectedGetCaseResponseSearch())
         }
@@ -572,7 +573,7 @@ class CaseControllerIT : IntegrationTestBase() {
     @ParameterizedTest
     @ValueSource(strings = ["123456", "AB12345", "A12345", "A1234567", "A12B456"])
     fun `returns BadRequest when crn format is invalid`(crn: String) {
-      restTestClient.get().uri("/search/$crn")
+      webTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()
         .exchange()
         .expectStatus().isBadRequest
@@ -585,7 +586,7 @@ class CaseControllerIT : IntegrationTestBase() {
     fun `returns NotFound error when delius returns NotFound error`() {
       val crn = "B123456"
       SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-      restTestClient.get().uri("/search/$crn")
+      webTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()
         .exchange()
         .expectStatus()
@@ -596,7 +597,7 @@ class CaseControllerIT : IntegrationTestBase() {
     fun `returns ServerError when delius returns ServerError`() {
       val crn = "C123456"
       SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-      restTestClient.get().uri("/search/$crn")
+      webTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()
         .exchange()
         .expectStatus()
@@ -608,7 +609,7 @@ class CaseControllerIT : IntegrationTestBase() {
   fun `returns NotFound error when delius returns NotFound error`() {
     val crn = crns[0]
     SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
@@ -653,12 +654,12 @@ class CaseControllerIT : IntegrationTestBase() {
     val assertions: List<(List<CaseDto>) -> Unit> = emptyList(),
   )
 
-  private fun getCaseResponse(crn: String) = restTestClient.get().uri("/cases/$crn")
+  private fun getCaseResponse(crn: String) = webTestClient.get().uri("/cases/$crn")
     .withDeliusUserJwt()
     .exchangeSuccessfully()
-    .expectBody(String::class.java)
+    .expectBody<String>()
 
-  private fun getCaseListResponse() = restTestClient.get().uri { it.path("/case-list").build() }
+  private fun getCaseListResponse() = webTestClient.get().uri { it.path("/case-list").build() }
     .withDeliusUserJwt()
     .exchangeSuccessfully()
     .expectApiResponse<List<CaseDto>>()
@@ -681,7 +682,7 @@ class CaseControllerIT : IntegrationTestBase() {
   fun `returns ServerError when delius returns ServerError`() {
     val crn = crns[0]
     SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
@@ -694,7 +695,7 @@ class CaseControllerIT : IntegrationTestBase() {
     val case = buildCase(crn = crn)
     SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
@@ -707,7 +708,7 @@ class CaseControllerIT : IntegrationTestBase() {
     val case = buildCase(crn = crn)
     SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
     CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crn)
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
@@ -727,9 +728,9 @@ class CaseControllerIT : IntegrationTestBase() {
     fun `returns 201 created if crn has applications with the application id`() {
       ApprovedPremisesStubs.postCas2ArrivalOKResponse(crn, applicationId)
 
-      restTestClient.post().uri("/cases/$crn/applications/$applicationId/arrival")
+      webTestClient.post().uri("/cases/$crn/applications/$applicationId/arrival")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(arrival)
+        .bodyValue(arrival)
         .withDeliusUserJwt()
         .exchange()
         .expectStatus()
@@ -746,9 +747,9 @@ class CaseControllerIT : IntegrationTestBase() {
     fun `returns ServerError when CAS API returns ServerError`() {
       ApprovedPremisesStubs.postCas2ArrivalServerErrorResponse(crn, applicationId)
 
-      restTestClient.post().uri("/cases/$crn/applications/$applicationId/arrival")
+      webTestClient.post().uri("/cases/$crn/applications/$applicationId/arrival")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(arrival)
+        .bodyValue(arrival)
         .withDeliusUserJwt()
         .exchange()
         .expectStatus()
@@ -759,9 +760,9 @@ class CaseControllerIT : IntegrationTestBase() {
     fun `returns ServerError when CAS API returns NotFound`() {
       ApprovedPremisesStubs.postCas2ArrivalNotFoundResponse(crn, applicationId)
 
-      restTestClient.post().uri("/cases/$crn/applications/$applicationId/arrival")
+      webTestClient.post().uri("/cases/$crn/applications/$applicationId/arrival")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(arrival)
+        .bodyValue(arrival)
         .withDeliusUserJwt()
         .exchange()
         .expectStatus()

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.r
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 
@@ -15,11 +16,11 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 200 with all local authority areas`() {
-    restTestClient.get().uri("/reference-data?type=LOCAL_AUTHORITY_AREAS")
+    webTestClient.get().uri("/reference-data?type=LOCAL_AUTHORITY_AREAS")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value { body ->
         val response = jsonMapper.readTree(body)
         val results = response.get("data")
@@ -32,11 +33,11 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 200 with type of accommodation_types`() {
-    restTestClient.get().uri("/reference-data?type=ACCOMMODATION_TYPES")
+    webTestClient.get().uri("/reference-data?type=ACCOMMODATION_TYPES")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value { body ->
         val response = jsonMapper.readTree(body)
         val results = response.get("data")
@@ -51,11 +52,11 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 200 with type of proposed accommodation_types`() {
-    restTestClient.get().uri("/reference-data?type=PROPOSED_ACCOMMODATION_TYPES")
+    webTestClient.get().uri("/reference-data?type=PROPOSED_ACCOMMODATION_TYPES")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value { body ->
         val response = jsonMapper.readTree(body)
         val results = response.get("data")
@@ -70,11 +71,11 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 200 with type of accommodation_statuses`() {
-    restTestClient.get().uri("/reference-data?type=ACCOMMODATION_STATUSES")
+    webTestClient.get().uri("/reference-data?type=ACCOMMODATION_STATUSES")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value { body ->
         val response = jsonMapper.readTree(body)
         val results = response.get("data")

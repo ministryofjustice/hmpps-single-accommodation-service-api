@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.test.web.servlet.client.expectBody
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
@@ -299,10 +299,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityResponse(
@@ -360,7 +360,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -405,7 +405,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -437,10 +437,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
   fun `should send back upstream failures and a not eligible service result when there are upstream failures`() {
     val upstreamUrl = TierStubs.getTierServerErrorResponse(crn = crn)
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityUpstreamFailuresResponse(
@@ -481,7 +481,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -499,7 +499,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     }
     caseRepository.save(entity)
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
   }
@@ -511,7 +511,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
     caseRepository.save(entity)
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
   }
