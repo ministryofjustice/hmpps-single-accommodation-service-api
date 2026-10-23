@@ -16,14 +16,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.net.http.HttpTimeoutException
 import java.time.LocalDateTime
 
-data class CallsPerIdentifier(
-  val calls: Map<String, (String) -> Any>,
-  val identifiersToIterate: List<String>,
-)
-
 data class AggregatorResult(
   val standardCallsNoIterationResults: Map<String, Any>?,
-  val callsPerIdentifierResults: Map<String, Map<String, Any>>?,
 )
 
 @Service
@@ -36,20 +30,16 @@ class AggregatorService(
 
   fun orchestrateAsyncCalls(
     standardCallsNoIteration: Map<String, () -> Any?> = emptyMap(),
-    callsPerIdentifier: CallsPerIdentifier? = null,
   ): AggregatorResult = runBlocking {
-    if (standardCallsNoIteration.isEmpty() && callsPerIdentifier == null) {
+    if (standardCallsNoIteration.isEmpty()) {
       log.debug("No API calls to execute")
-      return@runBlocking AggregatorResult(emptyMap(), emptyMap())
+      return@runBlocking AggregatorResult(emptyMap())
     }
 
     log.debug("Starting async calls: {}", LocalDateTime.now())
 
     val standardCallsSuspend: Map<String, suspend () -> Any?> =
       standardCallsNoIteration.mapValues { (_, f) -> suspend { f() } }
-
-    val perIdentifierCallsSuspend: Map<String, suspend (String) -> Any>? =
-      callsPerIdentifier?.calls?.mapValues { (_, f) -> f.asSuspend() }
 
     val standardDeferred = async(Dispatchers.IO) {
       if (standardCallsSuspend.isNotEmpty()) {
@@ -59,21 +49,8 @@ class AggregatorService(
       }
     }
 
-    val perIdentifierDeferred = async(Dispatchers.IO) {
-      if (perIdentifierCallsSuspend != null) {
-        orchestrateAsyncCalls(
-          identifiers = callsPerIdentifier.identifiersToIterate,
-          functionCalls = perIdentifierCallsSuspend,
-          semaphore = semaphore,
-        )
-      } else {
-        null
-      }
-    }
-
     val result = AggregatorResult(
       standardCallsNoIterationResults = standardDeferred.await(),
-      callsPerIdentifierResults = perIdentifierDeferred.await(),
     )
     log.debug("Finished async calls at: {}. ", LocalDateTime.now())
 
