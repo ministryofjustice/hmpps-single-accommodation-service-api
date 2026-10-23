@@ -378,7 +378,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
     webTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetCurrentAccommodationPrisonResponse(crn))
       }

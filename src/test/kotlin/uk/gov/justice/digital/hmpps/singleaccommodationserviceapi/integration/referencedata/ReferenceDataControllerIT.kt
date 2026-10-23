@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.r
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 
@@ -19,7 +20,7 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value { body ->
         val response = jsonMapper.readTree(body)
         val results = response.get("data")
@@ -36,7 +37,7 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value { body ->
         val response = jsonMapper.readTree(body)
         val results = response.get("data")
@@ -55,7 +56,7 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value { body ->
         val response = jsonMapper.readTree(body)
         val results = response.get("data")
@@ -74,7 +75,7 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value { body ->
         val response = jsonMapper.readTree(body)
         val results = response.get("data")

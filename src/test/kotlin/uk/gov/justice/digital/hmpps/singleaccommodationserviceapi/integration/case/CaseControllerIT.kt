@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -209,7 +210,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
     assertThat(caseRepository.findAll().size).isEqualTo(20)
 
-    result.expectBody(String::class.java)
+    result.expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetCaseListResponse())
       }
@@ -556,7 +557,7 @@ class CaseControllerIT : IntegrationTestBase() {
       val result = webTestClient.get().uri { it.path("/search/$crn").build() }
         .withDeliusUserJwt()
         .exchangeSuccessfully()
-      result.expectBody(String::class.java)
+      result.expectBody<String>()
         .value {
           assertThatJson(it!!).matchesExpectedJson(expectedGetCaseResponseSearch())
         }
@@ -656,7 +657,7 @@ class CaseControllerIT : IntegrationTestBase() {
   private fun getCaseResponse(crn: String) = webTestClient.get().uri("/cases/$crn")
     .withDeliusUserJwt()
     .exchangeSuccessfully()
-    .expectBody(String::class.java)
+    .expectBody<String>()
 
   private fun getCaseListResponse() = webTestClient.get().uri { it.path("/case-list").build() }
     .withDeliusUserJwt()

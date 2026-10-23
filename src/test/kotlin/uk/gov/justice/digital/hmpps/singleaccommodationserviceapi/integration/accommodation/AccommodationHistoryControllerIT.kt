@@ -109,7 +109,7 @@ class AccommodationHistoryControllerIT : IntegrationTestBase() {
     webTestClient.get().uri("/cases/{crn}/accommodation-history", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetAccommodationHistoryResponse())
       }

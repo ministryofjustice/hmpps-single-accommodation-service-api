@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarFlywaySchemaTest
@@ -76,7 +77,7 @@ class SarIntegrationTest : IntegrationTestBase() {
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentTypeCompatibleWith(MediaType.TEXT_PLAIN)
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value { body ->
         assertThat(body).contains("{{#ProposedAccommodations}}")
         assertThat(body).contains("{{#DutyToRefer}}")

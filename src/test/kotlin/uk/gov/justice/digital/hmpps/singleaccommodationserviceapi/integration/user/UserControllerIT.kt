@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.u
 
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.springframework.test.web.servlet.client.expectBody
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
@@ -77,7 +77,7 @@ class UserControllerIT : IntegrationTestBase() {
         }
       }
     """.trimIndent()
-    val result = restTestClient.get().uri("/users/me")
+    val result = webTestClient.get().uri("/users/me")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -115,7 +115,7 @@ class UserControllerIT : IntegrationTestBase() {
         }
       }
     """.trimIndent()
-    val result = restTestClient.get().uri("/users/me")
+    val result = webTestClient.get().uri("/users/me")
       .withNomisUserJwt(jwt = jwt)
       .exchangeSuccessfully()
       .expectBody<String>()
