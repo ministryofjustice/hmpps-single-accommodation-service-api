@@ -134,13 +134,12 @@ class UserAuditIT : IntegrationTestBase() {
   @Disabled(value = "POM roles have been removed for MVP. Re-enable when re-added.")
   @Test
   fun `should audit data properly for Nomis User`() {
-    NomisUserRolesStubs.stubMe(
-      jwt = jwtAuthHelper.createJwtAccessToken(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        roles = listOf("ROLE_POM", "ROLE_PRISON"),
-        authSource = AuthSource.NOMIS.source,
-      ),
-      response = nomisUserDetail,
+    val nomisUser = buildNomisUserDetail(
+      username = USERNAME_OF_LOGGED_IN_NOMIS_USER,
+    )
+    NomisUserRolesStubs.stubNomisUserDetailsResponse(
+      username = nomisUser.username,
+      response = nomisUser,
     )
     createAndAssertAuditData(
       authSource = AuthSource.NOMIS,

@@ -10,7 +10,6 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.security.oauth2.jwt.Jwt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
@@ -97,19 +96,6 @@ class UserServiceTest {
   @Nested
   inner class GetAndUpdateNomisUserOrCreate {
     private val username = Username("somenomisperson")
-    private val jwt = Jwt.withTokenValue("token")
-      .header("Authroization", "jwt")
-      .claim("username", username)
-      .build()
-
-    @Test
-    fun `getAndUpdateNomisUserOrCreate should throw NotFoundException when user-details not found`() {
-      every { nomisUserRolesService.getUserDetailsForMe(jwt) } returns null
-
-      assertThatThrownBy { userService.getAndUpdateNomisUserOrCreate(username, jwt) }
-        .isInstanceOf(NotFoundException::class.java)
-        .hasMessage("NomisUserDetail not found for [username=$username]")
-    }
 
     @Test
     fun `getAndUpdateNomisUserOrCreate returns and updates existing nomis user`() {
@@ -122,11 +108,12 @@ class UserServiceTest {
         username = username.value,
         authSource = AuthSource.NOMIS,
       )
-      every { nomisUserRolesService.getUserDetailsForMe(jwt) } returns nomisUser
+      every { httpAuthService.getUsername() } returns username
+      every { nomisUserRolesService.getNomisUserDetail(username) } returns nomisUser
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.NOMIS) } returns nomisUserEntity
       every { userRepository.save(any()) } answers { it.invocation.args[0] as UserEntity }
 
-      val result = userService.getAndUpdateNomisUserOrCreate(username, jwt)
+      val result = userService.getAndUpdateNomisUserOrCreate(username)
 
       assertThat(result.username).isEqualTo(nomisUser.username)
       assertThat(result.email).isEqualTo(nomisUser.primaryEmail)
@@ -140,11 +127,12 @@ class UserServiceTest {
       val nomisUser = buildNomisUserDetail(
         username = username.value,
       )
-      every { nomisUserRolesService.getUserDetailsForMe(jwt) } returns nomisUser
+      every { nomisUserRolesService.getNomisUserDetail(username) } returns nomisUser
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.NOMIS) } returns null
       every { userRepository.save(any()) } answers { it.invocation.args[0] as UserEntity }
+      every { httpAuthService.getUsername() } returns username
 
-      val result = userService.getAndUpdateNomisUserOrCreate(username, jwt)
+      val result = userService.getAndUpdateNomisUserOrCreate(username)
 
       assertThat(result.username).isUpperCase.isEqualTo(nomisUser.username)
       assertThat(result.authSource).isEqualTo(AuthSource.NOMIS)

@@ -28,6 +28,7 @@ private fun caseJson(
   "assignedTo": $assignedTo,
   "userAccess": "FULL",
   "limitedAccess": false,
+  "sexualOffenceRegistrations": [],
   "accommodationSummaries": null
 }
 """.trimIndent()
