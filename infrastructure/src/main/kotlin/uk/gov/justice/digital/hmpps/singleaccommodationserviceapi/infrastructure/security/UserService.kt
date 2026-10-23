@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.StaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
@@ -20,7 +19,7 @@ class UserService(
   private val nomisUserRolesService: NomisUserRolesService,
 ) {
 
-  private fun getPrincipal() = httpAuthService.getPrincipalOrThrow(acceptableSources = listOf(AuthSource.DELIUS.source, AuthSource.NOMIS.source))
+  private fun getPrincipal() = httpAuthService.getPrincipalOrThrow()
 
   fun getUsername() = getPrincipal().username
 
@@ -33,9 +32,9 @@ class UserService(
           authSource = AuthSourceEntity.DELIUS,
         )!!
       }
-      AuthSource.NOMIS -> {
-        getAndUpdateNomisUserOrCreate(username = principal.username)
-      }
+
+      AuthSource.NOMIS -> getAndUpdateNomisUserOrCreate(username = principal.username)
+
       else -> throw RuntimeException("Unexpected auth_source: ${principal.authSource}")
     }
   }
@@ -43,8 +42,7 @@ class UserService(
   fun getAndUpsertDeliusUser(username: Username): UserEntity {
     val preExistingUser = userRepository.findByUsernameAndAuthSource(username, authSource = AuthSourceEntity.DELIUS)
     if (preExistingUser == null) {
-      val staffDetail =
-        approvedPremisesAndDeliusCachingService.getStaffDetail(username.value).orThrowNotFound("username" to username)
+      val staffDetail = approvedPremisesAndDeliusCachingService.getStaffDetail(username.value)
       val newUser = createDeliusUser(username, staffDetail)
       userRepository.createUser(newUser)
       return newUser

@@ -6,11 +6,9 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
@@ -43,16 +41,6 @@ class UserServiceTest {
   @Nested
   inner class GetAndUpsertDeliusUser {
     private val username = Username("SOMEPERSON")
-
-    @Test
-    fun `getAndUpsertDeliusUser should throw NotFoundException when staff-detail not found`() {
-      every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns null
-      every { approvedPremisesAndDeliusCachingService.getStaffDetail(username.value) } returns null
-
-      assertThatThrownBy { userService.getAndUpsertDeliusUser(username) }
-        .isInstanceOf(NotFoundException::class.java)
-        .hasMessage("StaffDetail not found for [username=$username]")
-    }
 
     @Test
     fun `getAndUpsertDeliusUser updates and returns existing user`() {

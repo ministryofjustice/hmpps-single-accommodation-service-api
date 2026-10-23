@@ -8,15 +8,18 @@ import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 
 @Service
 class HttpAuthService {
-  fun getPrincipalOrThrow(acceptableSources: List<String>): UserPrincipal {
+
+  private val authSources = listOf(AuthSource.DELIUS.source, AuthSource.NOMIS.source)
+
+  fun getPrincipalOrThrow(): UserPrincipal {
     val authToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
-    if (!acceptableSources.contains(authToken.principal.authSource.source)) {
+    if (!authSources.contains(authToken.principal.authSource.source)) {
       throw AccessDeniedException("JWT token does not contain auth_source claim")
     }
     return authToken.principal as UserPrincipal
   }
 
-  fun getUsername() = getPrincipalOrThrow(listOf(AuthSource.DELIUS.source, AuthSource.NOMIS.source)).username
+  fun getUsername() = getPrincipalOrThrow().username
 
   fun getJwt(): Jwt {
     val principal = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
