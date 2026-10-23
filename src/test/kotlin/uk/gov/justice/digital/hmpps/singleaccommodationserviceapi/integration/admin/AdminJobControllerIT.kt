@@ -153,9 +153,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
   fun `should skip a team whose cases could not be retrieved and report the upstream failure`() {
     SasAndDeliusStubs.stubGetCasesByTeamCodeFailure(teamCode)
 
-    val response = restTestClient.post().uri("/admin/bulk-load-cases")
+    val response = webTestClient.post().uri("/admin/bulk-load-cases")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkLoadCasesRequestBody(teamCodes = listOf(teamCode), dryRun = false))
+      .bodyValue(bulkLoadCasesRequestBody(teamCodes = listOf(teamCode), dryRun = false))
       .withClientCredentialsJwt(roles = adminRoles)
       .exchangeSuccessfully()
       .expectApiResponse<BulkLoadCasesResultDto>()
@@ -170,9 +170,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 400 when no usable team codes are supplied`() {
-    restTestClient.post().uri("/admin/bulk-load-cases")
+    webTestClient.post().uri("/admin/bulk-load-cases")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkLoadCasesRequestBody(teamCodes = listOf("", "  ")))
+      .bodyValue(bulkLoadCasesRequestBody(teamCodes = listOf("", "  ")))
       .withClientCredentialsJwt(roles = adminRoles)
       .exchange()
       .expectStatus().isBadRequest
@@ -182,9 +182,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 400 when an empty team code list is supplied`() {
-    restTestClient.post().uri("/admin/bulk-load-cases")
+    webTestClient.post().uri("/admin/bulk-load-cases")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkLoadCasesRequestBody(teamCodes = emptyList()))
+      .bodyValue(bulkLoadCasesRequestBody(teamCodes = emptyList()))
       .withClientCredentialsJwt(roles = adminRoles)
       .exchange()
       .expectStatus().isBadRequest
@@ -405,9 +405,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 400 when no usable crns are supplied`() {
-    restTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
+    webTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkRefreshCasesByCrnRequestBody(crns = listOf("", "  ")))
+      .bodyValue(bulkRefreshCasesByCrnRequestBody(crns = listOf("", "  ")))
       .withClientCredentialsJwt(roles = adminRoles)
       .exchange()
       .expectStatus().isBadRequest
@@ -468,17 +468,17 @@ class AdminJobControllerIT : IntegrationTestBase() {
     }
   }
 
-  private fun bulkRefreshCasesByCrn(requestBody: String) = restTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
+  private fun bulkRefreshCasesByCrn(requestBody: String) = webTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
     .contentType(MediaType.APPLICATION_JSON)
-    .body(requestBody)
+    .bodyValue(requestBody)
     .withClientCredentialsJwt(roles = adminRoles)
     .exchangeSuccessfully()
     .expectApiResponse<BulkRefreshCasesResultDto>()
     .data
 
-  private fun bulkRefreshAllCases(requestBody: String) = restTestClient.post().uri("/admin/bulk-refresh-all-cases")
+  private fun bulkRefreshAllCases(requestBody: String) = webTestClient.post().uri("/admin/bulk-refresh-all-cases")
     .contentType(MediaType.APPLICATION_JSON)
-    .body(requestBody)
+    .bodyValue(requestBody)
     .withClientCredentialsJwt(roles = adminRoles)
     .exchangeSuccessfully()
     .expectApiResponse<BulkRefreshCasesResultDto>()
@@ -487,9 +487,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
   private fun buildReplayRequest(
     replayAll: Boolean = false,
     inboxEventIds: List<UUID> = emptyList(),
-  ) = restTestClient.put().uri("/admin/replay-failed-inbox-events?replayAll=$replayAll")
+  ) = webTestClient.put().uri("/admin/replay-failed-inbox-events?replayAll=$replayAll")
     .contentType(MediaType.APPLICATION_JSON)
-    .body(jsonMapper.writeValueAsString(inboxEventIds))
+    .bodyValue(jsonMapper.writeValueAsString(inboxEventIds))
     .withClientCredentialsJwt(roles = adminRoles)
 
   private fun replayFailedInboxEvents(
@@ -500,9 +500,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
     .expectApiResponse<ReplayFailedInboxEventsResponse>()
     .data
 
-  private fun bulkLoadCases(requestBody: String) = restTestClient.post().uri("/admin/bulk-load-cases")
+  private fun bulkLoadCases(requestBody: String) = webTestClient.post().uri("/admin/bulk-load-cases")
     .contentType(MediaType.APPLICATION_JSON)
-    .body(requestBody)
+    .bodyValue(requestBody)
     .withClientCredentialsJwt(roles = adminRoles)
     .exchangeSuccessfully()
     .expectApiResponse<BulkLoadCasesResultDto>()

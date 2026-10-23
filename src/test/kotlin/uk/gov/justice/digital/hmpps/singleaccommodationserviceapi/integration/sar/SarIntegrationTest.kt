@@ -43,7 +43,7 @@ class SarIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `GET subject-access-request returns 400 when neither PRN nor CRN provided`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/subject-access-request")
       .headers { it.setBearerAuth(sarToken()) }
       .exchange()
@@ -52,7 +52,7 @@ class SarIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `GET subject-access-request returns 204 when no data found for CRN`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/subject-access-request?crn=X000000")
       .headers { it.setBearerAuth(sarToken()) }
       .exchange()
@@ -61,7 +61,7 @@ class SarIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `GET subject-access-request returns 403 without SAR_DATA_ACCESS role`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/subject-access-request?crn=X000000")
       .headers { it.setBearerAuth(nonSarToken()) }
       .exchange()
@@ -70,7 +70,7 @@ class SarIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `GET subject-access-request template returns 200 with mustache content`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/subject-access-request/template")
       .headers { it.setBearerAuth(sarToken()) }
       .exchange()
@@ -86,7 +86,7 @@ class SarIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `GET subject-access-request template returns 403 without SAR_DATA_ACCESS role`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/subject-access-request/template")
       .headers { it.setBearerAuth(nonSarToken()) }
       .exchange()

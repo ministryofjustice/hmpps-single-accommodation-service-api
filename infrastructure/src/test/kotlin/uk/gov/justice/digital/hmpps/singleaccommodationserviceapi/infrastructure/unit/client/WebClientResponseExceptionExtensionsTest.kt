@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.getOrNullWhenNotFound
 import java.nio.charset.StandardCharsets
 
-class RestClientResponseExceptionExtensionsTest {
+class WebClientResponseExceptionExtensionsTest {
 
   @Test
   fun `returns null when upstream returns 404`() {

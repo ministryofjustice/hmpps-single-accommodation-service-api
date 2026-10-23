@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
-import org.springframework.test.web.servlet.client.expectBody
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
@@ -87,7 +87,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/duty-to-refers/{id}", entity.id)
+    webTestClient.get().uri("/duty-to-refers/{id}", entity.id)
       .withClientCredentialsJwt(
         roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
       )
@@ -112,7 +112,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   fun `should return 404 when duty to refer not found for ADDA role`() {
     val nonExistentId = UUID.randomUUID()
 
-    restTestClient.get().uri("/duty-to-refers/{id}", nonExistentId)
+    webTestClient.get().uri("/duty-to-refers/{id}", nonExistentId)
       .withDeliusUserJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
       .exchange()
       .expectStatus().isNotFound
@@ -132,7 +132,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, entity.id)
+    webTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, entity.id)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -168,7 +168,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, entity.id)
+    webTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, entity.id)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -194,7 +194,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   fun `should return 404 when duty to refer not found by crn and id`() {
     val nonExistentId = UUID.randomUUID()
 
-    restTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, nonExistentId)
+    webTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, nonExistentId)
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isNotFound
@@ -206,7 +206,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val entity = createDtr(localAuthorityArea.id)
 
-    restTestClient.get().uri("/cases/{crn}/dtr/{id}", "OTHERCRN", entity.id)
+    webTestClient.get().uri("/cases/{crn}/dtr/{id}", "OTHERCRN", entity.id)
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isNotFound
@@ -216,9 +216,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   fun `should create duty to refer and publish domain event`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
-    val result = restTestClient.post().uri("/cases/$crn/dtr")
+    val result = webTestClient.post().uri("/cases/$crn/dtr")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           submissionDate = "2026-01-15",
@@ -271,9 +271,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.post().uri("/cases/$crn/dtr")
+    webTestClient.post().uri("/cases/$crn/dtr")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           submissionDate = "2026-01-15",
@@ -326,9 +326,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = newLocalAuthorityArea.id,
           submissionDate = LocalDate.of(2026, 1, 20).toString(),
@@ -383,9 +383,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = newLocalAuthorityArea.id,
           submissionDate = LocalDate.of(2026, 1, 20).toString(),
@@ -430,9 +430,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     val nonExistentId = UUID.randomUUID()
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
 
-    restTestClient.put().uri("/cases/$crn/dtr/$nonExistentId")
+    webTestClient.put().uri("/cases/$crn/dtr/$nonExistentId")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityAreaId,
           status = EntityDtrStatus.SUBMITTED.name,
@@ -448,9 +448,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
     val existingEntity = createDtr(localAuthorityAreaId)
 
-    restTestClient.put().uri("/cases/OTHERCRN/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/OTHERCRN/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityAreaId,
           status = EntityDtrStatus.ACCEPTED.name,
@@ -467,9 +467,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val existingEntity = createDtr(localAuthorityArea.id)
 
-    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           status = EntityDtrStatus.WITHDRAWN.name,
@@ -517,9 +517,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           status = EntityDtrStatus.WITHDRAWN.name,
@@ -541,9 +541,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val existingEntity = createDtr(localAuthorityArea.id)
 
-    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           status = EntityDtrStatus.WITHDRAWN.name,
@@ -585,9 +585,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val existingEntity = createDtr(localAuthorityAreaId)
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityAreaId,
           status = EntityDtrStatus.WITHDRAWN.name,
@@ -611,9 +611,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityAreaId,
           status = EntityDtrStatus.SUBMITTED.name,
@@ -630,9 +630,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val existingEntity = createDtr(localAuthorityAreaId)
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityAreaId,
           status = EntityDtrStatus.ACCEPTED.name,
@@ -650,9 +650,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val existingEntity = createDtr(localAuthorityAreaId)
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityAreaId,
           status = EntityDtrStatus.WITHDRAWN.name,
@@ -670,9 +670,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val existingEntity = createDtr(localAuthorityAreaId)
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityAreaId,
           status = EntityDtrStatus.WITHDRAWN.name,
@@ -691,9 +691,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val existingEntity = createDtr(localAuthorityAreaId)
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityAreaId,
           status = EntityDtrStatus.WITHDRAWN.name,
@@ -712,9 +712,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val existingEntity = createDtr(localAuthorityArea.id)
 
-    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           status = EntityDtrStatus.NOT_ACCEPTED.name,
@@ -754,9 +754,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val existingEntity = createDtr(localAuthorityAreaId)
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityAreaId,
           status = EntityDtrStatus.ACCEPTED.name,
@@ -773,9 +773,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val existingEntity = createDtr(localAuthorityAreaId)
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityAreaId,
           status = EntityDtrStatus.ACCEPTED.name,
@@ -793,9 +793,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val existingEntity = createDtr(localAuthorityAreaId)
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityAreaId,
           status = EntityDtrStatus.SUBMITTED.name,
@@ -812,9 +812,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
     val existingEntity = createDtr(localAuthorityAreaId)
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityAreaId,
           submissionDate = "2026-01-20",
@@ -834,9 +834,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     val existingEntity = createDtr(localAuthorityAreaId)
     val note1Value = "Test note 1"
     val note2Value = "Test note 2"
-    restTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         dtrNoteRequestBody(
           note = note1Value,
         ),
@@ -847,9 +847,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     var dtrPersistedResult = dutyToReferRepository.findByIdAndCrnWithNotes(existingEntity.id, crn)!!
     assertThat(dtrPersistedResult.notes.first().note).isEqualTo(note1Value)
 
-    restTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         dtrNoteRequestBody(
           note = note2Value,
         ),
@@ -865,9 +865,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should not create a note for dtr when dtr not found`() {
-    restTestClient.post().uri("/cases/$crn/dtr/${UUID.randomUUID()}/notes")
+    webTestClient.post().uri("/cases/$crn/dtr/${UUID.randomUUID()}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         dtrNoteRequestBody(
           note = "Test note",
         ),
@@ -881,9 +881,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   fun `should not create a note when crn not found`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
     val existingEntity = createDtr(localAuthorityAreaId)
-    restTestClient.post().uri("/cases/${UUID.randomUUID()}/dtr/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/${UUID.randomUUID()}/dtr/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         dtrNoteRequestBody(
           note = "Test note",
         ),
@@ -898,9 +898,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
     val existingEntity = createDtr(localAuthorityAreaId)
     val note = ""
-    restTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         dtrNoteRequestBody(note),
       )
       .withDeliusUserJwt()
@@ -913,9 +913,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
     val existingEntity = createDtr(localAuthorityAreaId)
     val note = "a".repeat(4001)
-    restTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         dtrNoteRequestBody(note),
       )
       .withDeliusUserJwt()
@@ -927,9 +927,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   fun `should return DTR timeline when a DTR is created`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
-    val createdDtr = restTestClient.post().uri("/cases/{crn}/dtr", crn)
+    val createdDtr = webTestClient.post().uri("/cases/{crn}/dtr", crn)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           submissionDate = "2026-01-15",
@@ -946,7 +946,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdDtrId))
     assertThat(commitTimesAsc).hasSize(1)
 
-    restTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", crn, createdDtrId)
+    webTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", crn, createdDtrId)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -968,9 +968,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     val initialLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
     val updatedLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()
 
-    val createdDtr = restTestClient.post().uri("/cases/{crn}/dtr", crn)
+    val createdDtr = webTestClient.post().uri("/cases/{crn}/dtr", crn)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = initialLocalAuthorityArea.id,
           submissionDate = "2026-01-15",
@@ -985,15 +985,15 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val createdDtrId = ObjectMapper().readTree(createdDtr).get("submission").get("id").asText()
 
-    restTestClient.post().uri("/cases/{crn}/dtr/{id}/notes", crn, createdDtrId)
+    webTestClient.post().uri("/cases/{crn}/dtr/{id}/notes", crn, createdDtrId)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(dtrNoteRequestBody(note = "Test note"))
+      .bodyValue(dtrNoteRequestBody(note = "Test note"))
       .withDeliusUserJwt()
       .exchangeSuccessfully()
 
-    restTestClient.put().uri("/cases/{crn}/dtr/{id}", crn, createdDtrId)
+    webTestClient.put().uri("/cases/{crn}/dtr/{id}", crn, createdDtrId)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = initialLocalAuthorityArea.id,
           submissionDate = "2026-01-15",
@@ -1005,9 +1005,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
 
-    restTestClient.put().uri("/cases/{crn}/dtr/{id}", crn, createdDtrId)
+    webTestClient.put().uri("/cases/{crn}/dtr/{id}", crn, createdDtrId)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = updatedLocalAuthorityArea.id,
           submissionDate = "2026-01-15",
@@ -1024,7 +1024,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     val createNoteCommitTime = dutyToReferRepository.findByIdAndCrnWithNotes(UUID.fromString(createdDtrId), crn)!!
       .notes.first().createdAt
 
-    restTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", crn, createdDtrId)
+    webTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", crn, createdDtrId)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -1048,7 +1048,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should return 404 for timeline when DTR not found`() {
-    restTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", crn, UUID.randomUUID())
+    webTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", crn, UUID.randomUUID())
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isNotFound
@@ -1059,7 +1059,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
     val entity = createDtr(localAuthorityArea.id)
 
-    restTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", "OTHERCRN", entity.id)
+    webTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", "OTHERCRN", entity.id)
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isNotFound
@@ -1106,9 +1106,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
     val noteText = "This is a submission note"
 
-    val result = restTestClient.post().uri("/cases/$crn/dtr")
+    val result = webTestClient.post().uri("/cases/$crn/dtr")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           submissionDate = "2026-01-15",
@@ -1146,9 +1146,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   fun `should create duty to refer with blank note and not persist the note`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
-    restTestClient.post().uri("/cases/$crn/dtr")
+    webTestClient.post().uri("/cases/$crn/dtr")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           status = "SUBMITTED",
@@ -1177,9 +1177,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           status = EntityDtrStatus.ACCEPTED.name,
@@ -1220,9 +1220,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
     val existingEntity = createDtr(localAuthorityArea.id)
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           status = EntityDtrStatus.ACCEPTED.name,
@@ -1252,9 +1252,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           status = EntityDtrStatus.SUBMITTED.name,
@@ -1300,9 +1300,9 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         createDtrRequestBody(
           localAuthorityAreaId = localAuthorityArea.id,
           status = EntityDtrStatus.ACCEPTED.name,

@@ -15,7 +15,7 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 200 with all local authority areas`() {
-    restTestClient.get().uri("/reference-data?type=LOCAL_AUTHORITY_AREAS")
+    webTestClient.get().uri("/reference-data?type=LOCAL_AUTHORITY_AREAS")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk
@@ -32,7 +32,7 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 200 with type of accommodation_types`() {
-    restTestClient.get().uri("/reference-data?type=ACCOMMODATION_TYPES")
+    webTestClient.get().uri("/reference-data?type=ACCOMMODATION_TYPES")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk
@@ -51,7 +51,7 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 200 with type of proposed accommodation_types`() {
-    restTestClient.get().uri("/reference-data?type=PROPOSED_ACCOMMODATION_TYPES")
+    webTestClient.get().uri("/reference-data?type=PROPOSED_ACCOMMODATION_TYPES")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk
@@ -70,7 +70,7 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 200 with type of accommodation_statuses`() {
-    restTestClient.get().uri("/reference-data?type=ACCOMMODATION_STATUSES")
+    webTestClient.get().uri("/reference-data?type=ACCOMMODATION_STATUSES")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk

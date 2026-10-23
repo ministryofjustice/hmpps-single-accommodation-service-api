@@ -104,7 +104,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, cas2Response)
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, cas3Response)
 
-    restTestClient.get().uri("/cases/{crn}/applications", crn)
+    webTestClient.get().uri("/cases/{crn}/applications", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
@@ -178,7 +178,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, emptyList())
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
 
-    restTestClient.get().uri("/cases/{crn}/applications", crn)
+    webTestClient.get().uri("/cases/{crn}/applications", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -251,7 +251,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, emptyList())
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
 
-    restTestClient.get().uri("/cases/{crn}/applications", crn)
+    webTestClient.get().uri("/cases/{crn}/applications", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
@@ -329,7 +329,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, emptyList())
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
 
-    restTestClient.get().uri("/cases/{crn}/applications", crn)
+    webTestClient.get().uri("/cases/{crn}/applications", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)

@@ -36,7 +36,7 @@ class UserControllerIT : IntegrationTestBase() {
     )
 
     val expectedResponse = """{"data":[{"name":"TEAMNAME1","code":"TEAM1"},{"name":"TEAMNAME2","code":"TEAM2"}]}"""
-    val result = restTestClient.get().uri("/user/teams")
+    val result = webTestClient.get().uri("/user/teams")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -130,7 +130,7 @@ class UserControllerIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
     ProbationIntegrationDeliusStubs.stubGetStaffByUsernameNotFound(USERNAME_OF_LOGGED_IN_DELIUS_USER)
 
-    restTestClient.get().uri("/user/teams")
+    webTestClient.get().uri("/user/teams")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isUnauthorized

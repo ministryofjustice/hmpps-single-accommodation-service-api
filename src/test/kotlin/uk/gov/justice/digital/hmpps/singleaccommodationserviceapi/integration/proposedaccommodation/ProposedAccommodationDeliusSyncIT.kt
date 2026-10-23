@@ -10,7 +10,7 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
-import org.springframework.test.web.servlet.client.expectBody
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
@@ -129,7 +129,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
       accommodationTypeEntity = newerEntityAccommodationTypeEntity,
     )
 
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -180,7 +180,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
       accommodationTypeEntity = newerEntityAccommodationTypeEntity,
     )
 
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -227,7 +227,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
       accommodationTypeEntity = newerEntityAccommodationTypeEntity,
     )
 
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -267,7 +267,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
       deliusOriginProposedAccommodationEndDate = LocalDate.now().plusDays(5),
     )
 
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -302,7 +302,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
       deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
       deliusOriginProposedAccommodationEndDate = LocalDate.now().minusDays(5),
     )
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -456,7 +456,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
       )
     }
 
-    val response: String = restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+    val response: String = webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -511,9 +511,9 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
     assertThat(deliusSyncedRecord.buildingNumber).isEqualTo(originalDeliusSyncBuildingNumber)
 
     val sasUpdatedBuildingNumber = "100"
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/${deliusSyncedRecord.id}")
+    webTestClient.put().uri("/cases/$crn/proposed-accommodations/${deliusSyncedRecord.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = accommodationTypeRepository.findByIdOrNull(deliusSyncedRecord.accommodationTypeId!!)!!.code,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -553,7 +553,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
     )
 
     // get proposed-accommodations and ensure we get the latest Delius update
-    val response: String = restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+    val response: String = webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -606,7 +606,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
       deliusProposedAccommodationBuildingNumber,
     )
 
-    val response = restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+    val response = webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -767,7 +767,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
     )
 
     // get proposed-accommodations and ensure the latest Delius updated is synchronised to our original db record and the correct response is returned with the change
-    val response: String = restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+    val response: String = webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -829,7 +829,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
     val crn = "X12345"
     caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = false) { withCrn(crn) })
     val (deliusSyncedRecord, _) = shouldInsertUnknownDeliusOriginRecordAndThenSyncFurtherBuildingNumberUpdate(crn)
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, deliusSyncedRecord.id)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, deliusSyncedRecord.id)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -849,7 +849,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
     caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = false) { withCrn(crn) })
     val (deliusSyncedRecord, _) = shouldInsertUnknownDeliusOriginRecordAndThenSyncFurtherBuildingNumberAndTypeUpdate(crn)
 
-    val response = restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, deliusSyncedRecord.id)
+    val response = webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, deliusSyncedRecord.id)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<AuditRecordDto>>>() {})
@@ -906,9 +906,9 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
 
     // when sas update
     val sasUpdatedBuildingNumber = "100"
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/${deliusSyncedRecord.id}")
+    webTestClient.put().uri("/cases/$crn/proposed-accommodations/${deliusSyncedRecord.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = accommodationTypeRepository.findByIdOrNull(deliusSyncedRecord.accommodationTypeId!!)!!.code,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -934,7 +934,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
     val commitTimesAsc = getCommitTimesAsc(deliusSyncedRecord.id)
     assertThat(commitTimesAsc).hasSize(3)
 
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, deliusSyncedRecord.id)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, deliusSyncedRecord.id)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -973,7 +973,7 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
       proposedAccommodationRepository.save(resultingProposedAccommodationEntity)
     }
 
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, resultingProposedAccommodationEntity.id)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, resultingProposedAccommodationEntity.id)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
