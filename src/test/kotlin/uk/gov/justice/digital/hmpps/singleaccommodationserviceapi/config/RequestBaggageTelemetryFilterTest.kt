@@ -16,8 +16,8 @@ import jakarta.servlet.ServletResponse
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 
-class ProbationAreaTelemetryFilterTest {
-  private val filter = ProbationAreaTelemetryFilter()
+class RequestBaggageTelemetryFilterTest {
+  private val filter = RequestBaggageTelemetryFilter()
   private val request = mockk<ServletRequest>(relaxed = true)
   private val response = mockk<ServletResponse>(relaxed = true)
   private val chain = mockk<FilterChain>(relaxed = true)

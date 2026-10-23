@@ -9,7 +9,7 @@ import jakarta.servlet.ServletResponse
 import org.springframework.stereotype.Component
 
 @Component
-class ProbationAreaTelemetryFilter : Filter {
+class RequestBaggageTelemetryFilter : Filter {
   override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
     Baggage.current().getEntryValue(BAGGAGE_KEY)
       ?.takeIf { it.isNotBlank() }
