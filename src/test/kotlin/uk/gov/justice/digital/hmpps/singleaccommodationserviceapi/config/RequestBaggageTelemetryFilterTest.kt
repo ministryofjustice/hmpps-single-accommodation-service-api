@@ -22,7 +22,7 @@ class RequestBaggageTelemetryFilterTest {
   private val response = mockk<ServletResponse>(relaxed = true)
   private val chain = mockk<FilterChain>(relaxed = true)
 
-  private val telemetryKey = "requestIdentifier"
+  private val userLocationCode = "userLocationCode"
 
   @AfterEach
   fun tearDown() {
@@ -37,7 +37,7 @@ class RequestBaggageTelemetryFilterTest {
     mockkStatic(Baggage::class)
     mockkStatic(Span::class)
     every { Baggage.current() } returns baggage
-    every { baggage.getEntryValue(telemetryKey) } returns "London"
+    every { baggage.getEntryValue(userLocationCode) } returns "London"
     every { Span.current() } returns span
 
     filter.doFilter(request, response, chain)
@@ -45,7 +45,7 @@ class RequestBaggageTelemetryFilterTest {
     verifyOrder {
       Baggage.current()
       Span.current()
-      span.setAttribute(telemetryKey, "London")
+      span.setAttribute(userLocationCode, "London")
       chain.doFilter(request, response)
     }
     confirmVerified(span, chain)
@@ -59,7 +59,7 @@ class RequestBaggageTelemetryFilterTest {
     mockkStatic(Baggage::class)
     mockkStatic(Span::class)
     every { Baggage.current() } returns baggage
-    every { baggage.getEntryValue(telemetryKey) } returns null
+    every { baggage.getEntryValue(userLocationCode) } returns null
     every { Span.current() } returns span
 
     filter.doFilter(request, response, chain)
@@ -80,7 +80,7 @@ class RequestBaggageTelemetryFilterTest {
     mockkStatic(Baggage::class)
     mockkStatic(Span::class)
     every { Baggage.current() } returns baggage
-    every { baggage.getEntryValue(telemetryKey) } returns "   "
+    every { baggage.getEntryValue(userLocationCode) } returns "   "
     every { Span.current() } returns span
 
     filter.doFilter(request, response, chain)
@@ -107,15 +107,15 @@ class RequestBaggageTelemetryFilterTest {
     mockkStatic(Baggage::class)
     mockkStatic(Span::class)
     every { Baggage.current() } returnsMany listOf(firstBaggage, secondBaggage)
-    every { firstBaggage.getEntryValue(telemetryKey) } returns "London"
-    every { secondBaggage.getEntryValue(telemetryKey) } returns null
+    every { firstBaggage.getEntryValue(userLocationCode) } returns "London"
+    every { secondBaggage.getEntryValue(userLocationCode) } returns null
     every { Span.current() } returnsMany listOf(firstSpan, secondSpan)
 
     filter.doFilter(firstRequest, firstResponse, chain)
     filter.doFilter(secondRequest, secondResponse, chain)
 
     verifyOrder {
-      firstSpan.setAttribute(telemetryKey, "London")
+      firstSpan.setAttribute(userLocationCode, "London")
       chain.doFilter(firstRequest, firstResponse)
       chain.doFilter(secondRequest, secondResponse)
     }
