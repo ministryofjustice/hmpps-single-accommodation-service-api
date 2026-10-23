@@ -3,11 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.e
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.web.servlet.client.expectBody
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.LocalAuthorityAreaEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
@@ -25,6 +26,9 @@ class EventDetailsControllerIT : IntegrationTestBase() {
 
   private lateinit var caseEntity: CaseEntity
   private lateinit var crn: String
+  private val localAuthorityArea: LocalAuthorityAreaEntity by lazy {
+    localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+  }
 
   @BeforeEach
   fun setup() {
@@ -37,8 +41,6 @@ class EventDetailsControllerIT : IntegrationTestBase() {
 
   @Test
   fun `returns event details for a duty to refer with the probation integration role`() {
-    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-
     val dtrEntity = dutyToReferRepository.save(
       buildDutyToReferEntity(
         caseId = caseEntity.id,
@@ -46,7 +48,7 @@ class EventDetailsControllerIT : IntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/event-details/duty-to-refers/{id}", dtrEntity.id)
+    webTestClient.get().uri("/event-details/duty-to-refers/{id}", dtrEntity.id)
       .withDeliusUserJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__PROBATION_INTEGRATION"))
       .exchange()
       .expectStatus().isOk
@@ -68,7 +70,7 @@ class EventDetailsControllerIT : IntegrationTestBase() {
   fun `returns not found when the duty to refer does not exist`() {
     val missingId = UUID.randomUUID()
 
-    restTestClient.get().uri("/event-details/duty-to-refers/{id}", missingId)
+    webTestClient.get().uri("/event-details/duty-to-refers/{id}", missingId)
       .withDeliusUserJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__PROBATION_INTEGRATION"))
       .exchange()
       .expectStatus().isNotFound
@@ -76,7 +78,7 @@ class EventDetailsControllerIT : IntegrationTestBase() {
 
   @Test
   fun `returns forbidden when the user does not have the probation integration role`() {
-    restTestClient.get().uri("/event-details/duty-to-refers/${UUID.randomUUID()}")
+    webTestClient.get().uri("/event-details/duty-to-refers/${UUID.randomUUID()}")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isForbidden

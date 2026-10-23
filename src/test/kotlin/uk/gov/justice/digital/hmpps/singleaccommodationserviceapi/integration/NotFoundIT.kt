@@ -21,7 +21,7 @@ class NotFoundIT : IntegrationTestBase() {
       .pollDelay(Duration.ZERO)
       .pollInterval(Duration.ofMillis(20))
       .untilAsserted {
-        restTestClient.get().uri("/some-url-not-found")
+        webTestClient.get().uri("/some-url-not-found")
           .exchange()
           .expectStatus().isEqualTo(404)
           .expectBody().jsonPath("$.userMessage")
