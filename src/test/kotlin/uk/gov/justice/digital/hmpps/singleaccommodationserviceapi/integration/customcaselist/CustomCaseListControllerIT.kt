@@ -240,7 +240,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
 
     postCustomCaseList(listOf("A123456", "B654321", "C111111")).expectStatus().isBadRequest
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("Domain exception: invalidCrns: B654321, C111111")
+      .jsonPath("$.userMessage").isEqualTo("B654321, C111111")
 
     assertThat(caseRepository.findAll()).isEmpty()
     assertThat(userCustomCaseListRepository.findAll()).isEmpty()
