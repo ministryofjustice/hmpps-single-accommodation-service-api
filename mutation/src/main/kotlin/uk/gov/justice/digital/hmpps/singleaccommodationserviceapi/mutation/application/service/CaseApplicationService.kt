@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.InvalidCrnsException
 
 @Service
 class CaseApplicationService(
@@ -30,9 +29,12 @@ class CaseApplicationService(
     refreshCases(casesToCreate, refreshPriority)
   }
 
-  fun createValidatedCases(crns: List<String>) {
+  fun findInvalidOrCreate(crns: List<String>): List<String> {
     val distinctCrns = crns.distinct()
-    val caseSummariesByCrn = validateUnpersistedCrns(distinctCrns)
+    val (caseSummariesByCrn, invalidCrns) = validateUnpersistedCrns(distinctCrns)
+    if (invalidCrns.isNotEmpty()) {
+      return invalidCrns
+    }
 
     val casesToCreate = distinctCrns.map { crn ->
       val caseSummary = caseSummariesByCrn[crn]
@@ -47,6 +49,12 @@ class CaseApplicationService(
 
     saveCases(casesToCreate, createAsBlankRecord = true)
     refreshCases(casesToCreate, CaseRefreshPriority.BULK)
+
+    if (invalidCrns.isNotEmpty()) {
+      return invalidCrns
+    }
+
+    return emptyList()
   }
 
   private fun saveCases(casesToCreate: List<CaseToCreate>, createAsBlankRecord: Boolean) {
@@ -63,17 +71,17 @@ class CaseApplicationService(
     }
   }
 
-  private fun validateUnpersistedCrns(crns: List<String>): Map<String, CaseSummary> {
+  private fun validateUnpersistedCrns(crns: List<String>): Pair<Map<String, CaseSummary>, List<String>> {
     val unpersistedCrns = caseRepository.findUnpersistedCrns(crns.distinct().toTypedArray())
-    if (unpersistedCrns.isEmpty()) return emptyMap()
+    if (unpersistedCrns.isEmpty()) return Pair(emptyMap(), emptyList())
 
     val caseSummariesByCrn = approvedPremisesAndDeliusCachingService.postCaseSummaries(unpersistedCrns).cases
       .associateBy { it.crn }
 
     val invalidCrns = unpersistedCrns - caseSummariesByCrn.keys
-    if (invalidCrns.isNotEmpty()) throw InvalidCrnsException(invalidCrns)
+//    if (invalidCrns.isNotEmpty()) throw InvalidCrnsException(invalidCrns)
 
-    return caseSummariesByCrn
+    return caseSummariesByCrn to invalidCrns
   }
 
   private fun saveChunkWithRetry(chunk: List<CaseToCreate>, createAsBlankRecord: Boolean) {

@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
-import jakarta.validation.ValidationException
 import jakarta.validation.constraints.Size
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -45,18 +44,24 @@ class CustomCaseListController(
     @RequestBody
     @Size(min = 1, max = 500, message = "Between 1 and 500 CRNs must be provided")
     crns: List<String>,
-  ): ResponseEntity<Void> {
+  ): ResponseEntity<ApiResponseDto<Pair<String, List<String>>>> {
     val normalisedCrns = crns.map { it.trim().uppercase() }
     val invalidCrns = normalisedCrns.filterNot { CRN_REGEX.matches(it) }
-
     if (invalidCrns.isNotEmpty()) {
-      throw ValidationException("$CRN_FORMAT_MESSAGE: ${invalidCrns.joinToString()}")
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(ApiResponseDto("InvalidCrns:" to invalidCrns))
+    }
+
+    // bring the check for valid crns up to this level.
+    val notFoundCrns = caseApplicationService.findInvalidOrCreate(normalisedCrns)
+    if (notFoundCrns.isNotEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(ApiResponseDto("NotFoundCrns:" to notFoundCrns))
     }
 
     val user = userService.authorizeAndRetrieveUser()
-    val distinctCrns = normalisedCrns.distinct()
-    caseApplicationService.createValidatedCases(distinctCrns)
-    customCaseListApplicationService.createCustomCaseList(user.id, distinctCrns)
+
+    customCaseListApplicationService.createCustomCaseList(user.id, normalisedCrns.distinct())
     return ResponseEntity(HttpStatus.CREATED)
   }
 }

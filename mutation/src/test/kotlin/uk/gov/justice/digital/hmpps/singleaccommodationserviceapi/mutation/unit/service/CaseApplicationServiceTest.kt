@@ -175,7 +175,7 @@ class CaseApplicationServiceTest {
     fun `does not call delius when every crn is already persisted`() {
       every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
 
-      caseApplicationService.createValidatedCases(crns)
+      caseApplicationService.findInvalidOrCreate(crns)
 
       verify(exactly = 0) { approvedPremisesAndDeliusCachingService.postCaseSummaries(any()) }
       verify(exactly = 1) {
@@ -209,7 +209,7 @@ class CaseApplicationServiceTest {
         ),
       )
 
-      caseApplicationService.createValidatedCases(crns)
+      caseApplicationService.findInvalidOrCreate(crns)
 
       verify(exactly = 1) { caseRepository.findUnpersistedCrns(arrayOf("A111111", "B222222", "C333333")) }
       verify(exactly = 1) { approvedPremisesAndDeliusCachingService.postCaseSummaries(listOf("B222222", "C333333")) }
@@ -251,7 +251,7 @@ class CaseApplicationServiceTest {
           ),
         )
 
-      caseApplicationService.createValidatedCases(crns)
+      caseApplicationService.findInvalidOrCreate(crns)
 
       verify(exactly = 1) {
         caseCreationService.saveUnpersistedCasesAsBlankRows(
@@ -285,7 +285,7 @@ class CaseApplicationServiceTest {
           ),
         )
 
-      caseApplicationService.createValidatedCases(listOf("A111111", "A111111"))
+      caseApplicationService.findInvalidOrCreate(listOf("A111111", "A111111"))
 
       verify(exactly = 1) { approvedPremisesAndDeliusCachingService.postCaseSummaries(listOf("A111111")) }
       verify(exactly = 1) {
@@ -310,7 +310,7 @@ class CaseApplicationServiceTest {
         CaseSummaries(listOf(buildCaseSummary(crn = "B222222")))
 
       val exception = assertThrows<InvalidCrnsException> {
-        caseApplicationService.createValidatedCases(crns)
+        caseApplicationService.findInvalidOrCreate(crns)
       }
 
       assertThat(exception.message).isEqualTo("invalidCrns: C333333")
@@ -325,7 +325,7 @@ class CaseApplicationServiceTest {
         HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR)
 
       assertThrows<HttpServerErrorException> {
-        caseApplicationService.createValidatedCases(crns)
+        caseApplicationService.findInvalidOrCreate(crns)
       }
 
       verify(exactly = 0) { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) }
@@ -338,7 +338,7 @@ class CaseApplicationServiceTest {
       every { approvedPremisesAndDeliusCachingService.postCaseSummaries(any()) } returns CaseSummaries(emptyList())
 
       val exception = assertThrows<InvalidCrnsException> {
-        caseApplicationService.createValidatedCases(crns)
+        caseApplicationService.findInvalidOrCreate(crns)
       }
 
       assertThat(exception.message).isEqualTo("invalidCrns: A111111, B222222, C333333")
@@ -397,7 +397,7 @@ class CaseApplicationServiceTest {
     fun `createValidatedCases() requests a bulk refresh for every given case`() {
       every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
 
-      caseApplicationService.createValidatedCases(crns)
+      caseApplicationService.findInvalidOrCreate(crns)
 
       verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(caseIds) }
     }
