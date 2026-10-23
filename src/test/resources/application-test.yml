@@ -65,7 +65,7 @@ shedlock:
 event:
   details-url:
     proposed-accommodation-updated: http://api-host/proposed-accommodations/#id
-    duty-to-refer-updated: http://api-host/duty-to-refers/#id
+    duty-to-refer: http://api-host/duty-to-refers/#id
 
 case-refresh:
   worker:

@@ -116,7 +116,11 @@ class ResourceSecurityIT : IntegrationTestBase() {
 
 private val defaultRoles = setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER")
 
-private val userControllerMap: Map<String, Set<String>> = mapOf("GET /user/teams" to defaultRoles)
+private val userControllerMap: Map<String, Set<String>> =
+  mapOf(
+    "GET /user/teams" to defaultRoles,
+    "GET /users/me" to defaultRoles,
+  )
 
 private val dutyToReferControllerMap: Map<String, Set<String>> =
   mapOf(

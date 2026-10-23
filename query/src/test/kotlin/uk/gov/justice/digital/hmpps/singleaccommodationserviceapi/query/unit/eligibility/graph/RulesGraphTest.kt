@@ -40,17 +40,17 @@ class RulesGraphTest {
         .onFail(fail).propagateContextOnFailure()
         .build()
 
-      val graph = RulesGraphWalker.walk("EXAMPLE", root)
+      val graph = RulesGraphWalker().walk("EXAMPLE", root)
 
       assertThat(graph.treeName).isEqualTo("EXAMPLE")
       assertThat(graph.nodes.map { it.title }).containsExactlyInAnyOrder(
         "ExampleEligibility",
-        "confirmed",
-        "notEligible",
+        "return current status",
+        "return status CAS1_NOT_ELIGIBLE",
       )
       assertThat(graph.edges.map { "${it.from}->${it.label}->${it.to}" }).containsExactlyInAnyOrder(
-        "ExampleEligibility->PASS->confirmed",
-        "ExampleEligibility->FAIL->notEligible",
+        "ExampleEligibility->PASS->return_current_status",
+        "ExampleEligibility->FAIL->return_status_CAS1_NOT_ELIGIBLE",
       )
       val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
       assertThat(ruleSetNode.rules).extracting<String> { it.className }.containsExactly("StubRule")
@@ -68,7 +68,7 @@ class RulesGraphTest {
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1SuitabilityContextUpdater())
         .build()
 
-      val graph = RulesGraphWalker.walk("EXAMPLE", root)
+      val graph = RulesGraphWalker().walk("EXAMPLE", root)
       val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
 
       assertThat(ruleSetNode.rules.map { it.sourcePath }).containsExactly(
@@ -94,10 +94,10 @@ class RulesGraphTest {
         .onFail(eligibility).applyContextUpdaterOnFailure(StubContextUpdater())
         .build()
 
-      val graph = RulesGraphWalker.walk("SHARED", upcoming)
+      val graph = RulesGraphWalker().walk("SHARED", upcoming)
 
-      assertThat(graph.nodes.filter { it.title == "confirmed" }).hasSize(1)
-      val confirmedId = graph.nodes.single { it.title == "confirmed" }.id
+      assertThat(graph.nodes.filter { it.title == "return current status" }).hasSize(1)
+      val confirmedId = graph.nodes.single { it.title == "return current status" }.id
       assertThat(graph.edges.filter { it.to == confirmedId && it.label == "PASS" }).hasSize(2)
     }
 
@@ -109,10 +109,10 @@ class RulesGraphTest {
         .continueWith(confirmed).propagateContextOnFailure()
         .build()
 
-      val graph = RulesGraphWalker.walk("DTR", upcoming)
+      val graph = RulesGraphWalker().walk("DTR", upcoming)
 
       val upcomingId = graph.nodes.single { it.title == "Upcoming" }.id
-      val confirmedId = graph.nodes.single { it.title == "confirmed" }.id
+      val confirmedId = graph.nodes.single { it.title == "return current status" }.id
       assertThat(graph.edges).containsExactlyInAnyOrder(
         GraphEdge(
           upcomingId,
@@ -121,6 +121,38 @@ class RulesGraphTest {
         ),
         GraphEdge(
           upcomingId,
+          confirmedId,
+          "FAIL",
+        ),
+      )
+    }
+
+    @Test
+    fun `add context updater if not identity`() {
+      val confirmed = builder.confirmed()
+      val upcoming = builder
+        .ruleSet("Upcoming", StubRuleSet(listOf(PrioritisedRule(StubRule("window")))))
+        .continueWith(confirmed).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED))
+        .build()
+
+      val graph = RulesGraphWalker().walk("DTR", upcoming)
+
+      val upcomingId = graph.nodes.single { it.title == "Upcoming" }.id
+      val contextUpdaterId = graph.nodes.single { it.title == "Set CAS1_NOT_STARTED" }.id
+      val confirmedId = graph.nodes.single { it.title == "return current status" }.id
+      assertThat(graph.edges).containsExactlyInAnyOrder(
+        GraphEdge(
+          upcomingId,
+          confirmedId,
+          "PASS",
+        ),
+        GraphEdge(
+          upcomingId,
+          contextUpdaterId,
+          "FAIL",
+        ),
+        GraphEdge(
+          contextUpdaterId,
           confirmedId,
           "FAIL",
         ),
@@ -137,14 +169,14 @@ class RulesGraphTest {
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
-      val graph = RulesGraphWalker.walk("EXAMPLE", root)
+      val graph = RulesGraphWalker().walk("EXAMPLE", root)
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
 
       assertThat(markdown).contains("## EXAMPLE")
       assertThat(markdown).contains("flowchart TD")
-      assertThat(markdown).contains("ExampleEligibility[\"ExampleEligibility (1)\"]")
-      assertThat(markdown).contains("ExampleEligibility -->|PASS| confirmed")
-      assertThat(markdown).contains("ExampleEligibility -->|FAIL| notEligible")
+      assertThat(markdown).contains("ExampleEligibility(\"ExampleEligibility (1)")
+      assertThat(markdown).contains("ExampleEligibility -->|PASS| return_current_status")
+      assertThat(markdown).contains("ExampleEligibility -->|FAIL| return_status_CAS1_NOT_ELIGIBLE")
       assertThat(markdown).doesNotContain("_onFail")
       assertThat(markdown).doesNotContain("[ExampleEligibility](#EXAMPLE-ExampleEligibility)")
       assertThat(markdown).containsPattern("(?m)^.*`StubRule`.*: FAIL if example")
@@ -162,7 +194,7 @@ class RulesGraphTest {
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1SuitabilityContextUpdater())
         .build()
-      val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker.walk("EXAMPLE", root)))
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker().walk("EXAMPLE", root)))
 
       assertThat(markdown).contains(
         "[`Cas1ApplicationPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1ApplicationPresentRule.kt)",
@@ -182,12 +214,11 @@ class RulesGraphTest {
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(StubContextUpdater())
         .build()
-      val graph = RulesGraphWalker.walk("EXAMPLE", root)
+      val graph = RulesGraphWalker().walk("EXAMPLE", root)
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
 
-      assertThat(markdown).contains("Upcoming -->|FAIL| notEligible")
+      assertThat(markdown).contains("Upcoming -->|FAIL| Set_current_status_to_one_of_")
       assertThat(markdown).doesNotContain("_onFail")
-      assertThat(markdown).containsPattern("(?m)^- FAIL: .*`StubContextUpdater`.*- StubContextUpdater")
       assertThat(markdown).doesNotContain("[`StubContextUpdater`](#stubcontextupdater)")
       assertThat(markdown).contains("Used by: Upcoming (EXAMPLE)")
     }
@@ -202,9 +233,9 @@ class RulesGraphTest {
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED))
         .build()
-      val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker.walk("PA", root)))
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker().walk("PA", root)))
 
-      assertThat(markdown).contains("PaCompletion -->|FAIL| notEligible")
+      assertThat(markdown).contains("PaCompletion -->|FAIL| Set_CAS1_NOT_STARTED")
       assertThat(markdown).doesNotContain("_onFail")
       assertThat(markdown).contains("- FAIL: Set CAS1_NOT_STARTED")
       assertThat(markdown).contains("Used by: PaCompletion (PA)")
@@ -223,7 +254,7 @@ class RulesGraphTest {
         .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
 
-      assertThatThrownBy { RulesGraphWalker.walk("BROKEN", root) }
+      assertThatThrownBy { RulesGraphWalker().walk("BROKEN", root) }
         .isInstanceOf(IllegalStateException::class.java)
         .hasMessageContaining("anonymous")
     }
@@ -250,7 +281,7 @@ class RulesGraphTest {
         .onFail(notEligible).propagateContextOnFailure()
         .build()
 
-      assertThatThrownBy { RulesGraphWalker.walk("BROKEN", root) }
+      assertThatThrownBy { RulesGraphWalker().walk("BROKEN", root) }
         .isInstanceOf(IllegalArgumentException::class.java)
         .hasMessageContaining("Duplicate graph node id")
     }

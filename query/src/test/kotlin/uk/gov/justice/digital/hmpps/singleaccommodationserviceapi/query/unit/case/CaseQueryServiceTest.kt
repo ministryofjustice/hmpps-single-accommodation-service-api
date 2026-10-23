@@ -595,6 +595,7 @@ class CaseQueryServiceTest {
               crnOne to CaseAccommodationStatus.SETTLED,
             )
         }
+
         PeopleType.NFA_RISK -> {
           assertThat(result).hasSize(3)
           assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
@@ -604,6 +605,7 @@ class CaseQueryServiceTest {
               crnTwo to CaseAccommodationStatus.TRANSIENT,
             )
         }
+
         else -> {
           assertThat(result).hasSize(4)
           assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
@@ -661,6 +663,7 @@ class CaseQueryServiceTest {
           person = person,
           cpr = caseOrchestrationDto.cpr,
           tier = caseOrchestrationDto.tier,
+          sexualOffenceRegistrations = caseOrchestrationDto.sexualOffenceRegistrations,
         ),
       )
       assertThat(result.upstreamFailures).isEmpty()

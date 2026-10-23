@@ -9,8 +9,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class DtrUpcomingContextUpdater : ContextUpdater() {
 
-  override val description = set("Upcoming and submit DTR referral")
-
   val upcoming = "upcoming"
 
   override val outcomes = mapOf(

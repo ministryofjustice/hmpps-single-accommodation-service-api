@@ -41,10 +41,7 @@ class Cas1EligibilityTreeProvider(
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS1)
-    val placementBooked = builder.outcome(
-      "placementBooked",
-      serviceResult(),
-    )
+    val placementBooked = builder.outcome("return status \"placementBooked\"", serviceResult())
 
     val eligibilityNode = builder
       .ruleSet("Cas1Eligibility", eligibility)

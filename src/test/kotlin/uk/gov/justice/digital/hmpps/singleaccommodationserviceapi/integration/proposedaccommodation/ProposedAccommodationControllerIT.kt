@@ -17,13 +17,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventInt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArrivalMethod
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
@@ -31,31 +29,22 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProbationCreateAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationNoteEntity
@@ -64,7 +53,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_NOMIS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationByIdResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationTimelineResponse
@@ -73,14 +61,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAccommodationArrivalRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAccommodationNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -904,6 +888,15 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     }
 
     @Test
+    fun `should return 404 when requested case does not exist for proposed-accommodations`() {
+      val missingCrn = "X000000"
+      restTestClient.get().uri("/cases/{crn}/proposed-accommodations", missingCrn)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
     fun `should return empty list when no proposed-accommodations exist for crn`() {
       restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
         .withDeliusUserJwt()
@@ -912,107 +905,6 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         .value {
           assertThatJson(it!!).matchesExpectedJson("""{"data":[]}""")
         }
-    }
-
-    @Test
-    fun `should create a case when it is missing, hydrating upstream data`() {
-      val newCrn = UUID.randomUUID().toString()
-      val nomsNumber = "newlyDiscoveredNomsNumber"
-      stubCurrentAccommodationIsCas1(newCrn)
-      SasAndDeliusStubs.stubGetCase(
-        deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-        crn = newCrn,
-        response = buildCase(crn = newCrn, nomsNumber = nomsNumber),
-      )
-      SasAndDeliusStubs.stubGetCase(
-        crn = newCrn,
-        response = buildCase(crn = newCrn, nomsNumber = nomsNumber),
-      )
-      TierStubs.getTierOKResponse(newCrn, buildTier(tierScore = "B"))
-      PrisonerSearchStubs.getPrisonerOKResponse(
-        prisonNumber = nomsNumber,
-        response = buildPrisoner(
-          prisonNumber = nomsNumber,
-          inOutStatus = InOutStatus.IN,
-          prisonName = "HMP Test Prison",
-          releaseDate = LocalDate.of(2027, 1, 1),
-        ),
-      )
-      ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
-        crn = newCrn,
-        response = buildCas1Application(
-          placement = buildCas1PlacementSummary(
-            status = Cas1PlacementStatus.UPCOMING,
-            premises = buildCas1PremisesSummary(
-              postcode = "AP1 1AP",
-              addressLine1 = "AP House",
-              addressLine2 = "AP Area",
-              town = "AP Town",
-              startDate = LocalDate.of(2026, 6, 1),
-              endDate = null,
-            ),
-          ),
-        ),
-      )
-
-      assertThat(caseRepository.findByCrn(newCrn)).isNull()
-
-      restTestClient.get().uri("/cases/{crn}/proposed-accommodations", newCrn)
-        .withDeliusUserJwt()
-        .exchangeSuccessfully()
-
-      val createdCase = caseRepository.findByCrn(newCrn)!!
-      assertThat(createdCase.tierScore).isEqualTo("B")
-      assertThat(createdCase.firstName).isEqualTo("First")
-      assertThat(createdCase.lastName).isEqualTo("Last")
-      assertThat(createdCase.roshLevelCode).isEqualTo("RVHR")
-
-      val currentAccommodation = createdCase.currentAccommodation!!
-      assertThat(currentAccommodation.type?.code).isEqualTo("HMP")
-      assertThat(currentAccommodation.status?.code).isEqualTo("C")
-      assertThat(currentAccommodation.status?.description).isEqualTo("Custody")
-      assertThat(currentAccommodation.address.buildingName).isEqualTo("HMP Test Prison")
-
-      val nextAccommodation = createdCase.nextAccommodation!!
-      assertThat(nextAccommodation.type?.code).isEqualTo("A02")
-      assertThat(nextAccommodation.type?.description).isEqualTo("Approved Premises")
-      assertThat(nextAccommodation.status?.code).isEqualTo("PR1")
-      assertThat(nextAccommodation.status?.description).isEqualTo("Proposed for Resettlement")
-      assertThat(nextAccommodation.address.postcode).isEqualTo("AP1 1AP")
-      assertThat(nextAccommodation.address.thoroughfareName).isEqualTo("AP House")
-      assertThat(nextAccommodation.address.dependentLocality).isEqualTo("AP Area")
-      assertThat(nextAccommodation.address.postTown).isEqualTo("AP Town")
-
-      assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
-      assertThat(caseRefreshRequestRepository.findAll()).noneMatch { it.caseId == createdCase.id }
-    }
-
-    @Test
-    fun `should create a partial case and request a refresh when it is missing and the tier API returns a server error`() {
-      val newCrn = UUID.randomUUID().toString()
-      val nomsNumber = "newlyDiscoveredNomsNumber"
-      stubCurrentAccommodationIsCas1(newCrn)
-      SasAndDeliusStubs.stubGetCase(
-        deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-        crn = newCrn,
-        response = buildCase(crn = newCrn, nomsNumber = nomsNumber),
-      )
-      SasAndDeliusStubs.stubGetCase(
-        crn = newCrn,
-        response = buildCase(crn = newCrn, nomsNumber = nomsNumber),
-      )
-      TierStubs.getTierServerErrorResponse(newCrn)
-
-      restTestClient.get().uri("/cases/{crn}/proposed-accommodations", newCrn)
-        .withDeliusUserJwt()
-        .exchangeSuccessfully()
-
-      val createdCase = caseRepository.findByCrn(newCrn)!!
-      assertThat(createdCase.tierScore).isNull()
-      assertThat(createdCase.firstName).isEqualTo("First")
-      assertThat(createdCase.lastName).isEqualTo("Last")
-      val refreshRequest = caseRefreshRequestRepository.findAll().single { it.caseId == createdCase.id }
-      assertThat(refreshRequest.priority).isEqualTo(CaseRefreshPriority.LIVE)
     }
 
     @Test
@@ -1787,16 +1679,13 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
 
-    NomisUserRolesStubs.stubMe(
-      jwt = jwtAuthHelper.createJwtAccessToken(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        roles = listOf("ROLE_POM", "ROLE_PRISON"),
-        authSource = AuthSource.NOMIS.source,
-      ),
-      response = buildNomisUserDetail(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        primaryEmail = USERNAME_OF_LOGGED_IN_NOMIS_USER,
-      ),
+    val nomisUser = buildNomisUserDetail(
+      USERNAME_OF_LOGGED_IN_NOMIS_USER,
+      primaryEmail = USERNAME_OF_LOGGED_IN_NOMIS_USER,
+    )
+    NomisUserRolesStubs.stubNomisUserDetailsResponse(
+      username = nomisUser.username,
+      response = nomisUser,
     )
 
     val usernameOfNewDeliusUser = "newDeliusUser@justice.gov.uk"

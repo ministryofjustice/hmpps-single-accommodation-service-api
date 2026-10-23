@@ -8,6 +8,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.CurrentAccommodationIsPrisonOrCas1Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.NonMaleRiskEligibilityRule
 
@@ -17,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
     Cas1EligibilityRuleSet::class,
     MaleRiskEligibilityRule::class,
     NonMaleRiskEligibilityRule::class,
+    CurrentAccommodationIsPrisonOrCas1Rule::class,
     ClockConfig::class,
   ],
 )
@@ -28,6 +30,7 @@ class Cas1EligibilityRuleSetTest {
   private val expectedCas1EligibilityRuleNames = listOf(
     MaleRiskEligibilityRule::class.java.simpleName,
     NonMaleRiskEligibilityRule::class.java.simpleName,
+    CurrentAccommodationIsPrisonOrCas1Rule::class.java.simpleName,
   )
 
   @Test
@@ -35,7 +38,15 @@ class Cas1EligibilityRuleSetTest {
     val ruleSetRules = cas1EligibilityRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(2)
+      .hasSize(3)
       .containsExactlyInAnyOrderElementsOf(expectedCas1EligibilityRuleNames)
+  }
+
+  @Test
+  fun `current accommodation rule has priority 1`() {
+    val rule = cas1EligibilityRuleSet.getRules()
+      .single { it.rule is CurrentAccommodationIsPrisonOrCas1Rule }
+
+    assertThat(rule.priority).isEqualTo(1)
   }
 }

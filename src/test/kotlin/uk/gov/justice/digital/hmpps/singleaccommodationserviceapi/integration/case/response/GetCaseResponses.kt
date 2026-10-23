@@ -23,6 +23,7 @@ fun expectedGetCaseResponse(): String = """
     },
     "userAccess": "FULL",
     "limitedAccess": false,
+    "sexualOffenceRegistrations": ["ARSO"],
     "accommodationSummaries": null
   }
 }
@@ -49,6 +50,7 @@ fun expectedGetCaseResponseSearch(): String = """
     },
     "userAccess": "FULL",
     "limitedAccess": false,
+    "sexualOffenceRegistrations": [],
     "accommodationSummaries": {
       "caseAccommodationStatus": "SETTLED",
       "caseAccommodationStatusDate": null,

@@ -38,6 +38,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOfficer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
@@ -666,6 +667,10 @@ class CaseControllerIT : IntegrationTestBase() {
   fun `should get case`() {
     val case = buildCase(crn = crns[0], nomsNumber = nomsNumbers[0])
     SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
+    SasAndDeliusStubs.stubGetSexualOffenceRegistrations(
+      case.crn,
+      buildSexualOffenceRegistrations(case.crn),
+    )
 
     getCaseResponse(case.crn).value {
       assertThatJson(it!!).matchesExpectedJson(expectedGetCaseResponse())

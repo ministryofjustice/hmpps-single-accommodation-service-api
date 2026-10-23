@@ -9,8 +9,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas1UpcomingContextUpdater : ContextUpdater() {
 
-  override val description = set("Upcoming and start Approved Premise application")
-
   val upcoming = "upcoming"
 
   override val outcomes = mapOf(

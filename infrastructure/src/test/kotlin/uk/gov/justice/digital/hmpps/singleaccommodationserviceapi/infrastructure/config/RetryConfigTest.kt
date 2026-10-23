@@ -81,14 +81,6 @@ class RetryConfigTest {
     @JvmField
     val retryableExceptions = listOf(
       OAuth2AuthorizationException(OAuth2Error("invalid_token_response")),
-      ResourceAccessException("socket timeout"),
-      HttpServerErrorException.create(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        "Internal Server Error",
-        HttpHeaders.EMPTY,
-        ByteArray(0),
-        StandardCharsets.UTF_8,
-      ),
       WebClientRequestException(
         ReadTimeoutException.INSTANCE,
         HttpMethod.GET,
@@ -143,6 +135,14 @@ class RetryConfigTest {
 
     @JvmField
     val nonRetryableExceptions = listOf(
+      ResourceAccessException("socket timeout"),
+      HttpServerErrorException.create(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "Internal Server Error",
+        HttpHeaders.EMPTY,
+        ByteArray(0),
+        StandardCharsets.UTF_8,
+      ),
       HttpClientErrorException.create(
         HttpStatus.NOT_FOUND,
         "Not Found",

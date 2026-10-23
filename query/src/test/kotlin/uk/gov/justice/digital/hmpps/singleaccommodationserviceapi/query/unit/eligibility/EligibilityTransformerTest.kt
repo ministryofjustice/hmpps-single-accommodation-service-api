@@ -63,8 +63,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.getServiceResultActionOrder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toFailedEligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotEligibleServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotRequiredServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotEligibleServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotRequiredServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResultNew
@@ -671,7 +671,7 @@ class EligibilityTransformerTest {
   fun `should transform to not eligible service status`() {
     val expectedServiceStatus = buildServiceResultNew()
 
-    val actualEligibility = toNotEligibleServiceStatus(ServiceType.CAS1)
+    val actualEligibility = toNotEligibleServiceResult(ServiceType.CAS1)
 
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
   }
@@ -680,7 +680,7 @@ class EligibilityTransformerTest {
   fun `should transform to not required service status`() {
     val expectedServiceStatus = buildServiceResultNew(ServiceStatusNew.DTR_NOT_REQUIRED)
 
-    val actualEligibility = toNotRequiredServiceStatus(ServiceType.DTR)
+    val actualEligibility = toNotRequiredServiceResult(ServiceType.DTR)
 
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
   }

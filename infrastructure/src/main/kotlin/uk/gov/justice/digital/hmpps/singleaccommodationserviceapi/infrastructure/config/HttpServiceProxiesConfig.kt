@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServicesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.ProbationAccessControlClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusClient
@@ -118,6 +119,18 @@ class HttpServiceProxiesConfig(
     webClientBuilder,
     baseUrl,
     ProbationAccessControlClient::class,
+    readTimeout,
+  )
+
+  @Bean
+  fun nomisUserRolesClient(
+    webClientBuilder: WebClient.Builder,
+    @Value($$"${service.nomis-user-roles.base-url}") baseUrl: String,
+    @Value($$"${service.nomis-user-roles.read-timeout}") readTimeout: Duration,
+  ) = createClient(
+    webClientBuilder,
+    baseUrl,
+    NomisUserRolesClient::class,
     readTimeout,
   )
 
