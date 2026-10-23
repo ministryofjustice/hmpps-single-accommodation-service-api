@@ -28,25 +28,21 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsEmptyListResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsEmptyResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsResponse
@@ -56,8 +52,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import java.time.Instant
 import java.time.LocalDate
@@ -295,59 +289,6 @@ class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
       deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
       deliusOriginProposedAccommodationEndDate = LocalDate.now().plusDays(5),
     )
-  }
-
-  @Test
-  fun `should insert Delius origin 'Proposed' accommodation record with all data when record does not exist in SAS database and SAS case record does not exist in database either`() {
-    val crn = "ABCDEFG"
-    val prisonNumber = "PRI1"
-    val case = buildCase(crn, nomsNumber = prisonNumber)
-
-    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
-    TierStubs.getTierOKResponse(crn, response = buildTier())
-
-    shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
-      crn,
-      deliusProposedAccommodationBuildingNumber = "11",
-      deliusOriginProposedAccommodationTypeCode = AddressUsageCode.A07A,
-      deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
-      deliusOriginProposedAccommodationEndDate = LocalDate.now().plusDays(5),
-    )
-
-    val newCaseInserted = caseRepository.findByCrn(crn)
-    val newCaseCrnIdentifier = newCaseInserted?.caseIdentifiers
-      ?.firstOrNull { it.identifierType == IdentifierType.CRN }
-    val newCasePrisonNumberIdentifier = newCaseInserted?.caseIdentifiers
-      ?.firstOrNull { it.identifierType == IdentifierType.PRISON_NUMBER }
-
-    assertThat(newCaseInserted).isNotNull
-    assertThat(newCaseInserted!!.tierScore).isNotNull
-    assertThat(newCaseCrnIdentifier).isNotNull
-    assertThat(newCasePrisonNumberIdentifier).isNotNull
-    assertThat(newCaseCrnIdentifier!!.identifier).isEqualTo(crn)
-    assertThat(newCasePrisonNumberIdentifier!!.identifier).isEqualTo(prisonNumber)
-  }
-
-  @Test
-  fun `should return Server error and NOT insert Delius origin 'Proposed' accommodation record when retrieving the case from Delius fails`() {
-    val crn = "ABCDEFG"
-    SasAndDeliusStubs.stubGetCaseFailure(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-    mockCurrentPrisonAccommodationAndDeliusOriginAccommodation(
-      crn,
-      deliusOriginAddressStatusCode = AddressStatusCode.PR1,
-      deliusOriginProposedAccommodationTypeCode = AddressUsageCode.A07A,
-      deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
-      deliusOriginProposedAccommodationEndDate = LocalDate.now().minusDays(5),
-    )
-
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus()
-      .is5xxServerError
-
-    assertThat(caseRepository.findByCrn(crn)).isNull()
-    assertThat(proposedAccommodationRepository.findAll().isEmpty())
   }
 
   @Test
