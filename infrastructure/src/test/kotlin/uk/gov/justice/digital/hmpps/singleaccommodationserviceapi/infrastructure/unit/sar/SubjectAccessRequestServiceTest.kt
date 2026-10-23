@@ -100,7 +100,7 @@ class SubjectAccessRequestServiceTest {
       proposedAccommodation.notes.add(note)
 
       every {
-        caseRepository.findByIdentifiers(listOf(crn), null)
+        caseRepository.findCaseForSubjectAccessRequest(crn, null)
       } returns caseEntity
 
       every {
@@ -193,7 +193,7 @@ class SubjectAccessRequestServiceTest {
       proposedAccommodation.notes.add(note)
 
       every {
-        caseRepository.findByIdentifiers(listOf(crn), null)
+        caseRepository.findCaseForSubjectAccessRequest(crn, null)
       } returns caseEntity
 
       every {
@@ -254,13 +254,13 @@ class SubjectAccessRequestServiceTest {
       )
 
       assertThat(result).isNull()
-      verify(exactly = 0) { caseRepository.findByIdentifiers(any(), any()) }
+      verify(exactly = 0) { caseRepository.findCaseForSubjectAccessRequest(any(), any()) }
     }
 
     @Test
     fun `returns null when case is not found in caseRepository`() {
       val crn = "X999999"
-      every { caseRepository.findByIdentifiers(listOf(crn), null) } returns null
+      every { caseRepository.findCaseForSubjectAccessRequest(crn, null) } returns null
 
       val result = subjectAccessRequestService.getSarResult(
         crn = crn,
@@ -277,7 +277,7 @@ class SubjectAccessRequestServiceTest {
       val crn = "X123456"
       val caseEntity = buildCaseEntity { withCrn(crn) }
 
-      every { caseRepository.findByIdentifiers(listOf(crn), null) } returns caseEntity
+      every { caseRepository.findCaseForSubjectAccessRequest(crn, null) } returns caseEntity
       every { proposedAccommodationRepository.findAllForSar(caseEntity.id, any(), any()) } returns emptyList()
       every { dutyToReferRepository.findAllForSar(caseEntity.id, any(), any()) } returns emptyList()
 
@@ -311,7 +311,7 @@ class SubjectAccessRequestServiceTest {
         this.accommodationTypeId = unknownTypeId
       }
 
-      every { caseRepository.findByIdentifiers(listOf(crn), null) } returns caseEntity
+      every { caseRepository.findCaseForSubjectAccessRequest(crn, null) } returns caseEntity
       every { proposedAccommodationRepository.findAllForSar(caseEntity.id, any(), any()) } returns listOf(proposedAccommodation)
       every { dutyToReferRepository.findAllForSar(caseEntity.id, any(), any()) } returns listOf(dutyToRefer)
       every { userRepository.findAll() } returns emptyList()
@@ -350,7 +350,7 @@ class SubjectAccessRequestServiceTest {
 
       val dutyToRefer = buildDutyToReferEntity(caseId = caseEntity.id)
 
-      every { caseRepository.findByIdentifiers(listOf(crn), null) } returns caseEntity
+      every { caseRepository.findCaseForSubjectAccessRequest(crn, null) } returns caseEntity
       every { proposedAccommodationRepository.findAllForSar(caseEntity.id, expectedStartDate, expectedEndDate) } returns emptyList()
       every { dutyToReferRepository.findAllForSar(caseEntity.id, expectedStartDate, expectedEndDate) } returns listOf(dutyToRefer)
       every { userRepository.findAll() } returns emptyList()
@@ -375,7 +375,7 @@ class SubjectAccessRequestServiceTest {
     @Test
     fun `getContentFor returns null when getSarResult returns null`() {
       val crn = "X999999"
-      every { caseRepository.findByIdentifiers(listOf(crn), null) } returns null
+      every { caseRepository.findCaseForSubjectAccessRequest(crn, null) } returns null
 
       val content = subjectAccessRequestService.getContentFor(
         prn = null,

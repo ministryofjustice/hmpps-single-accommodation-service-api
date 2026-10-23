@@ -10,6 +10,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.annotations.SQLRestriction
 import org.hibernate.type.SqlTypes
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
@@ -19,6 +20,7 @@ import java.util.UUID
 
 @Entity
 @Table(name = "sas_case")
+@SQLRestriction(value = "archived = false")
 class CaseEntity(
 
   @Id
@@ -28,6 +30,7 @@ class CaseEntity(
   var firstName: String? = null,
   var lastName: String? = null,
   var dateOfBirth: LocalDate? = null,
+  var archived: Boolean = false,
 
   @Column(columnDefinition = "jsonb")
   @JdbcTypeCode(SqlTypes.JSON)
@@ -59,6 +62,7 @@ class CaseEntity(
 ) {
   fun latestCrn() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.CRN }.maxBy { it.createdAt }
     .identifier
+
   fun latestPrisonNumber() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.PRISON_NUMBER }.maxByOrNull { it.createdAt }
     ?.identifier
 }

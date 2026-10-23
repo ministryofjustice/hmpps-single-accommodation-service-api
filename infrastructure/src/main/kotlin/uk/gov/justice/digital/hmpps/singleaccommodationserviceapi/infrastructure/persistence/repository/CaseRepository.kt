@@ -15,6 +15,7 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
     from CaseEntity c
     join c.caseIdentifiers ci
     where ci.identifierType = 'CRN'
+      and c.archived = false
   """,
   )
   fun findAllCrns(): List<String>
@@ -27,6 +28,7 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
     join c.caseIdentifiers ci
     where ci.identifier = :identifier
     and ci.identifierType = :identifierType
+    and c.archived = false
   """,
   )
   fun findByIdentifier(identifier: String, identifierType: IdentifierType): CaseEntity?
@@ -39,6 +41,7 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
     join c.caseIdentifiers ci
     where ((:crns is not null and ci.identifierType = 'CRN' and ci.identifier in :crns)
        or (:prisonNumbers is not null and ci.identifierType = 'PRISON_NUMBER' and ci.identifier in :prisonNumbers))
+      and c.archived = false
   """,
   )
   fun findByIdentifiers(crns: List<String>?, prisonNumbers: List<String>?): CaseEntity?
@@ -49,19 +52,8 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
     select distinct c
     from CaseEntity c
     join c.caseIdentifiers ci
-    where ((:crns is not null and ci.identifierType = 'CRN' and ci.identifier in :crns)
-       or (:prisonNumbers is not null and ci.identifierType = 'PRISON_NUMBER' and ci.identifier in :prisonNumbers))
-  """,
-  )
-  fun findAllByIdentifiers(crns: List<String>?, prisonNumbers: List<String>?): List<CaseEntity>
-
-  @EntityGraph(attributePaths = ["caseIdentifiers"])
-  @Query(
-    """
-    select distinct c
-    from CaseEntity c
-    join c.caseIdentifiers ci
     where ci.identifierType = 'CRN' and ci.identifier in :crns
+      and c.archived = false
   """,
   )
   fun findByCrns(crns: List<String>): List<CaseEntity>
@@ -70,6 +62,16 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
   fun findWithIdentifiersById(id: UUID): CaseEntity?
 
   @EntityGraph(attributePaths = ["caseIdentifiers"])
+  @Query(
+    """
+    select distinct c
+    from CaseEntity c
+    join c.caseIdentifiers ci
+    where c.id in :ids
+      and ci.identifierType = 'CRN'
+      and c.archived = false
+  """,
+  )
   fun findAllWithIdentifiersByIdIn(ids: Collection<UUID>): List<CaseEntity>
 
   @Query(
@@ -86,6 +88,21 @@ WHERE NOT EXISTS (
     nativeQuery = true,
   )
   fun findUnpersistedCrns(crns: Array<String>): List<String>
+
+  // this query ignores the archived status for SAR
+  @Query(
+    nativeQuery = true,
+    value = """
+    SELECT DISTINCT c.*
+    FROM sas_case c
+    JOIN sas_case_identifier sci ON sci.case_id = c.id
+    WHERE (
+      (:crn IS NOT NULL AND sci.identifier_type = 'CRN' AND sci.identifier = :crn)
+      OR (:prisonNumber IS NOT NULL AND sci.identifier_type = 'PRISON_NUMBER' AND sci.identifier = :prisonNumber)
+    )
+    """,
+  )
+  fun findCaseForSubjectAccessRequest(crn: String?, prisonNumber: String?): CaseEntity?
 
   fun findByCrn(crn: String) = findByIdentifier(crn, IdentifierType.CRN)
   fun findByPrisonNumber(prisonNumber: String) = findByIdentifier(prisonNumber, IdentifierType.PRISON_NUMBER)
