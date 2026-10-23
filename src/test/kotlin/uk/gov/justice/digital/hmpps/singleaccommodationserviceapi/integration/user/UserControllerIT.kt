@@ -104,7 +104,17 @@ class UserControllerIT : IntegrationTestBase() {
       ),
     )
 
-    val expectedResponse = """{"data":{"username":"$USERNAME_OF_LOGGED_IN_NOMIS_USER","prisonCode":"MDI","userType":"NOMIS"}}"""
+    val expectedResponse = """
+      {
+        "data": {
+          "username": "$USERNAME_OF_LOGGED_IN_NOMIS_USER",
+          "userType": "NOMIS",
+          "nomisUserDetails": {
+            "prisonCode": "MDI"
+          }
+        }
+      }
+    """.trimIndent()
     val result = restTestClient.get().uri("/users/me")
       .withNomisUserJwt(jwt = jwt)
       .exchangeSuccessfully()
