@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.customcaselist.CustomCaseListQueryService
 
 private val CRN_REGEX = Regex("(?i)^[A-Z][0-9]{6}$")
-private const val CRN_FORMAT_MESSAGE = "CRN must be in format A123456"
+private const val CRN_FORMAT_MESSAGE = "Enter a valid format for all CRNs. For example, D016821"
 
 @Validated
 @RestController
@@ -43,14 +43,15 @@ class CustomCaseListController(
   @ResponseStatus(HttpStatus.CREATED)
   fun createCustomCaseList(
     @RequestBody
-    @Size(min = 1, max = 500, message = "Between 1 and 500 CRNs must be provided")
+    @Size(min = 1, max = 500, message = "Enter 500 CRNs or fewer")
     crns: List<String>,
   ): ResponseEntity<Void> {
     val normalisedCrns = crns.map { it.trim().uppercase() }
     val invalidCrns = normalisedCrns.filterNot { CRN_REGEX.matches(it) }
 
     if (invalidCrns.isNotEmpty()) {
-      throw ValidationException("$CRN_FORMAT_MESSAGE: ${invalidCrns.joinToString()}")
+      val messageSuffix = if (invalidCrns.size > 1) "are not valid CRN formats" else "is not a valid CRN format"
+      throw ValidationException("$CRN_FORMAT_MESSAGE. ${invalidCrns.joinToString()} $messageSuffix")
     }
 
     val user = userService.authorizeAndRetrieveUser()
