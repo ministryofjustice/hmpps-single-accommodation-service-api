@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.StaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
@@ -33,9 +32,9 @@ class UserService(
           authSource = AuthSourceEntity.DELIUS,
         )!!
       }
-      AuthSource.NOMIS -> {
-        getAndUpdateNomisUserOrCreate(username = principal.username)
-      }
+
+      AuthSource.NOMIS -> getAndUpdateNomisUserOrCreate(username = principal.username)
+
       else -> throw RuntimeException("Unexpected auth_source: ${principal.authSource}")
     }
   }

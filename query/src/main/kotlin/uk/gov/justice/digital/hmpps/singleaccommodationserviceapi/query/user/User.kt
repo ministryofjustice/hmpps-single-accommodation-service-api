@@ -6,9 +6,17 @@ import com.fasterxml.jackson.annotation.JsonInclude
 data class UserDto(
   val userType: UserType,
   val username: String,
+  val nomisUserDetails: NomisUserDetailsDto? = null,
+  val deliusUserDetails: DeliusUserDetailsDto? = null,
+)
+
+data class NomisUserDetailsDto(
+  val prisonCode: String?,
+)
+
+data class DeliusUserDetailsDto(
   val teams: List<TeamDto> = emptyList(),
-  val probationAreaCode: String? = null,
-  val prisonCode: String? = null,
+  val probationAreaCode: String,
 )
 
 data class TeamDto(

@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.DeliusUserDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.TeamDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.UserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.UserQueryService
@@ -87,11 +88,13 @@ class UserQueryServiceTest {
       UserDto(
         userType = UserType.DELIUS,
         username = principal.username.value,
-        teams = listOf(
-          TeamDto(name = "Team 1", code = "TEAM1"),
-          TeamDto(name = "Team 2", code = "TEAM2"),
+        deliusUserDetails = DeliusUserDetailsDto(
+          teams = listOf(
+            TeamDto(name = "Team 1", code = "TEAM1"),
+            TeamDto(name = "Team 2", code = "TEAM2"),
+          ),
+          probationAreaCode = "PA123",
         ),
-        probationAreaCode = "PA123",
       ),
     )
   }

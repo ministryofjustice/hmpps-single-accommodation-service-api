@@ -13,19 +13,18 @@ class UserQueryService(
   private val approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService,
   private val nomisUserRolesService: NomisUserRolesService,
 ) {
-  fun getTeams() = getUserData().teams
+  fun getTeams() = getUserData().deliusUserDetails?.teams
 
   fun getUserData(): UserDto {
     val principal = httpAuthService.getPrincipalOrThrow()
     return when (principal.authSource) {
       AuthSource.NOMIS -> {
-        val jwt = httpAuthService.getJwt()
-        val nomisUser = nomisUserRolesService.getUserDetailsForMe(jwt)
+        val nomisUser = nomisUserRolesService.getNomisUserDetail(principal.username)
 
         UserDto(
           userType = UserType.NOMIS,
           username = principal.username.value,
-          prisonCode = nomisUser?.activeCaseloadId,
+          nomisUserDetails = NomisUserDetailsDto(prisonCode = nomisUser.activeCaseloadId ?: "Unknown"),
         )
       }
 
@@ -35,8 +34,10 @@ class UserQueryService(
         UserDto(
           userType = UserType.DELIUS,
           username = principal.username.value,
-          teams = user.teams.toTeamDtos(),
-          probationAreaCode = user.probationArea.code,
+          deliusUserDetails = DeliusUserDetailsDto(
+            teams = user.teams.toTeamDtos(),
+            probationAreaCode = user.probationArea.code,
+          ),
         )
       }
 

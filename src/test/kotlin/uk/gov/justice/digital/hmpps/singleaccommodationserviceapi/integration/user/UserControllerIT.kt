@@ -66,12 +66,14 @@ class UserControllerIT : IntegrationTestBase() {
       {
         "data": {
           "username": "$USERNAME_OF_LOGGED_IN_DELIUS_USER",
-          "teams": [
-            {"name": "TEAMNAME1", "code": "TEAM1"},
-            {"name": "TEAMNAME2", "code": "TEAM2"}
-          ],
-          "probationAreaCode": "PA123",
-          "userType": "DELIUS"
+          "userType": "DELIUS",
+          "deliusUserDetails": {
+            "teams": [
+              {"name": "TEAMNAME1", "code": "TEAM1"},
+              {"name": "TEAMNAME2", "code": "TEAM2"}
+            ],
+            "probationAreaCode": "PA123"
+          }
         }
       }
     """.trimIndent()
@@ -94,8 +96,8 @@ class UserControllerIT : IntegrationTestBase() {
       authSource = AuthSource.NOMIS.source,
     )
 
-    NomisUserRolesStubs.stubMe(
-      jwt = jwt,
+    NomisUserRolesStubs.stubNomisUserDetailsResponse(
+      username = USERNAME_OF_LOGGED_IN_NOMIS_USER,
       response = buildNomisUserDetail(
         username = USERNAME_OF_LOGGED_IN_NOMIS_USER,
         activeCaseloadId = "MDI",
