@@ -2,4 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.doma
 
 const val INVALID_CRNS_KEY = "invalidCrns"
 
-class InvalidCrnsException(val crns: List<String>) : DomainException(INVALID_CRNS_KEY, crns.joinToString())
+class InvalidCrnsException(val crns: List<String>) :
+  DomainException(
+    errorKey = INVALID_CRNS_KEY,
+    userMessage = "Invalid CRNS: ${crns.joinToString()}",
+  )
