@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security
 
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
@@ -35,7 +34,7 @@ class UserService(
         )!!
       }
       AuthSource.NOMIS -> {
-        getAndUpdateNomisUserOrCreate(username = principal.username, httpAuthService.getJwt())
+        getAndUpdateNomisUserOrCreate(username = principal.username)
       }
       else -> throw RuntimeException("Unexpected auth_source: ${principal.authSource}")
     }
@@ -69,8 +68,8 @@ class UserService(
     nomisActiveCaseloadId = null,
   )
 
-  fun getAndUpdateNomisUserOrCreate(username: Username, jwt: Jwt): UserEntity {
-    val nomisUserDetails = nomisUserRolesService.getNomisUserDetail(httpAuthService.getUsername())
+  fun getAndUpdateNomisUserOrCreate(username: Username): UserEntity {
+    val nomisUserDetails = nomisUserRolesService.getNomisUserDetail(username)
     val existingUser = userRepository.findByUsernameAndAuthSource(username = username, authSource = AuthSourceEntity.NOMIS)
     if (existingUser != null) {
       existingUser.email = nomisUserDetails.primaryEmail

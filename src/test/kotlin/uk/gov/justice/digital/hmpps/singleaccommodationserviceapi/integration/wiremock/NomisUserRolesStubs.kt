@@ -14,7 +14,7 @@ object NomisUserRolesStubs {
   ) {
     sasWiremock.stubFor(
       WireMock
-        .get(WireMock.urlPathEqualTo("/user/$username"))
+        .get(WireMock.urlPathEqualTo("/users/$username"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }
