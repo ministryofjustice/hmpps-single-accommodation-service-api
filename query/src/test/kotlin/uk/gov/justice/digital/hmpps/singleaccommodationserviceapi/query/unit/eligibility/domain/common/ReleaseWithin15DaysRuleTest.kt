@@ -1,10 +1,10 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas2.upcoming
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.common
 
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.ReleaseWithin15DaysRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.ReleaseWithin15DaysRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
@@ -20,7 +20,7 @@ class ReleaseWithin15DaysRuleTest {
 
     val result = ReleaseWithin15DaysRule(clock).evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -34,7 +34,7 @@ class ReleaseWithin15DaysRuleTest {
 
     val result = ReleaseWithin15DaysRule(clock).evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -47,7 +47,7 @@ class ReleaseWithin15DaysRuleTest {
 
     val result = ReleaseWithin15DaysRule(clock).evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -61,7 +61,7 @@ class ReleaseWithin15DaysRuleTest {
 
     val result = ReleaseWithin15DaysRule(clock).evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
@@ -75,12 +75,12 @@ class ReleaseWithin15DaysRuleTest {
 
     val result = ReleaseWithin15DaysRule(clock).evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
   fun `rule has correct description`() {
-    assertThat(ReleaseWithin15DaysRule(clock).description)
+    Assertions.assertThat(ReleaseWithin15DaysRule(clock).description)
       .isEqualTo("FAIL if not within 15 days of release from current accommodation")
   }
 }

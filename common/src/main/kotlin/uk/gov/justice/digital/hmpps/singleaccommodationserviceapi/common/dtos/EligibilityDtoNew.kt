@@ -277,6 +277,11 @@ enum class ServiceStatusNew(
     service = ServiceType.CAS3,
     link = Link(text = EligibilityKeys.VIEW_REFERRAL, type = LinkType.CAS3_VIEW_REFERRAL),
   ),
+  CAS3_UPCOMING(
+    service = ServiceType.CAS3,
+    proposedAction = CaseActionType.START_CAS3_REFERRAL,
+    isUpcoming = true,
+  ),
   CAS3_NOT_STARTED(
     service = ServiceType.CAS3,
     proposedAction = CaseActionType.START_CAS3_REFERRAL,

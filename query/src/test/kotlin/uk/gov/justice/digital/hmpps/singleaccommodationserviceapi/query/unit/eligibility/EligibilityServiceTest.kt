@@ -103,7 +103,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitableStatusRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.ReleaseWithin15DaysRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationArrivedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
@@ -120,8 +119,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3BookingSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.ReleaseWithin15DaysRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
@@ -217,6 +219,8 @@ class EligibilityServiceTest {
 
   // CAS3
   var cas3ReferralStartUrl = "CAS3_REFERRAL_START_URL"
+  var cas3UpcomingRuleSet = Cas3UpcomingRuleSet(ReleaseWithin15DaysRule(clock))
+  var cas3UpcomingContextUpdater = Cas3UpcomingContextUpdater()
   var cas3SuitabilityContextUpdater = Cas3SuitabilityContextUpdater()
   var cas3CompletionContextUpdater = Cas3CompletionContextUpdater()
   var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(
@@ -299,6 +303,8 @@ class EligibilityServiceTest {
 
   private val cas3Tree = Cas3EligibilityTreeProvider(
     builder = builder,
+    upcoming = cas3UpcomingRuleSet,
+    upcomingContextUpdater = cas3UpcomingContextUpdater,
     suitability = cas3SuitabilityRuleSet,
     suitabilityContextUpdater = cas3SuitabilityContextUpdater,
     completion = cas3CompletionRuleSet,
@@ -1103,7 +1109,13 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCas3Status}")
           .isEqualTo(s.expectedCas3Status)
 
-        assertThat(result.actionStartDate).isNull()
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusDays(15)
+          } else {
+            null
+          },
+        )
         assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CAS3)
 
         val expectedUrl = when (s.expectedCas3Url) {
@@ -1178,7 +1190,13 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCas3Status}")
           .isEqualTo(s.expectedCas3Status)
 
-        assertThat(result.actionStartDate).isNull()
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusDays(15)
+          } else {
+            null
+          },
+        )
         assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CAS3)
 
         val expectedUrl = when (s.expectedCas3Url) {
