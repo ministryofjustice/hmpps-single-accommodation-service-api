@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
@@ -65,6 +64,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -74,7 +74,6 @@ import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
-@TestPropertySource(properties = ["scheduling.enabled=true"])
 class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
 
   @Autowired
@@ -1260,6 +1259,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should update address details on 'Confirmed' proposed-accommodation and so should publish sas-address-updated event and should not POST to CPR`() {
     cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
@@ -1279,6 +1279,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should update accommodation type on 'Confirmed' proposed-accommodation and so should publish sas-address-updated event and should not POST to CPR`() {
     cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     val proposedAccommodationPersistedResult = shouldUpdateConfirmedProposedAccommodation(
@@ -1413,6 +1414,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should downgrade 'Confirmed' proposed-accommodation to 'Unconfirmed' and so should publish sas-address-deleted event and should not POST to CPR`() {
     cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     val confirmedStatus = EntityNextAccommodationStatus.YES
@@ -1914,6 +1916,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   @Nested
   inner class PostProposedAccommodationArrival {
     @Test
+    @EnableMessageProcessing
     fun `should arrive a 'Confirmed' proposed-accommodation and publish a sas-address-person-arrived event and transition database record appropriately`() {
       cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
       val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
@@ -2064,6 +2067,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     }
 
     @Test
+    @EnableMessageProcessing
     fun `should arrive a 'Unconfirmed' proposed-accommodation and publish event and transition database record appropriately when WITHOUT_VERIFICATION`() {
       cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
       val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
