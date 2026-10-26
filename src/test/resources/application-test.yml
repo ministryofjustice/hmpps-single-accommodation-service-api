@@ -80,6 +80,21 @@ shedlock:
   case-refresh-worker:
     lock-at-most-for: 3s
     lock-at-least-for: 1ms
+  inbox-event-failure-monitor:
+    lock-at-most-for: 10s
+    lock-at-least-for: 1ms
+  inbox-event-cleanup:
+    lock-at-most-for: 10s
+    lock-at-least-for: 1ms
+  outbox-event-failure-monitor:
+    lock-at-most-for: 10s
+    lock-at-least-for: 1ms
+  case-refresh-failure-monitor:
+    lock-at-most-for: 10s
+    lock-at-least-for: 1ms
+  case-refresh-worker:
+    lock-at-most-for: 10s
+    lock-at-least-for: 1ms
 
 event:
   details-url:
