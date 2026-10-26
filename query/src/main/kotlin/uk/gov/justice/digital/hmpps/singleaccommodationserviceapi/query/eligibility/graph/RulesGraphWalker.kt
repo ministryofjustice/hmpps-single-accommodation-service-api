@@ -73,7 +73,7 @@ class RulesGraphWalker {
 
   private fun RuleSetNode.toGraphNode() = GraphNode(
     id = ensureUniqueId(slug(ruleSetName), this),
-    title = ruleSetName,
+    title = ruleSet.name?.takeIf { it.isNotBlank() } ?: ruleSetName,
     kind = GraphNodeKind.RULE_SET,
     rules = ruleSet.getRules().map { priorityRule ->
       RuleInfo(

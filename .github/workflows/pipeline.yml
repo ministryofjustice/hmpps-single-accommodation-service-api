@@ -104,6 +104,21 @@ jobs:
       postgres-db: sas_db
       postgres-port: '5434:5432'
     secrets: inherit
+  build_jar:
+    permissions:
+      contents: read
+    name: Build application jar
+    needs:
+      - kotlin_validate
+      - app_version
+    if: github.ref == 'refs/heads/main'
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
+    with:
+      java-version: '25'
+      gradle-command: 'BUILD_NUMBER=${{ needs.app_version.outputs.version }} ./gradlew assemble'
+      upload-test-artifacts: false
+      upload-build-artifacts: true
+    secrets: inherit
   build:
     permissions:
       contents: read
@@ -114,6 +129,7 @@ jobs:
       - app_version
       - pact_test
       - trigger_pact_provider_verification
+      - build_jar
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@v2 # WORKFLOW_VERSION
     with:
       docker_registry: 'ghcr.io'
@@ -122,6 +138,7 @@ jobs:
       image_version: '${{ needs.app_version.outputs.version }}'
       push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
       docker_multiplatform: false
+      download_build_artifacts: true
   deploy_dev:
     permissions:
       contents: read
