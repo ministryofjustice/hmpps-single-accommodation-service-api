@@ -58,13 +58,11 @@ class PausableTaskScheduler(
 
   override fun schedule(task: Runnable, startTime: Instant) = super.schedule(whenEnabled(task), startTime)
 
-  override fun scheduleAtFixedRate(task: Runnable, startTime: Instant, period: Duration) =
-    super.scheduleAtFixedRate(whenEnabled(task), startTime, period)
+  override fun scheduleAtFixedRate(task: Runnable, startTime: Instant, period: Duration) = super.scheduleAtFixedRate(whenEnabled(task), startTime, period)
 
   override fun scheduleAtFixedRate(task: Runnable, period: Duration) = super.scheduleAtFixedRate(whenEnabled(task), period)
 
-  override fun scheduleWithFixedDelay(task: Runnable, startTime: Instant, delay: Duration) =
-    super.scheduleWithFixedDelay(whenEnabled(task), startTime, delay)
+  override fun scheduleWithFixedDelay(task: Runnable, startTime: Instant, delay: Duration) = super.scheduleWithFixedDelay(whenEnabled(task), startTime, delay)
 
   override fun scheduleWithFixedDelay(task: Runnable, delay: Duration) = super.scheduleWithFixedDelay(whenEnabled(task), delay)
 
@@ -88,4 +86,3 @@ class PausableTaskScheduler(
     val DEFAULT_AWAIT_IDLE_TIMEOUT: Duration = Duration.ofSeconds(10)
   }
 }
-
