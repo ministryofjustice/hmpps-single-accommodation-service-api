@@ -33,8 +33,12 @@ class TestSchedulingConfig {
   }
 }
 
-/** Initial value comes from `scheduling.enabled` (false in the test profile); tests may flip it at runtime. */
-@ConfigurationProperties(prefix = "scheduling")
+/**
+ * Initial value comes from `test-message-processing.enabled` (false in the test profile); tests may flip it at runtime.
+ * This is deliberately separate from `scheduling.enabled`, which gates the production scheduling config and is
+ * true in tests so that the real scheduling beans are loaded.
+ */
+@ConfigurationProperties(prefix = "test-message-processing")
 class TestSchedulingProperties(
   enabled: Boolean,
 ) {

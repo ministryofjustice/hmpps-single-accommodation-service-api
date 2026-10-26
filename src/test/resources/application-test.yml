@@ -50,8 +50,12 @@ spring:
       maximum-pool-size: 10
 
 scheduling:
+  enabled: true
+  fixed-delay: 10ms
+
+# Message processing (scheduled inbox/outbox/refresh jobs) is off by default; see @EnableMessageProcessing.
+test-message-processing:
   enabled: false
-  fixed-delay: 50ms
 
 shedlock:
   default-lock-at-most-for: 3s
