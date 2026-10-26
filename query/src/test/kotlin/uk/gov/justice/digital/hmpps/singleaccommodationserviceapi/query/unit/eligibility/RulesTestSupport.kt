@@ -15,8 +15,10 @@ class StubRule(override val description: String) : Rule {
   override fun evaluate(data: DomainData) = RuleResult(description, RuleStatus.PASS)
 }
 
-class StubRuleSet(private val rules: List<PrioritisedRule>) : RuleSet {
+class StubRuleSet(private val rules: List<PrioritisedRule>, private val label: String? = "") : RuleSet {
   override fun getRules(): List<PrioritisedRule> = rules
+  override val name: String?
+    get() = label
 }
 
 class StubContextUpdater : ContextUpdater() {

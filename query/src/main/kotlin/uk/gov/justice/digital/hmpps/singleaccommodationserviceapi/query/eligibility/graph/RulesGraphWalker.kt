@@ -40,22 +40,8 @@ class RulesGraphWalker {
           visit(node.onPass)
           edges += GraphEdge(graphNode.id, nodes.getValue(node.onPass).id, "PASS")
 
-          val onFailSourceNode = if (node.contextUpdater === ContextUpdater.identity()) {
-            graphNode
-          } else {
-            node.contextUpdater.let { contextUpdater ->
-              val contextUpdaterNode = contextUpdater.toGraphNode()
-
-              nodes[contextUpdater] = contextUpdaterNode
-
-              edges += GraphEdge(from = graphNode.id, to = contextUpdaterNode.id, label = "FAIL")
-
-              contextUpdaterNode
-            }
-          }
-
           visit(node.onFail)
-          edges += GraphEdge(onFailSourceNode.id, nodes.getValue(node.onFail).id, "FAIL")
+          edges += GraphEdge(graphNode.id, nodes.getValue(node.onFail).id, "FAIL")
         }
       }
       visitingStack -= node
@@ -71,28 +57,24 @@ class RulesGraphWalker {
     kind = GraphNodeKind.OUTCOME,
   )
 
-  private fun RuleSetNode.toGraphNode() = GraphNode(
-    id = ensureUniqueId(slug(ruleSetName), this),
-    title = ruleSet.name?.takeIf { it.isNotBlank() } ?: ruleSetName,
-    kind = GraphNodeKind.RULE_SET,
-    rules = ruleSet.getRules().map { priorityRule ->
-      RuleInfo(
-        className = priorityRule.rule::class.simpleName
-          ?: error("Rules should not be defined as anonymous classes"),
-        description = priorityRule.rule.description,
-        sourcePath = sourceLinkPath(priorityRule.rule::class),
-      )
-    },
-    contextUpdater = contextUpdaterInfo(contextUpdater),
-    ruleSet = ruleSet,
-  )
-
-  private fun ContextUpdater.toGraphNode() = GraphNode(
-    id = ensureUniqueId(slug(description), this),
-    title = description,
-    kind = GraphNodeKind.CONTEXT_UPDATER,
-    contextUpdater = null,
-  )
+  private fun RuleSetNode.toGraphNode(): GraphNode {
+    val failureStatus = failureStatusLabel(contextUpdater)
+    return GraphNode(
+      id = ensureUniqueId(slug(ruleSetName), this),
+      title = ruleSet.name?.takeIf { it.isNotBlank() } ?: ruleSetName,
+      kind = GraphNodeKind.RULE_SET,
+      rules = ruleSet.getRules().map { priorityRule ->
+        RuleInfo(
+          className = priorityRule.rule::class.simpleName
+            ?: error("Rules should not be defined as anonymous classes"),
+          description = priorityRule.rule.description,
+          sourcePath = sourceLinkPath(priorityRule.rule::class),
+          failureStatus = failureStatus,
+        )
+      },
+      contextUpdater = contextUpdaterInfo(contextUpdater),
+    )
+  }
 
   fun treeName(provider: EligibilityTreeProvider): String = provider::class.simpleName
     ?.removeSuffix("EligibilityTreeProvider")
@@ -112,6 +94,15 @@ class RulesGraphWalker {
 internal fun slug(raw: String): String {
   val cleaned = raw.replace(Regex("[^A-Za-z0-9_]"), "_")
   return if (cleaned.firstOrNull()?.isLetter() == true) cleaned else "n_$cleaned"
+}
+
+internal fun failureStatusLabel(updater: ContextUpdater): String? {
+  if (updater.propagatesFailureReasons) return null
+  val statuses = updater.outcomes.values.map { it.serviceStatus.name }.distinct()
+  if (statuses.size == 1) return statuses.single()
+  if (!updater.graphCopiesSourceApplicationStatus) return null
+  val service = statuses.map { it.substringBefore('_') }.distinct().singleOrNull() ?: return null
+  return "Set to $service Application Status"
 }
 
 internal fun contextUpdaterInfo(updater: ContextUpdater): ContextUpdaterInfo? {

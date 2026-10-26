@@ -13,6 +13,8 @@ class Cas2SuitabilityContextUpdater(
   private val sentryService: SentryService,
 ) : ContextUpdater() {
 
+  override val graphCopiesSourceApplicationStatus = true
+
   val notStarted = "notStarted"
   val notSubmitted = "notSubmitted"
   val offerDeclined = "offerDeclined"

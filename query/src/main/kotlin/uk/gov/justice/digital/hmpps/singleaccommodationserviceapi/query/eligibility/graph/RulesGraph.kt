@@ -13,6 +13,7 @@ data class RuleInfo(
   val className: String,
   val description: String,
   val sourcePath: String? = null,
+  val failureStatus: String? = null,
 )
 
 data class ContextUpdaterInfo(

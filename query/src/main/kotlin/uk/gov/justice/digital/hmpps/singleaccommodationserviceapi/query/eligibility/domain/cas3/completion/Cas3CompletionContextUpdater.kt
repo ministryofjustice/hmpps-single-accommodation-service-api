@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas3CompletionContextUpdater : ContextUpdater() {
 
+  override val graphCopiesSourceApplicationStatus = true
+
   val bedspaceOffered = "bedspaceOffered"
   val bookingConfirmed = "bookingConfirmed"
   val notArrived = "notArrived"

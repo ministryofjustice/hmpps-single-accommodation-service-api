@@ -148,8 +148,8 @@ object RulesGraphMarkdownRenderer {
     return if (count == 0) {
       "${node.title} (always PASS)"
     } else {
-      "${node.title} ($count)" + "\n\n" + node.ruleSet!!.getRules()
-        .joinToString(separator = "\n- ", prefix = "- ") { it.description ?: "anonymous" }
+      "${node.title} ($count)" + "\n\n" + node.rules
+        .joinToString(separator = "\n- ", prefix = "- ") { ruleText(it) }
     }
   }
 
@@ -166,7 +166,7 @@ object RulesGraphMarkdownRenderer {
         appendLine("- (no rules - always PASS)")
       } else {
         node.rules.forEach { rule ->
-          appendLine("- ${codeLink(rule.className, rule.sourcePath)}: ${rule.description}")
+          appendLine("- ${codeLink(rule.className, rule.sourcePath)}: ${ruleText(rule)}")
         }
       }
       val updater = node.contextUpdater
@@ -178,6 +178,12 @@ object RulesGraphMarkdownRenderer {
         }
       }
     }
+  }
+
+  private fun ruleText(rule: RuleInfo): String {
+    val status = rule.failureStatus
+    // TODO, this is ugly, but right now we are just moving the status into the rulesetnode.
+    return if (status.isNullOrBlank()) rule.description else "${rule.description} |$status|"
   }
 
   private fun failLabel(updater: ContextUpdaterInfo): String = if (updater.name == "constant") {

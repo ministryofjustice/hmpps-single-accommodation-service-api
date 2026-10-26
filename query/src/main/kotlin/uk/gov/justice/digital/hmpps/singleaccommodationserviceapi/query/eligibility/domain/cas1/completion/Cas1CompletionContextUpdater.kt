@@ -13,6 +13,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas1CompletionContextUpdater : ContextUpdater() {
 
+  override val graphCopiesSourceApplicationStatus = true
+
   val arrived = "arrived"
   val notArrived = "notArrived"
   val placementCancelled = "placementCancelled"

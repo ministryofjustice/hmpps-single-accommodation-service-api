@@ -13,6 +13,8 @@ class Cas2CompletionContextUpdater(
   private val sentryService: SentryService,
 ) : ContextUpdater() {
 
+  override val graphCopiesSourceApplicationStatus = true
+
   val submitted = "submitted"
   val moreInfoRequested = "moreInfoRequested"
   val awaitingDecision = "awaitingDecision"

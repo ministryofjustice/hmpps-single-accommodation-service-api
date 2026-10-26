@@ -13,6 +13,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas3SuitabilityContextUpdater : ContextUpdater() {
 
+  override val graphCopiesSourceApplicationStatus = true
+
   val startNewReferral = "startNewReferral"
   val rejected = "rejected"
   val notSubmitted = "notSubmitted"

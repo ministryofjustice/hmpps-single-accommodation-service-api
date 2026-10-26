@@ -14,6 +14,13 @@ import java.time.LocalDate
  */
 abstract class ContextUpdater {
   open val propagatesFailureReasons: Boolean = false
+
+  /**
+   * True when [toServiceResult] copies the status of an existing application.
+   * The rules graph then labels a rule with several source service outcomes as
+   * "Set to <service> Application Status".
+   */
+  open val graphCopiesSourceApplicationStatus: Boolean = false
   open val outcomes: Map<String, ServiceResultSpec> get() = emptyMap()
   open val description: String get() = if (outcomes.keys.size == 1) {
     "Set current status to ${outcomes.entries.first().value.serviceStatus}"
