@@ -50,10 +50,33 @@ class DutyToReferAggregate private constructor(
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
 
   companion object {
-    fun hydrateNew(caseId: UUID) = DutyToReferAggregate(
+    fun create(
+      caseId: UUID,
+      localAuthorityAreaId: UUID,
+      submissionDate: LocalDate,
+      referenceNumber: String?,
+      status: DtrStatus,
+      withdrawalReason: WithdrawalReason? = null,
+      withdrawalReasonOther: String? = null,
+      outcomeReason: OutcomeReason? = null,
+      submissionNote: String? = null,
+      outcomeNote: String? = null,
+    ) = DutyToReferAggregate(
       id = UUID.randomUUID(),
       caseId = caseId,
-    )
+    ).apply {
+      initialiseNew(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = referenceNumber,
+        status = status,
+        withdrawalReason = withdrawalReason,
+        withdrawalReasonOther = withdrawalReasonOther,
+        outcomeReason = outcomeReason,
+        submissionNote = submissionNote,
+        outcomeNote = outcomeNote,
+      )
+    }
 
     fun hydrateExisting(
       id: UUID,
@@ -95,10 +118,63 @@ class DutyToReferAggregate private constructor(
     submissionNote: String? = null,
     outcomeNote: String? = null,
   ) {
+    val previousStatus = this.status
+    applyDutyToReferChanges(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = referenceNumber,
+      status = status,
+      withdrawalReason = withdrawalReason,
+      withdrawalReasonOther = withdrawalReasonOther,
+      outcomeReason = outcomeReason,
+      submissionNote = submissionNote,
+      outcomeNote = outcomeNote,
+    )
+    if (previousStatus != this.status) {
+      domainEvents += DutyToReferUpdatedDomainEvent(id)
+    }
+  }
+
+  private fun initialiseNew(
+    localAuthorityAreaId: UUID,
+    submissionDate: LocalDate,
+    referenceNumber: String?,
+    status: DtrStatus,
+    withdrawalReason: WithdrawalReason?,
+    withdrawalReasonOther: String?,
+    outcomeReason: OutcomeReason?,
+    submissionNote: String?,
+    outcomeNote: String?,
+  ) {
+    applyDutyToReferChanges(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = referenceNumber,
+      status = status,
+      withdrawalReason = withdrawalReason,
+      withdrawalReasonOther = withdrawalReasonOther,
+      outcomeReason = outcomeReason,
+      submissionNote = submissionNote,
+      outcomeNote = outcomeNote,
+    )
+    domainEvents += DutyToReferCreatedDomainEvent(id)
+  }
+
+  private fun applyDutyToReferChanges(
+    localAuthorityAreaId: UUID,
+    submissionDate: LocalDate,
+    referenceNumber: String?,
+    status: DtrStatus,
+    withdrawalReason: WithdrawalReason?,
+    withdrawalReasonOther: String?,
+    outcomeReason: OutcomeReason?,
+    submissionNote: String?,
+    outcomeNote: String?,
+  ) {
+    val previousStatus = this.status
     validateStatusTransition(status)
     validateWithdrawal(status, withdrawalReason, withdrawalReasonOther)
 
-    val previousStatus = this.status
     val previousOutcomeReason = this.outcomeReason
 
     validateOutcome(status, outcomeReason, outcomeNote, previousStatus, previousOutcomeReason)
@@ -116,14 +192,6 @@ class DutyToReferAggregate private constructor(
     // outcome note can only change when updating with an outcome status
     if (status == DtrStatus.ACCEPTED || status == DtrStatus.NOT_ACCEPTED) {
       this.outcomeNote = outcomeNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
-    }
-
-    when {
-      previousStatus == null ->
-        domainEvents += DutyToReferCreatedDomainEvent(id)
-
-      previousStatus != status ->
-        domainEvents += DutyToReferUpdatedDomainEvent(id)
     }
   }
 
