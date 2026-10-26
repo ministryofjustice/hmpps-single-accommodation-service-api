@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
+import java.time.Duration.ZERO
 import java.time.Duration.ofMillis
 import java.time.Duration.ofSeconds
 import java.util.UUID
@@ -25,7 +26,8 @@ class OutboxEventHelper(
     var outboxRecord: OutboxEventEntity? = null
     await
       .atMost(ofSeconds(5))
-      .pollInterval(ofMillis(100))
+      .pollDelay(ZERO)
+      .pollInterval(ofMillis(20))
       .until {
         outboxRecord = outboxEventTestRepository.findByAggregateIdAndAggregateTypeAndDomainEventTypeAndProcessedStatus(
           aggregateId,

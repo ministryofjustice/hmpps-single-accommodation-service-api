@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.web.servlet.client.RestTestClient
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
@@ -34,6 +35,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.CacheHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
@@ -41,6 +43,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelpe
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.Duration
+import java.time.Duration.ZERO
 import java.time.Duration.ofMillis
 import java.time.Duration.ofSeconds
 import java.time.Instant
@@ -125,11 +128,15 @@ abstract class IntegrationTestBase {
   @Autowired
   protected lateinit var testSentryService: TestSentryService
 
+  @MockitoSpyBean
+  lateinit var caseRefreshRequestService: CaseRefreshRequestService
+
   @BeforeAll
   fun beforeAll() {
     await
       .atMost(ofSeconds(10))
-      .pollInterval(ofMillis(100))
+      .pollDelay(ZERO)
+      .pollInterval(ofMillis(20))
       .untilAsserted {
         restTestClient.get().uri("/health/readiness")
           .exchange()
@@ -231,18 +238,20 @@ abstract class IntegrationTestBase {
     isActive = true,
   )
 
-  fun waitFor(pollInterval: Duration? = Duration.ofMillis(50), block: () -> Unit) {
-    await.atMost(Duration.ofSeconds(10))
+  fun waitFor(pollInterval: Duration? = ofMillis(50), block: () -> Unit) {
+    await.atMost(ofSeconds(10))
+      .pollDelay(ZERO)
       .pollInterval(pollInterval)
       .untilAsserted(block)
   }
 
   fun <T> waitForEntity(
-    pollInterval: Duration = Duration.ofMillis(50),
-    timeout: Duration = Duration.ofSeconds(10),
+    pollInterval: Duration = ofMillis(50),
+    timeout: Duration = ofSeconds(10),
     supplier: () -> T?,
   ): T = await
     .atMost(timeout)
+    .pollDelay(ZERO)
     .pollInterval(pollInterval)
     .until({ supplier() }, { it != null })!!
 
