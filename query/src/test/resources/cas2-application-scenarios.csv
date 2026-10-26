@@ -54,3 +54,5 @@ testCaseId,description,referenceDate,currentAccommodationEndDate,isEligible,subm
 52,Ineligible; no accommodation end date; application submitted on 01/01/2025; offer declined; not marked as arrived. Expect CAS2 not eligible.,01/01/2025,,FALSE,01/01/2025,FALSE,offerDeclined,CAS2_NOT_ELIGIBLE,
 53,Ineligible; accommodation ends in 15 days; application submitted on 01/01/2025; withdrawn; not marked as arrived. Expect CAS2 not eligible.,01/01/2025,16/01/2025,FALSE,01/01/2025,FALSE,withdrawn,CAS2_NOT_ELIGIBLE,
 54,Ineligible; no accommodation end date; application submitted on 01/01/2025; withdrawn; not marked as arrived. Expect CAS2 not eligible.,01/01/2025,,FALSE,01/01/2025,FALSE,withdrawn,CAS2_NOT_ELIGIBLE,
+55,Eligible; accommodation ends in 16 days; application submitted on 01/01/2025; awaiting arrival; marked as arrived. Expect CAS2 upcoming.,01/01/2025,17/01/2025,TRUE,01/01/2025,TRUE,awaitingArrival,CAS2_UPCOMING,
+56,Ineligible; accommodation ends in 16 days; application submitted on 01/01/2025; awaiting arrival; marked as arrived. Expect CAS2 not eligible.,01/01/2025,17/01/2025,FALSE,01/01/2025,TRUE,awaitingArrival,CAS2_NOT_ELIGIBLE,
