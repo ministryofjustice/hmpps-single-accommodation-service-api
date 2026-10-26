@@ -18,7 +18,8 @@ class NotFoundIT : IntegrationTestBase() {
   fun `Resources that aren't found should return 404 - test of the exception handler`() {
     await
       .atMost(Duration.ofSeconds(10))
-      .pollInterval(Duration.ofMillis(100))
+      .pollDelay(Duration.ZERO)
+      .pollInterval(Duration.ofMillis(20))
       .untilAsserted {
         restTestClient.get().uri("/some-url-not-found")
           .exchange()
