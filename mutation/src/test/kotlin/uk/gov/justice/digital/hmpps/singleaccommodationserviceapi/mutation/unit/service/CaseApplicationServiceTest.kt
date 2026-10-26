@@ -313,7 +313,8 @@ class CaseApplicationServiceTest {
         caseApplicationService.createValidatedCases(crns)
       }
 
-      assertThat(exception.message).isEqualTo("invalidCrns: C333333")
+      assertThat(exception.message).isEqualTo("invalidCrns")
+      assertThat(exception.userMessage).isEqualTo("C333333")
       verify(exactly = 0) { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) }
       verify(exactly = 0) { caseCreationService.saveUnpersistedCases(any()) }
     }
@@ -341,7 +342,8 @@ class CaseApplicationServiceTest {
         caseApplicationService.createValidatedCases(crns)
       }
 
-      assertThat(exception.message).isEqualTo("invalidCrns: A111111, B222222, C333333")
+      assertThat(exception.message).isEqualTo("invalidCrns")
+      assertThat(exception.userMessage).isEqualTo("A111111, B222222, C333333")
     }
   }
 
