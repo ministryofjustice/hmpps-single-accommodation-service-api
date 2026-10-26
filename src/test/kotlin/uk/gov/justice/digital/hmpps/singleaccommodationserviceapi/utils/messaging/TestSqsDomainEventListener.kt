@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service
 import org.springframework.test.context.event.annotation.BeforeTestMethod
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
+import java.time.Duration.ZERO
 import java.time.Duration.ofMillis
 import java.time.Duration.ofSeconds
 import java.util.Collections
@@ -44,7 +45,8 @@ class TestSqsDomainEventListener(private val jsonMapper: JsonMapper) {
 
     await
       .atMost(ofSeconds(5))
-      .pollInterval(ofMillis(100))
+      .pollDelay(ZERO)
+      .pollInterval(ofMillis(20))
       .untilAsserted {
         matchedMessage = takeMessageOrNull(typeName, eventDescription, detailUrl, cprAddressId)
         assertThat(matchedMessage).isNotNull()
