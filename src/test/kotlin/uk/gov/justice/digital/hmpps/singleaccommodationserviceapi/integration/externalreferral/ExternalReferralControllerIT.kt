@@ -105,7 +105,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           status = ExternalReferralStatus.SUBMITTED.name,
           createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
           createdByUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-          createdAt = persistedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          createdAt = persistedRecord.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
           organisationName = "Organisation name",
           website = "https://www.charity.org",
           submissionNote = "A submission note",
@@ -156,7 +156,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           submissionNote = null,
           createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
           createdByUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-          createdAt = persistedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          createdAt = persistedRecord.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
         ),
       )
     }
@@ -191,7 +191,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           status = status.name,
           createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
           createdByUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-          createdAt = persistedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          createdAt = persistedRecord.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
           outcomeNote = "An outcome note",
         ),
       )
@@ -272,7 +272,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           status = ExternalReferralStatus.ARCHIVED.name,
           createdBy = NAME_OF_TEST_DATA_SETUP_USER,
           createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
-          createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          createdAt = entity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
           organisationName = "Organisation name",
           website = "https://www.charity.org",
           submissionNote = "A submission note",
@@ -314,7 +314,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           status = ExternalReferralStatus.SUBMITTED.name,
           createdBy = NAME_OF_TEST_DATA_SETUP_USER,
           createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
-          createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          createdAt = entity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
           organisationName = null,
           website = null,
           submissionNote = null,
@@ -687,7 +687,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       status = entity.status.name,
       createdBy = createdBy,
       createdByUsername = createdByUsername,
-      createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+      createdAt = entity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
       organisationName = entity.organisationName,
       website = entity.website,
       submissionNote = entity.submissionNote,
@@ -747,7 +747,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           referenceNumber = "REF-002",
           createdBy = NAME_OF_TEST_DATA_SETUP_USER,
           createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
-          createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
           organisationName = "New organisation name",
           website = "https://www.new-charity.org",
           submissionNote = "An updated submission note",
@@ -818,7 +818,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           status = ExternalReferralStatus.ACCEPTED.name,
           createdBy = NAME_OF_TEST_DATA_SETUP_USER,
           createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
-          createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
           outcomeNote = "An outcome note",
         ),
       )
@@ -849,7 +849,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           status = ExternalReferralStatus.REJECTED.name,
           createdBy = NAME_OF_TEST_DATA_SETUP_USER,
           createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
-          createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
           outcomeNote = "An outcome note",
         ),
       )
@@ -895,7 +895,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .exchange()
         .expectStatus().isBadRequest
         .expectBody()
-        .jsonPath("$.developerMessage").isEqualTo("erInvalidStatusTransition")
+        .jsonPath("$.developerMessage").isEqualTo("Domain exception: erInvalidStatusTransition")
 
       val persistedRecord = externalReferralRepository.findById(existingEntity.id).orElseThrow()
       assertThat(persistedRecord.status).isEqualTo(status)
@@ -977,7 +977,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           status = ExternalReferralStatus.COMPLETED.name,
           createdBy = NAME_OF_TEST_DATA_SETUP_USER,
           createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
-          createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
           organisationName = null,
           website = null,
           withdrawalReason = "PLACEMENT_COMPLETE",
@@ -1331,7 +1331,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
               referenceNumber = "REF-002",
               previousReferenceNumber = "REF-001",
               createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
-              createNoteCommitTime = createNoteCommitTime!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+              createNoteCommitTime = createNoteCommitTime.truncatedTo(ChronoUnit.SECONDS).toString(),
               updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
             ),
           )
