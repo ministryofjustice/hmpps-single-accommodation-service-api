@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
@@ -35,6 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.du
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDutyToReferTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -42,7 +42,6 @@ import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutcomeReason as EntityOutcomeReason
 
-@TestPropertySource(properties = ["scheduling.enabled=true"])
 class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
   @Autowired
@@ -213,6 +212,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should create duty to refer and publish domain event`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
@@ -258,6 +258,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should auto-withdraw existing SUBMITTED referral when creating a new DTR`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
@@ -312,6 +313,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should update duty to refer and return 200 with updated data`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
     val newLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()
@@ -368,6 +370,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should withdraw duty to refer and return 200 with updated data with outcome reason`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
     val newLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()
@@ -462,6 +465,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should withdraw duty to refer with a non-OTHER reason and return 200`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
@@ -536,6 +540,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should withdraw duty to refer with OTHER reason and free text and return 200`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
@@ -707,6 +712,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should reject DTR referral with an outcome reason and return 200`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
