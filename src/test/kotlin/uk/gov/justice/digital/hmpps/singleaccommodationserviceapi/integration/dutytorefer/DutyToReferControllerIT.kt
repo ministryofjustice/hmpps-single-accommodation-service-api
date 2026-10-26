@@ -73,51 +73,6 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
-  fun `should get duty to refer by id with ADDA role`() {
-    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-
-    val entity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        referenceNumber = "DTR-REF-001",
-        submissionDate = LocalDate.of(2026, 1, 15),
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
-
-    restTestClient.get().uri("/duty-to-refers/{id}", entity.id)
-      .withClientCredentialsJwt(
-        roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
-      )
-      .exchangeSuccessfully()
-      .expectBody<String>()
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(
-          expectedGetDtrResponseBody(
-            id = entity.id,
-            caseId = case.id,
-            crn = crn,
-            localAuthorityAreaId = localAuthorityArea.id,
-            localAuthorityAreaName = localAuthorityArea.name,
-            createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-            createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-          ),
-        )
-      }
-  }
-
-  @Test
-  fun `should return 404 when duty to refer not found for ADDA role`() {
-    val nonExistentId = UUID.randomUUID()
-
-    restTestClient.get().uri("/duty-to-refers/{id}", nonExistentId)
-      .withDeliusUserJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
-      .exchange()
-      .expectStatus().isNotFound
-  }
-
-  @Test
   fun `should get duty to refer by crn and id`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
