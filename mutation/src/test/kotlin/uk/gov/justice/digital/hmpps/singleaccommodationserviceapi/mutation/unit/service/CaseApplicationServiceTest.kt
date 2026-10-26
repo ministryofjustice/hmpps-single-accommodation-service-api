@@ -334,8 +334,8 @@ class CaseApplicationServiceTest {
     }
 
     @Test
-    fun `lists every invalid crn in the exception`() {
-      every { caseRepository.findUnpersistedCrns(any()) } returns listOf("A111111", "B222222", "C333333")
+    fun `lists every invalid crn in the exception and in the order they were entered`() {
+      every { caseRepository.findUnpersistedCrns(any()) } returns listOf("B111111", "A222222", "C333333")
       every { approvedPremisesAndDeliusCachingService.postCaseSummaries(any()) } returns CaseSummaries(emptyList())
 
       val exception = assertThrows<InvalidCrnsException> {
@@ -343,7 +343,7 @@ class CaseApplicationServiceTest {
       }
 
       assertThat(exception.message).isEqualTo("invalidCrns")
-      assertThat(exception.userMessage).isEqualTo("A111111, B222222, C333333")
+      assertThat(exception.userMessage).isEqualTo("B111111, A222222, C333333")
     }
   }
 
