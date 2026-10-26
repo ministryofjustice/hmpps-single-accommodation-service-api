@@ -43,6 +43,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelpe
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.Duration
+import java.time.Duration.ZERO
 import java.time.Duration.ofMillis
 import java.time.Duration.ofSeconds
 import java.time.Instant
@@ -134,7 +135,8 @@ abstract class IntegrationTestBase {
   fun beforeAll() {
     await
       .atMost(ofSeconds(10))
-      .pollInterval(ofMillis(100))
+      .pollDelay(ZERO)
+      .pollInterval(ofMillis(20))
       .untilAsserted {
         restTestClient.get().uri("/health/readiness")
           .exchange()
@@ -236,18 +238,20 @@ abstract class IntegrationTestBase {
     isActive = true,
   )
 
-  fun waitFor(pollInterval: Duration? = Duration.ofMillis(50), block: () -> Unit) {
-    await.atMost(Duration.ofSeconds(10))
+  fun waitFor(pollInterval: Duration? = ofMillis(50), block: () -> Unit) {
+    await.atMost(ofSeconds(10))
+      .pollDelay(ZERO)
       .pollInterval(pollInterval)
       .untilAsserted(block)
   }
 
   fun <T> waitForEntity(
-    pollInterval: Duration = Duration.ofMillis(50),
-    timeout: Duration = Duration.ofSeconds(10),
+    pollInterval: Duration = ofMillis(50),
+    timeout: Duration = ofSeconds(10),
     supplier: () -> T?,
   ): T = await
     .atMost(timeout)
+    .pollDelay(ZERO)
     .pollInterval(pollInterval)
     .until({ supplier() }, { it != null })!!
 

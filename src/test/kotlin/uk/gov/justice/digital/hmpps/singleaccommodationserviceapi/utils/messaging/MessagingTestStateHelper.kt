@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import java.time.Duration.ZERO
 import java.time.Duration.ofMillis
 import java.time.Duration.ofSeconds
 
@@ -74,7 +75,8 @@ class MessagingTestStateHelper(
   private fun awaitNoPendingMessagingWork() {
     await
       .atMost(ofSeconds(10))
-      .pollInterval(ofMillis(50))
+      .pollDelay(ZERO)
+      .pollInterval(ofMillis(20))
       .untilAsserted {
         assertThat(inboxEventRepository.count()).isZero()
         assertThat(outboxEventRepository.count()).isZero()
