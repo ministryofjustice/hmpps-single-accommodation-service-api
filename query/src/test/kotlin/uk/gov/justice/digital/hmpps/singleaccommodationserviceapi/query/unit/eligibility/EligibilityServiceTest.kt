@@ -193,7 +193,7 @@ class EligibilityServiceTest {
   val cas1SuitabilityContextUpdater = Cas1SuitabilityContextUpdater()
 
   // CAS2
-  var cas2ApplicationStartUrl = "CAS2_APPLICATION_START_URL"
+  var cas2ApplicationStartUrl = "CAS2_APPLICATION_START_URL#crn"
   var cas2CompletionContextUpdater = Cas2CompletionContextUpdater(sentryService)
 
   var cas2CompletionRuleSet = Cas2CompletionRuleSet(
@@ -787,7 +787,7 @@ class EligibilityServiceTest {
         assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CAS2)
         val expectedUrl = when (s.expectedCas2Url) {
           null -> null
-          "/applications/start" -> cas2ApplicationStartUrl
+          "/applications/start" -> "CAS2_APPLICATION_START_URL${s.testCaseId}"
           else -> null
         }
         assertThat(result.url).isEqualTo(expectedUrl)
@@ -868,7 +868,7 @@ class EligibilityServiceTest {
         assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CAS2)
         val expectedUrl = when (s.expectedCas2Url) {
           null -> null
-          "/applications/start" -> cas2ApplicationStartUrl
+          "/applications/start" -> "CAS2_APPLICATION_START_URL${s.testCaseId}"
           "/applications/{applicationId}" -> cas2Application.uiUrl
           else -> null
         }
