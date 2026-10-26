@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.s
 import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -19,7 +18,6 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelpe
 import java.sql.Timestamp
 import java.util.UUID
 
-@AutoConfigureWebTestClient
 @Import(value = [SarIntegrationTestHelperConfig::class])
 class SasSarTestBase : SubjectAccessRequestServiceTestBase() {
 

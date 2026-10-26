@@ -65,6 +65,8 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
     val crn = UUID.randomUUID().toString()
     val prisonNumber = UUID.randomUUID().toString()
 
+    val responses = WiremockStubber().setupCaseOrchestrationStubs(crn, prisonNumber)
+
     caseRepository.save(
       buildCaseEntity(tierScore = null) {
         withCrn(crn)
@@ -86,8 +88,6 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
       ),
       additionalInformation = null,
     )
-
-    val responses = WiremockStubber().setupCaseOrchestrationStubs(crn, prisonNumber)
 
     // identify which event types should trigger a case refresh, add any event specific stubs / data setup.
     val shouldRefresh = when (eventType) {
@@ -178,9 +178,11 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
         inboxEventRepository.findAll().filter { it.payload.contains(crn) || it.payload.contains(prisonNumber) }
       assertThat(matchingEvents).hasSize(1)
       assertThat(matchingEvents.none { it.processedStatus == ProcessedStatus.PENDING }).isTrue()
+      // No refresh request may remain pending or claimed, so no further upstream calls are still to come.
+      assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
     }
 
-    // Hard-fail if any outbound request was not stubbed for this scenario.
+    // Hard-fail if any outbound request was not stubbed for this scenario. Only assert once all work has settled.
     assertThat(sasWiremock.findUnmatchedRequests().requests.map { it.url }).isEmpty()
   }
 
