@@ -11,7 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityCurrentAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityNextAccommodationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityContextUpdater
@@ -28,7 +29,8 @@ class Cas3EligibilityTreeProvider(
   private val suitabilityContextUpdater: Cas3SuitabilityContextUpdater,
   private val completion: Cas3CompletionRuleSet,
   private val completionContextUpdater: Cas3CompletionContextUpdater,
-  private val eligibility: Cas3EligibilityRuleSet,
+  private val eligibilityCurrentAccommodation: Cas3EligibilityCurrentAccommodationRuleSet,
+  private val eligibilityNextAccommodation: Cas3EligibilityNextAccommodationRuleSet,
   private val prerequisite: Cas3PrerequisiteRuleSet,
   private val cas3PrerequisiteContextUpdater: Cas3PrerequisiteContextUpdater,
 ) : EligibilityTreeProvider {
@@ -57,9 +59,15 @@ class Cas3EligibilityTreeProvider(
       .onFail(confirmed).applyContextUpdaterOnFailure(cas3PrerequisiteContextUpdater)
       .build()
 
-    val eligibilityWithPrereqNode = builder
-      .ruleSet("Cas3Eligibility", eligibility)
+    val eligibilityNextAccommodationNode = builder
+      .ruleSet("Cas3EligibilityNextAccommodation", eligibilityNextAccommodation)
       .onPass(prerequisiteNode)
+      .onFail(notEligible).propagateContextOnFailure()
+      .build()
+
+    val eligibilityCurrentAccommodationNode = builder
+      .ruleSet("Cas3EligibilityCurrentAccommodation", eligibilityCurrentAccommodation)
+      .onPass(eligibilityNextAccommodationNode)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
@@ -72,13 +80,13 @@ class Cas3EligibilityTreeProvider(
     val suitabilityNode = builder
       .ruleSet("Cas3Suitability", suitability)
       .onPass(completionNode)
-      .onFail(eligibilityWithPrereqNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
+      .onFail(eligibilityCurrentAccommodationNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
       .build()
 
     return builder
       .ruleSet("Cas3Upcoming", upcoming)
       .onPass(suitabilityNode)
-      .onFail(eligibilityWithPrereqNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
+      .onFail(eligibilityCurrentAccommodationNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
   }
 }

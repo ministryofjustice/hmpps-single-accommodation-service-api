@@ -23,8 +23,8 @@ class Cas1EligibilityTreeProvider(
   private val suitability: Cas1SuitabilityRuleSet,
   private val suitabilityContextUpdater: Cas1SuitabilityContextUpdater,
   private val completionContextUpdater: Cas1CompletionContextUpdater,
-  private val eligibilityHighPriority: Cas1EligibilityTierRuleSet,
-  private val eligibilityLowPriority: Cas1EligibilityCurrentAccommodationRuleSet,
+  private val eligibilityTier: Cas1EligibilityTierRuleSet,
+  private val eligibilityCurrentAccommodation: Cas1EligibilityCurrentAccommodationRuleSet,
 
 ) : EligibilityTreeProvider {
 
@@ -41,28 +41,28 @@ class Cas1EligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS1)
 
-    val eligibilityLowPriorityNode = builder
-      .ruleSet("Cas1EligibilityLowPriority", eligibilityLowPriority)
+    val eligibilityCurrentAccommodationNode = builder
+      .ruleSet("Cas1EligibilityCurrentAccommodation", eligibilityCurrentAccommodation)
       .onPass(confirmed)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
-    val eligibilityHighPriorityNode = builder
-      .ruleSet("Cas1EligibilityHighPriority", eligibilityHighPriority)
-      .onPass(eligibilityLowPriorityNode)
+    val eligibilityTierNode = builder
+      .ruleSet("Cas1EligibilityTier", eligibilityTier)
+      .onPass(eligibilityCurrentAccommodationNode)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     val suitabilityNode = builder
       .ruleSet("Cas1Suitability", suitability)
       .onPass(confirmed).applyContextUpdaterOnPass(completionContextUpdater)
-      .onFail(eligibilityHighPriorityNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
+      .onFail(eligibilityTierNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
       .build()
 
     return builder
       .ruleSet("Cas1Upcoming", upcoming)
       .onPass(suitabilityNode)
-      .onFail(eligibilityHighPriorityNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
+      .onFail(eligibilityTierNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
   }
 }

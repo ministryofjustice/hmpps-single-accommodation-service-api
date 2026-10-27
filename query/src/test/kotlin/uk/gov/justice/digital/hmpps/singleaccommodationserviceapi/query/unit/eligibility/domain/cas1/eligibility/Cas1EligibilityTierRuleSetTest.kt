@@ -25,17 +25,17 @@ class Cas1EligibilityTierRuleSetTest {
   @Autowired
   lateinit var cas1EligibilityTierRuleSet: Cas1EligibilityTierRuleSet
 
-  private val expectedCas1EligibilityRuleNames = listOf(
+  private val expectedRuleNames = listOf(
     MaleRiskEligibilityRule::class.java.simpleName,
     NonMaleRiskEligibilityRule::class.java.simpleName,
   )
 
   @Test
-  fun `all Cas1EligibilityRule components are included in Cas1EligibilityHighPriorityRuleSet`() {
+  fun `all expected rules are included in Cas1EligibilityTierRuleSet`() {
     val ruleSetRules = cas1EligibilityTierRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(2)
-      .containsExactlyInAnyOrderElementsOf(expectedCas1EligibilityRuleNames)
+      .containsExactlyInAnyOrderElementsOf(expectedRuleNames)
   }
 }

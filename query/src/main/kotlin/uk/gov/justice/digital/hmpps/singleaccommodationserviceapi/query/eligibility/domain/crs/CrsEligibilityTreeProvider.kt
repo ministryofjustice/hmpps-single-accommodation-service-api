@@ -12,14 +12,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityNextAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilitySettledRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRuleSet
 
 @Component
 class CrsEligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
-  private val eligibility: CrsEligibilityRuleSet,
+  private val eligibilitySettled: CrsEligibilitySettledRuleSet,
+  private val eligibilityNextAccommodation: CrsEligibilityNextAccommodationRuleSet,
   private val completion: CrsCompletionRuleSet,
   private val completionContextUpdater: CrsCompletionContextUpdater,
   private val upcoming: CrsUpcomingRuleSet,
@@ -46,22 +48,28 @@ class CrsEligibilityTreeProvider(
       ServiceResultNew(serviceStatus = ServiceStatusNew.CRS_SUBMITTED, url = url),
     )
 
-    val eligibilityNode = builder
-      .ruleSet("CrsEligibility", eligibility)
+    val eligibilityNextAccommodationNode = builder
+      .ruleSet("CrsEligibilityNextAccommodation", eligibilityNextAccommodation)
       .onPass(confirmed)
+      .onFail(notRequired).propagateContextOnFailure()
+      .build()
+
+    val eligibilitySettledNode = builder
+      .ruleSet("CrsEligibilitySettled", eligibilitySettled)
+      .onPass(eligibilityNextAccommodationNode)
       .onFail(notRequired).propagateContextOnFailure()
       .build()
 
     val completionNode = builder
       .ruleSet("CrsCompletion", completion)
       .onPass(submitted)
-      .onFail(eligibilityNode).applyContextUpdaterOnFailure(completionContextUpdater)
+      .onFail(eligibilitySettledNode).applyContextUpdaterOnFailure(completionContextUpdater)
       .build()
 
     return builder
       .ruleSet("CrsUpcoming", upcoming)
       .onPass(completionNode)
-      .onFail(eligibilityNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
+      .onFail(eligibilitySettledNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
   }
 }

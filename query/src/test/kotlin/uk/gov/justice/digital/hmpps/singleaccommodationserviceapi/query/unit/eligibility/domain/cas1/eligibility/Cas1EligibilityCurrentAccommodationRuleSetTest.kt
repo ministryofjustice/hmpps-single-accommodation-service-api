@@ -23,16 +23,16 @@ class Cas1EligibilityCurrentAccommodationRuleSetTest {
   @Autowired
   lateinit var cas1EligibilityCurrentAccommodationRuleSet: Cas1EligibilityCurrentAccommodationRuleSet
 
-  private val expectedCas1EligibilityRuleNames = listOf(
+  private val expectedRuleNames = listOf(
     CurrentAccommodationIsPrisonOrCas1Rule::class.java.simpleName,
   )
 
   @Test
-  fun `all Cas1EligibilityRule components are included in Cas1EligibilityHighPriorityRuleSet`() {
+  fun `all expected rules are included in Cas1EligibilityCurrentAccommodationRuleSet`() {
     val ruleSetRules = cas1EligibilityCurrentAccommodationRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(1)
-      .containsExactlyInAnyOrderElementsOf(expectedCas1EligibilityRuleNames)
+      .containsExactlyInAnyOrderElementsOf(expectedRuleNames)
   }
 }
