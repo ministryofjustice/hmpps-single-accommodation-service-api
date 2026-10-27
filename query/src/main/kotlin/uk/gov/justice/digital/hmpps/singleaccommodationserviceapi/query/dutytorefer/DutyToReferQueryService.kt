@@ -86,20 +86,6 @@ class DutyToReferQueryService(
     )
   }
 
-  fun getDutyToRefer(id: UUID): DutyToReferDto {
-    val dtrEntity = dutyToReferRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
-    val caseEntity = caseRepository.findWithIdentifiersById(dtrEntity.caseId).orThrowNotFound("id" to id)
-    val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId)
-    val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(dtrEntity.localAuthorityAreaId)
-
-    return dutyToReferTransformer.toDutyToReferDto(
-      dtrEntity,
-      crn = caseEntity.latestCrn(),
-      createdByUser!!.displayName(),
-      localAuthorityArea!!.name,
-    )
-  }
-
   fun getEventDetailsDto(id: UUID): DtrEventDetailsDto {
     val dtrEntity = dutyToReferRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
     val caseEntity = caseRepository.findWithIdentifiersById(dtrEntity.caseId).orThrowNotFound("id" to id)
