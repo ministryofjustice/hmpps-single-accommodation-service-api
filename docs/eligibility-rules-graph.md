@@ -46,7 +46,7 @@ flowchart TD
 ### Nodes
 
 **Cas1Upcoming** (RuleSet)
-- [`ReleaseWithinOneYearRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/ReleaseWithinOneYearRule.kt): FAIL if not within 1 year of release from current accommodation
+- [`ReleaseWithinTwentyEightWeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/ReleaseWithinTwentyEightWeeksRule.kt): FAIL if not within 1 year of release from current accommodation
 - FAIL: [`Cas1UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/Cas1UpcomingContextUpdater.kt) - Set current status to CAS1_UPCOMING
 
 | Status | Action | Link type |
@@ -554,7 +554,7 @@ flowchart TD
 | NonMaleRiskEligibilityRule | FAIL if candidate is not Male and is not Tier A, B, C or D | Cas1Eligibility | CAS1 |
 | ReleaseWithin15DaysRule | FAIL if not within 15 days of release from current accommodation | Cas2Upcoming | CAS2 |
 | ReleaseWithinEightWeeksRule | FAIL if not within 8 weeks of release from current accommodation | DtrUpcoming | DTR |
-| ReleaseWithinOneYearRule | FAIL if not within 1 year of release from current accommodation | Cas1Upcoming | CAS1 |
+| ReleaseWithinTwentyEightWeeksRule | FAIL if not within 1 year of release from current accommodation | Cas1Upcoming | CAS1 |
 | SexualOffenceRegistrationsRule | FAIL if individual has sexual offence registrations. | Cas2Eligibility | CAS2 |
 | SingleLetterTierRule | FAIL if candidate is not Tier A through G | Cas2Eligibility | CAS2 |
 | Under18Rule | FAIL if individual is under 18 years old | Cas2Eligibility | CAS2 |
