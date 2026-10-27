@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
@@ -75,7 +76,7 @@ class RulesGraphTest {
         "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1ApplicationPresentRule.kt",
         "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/completion/CrsSubmittedRule.kt",
       )
-      assertThat(ruleSetNode.contextUpdater?.sourcePath).isEqualTo(
+      assertThat(ruleSetNode.onFailContextUpdater?.sourcePath).isEqualTo(
         "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1SuitabilityContextUpdater.kt",
       )
     }
@@ -106,7 +107,7 @@ class RulesGraphTest {
       val confirmed = builder.confirmed()
       val upcoming = builder
         .ruleSet("Upcoming", StubRuleSet(listOf(PrioritisedRule(StubRule("window")))))
-        .continueWith(confirmed).propagateContextOnFailure()
+        .onPassAndFail(confirmed).propagateContextOnFailure()
         .build()
 
       val graph = RulesGraphWalker().walk("DTR", upcoming)
@@ -128,11 +129,50 @@ class RulesGraphTest {
     }
 
     @Test
-    fun `add context updater if not identity`() {
+    fun `add pass context updater if not identity`() {
+      val confirmed = builder.confirmed()
+      val upcoming = builder
+        .ruleSet(
+          "Upcoming",
+          StubRuleSet(
+            listOf(PrioritisedRule(StubRule("window"))),
+          ),
+        )
+        .applyContextUpdaterOnPass(ContextUpdater.constant(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED)))
+        .onPassAndFail(confirmed).propagateContextOnFailure()
+        .build()
+
+      val graph = RulesGraphWalker().walk("DTR", upcoming)
+
+      val upcomingId = graph.nodes.single { it.title == "Upcoming" }.id
+      val contextUpdaterId = graph.nodes.single { it.title == "Set CAS1_NOT_STARTED" }.id
+      val confirmedId = graph.nodes.single { it.title == "return current status" }.id
+      assertThat(graph.edges).containsExactlyInAnyOrder(
+        GraphEdge(
+          upcomingId,
+          contextUpdaterId,
+          "PASS",
+        ),
+        GraphEdge(
+          contextUpdaterId,
+          confirmedId,
+          "PASS",
+        ),
+        GraphEdge(
+          upcomingId,
+          confirmedId,
+          "FAIL",
+        ),
+      )
+    }
+
+    @Test
+    fun `add fail context updater if not identity`() {
       val confirmed = builder.confirmed()
       val upcoming = builder
         .ruleSet("Upcoming", StubRuleSet(listOf(PrioritisedRule(StubRule("window")))))
-        .continueWith(confirmed).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED))
+        .onPassAndFail(confirmed)
+        .setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED))
         .build()
 
       val graph = RulesGraphWalker().walk("DTR", upcoming)
@@ -161,7 +201,8 @@ class RulesGraphTest {
   }
 
   @Nested
-  inner class RendererTests {
+  inner class
+  RendererTests {
     @Test
     fun `render includes mermaid nodes, edges and rule catalogue`() {
       val root = builder
@@ -208,7 +249,23 @@ class RulesGraphTest {
     }
 
     @Test
-    fun `render lists named FAIL updater below the diagram and in the catalogue`() {
+    fun `render lists named PASS context updater below the diagram and in the catalogue`() {
+      val root = builder
+        .ruleSet("Upcoming", StubRuleSet(listOf(PrioritisedRule(StubRule("window")))))
+        .onPass(builder.confirmed()).applyContextUpdaterOnPass(StubContextUpdater())
+        .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
+        .build()
+      val graph = RulesGraphWalker().walk("EXAMPLE", root)
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
+
+      assertThat(markdown).contains("Upcoming -->|PASS| Set_current_status_to_one_of_")
+      assertThat(markdown).doesNotContain(")onPass")
+      assertThat(markdown).doesNotContain("[`StubContextUpdater`](#stubcontextupdater)")
+      assertThat(markdown).contains("Used by: Upcoming (EXAMPLE)")
+    }
+
+    @Test
+    fun `render lists named FAIL context updater below the diagram and in the catalogue`() {
       val root = builder
         .ruleSet("Upcoming", StubRuleSet(listOf(PrioritisedRule(StubRule("window")))))
         .onPass(builder.confirmed())

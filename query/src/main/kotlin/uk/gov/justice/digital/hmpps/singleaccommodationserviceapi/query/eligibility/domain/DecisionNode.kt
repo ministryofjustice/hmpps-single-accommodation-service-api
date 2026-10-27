@@ -23,8 +23,9 @@ class RuleSetNode(
   val ruleSet: RuleSet,
   private val engine: RulesEngine,
   val onPass: DecisionNode,
+  val onPassContextUpdater: ContextUpdater?,
   val onFail: DecisionNode,
-  val contextUpdater: ContextUpdater,
+  val onFailContextUpdater: ContextUpdater,
 ) : DecisionNode {
 
   companion object {
@@ -40,8 +41,8 @@ class RuleSetNode(
 
     // Branch based on result: PASS returns current context unchanged, FAIL updates context
     return when (ruleSetResult.status) {
-      RuleSetStatus.PASS -> onPass.eval(context)
-      RuleSetStatus.FAIL -> onFail.eval(contextUpdater.update(context, ruleSetResult.failureReasons))
+      RuleSetStatus.PASS -> onPass.eval(onPassContextUpdater?.update(context, ruleSetResult.failureReasons) ?: context)
+      RuleSetStatus.FAIL -> onFail.eval(onFailContextUpdater.update(context, ruleSetResult.failureReasons))
     }
   }
 }

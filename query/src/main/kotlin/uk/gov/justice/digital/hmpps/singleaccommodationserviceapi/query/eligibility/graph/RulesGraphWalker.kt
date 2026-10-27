@@ -22,47 +22,63 @@ class RulesGraphWalker {
 
   fun walk(treeName: String, root: DecisionNode): RulesGraph {
     // record the nodes we are currently visiting
-    val visitingStack = mutableSetOf<DecisionNode>()
-
-    fun visit(node: DecisionNode) {
-      if (node in visitingStack || node in nodes) return
-
-      visitingStack += node
-      when (node) {
-        is OutcomeNode -> {
-          nodes[node] = node.toGraphNode()
-        }
-
-        is RuleSetNode -> {
-          val graphNode = node.toGraphNode()
-          nodes[node] = graphNode
-
-          visit(node.onPass)
-          edges += GraphEdge(graphNode.id, nodes.getValue(node.onPass).id, "PASS")
-
-          val onFailSourceNode = if (node.contextUpdater === ContextUpdater.identity()) {
-            graphNode
-          } else {
-            node.contextUpdater.let { contextUpdater ->
-              val contextUpdaterNode = contextUpdater.toGraphNode()
-
-              nodes[contextUpdater] = contextUpdaterNode
-
-              edges += GraphEdge(from = graphNode.id, to = contextUpdaterNode.id, label = "FAIL")
-
-              contextUpdaterNode
-            }
-          }
-
-          visit(node.onFail)
-          edges += GraphEdge(onFailSourceNode.id, nodes.getValue(node.onFail).id, "FAIL")
-        }
-      }
-      visitingStack -= node
-    }
-
     visit(root)
     return RulesGraph(treeName, nodes.values.toList(), edges)
+  }
+
+  fun visit(node: DecisionNode) {
+    val visitingStack = mutableSetOf<DecisionNode>()
+
+    if (node in visitingStack || node in nodes) return
+
+    visitingStack += node
+    when (node) {
+      is OutcomeNode -> {
+        nodes[node] = node.toGraphNode()
+      }
+
+      is RuleSetNode -> {
+        val graphNode = node.toGraphNode()
+        nodes[node] = graphNode
+
+        addOutcomeEdge(
+          fromGraphNode = graphNode,
+          toNode = node.onPass,
+          contextUpdater = node.onPassContextUpdater,
+          edgeLabel = "PASS",
+        )
+
+        addOutcomeEdge(
+          fromGraphNode = graphNode,
+          toNode = node.onFail,
+          contextUpdater = node.onFailContextUpdater,
+          edgeLabel = "FAIL",
+        )
+      }
+    }
+    visitingStack -= node
+  }
+
+  private fun addOutcomeEdge(
+    fromGraphNode: GraphNode,
+    toNode: DecisionNode,
+    contextUpdater: ContextUpdater?,
+    edgeLabel: String,
+  ) {
+    val onPassSourceNode = if (contextUpdater == null || contextUpdater === ContextUpdater.identity()) {
+      fromGraphNode
+    } else {
+      val contextUpdaterNode = contextUpdater.toGraphNode()
+
+      nodes[contextUpdater] = contextUpdaterNode
+
+      edges += GraphEdge(from = fromGraphNode.id, to = contextUpdaterNode.id, label = edgeLabel)
+
+      contextUpdaterNode
+    }
+
+    visit(toNode)
+    edges += GraphEdge(onPassSourceNode.id, nodes.getValue(toNode).id, edgeLabel)
   }
 
   private fun OutcomeNode.toGraphNode() = GraphNode(
@@ -83,7 +99,8 @@ class RulesGraphWalker {
         sourcePath = sourceLinkPath(priorityRule.rule::class),
       )
     },
-    contextUpdater = contextUpdaterInfo(contextUpdater),
+    onPassContextUpdater = contextUpdaterInfo(onPassContextUpdater, ContextUpdaterKind.ON_PASS),
+    onFailContextUpdater = contextUpdaterInfo(onFailContextUpdater, ContextUpdaterKind.ON_FAIL),
     ruleSet = ruleSet,
   )
 
@@ -91,7 +108,8 @@ class RulesGraphWalker {
     id = ensureUniqueId(slug(description), this),
     title = description,
     kind = GraphNodeKind.CONTEXT_UPDATER,
-    contextUpdater = null,
+    onPassContextUpdater = null,
+    onFailContextUpdater = null,
   )
 
   fun treeName(provider: EligibilityTreeProvider): String = provider::class.simpleName
@@ -114,18 +132,23 @@ internal fun slug(raw: String): String {
   return if (cleaned.firstOrNull()?.isLetter() == true) cleaned else "n_$cleaned"
 }
 
-internal fun contextUpdaterInfo(updater: ContextUpdater): ContextUpdaterInfo? {
+internal fun contextUpdaterInfo(
+  updater: ContextUpdater?,
+  updaterKind: ContextUpdaterKind,
+): ContextUpdaterInfo? {
+  if (updater == null) return null
   val kClass = updater::class
   val simple = kClass.simpleName
   if (simple.isNullOrBlank()) {
     if (updater.propagatesFailureReasons) return null
-    return ContextUpdaterInfo(name = "constant", description = updater.description, outcomes = updater.outcomes)
+    return ContextUpdaterInfo(name = "constant", description = updater.description, outcomes = updater.outcomes, kind = updaterKind)
   }
   return ContextUpdaterInfo(
     name = simple,
     description = updater.description,
     outcomes = updater.outcomes,
     sourcePath = sourceLinkPath(kClass),
+    kind = updaterKind,
   )
 }
 

@@ -8,7 +8,8 @@ class RuleSetNodeBuilder(
   private val ruleSet: RuleSet,
   private val engine: RulesEngine,
 ) {
-  private var contextUpdater: ContextUpdater? = null
+  private var onFailContextUpdater: ContextUpdater? = null
+  private var onPassContextUpdater: ContextUpdater? = null
   private var onPassNode: DecisionNode? = null
   private var onFailNode: DecisionNode? = null
 
@@ -22,29 +23,35 @@ class RuleSetNodeBuilder(
     return this
   }
 
+  fun applyContextUpdaterOnPass(updater: ContextUpdater): RuleSetNodeBuilder {
+    onPassContextUpdater = updater
+    return this
+  }
+
   fun applyContextUpdaterOnFailure(updater: ContextUpdater): RuleSetNodeBuilder {
-    contextUpdater = updater
+    onFailContextUpdater = updater
     return this
   }
 
   fun propagateContextOnFailure(): RuleSetNodeBuilder {
-    contextUpdater = ContextUpdater.identity()
+    onFailContextUpdater = ContextUpdater.identity()
     return this
   }
 
   fun setConstantServiceResultOnFailure(result: ServiceResultNew): RuleSetNodeBuilder {
-    contextUpdater = ContextUpdater.constant(result)
+    onFailContextUpdater = ContextUpdater.constant(result)
     return this
   }
 
-  fun continueWith(node: DecisionNode): RuleSetNodeBuilder = onPass(node).onFail(node)
+  fun onPassAndFail(node: DecisionNode): RuleSetNodeBuilder = onPass(node).onFail(node)
 
   fun build(): RuleSetNode = RuleSetNode(
     ruleSetName = name,
     ruleSet = ruleSet,
     engine = engine,
     onPass = requireNotNull(onPassNode) { "onPass node not set for RuleSetNode $name" },
+    onPassContextUpdater = onPassContextUpdater,
     onFail = requireNotNull(onFailNode) { "onFail node not set for RuleSetNode $name" },
-    contextUpdater = requireNotNull(contextUpdater) { "contextUpdater required for RuleSetNode $name (set a failure action)" },
+    onFailContextUpdater = requireNotNull(onFailContextUpdater) { "contextUpdater required for RuleSetNode $name (set a failure action)" },
   )
 }

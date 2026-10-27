@@ -64,7 +64,7 @@ class RuleSetNodeBuilderTest {
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, engine)
-    val chainedBuilder = builder.propagateContextOnFailure().continueWith(node)
+    val chainedBuilder = builder.propagateContextOnFailure().onPassAndFail(node)
 
     assertThat(chainedBuilder).isSameAs(builder)
     assertThat(builder.build()).isInstanceOf(RuleSetNode::class.java)
