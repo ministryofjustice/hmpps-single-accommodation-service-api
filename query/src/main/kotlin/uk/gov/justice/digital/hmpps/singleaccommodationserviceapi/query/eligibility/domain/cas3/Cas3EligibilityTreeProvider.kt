@@ -42,7 +42,6 @@ class Cas3EligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS3)
     // ideally this would use confirmed, but we need to re-organise the diagram
-    val cannotStartYet = builder.currentOutcome()
     val arrived = builder.outcome(
       "arrived",
       serviceResult(),
@@ -51,7 +50,7 @@ class Cas3EligibilityTreeProvider(
     val prerequisiteNode = builder
       .ruleSet("Cas3Prerequisite", prerequisite)
       .onPass(confirmed)
-      .onFail(cannotStartYet).applyContextUpdaterOnFailure(cas3PrerequisiteContextUpdater)
+      .onFail(confirmed).applyContextUpdaterOnFailure(cas3PrerequisiteContextUpdater)
       .build()
 
     val eligibilityWithPrereqNode = builder
