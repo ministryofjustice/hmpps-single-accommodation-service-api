@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.support.WebClientAdapter
@@ -20,6 +21,9 @@ import uk.gov.justice.hmpps.kotlin.auth.authorisedWebClient
 import java.time.Duration
 import kotlin.reflect.KClass
 
+// HttpResources.set(...) disposes the previous Reactor Netty default resources, so the shared pool must be
+// installed before any WebClient (or the OAuth token client) captures the defaults.
+@DependsOn("defaultHttpConnectionProvider")
 @Configuration
 class HttpServiceProxiesConfig(
   private val clientManager: OAuth2AuthorizedClientManager,

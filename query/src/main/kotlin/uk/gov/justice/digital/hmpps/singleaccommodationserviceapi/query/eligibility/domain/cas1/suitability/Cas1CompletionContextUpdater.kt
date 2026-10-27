@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
@@ -15,6 +15,7 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
 
   val arrived = "arrived"
   val notArrived = "notArrived"
+  val placementBooked = "placementBooked"
   val placementCancelled = "placementCancelled"
   val placementRequestNotStarted = "placementRequestNotStarted"
   val placementRequestWithdrawn = "placementRequestWithdrawn"
@@ -30,6 +31,9 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
     ),
     notArrived to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_NOT_ARRIVED,
+    ),
+    placementBooked to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
     ),
     placementCancelled to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_CANCELLED,
@@ -78,6 +82,7 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
     Cas1PlacementStatus.ARRIVED -> outcome(arrived)
     Cas1PlacementStatus.NOT_ARRIVED -> outcome(notArrived)
     Cas1PlacementStatus.CANCELLED -> outcome(placementCancelled)
+    Cas1PlacementStatus.UPCOMING -> outcome(placementBooked)
     else -> outcome(placementRequestNotStarted)
   }
 

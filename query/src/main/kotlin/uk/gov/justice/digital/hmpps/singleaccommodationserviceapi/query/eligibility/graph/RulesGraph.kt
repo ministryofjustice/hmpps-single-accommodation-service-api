@@ -19,8 +19,14 @@ data class ContextUpdaterInfo(
   val name: String,
   val description: String,
   val outcomes: Map<String, ServiceResultSpec> = emptyMap(),
+  val kind: ContextUpdaterKind,
   val sourcePath: String? = null,
 )
+
+enum class ContextUpdaterKind {
+  ON_PASS,
+  ON_FAIL,
+}
 
 data class GraphNode(
   val id: String,
@@ -28,7 +34,8 @@ data class GraphNode(
   val kind: GraphNodeKind,
   val rules: List<RuleInfo> = emptyList(),
   val ruleSet: RuleSet? = null,
-  val contextUpdater: ContextUpdaterInfo? = null,
+  val onPassContextUpdater: ContextUpdaterInfo? = null,
+  val onFailContextUpdater: ContextUpdaterInfo? = null,
 )
 
 data class GraphEdge(

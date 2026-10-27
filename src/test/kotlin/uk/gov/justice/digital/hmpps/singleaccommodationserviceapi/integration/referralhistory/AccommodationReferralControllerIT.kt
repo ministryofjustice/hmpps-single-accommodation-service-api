@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.r
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
@@ -23,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.LocalAuthorityAreaEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ExternalReferralRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
@@ -49,9 +51,14 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
 
   private lateinit var case: CaseEntity
 
+  private val localAuthorityArea: LocalAuthorityAreaEntity by lazy {
+    localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+  }
+
   @BeforeEach
   fun setup() {
     case = caseRepository.save(buildCaseEntity { withCrn("X12345") })
+
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
   }
@@ -59,7 +66,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
   @Test
   fun `fetchAllReferralsAggregated aggregates results and sorts them by date descending`() {
     val crn = "X12345"
-    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
     val dutyToRefer = dutyToReferRepository.save(
       buildDutyToReferEntity(
         caseId = case.id,
@@ -104,10 +111,10 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, cas2Response)
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, cas3Response)
 
-    restTestClient.get().uri("/cases/{crn}/applications", crn)
+    webTestClient.get().uri("/cases/{crn}/applications", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetReferralHistoryResponseBody(
@@ -119,8 +126,8 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
                 date = "2026-01-15",
                 referredByName = "Test Data Setup User",
                 referredByUsername = "TEST_DATA_SETUP_USER",
-                localAuthorityArea = "Aberdeen City",
-                pdu = "Aberdeen City",
+                localAuthorityArea = localAuthorityArea.name,
+                pdu = localAuthorityArea.name,
               ),
               expectedReferralHistoryItem(
                 id = cas1Response.first().id,
@@ -178,7 +185,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, emptyList())
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
 
-    restTestClient.get().uri("/cases/{crn}/applications", crn)
+    webTestClient.get().uri("/cases/{crn}/applications", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -251,10 +258,10 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, emptyList())
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
 
-    restTestClient.get().uri("/cases/{crn}/applications", crn)
+    webTestClient.get().uri("/cases/{crn}/applications", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetReferralHistoryResponseBody(
@@ -329,10 +336,10 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, emptyList())
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
 
-    restTestClient.get().uri("/cases/{crn}/applications", crn)
+    webTestClient.get().uri("/cases/{crn}/applications", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetReferralHistoryResponseBody(

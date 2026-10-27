@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.u
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.test.web.servlet.client.expectBody
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -52,7 +52,7 @@ class UpstreamFailureIT : IntegrationTestBase() {
   @Test
   fun `getCase should return ServerError when CPR returns server error`() {
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
@@ -62,7 +62,7 @@ class UpstreamFailureIT : IntegrationTestBase() {
   @Test
   fun `getCase should return ServerError when CPR call times out`() {
     CorePersonRecordStubs.getCorePersonRecordTimeoutResponse(crn)
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
@@ -73,7 +73,7 @@ class UpstreamFailureIT : IntegrationTestBase() {
   fun `getCase should return partial success when Tier call returns server error`() {
     val upstreamUrl = TierStubs.getTierServerErrorResponse(crn)
 
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -86,7 +86,7 @@ class UpstreamFailureIT : IntegrationTestBase() {
   fun `getCase should return partial success when Tier call times out`() {
     TierStubs.getTierTimeoutResponse(crn)
 
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -100,7 +100,7 @@ class UpstreamFailureIT : IntegrationTestBase() {
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
     TierStubs.getTierServerErrorResponse(crn)
 
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()

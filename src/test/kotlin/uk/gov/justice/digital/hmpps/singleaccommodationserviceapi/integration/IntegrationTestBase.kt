@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
@@ -17,7 +17,7 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
-import org.springframework.test.web.servlet.client.RestTestClient
+import org.springframework.test.web.reactive.server.WebTestClient
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.SentryCaptureTestConfig
@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestClo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJaversAuthProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestSentryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestWebTestClientConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
@@ -72,7 +73,7 @@ const val USERNAME_OF_LOGGED_IN_NOMIS_USER = "NOMIS_USER"
 
 private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
 
-@AutoConfigureRestTestClient
+@AutoConfigureWebTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 @Import(
@@ -84,6 +85,7 @@ private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
     TestCacheConfig::class,
     SarIntegrationTestHelperConfig::class,
     SentryCaptureTestConfig::class,
+    TestWebTestClientConfig::class,
   ],
 )
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -102,7 +104,7 @@ abstract class IntegrationTestBase {
   protected lateinit var applicationContext: ApplicationContext
 
   @Autowired
-  protected lateinit var restTestClient: RestTestClient
+  protected lateinit var webTestClient: WebTestClient
 
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthorisationHelper
@@ -138,7 +140,7 @@ abstract class IntegrationTestBase {
       .pollDelay(ZERO)
       .pollInterval(ofMillis(20))
       .untilAsserted {
-        restTestClient.get().uri("/health/readiness")
+        webTestClient.get().uri("/health/readiness")
           .exchange()
           .expectStatus().isEqualTo(200)
           .expectBody().jsonPath("status").isEqualTo("UP")
@@ -255,10 +257,10 @@ abstract class IntegrationTestBase {
     .pollInterval(pollInterval)
     .until({ supplier() }, { it != null })!!
 
-  fun RestTestClient.RequestHeadersSpec<*>.withDeliusUserJwt(
+  fun WebTestClient.RequestHeadersSpec<*>.withDeliusUserJwt(
     username: String = USERNAME_OF_LOGGED_IN_DELIUS_USER,
     roles: List<String> = listOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"),
-  ): RestTestClient.RequestHeadersSpec<*> = this.headers {
+  ): WebTestClient.RequestHeadersSpec<*> = this.headers {
     it.setBearerAuth(
       jwtAuthHelper.createJwtAccessToken(
         grantType = GrantType.AUTHORIZATION_CODE.type,
@@ -269,7 +271,7 @@ abstract class IntegrationTestBase {
     )
   }
 
-  fun RestTestClient.RequestHeadersSpec<*>.withNomisUserJwt(
+  fun WebTestClient.RequestHeadersSpec<*>.withNomisUserJwt(
     username: String = USERNAME_OF_LOGGED_IN_NOMIS_USER,
     roles: List<String> = listOf("ROLE_POM", "ROLE_PRISON"),
     jwt: String = jwtAuthHelper.createJwtAccessToken(
@@ -278,13 +280,13 @@ abstract class IntegrationTestBase {
       roles = roles,
       authSource = AuthSource.NOMIS.source,
     ),
-  ): RestTestClient.RequestHeadersSpec<*> = this.headers {
+  ): WebTestClient.RequestHeadersSpec<*> = this.headers {
     it.setBearerAuth(jwt)
   }
 
-  fun RestTestClient.RequestHeadersSpec<*>.withClientCredentialsJwt(
+  fun WebTestClient.RequestHeadersSpec<*>.withClientCredentialsJwt(
     roles: List<String>,
-  ): RestTestClient.RequestHeadersSpec<*> = this.headers {
+  ): WebTestClient.RequestHeadersSpec<*> = this.headers {
     it.setBearerAuth(
       jwtAuthHelper.createJwtAccessToken(
         grantType = GrantType.CLIENT_CREDENTIALS.type,
@@ -297,6 +299,6 @@ abstract class IntegrationTestBase {
   }
 }
 
-inline fun <reified T> RestTestClient.ResponseSpec.expectApiResponse(): ApiResponseDto<T> = expectBody(object : ParameterizedTypeReference<ApiResponseDto<T>>() {})
+inline fun <reified T> WebTestClient.ResponseSpec.expectApiResponse(): ApiResponseDto<T> = expectBody(object : ParameterizedTypeReference<ApiResponseDto<T>>() {})
   .returnResult()
   .responseBody!!

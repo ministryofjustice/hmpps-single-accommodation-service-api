@@ -29,7 +29,7 @@ class ResourceSecurityIT : IntegrationTestBase() {
 
   @Test
   fun `@PreAuthorise smoke test()`() {
-    restTestClient
+    webTestClient
       .get()
       .uri("/case-list")
       .withClientCredentialsJwt(roles = emptyList())

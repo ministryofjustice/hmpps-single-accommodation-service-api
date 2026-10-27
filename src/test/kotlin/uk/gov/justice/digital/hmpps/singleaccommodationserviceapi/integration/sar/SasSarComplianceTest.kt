@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.s
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferNoteEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildLocalAuthorityAreaEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationNoteEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.LocalAuthorityAreaEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.sql.Timestamp
@@ -20,8 +20,6 @@ class SasSarComplianceTest : SasSarTestBase() {
   private val testPaId = UUID.fromString("3276ece4-4c1d-4a5f-a50e-ef92c1aee368")
   private val testNoteId = UUID.fromString("1116ece4-4c1d-4a5f-a50e-ef92c1aee111")
   private val testDtrId = UUID.fromString("5e0fe44d-6903-42ce-a426-c7b53494ba35")
-  private val testLaaId = UUID.randomUUID()
-  private val testLaaName = UUID.randomUUID().toString()
   private val testNomsNumber = "A1234BC"
   private val testFromDate: LocalDate = LocalDate.of(2019, 1, 1)
   private val testToDate: LocalDate = LocalDate.of(2026, 12, 31)
@@ -32,6 +30,10 @@ class SasSarComplianceTest : SasSarTestBase() {
   private val generatedReportFilename = "sas-sar-report.html.log"
 
   private val fixedTimestamp = Timestamp.from(Instant.parse("2026-06-30T15:31:04Z"))
+
+  private val localAuthorityArea: LocalAuthorityAreaEntity by lazy {
+    localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+  }
 
   private val asserter by lazy {
     SasSarFixtureAsserter(
@@ -52,13 +54,11 @@ class SasSarComplianceTest : SasSarTestBase() {
 
       val case = createCase(testCrn, testNomsNumber, testCaseId)
 
-      val laa = localAuthorityAreaRepository.save(buildLocalAuthorityAreaEntity(id = testLaaId, name = testLaaName))
-
       val dtr = dutyToReferRepository.save(
         buildDutyToReferEntity(
           id = testDtrId,
           caseId = case.id,
-          localAuthorityAreaId = laa.id,
+          localAuthorityAreaId = localAuthorityArea.id,
           createdByUserId = userIdOfTestDataSetupUser,
           lastUpdatedByUserId = userIdOfTestDataSetupUser,
         ),
@@ -95,8 +95,8 @@ class SasSarComplianceTest : SasSarTestBase() {
       crn = testCrn,
       fromDate = testFromDate,
       toDate = testToDate,
-      laaId = testLaaId,
-      laaName = testLaaName,
+      laaId = localAuthorityArea.id,
+      laaName = localAuthorityArea.name,
     )
   }
 
@@ -107,8 +107,8 @@ class SasSarComplianceTest : SasSarTestBase() {
       crn = testCrn,
       fromDate = null,
       toDate = null,
-      laaId = testLaaId,
-      laaName = testLaaName,
+      laaId = localAuthorityArea.id,
+      laaName = localAuthorityArea.name,
     )
   }
 
@@ -120,7 +120,7 @@ class SasSarComplianceTest : SasSarTestBase() {
       crn = testCrn,
       fromDate = testFromDate,
       toDate = testToDate,
-      laaName = testLaaName,
+      laaName = localAuthorityArea.name,
     )
   }
 }

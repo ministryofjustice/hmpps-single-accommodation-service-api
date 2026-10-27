@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarFlywaySchemaTest
@@ -43,7 +44,7 @@ class SarIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `GET subject-access-request returns 400 when neither PRN nor CRN provided`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/subject-access-request")
       .headers { it.setBearerAuth(sarToken()) }
       .exchange()
@@ -52,7 +53,7 @@ class SarIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `GET subject-access-request returns 204 when no data found for CRN`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/subject-access-request?crn=X000000")
       .headers { it.setBearerAuth(sarToken()) }
       .exchange()
@@ -61,7 +62,7 @@ class SarIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `GET subject-access-request returns 403 without SAR_DATA_ACCESS role`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/subject-access-request?crn=X000000")
       .headers { it.setBearerAuth(nonSarToken()) }
       .exchange()
@@ -70,13 +71,13 @@ class SarIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `GET subject-access-request template returns 200 with mustache content`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/subject-access-request/template")
       .headers { it.setBearerAuth(sarToken()) }
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentTypeCompatibleWith(MediaType.TEXT_PLAIN)
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value { body ->
         assertThat(body).contains("{{#ProposedAccommodations}}")
         assertThat(body).contains("{{#DutyToRefer}}")
@@ -86,7 +87,7 @@ class SarIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `GET subject-access-request template returns 403 without SAR_DATA_ACCESS role`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/subject-access-request/template")
       .headers { it.setBearerAuth(nonSarToken()) }
       .exchange()
