@@ -23,14 +23,16 @@ fun main(args: Array<String>) {
   }
 }
 
-fun bootAndGenerate(): GenerationResult {
+fun bootAndGenerate(
+  render: (List<RulesGraph>) -> String = RulesGraphMarkdownRenderer::render,
+): GenerationResult {
   val context = AnnotationConfigApplicationContext()
   context.environment.setActiveProfiles(ELIGIBILITY_GRAPH_PROFILE)
   context.register(EligibilityRulesGraphConfiguration::class.java)
   try {
     context.refresh()
     val providers = context.getBeansOfType(EligibilityTreeProvider::class.java).values
-    return EligibilityRulesGraphGenerator.generate(providers)
+    return EligibilityRulesGraphGenerator.generate(providers, render)
   } catch (ex: BeansException) {
     throw GraphContextStartupException(formatGraphContextFailure(ex), ex)
   } finally {
