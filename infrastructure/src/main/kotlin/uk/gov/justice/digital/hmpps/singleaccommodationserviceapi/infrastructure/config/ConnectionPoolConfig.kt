@@ -15,6 +15,7 @@ class ConnectionPoolConfig(
   @Bean
   fun defaultHttpConnectionProvider(): ConnectionProvider {
     val provider = ConnectionProvider.builder(connectionPoolProperties.poolName)
+      .maxConnections(connectionPoolProperties.maxConnections)
       .maxIdleTime(connectionPoolProperties.maxIdleTime)
       .maxLifeTime(connectionPoolProperties.maxLifeTime)
       .evictInBackground(connectionPoolProperties.evictionInterval)
@@ -27,6 +28,7 @@ class ConnectionPoolConfig(
 
 @ConfigurationProperties(prefix = "service.connection-pool")
 data class ConnectionPoolProperties(
+  val maxConnections: Int = DEFAULT_MAX_CONNECTIONS,
   val maxIdleTime: Duration = DEFAULT_MAX_IDLE_TIME,
   val maxLifeTime: Duration = DEFAULT_MAX_LIFE_TIME,
   val evictionInterval: Duration = DEFAULT_EVICTION_INTERVAL,
@@ -37,6 +39,8 @@ data class ConnectionPoolProperties(
     private const val DEFAULT_MAX_LIFE_TIME_MINUTES = 5L
     private const val DEFAULT_EVICTION_INTERVAL_SECONDS = 30L
 
+    // Matches Reactor Netty's own default pool; a custom builder otherwise falls back to max(cores, 8) * 2
+    const val DEFAULT_MAX_CONNECTIONS = 500
     const val DEFAULT_POOL_NAME = "default-http-pool"
     val DEFAULT_MAX_IDLE_TIME: Duration = Duration.ofSeconds(DEFAULT_MAX_IDLE_TIME_SECONDS)
     val DEFAULT_MAX_LIFE_TIME: Duration = Duration.ofMinutes(DEFAULT_MAX_LIFE_TIME_MINUTES)

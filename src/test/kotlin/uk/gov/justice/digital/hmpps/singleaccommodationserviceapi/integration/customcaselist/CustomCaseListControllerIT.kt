@@ -465,7 +465,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
       buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = caseId),
     )
 
-    private fun getCustomCaseList() = restTestClient.get().uri("/case-list/custom")
+    private fun getCustomCaseList() = webTestClient.get().uri("/case-list/custom")
       .withDeliusUserJwt()
       .exchange()
   }
@@ -509,14 +509,14 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
         .jsonPath("$.data").isEqualTo(listOf("A123456", "B654321"))
     }
 
-    private fun getCustomCaseListCrns() = restTestClient.get().uri("/case-list/custom/crns")
+    private fun getCustomCaseListCrns() = webTestClient.get().uri("/case-list/custom/crns")
       .withDeliusUserJwt()
       .exchange()
   }
 
-  private fun postCustomCaseList(crns: List<String>) = restTestClient.post().uri("/case-list/custom")
+  private fun postCustomCaseList(crns: List<String>) = webTestClient.post().uri("/case-list/custom")
     .contentType(MediaType.APPLICATION_JSON)
-    .body(crns.joinToString(prefix = "[", postfix = "]") { "\"$it\"" })
+    .bodyValue(crns.joinToString(prefix = "[", postfix = "]") { "\"$it\"" })
     .withDeliusUserJwt()
     .exchange()
 }

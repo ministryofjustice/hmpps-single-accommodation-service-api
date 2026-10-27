@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.test.web.servlet.client.expectBody
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
@@ -49,6 +49,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.LocalAuthorityAreaEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.asJsonValue
@@ -95,6 +96,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var dutyToReferRepository: DutyToReferRepository
+
+  private val localAuthorityArea: LocalAuthorityAreaEntity by lazy {
+    localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+  }
 
   @BeforeEach
   fun setup() {
@@ -281,8 +286,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     TierStubs.getTierOKResponse(crn = crn, tier)
 
-    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-
     val entity = buildCaseEntity(id = dutyToReferCaseId) {
       withCrn(crn)
       withPrisonNumber(prisonNumber)
@@ -299,10 +302,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityResponse(
@@ -360,7 +363,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -379,7 +382,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should continue evaluation and do not include 404 in upstream failures when tier returns not found`() {
-    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
     val cas1Application = buildCas1Application(
       application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED, id = cas1ApplicationId),
       requestForPlacement = buildCas1RequestForPlacementSummary(status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED),
@@ -405,7 +407,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -437,10 +439,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
   fun `should send back upstream failures and a not eligible service result when there are upstream failures`() {
     val upstreamUrl = TierStubs.getTierServerErrorResponse(crn = crn)
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityUpstreamFailuresResponse(
@@ -453,8 +455,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should include failureReason when defined`() {
-    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-
     val cas1Application = buildCas1Application(
       application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.REJECTED, id = cas1ApplicationId, createdAt = OffsetDateTime.parse("2023-01-01T12:00:00.000Z")),
     )
@@ -481,7 +481,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -499,7 +499,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     }
     caseRepository.save(entity)
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
   }
@@ -511,7 +511,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
     caseRepository.save(entity)
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
   }
