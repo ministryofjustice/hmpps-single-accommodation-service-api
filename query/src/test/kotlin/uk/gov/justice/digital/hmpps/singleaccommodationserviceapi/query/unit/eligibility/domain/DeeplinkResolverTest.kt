@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 class DeeplinkResolverTest {
   private val cas1ApplicationStartUrl = "CAS1_APPLICATION_START_URL"
   private val cas1ApplicationViewUrl = "CAS1_APPLICATION_VIEW_URL"
-  private val cas2ApplicationStartUrl = "CAS2_APPLICATION_START_URL"
+  private val cas2ApplicationStartUrl = "CAS2_APPLICATION_START_URL#crn"
   private val cas2ApplicationViewUrl = "CAS2_APPLICATION_VIEW_URL"
   private val cas3ReferralStartUrl = "CAS3_REFERRAL_START_URL"
   private val cas3ReferralViewUrl = "CAS3_REFERRAL_VIEW_URL"
@@ -30,6 +30,8 @@ class DeeplinkResolverTest {
     every { getCas3UrlTemplates() } returns Cas3UrlTemplates(cas3ReferralStartUrl)
   }
   private val resolver = DeeplinkResolver(approvedPremisesCachingService)
+
+  private val crn = "X123456"
 
   @Nested
   inner class Cas1 {
@@ -95,10 +97,10 @@ class DeeplinkResolverTest {
         buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED,
         ),
-        buildDomainData(),
+        buildDomainData(crn = crn),
       )
 
-      assertThat(result.url).isEqualTo(cas2ApplicationStartUrl)
+      assertThat(result.url).isEqualTo("CAS2_APPLICATION_START_URL$crn")
     }
 
     @Test
@@ -109,7 +111,7 @@ class DeeplinkResolverTest {
         buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED,
         ),
-        buildDomainData(),
+        buildDomainData(crn = crn),
       )
 
       assertThat(result.url).isNull()
@@ -124,7 +126,7 @@ class DeeplinkResolverTest {
         buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS2_NOT_SUBMITTED,
         ),
-        buildDomainData(cas2Application = cas2Application),
+        buildDomainData(cas2Application = cas2Application, crn = crn),
       )
 
       assertThat(result.url).isEqualTo(cas2ApplicationViewUrl)
@@ -136,7 +138,7 @@ class DeeplinkResolverTest {
         buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS2_NOT_SUBMITTED,
         ),
-        buildDomainData(cas2Application = null),
+        buildDomainData(cas2Application = null, crn = crn),
       )
 
       assertThat(result.url).isNull()

@@ -36,7 +36,6 @@ class DecisionTreeBuilderTest {
     assertThat(builder.confirmed().name).isEqualTo("return current status")
     assertThat(builder.notEligible(ServiceType.CAS1).name).isEqualTo("return status CAS1_NOT_ELIGIBLE")
     assertThat(builder.notRequired(ServiceType.DTR).name).isEqualTo("return status DTR_NOT_REQUIRED")
-    assertThat(builder.currentOutcome().name).isEqualTo("return current status (deprecated version)")
     assertThat(builder.outcome("placementBooked", expectedResult).name).isEqualTo("return status CAS1_PLACEMENT_BOOKED")
   }
 
@@ -243,24 +242,6 @@ class DecisionTreeBuilderTest {
     val result = builder.notRequired(ServiceType.DTR).eval(context)
 
     assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.DTR_NOT_REQUIRED)
-    assertThat(result.failureReasons).isEqualTo(failureReasons)
-  }
-
-  @Test
-  fun `currentOutcome carries context`() {
-    val builder = DecisionTreeBuilder(engine)
-    val failureReasons = listOf(FailureReason.IS_SETTLED, FailureReason.NON_MALE_NOT_HIGH_RISK_TIER)
-    val context = EvaluationContext(
-      data = buildDomainData(),
-      currentResult = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,
-        failureReasons = failureReasons,
-      ),
-    )
-
-    val result = builder.currentOutcome().eval(context)
-
-    assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_STARTED)
     assertThat(result.failureReasons).isEqualTo(failureReasons)
   }
 }
