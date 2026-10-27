@@ -83,7 +83,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithinOneYearRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithinTwentyEightWeeksRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationArrivedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationAwaitingArrivalRule
@@ -189,7 +189,7 @@ class EligibilityServiceTest {
     CurrentAccommodationIsPrisonOrCas1Rule(),
   )
   val cas1UpcomingContextUpdater = Cas1UpcomingContextUpdater()
-  var cas1UpcomingRuleSet = Cas1UpcomingRuleSet(ReleaseWithinOneYearRule(clock))
+  var cas1UpcomingRuleSet = Cas1UpcomingRuleSet(ReleaseWithinTwentyEightWeeksRule(clock))
   val cas1SuitabilityContextUpdater = Cas1SuitabilityContextUpdater()
 
   // CAS2
@@ -616,7 +616,7 @@ class EligibilityServiceTest {
 
         assertThat(result.actionStartDate).isEqualTo(
           if (result.serviceStatus.isUpcoming) {
-            s.currentAccommodationEndDate?.minusYears(1)
+            s.currentAccommodationEndDate?.minusWeeks(28)
           } else {
             null
           },

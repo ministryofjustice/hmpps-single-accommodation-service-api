@@ -6,8 +6,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas1UpcomingRuleSet(
-  releaseWithinOneYear: ReleaseWithinOneYearRule,
+  releaseWithinTwentyEightWeeksRule: ReleaseWithinTwentyEightWeeksRule,
 ) : RuleSet {
-  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(releaseWithinOneYear))
+  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(releaseWithinTwentyEightWeeksRule))
   override fun getRules(): List<PrioritisedRule> = rules
 }
