@@ -34,7 +34,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.ad
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.expectApiResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.time.Duration
@@ -46,9 +45,6 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var caseRefreshRequestRepository: CaseRefreshRequestRepository
-
-  @Autowired
-  private lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
   @Autowired
   private lateinit var inboxEventRepository: InboxEventRepository

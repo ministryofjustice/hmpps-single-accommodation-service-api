@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
@@ -35,6 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.du
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDutyToReferTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -42,7 +42,6 @@ import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutcomeReason as EntityOutcomeReason
 
-@TestPropertySource(properties = ["scheduling.enabled=true"])
 class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
 
   @Autowired
@@ -71,51 +70,6 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
     crn = case.caseIdentifiers.first().identifier
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
-  }
-
-  @Test
-  fun `should get duty to refer by id with ADDA role`() {
-    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-
-    val entity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        referenceNumber = "DTR-REF-001",
-        submissionDate = LocalDate.of(2026, 1, 15),
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
-
-    restTestClient.get().uri("/duty-to-refers/{id}", entity.id)
-      .withClientCredentialsJwt(
-        roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
-      )
-      .exchangeSuccessfully()
-      .expectBody<String>()
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(
-          expectedGetDtrResponseBody(
-            id = entity.id,
-            caseId = case.id,
-            crn = crn,
-            localAuthorityAreaId = localAuthorityArea.id,
-            localAuthorityAreaName = localAuthorityArea.name,
-            createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-            createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-          ),
-        )
-      }
-  }
-
-  @Test
-  fun `should return 404 when duty to refer not found for ADDA role`() {
-    val nonExistentId = UUID.randomUUID()
-
-    restTestClient.get().uri("/duty-to-refers/{id}", nonExistentId)
-      .withDeliusUserJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
-      .exchange()
-      .expectStatus().isNotFound
   }
 
   @Test
@@ -213,6 +167,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should create duty to refer and publish domain event`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
@@ -258,6 +213,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should auto-withdraw existing SUBMITTED referral when creating a new DTR`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
@@ -312,6 +268,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should update duty to refer and return 200 with updated data`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
     val newLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()
@@ -368,6 +325,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should withdraw duty to refer and return 200 with updated data with outcome reason`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
     val newLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()
@@ -462,6 +420,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should withdraw duty to refer with a non-OTHER reason and return 200`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
@@ -536,6 +495,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should withdraw duty to refer with OTHER reason and free text and return 200`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
@@ -707,6 +667,7 @@ class DutyToReferControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should reject DTR referral with an outcome reason and return 200`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 

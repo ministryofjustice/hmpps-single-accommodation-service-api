@@ -126,7 +126,6 @@ private val dutyToReferControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /cases/{crn}/dtr/{id}" to defaultRoles,
     "GET /cases/{crn}/dtr/{id}/timeline" to defaultRoles,
-    "GET /duty-to-refers/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
     "GET /cases/{crn}/dtr" to defaultRoles,
     "PUT /cases/{crn}/dtr/{id}" to defaultRoles,
     "POST /cases/{crn}/dtr" to defaultRoles,

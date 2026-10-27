@@ -43,6 +43,11 @@ class DecisionTreeBuilder(
       ServiceStatusNew.CRS_NOT_ELIGIBLE,
       ServiceStatusNew.DTR_NOT_ELIGIBLE,
       ServiceStatusNew.PA_NOT_ELIGIBLE,
+      ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION,
+      ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS,
+      ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION,
+      ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS,
+      ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR,
       -> result
 
       else -> result.copy(failureReasons = emptyList())
@@ -52,7 +57,4 @@ class DecisionTreeBuilder(
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
   fun notEligible(service: ServiceType) = OutcomeNode("return status ${toNotEligibleServiceStatus(service)}") { ctx -> toNotEligibleServiceResult(service, ctx.currentResult.failureReasons) }
   fun notRequired(service: ServiceType) = OutcomeNode("return status ${toNotRequiredServiceStatus(service)}") { ctx -> toNotRequiredServiceResult(service, ctx.currentResult.failureReasons) }
-
-  /** Creates a terminal outcome node that returns the current context's ServiceResult with failure reasons. */
-  fun currentOutcome() = OutcomeNode("return current status (deprecated version)") { ctx -> ctx.currentResult }
 }
