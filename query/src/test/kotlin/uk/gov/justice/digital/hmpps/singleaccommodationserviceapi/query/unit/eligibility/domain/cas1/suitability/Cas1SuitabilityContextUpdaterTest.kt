@@ -33,7 +33,7 @@ class Cas1SuitabilityContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_SUBMITTED)
+      assertThat(result.currentResult!!.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_SUBMITTED)
       assertThat(result.currentResult.url).isNull()
     }
   }

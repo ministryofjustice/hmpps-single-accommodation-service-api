@@ -20,7 +20,7 @@ class StubRuleSet(private val rules: List<PrioritisedRule>) : RuleSet {
 }
 
 class StubContextUpdater : ContextUpdater() {
-  override fun toServiceResult(context: EvaluationContext) = context.currentResult.copy(
+  override fun toServiceResult(context: EvaluationContext) = context.currentResult!!.copy(
     serviceStatus = ServiceStatusNew.CAS1_UPCOMING,
   )
 }

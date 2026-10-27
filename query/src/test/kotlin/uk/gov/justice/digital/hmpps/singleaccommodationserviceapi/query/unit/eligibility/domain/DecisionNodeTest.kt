@@ -54,7 +54,7 @@ class DecisionNodeTest {
             serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
           ),
         )
-      val outcomeNode = OutcomeNode { context -> context.currentResult }
+      val outcomeNode = OutcomeNode { context -> context.currentResult!! }
 
       val result = outcomeNode.eval(context)
 
@@ -266,9 +266,9 @@ class DecisionNodeTest {
 
       ruleSetNode.eval(initialContext)
 
-      assertThat(capturedContext.captured.currentResult.serviceStatus)
+      assertThat(capturedContext.captured.currentResult!!.serviceStatus)
         .isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
-      assertThat(capturedContext.captured.currentResult.failureReasons)
+      assertThat(capturedContext.captured.currentResult!!.failureReasons)
         .containsExactly(FailureReason.IS_SETTLED, FailureReason.MALE_NOT_HIGH_RISK_TIER)
     }
 
@@ -307,7 +307,7 @@ class DecisionNodeTest {
 
       ruleSetNode.eval(initialContext)
 
-      assertThat(capturedContext.captured.currentResult.failureReasons)
+      assertThat(capturedContext.captured.currentResult!!.failureReasons)
         .containsExactly(FailureReason.IS_SETTLED)
     }
   }

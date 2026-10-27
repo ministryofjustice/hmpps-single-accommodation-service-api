@@ -35,15 +35,16 @@ class CrsEligibilityTreeProvider(
 
   override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
     data = data,
-    currentResult = ServiceResultNew(
-      serviceStatus = ServiceStatusNew.CRS_SUBMITTED,
-      url = url,
-    ),
+    currentResult = null,
   )
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
     val notRequired = builder.notRequired(ServiceType.CRS)
+    val submitted = builder.outcome(
+      "submitted",
+      ServiceResultNew(serviceStatus = ServiceStatusNew.CRS_SUBMITTED, url = url),
+    )
 
     val eligibilityNode = builder
       .ruleSet("CrsEligibility", eligibility)
@@ -53,7 +54,7 @@ class CrsEligibilityTreeProvider(
 
     val completionNode = builder
       .ruleSet("CrsCompletion", completion)
-      .onPass(confirmed)
+      .onPass(submitted)
       .onFail(eligibilityNode).applyContextUpdaterOnFailure(completionContextUpdater)
       .build()
 

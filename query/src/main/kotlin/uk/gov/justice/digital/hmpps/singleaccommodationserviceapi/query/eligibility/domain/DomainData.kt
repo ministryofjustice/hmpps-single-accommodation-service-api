@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import java.time.LocalDate
 
 data class DomainData(
@@ -56,26 +55,5 @@ data class DomainData(
     dutyToRefer = dutyToRefer,
     commissionedRehabilitativeServices = commissionedRehabilitativeServices,
     sexualOffenceRegistrations = sexualOffenceRegistrations,
-  )
-
-  constructor(
-    crn: String,
-    sexCode: SexCode?,
-    caseEntity: CaseEntity?,
-    dutyToRefer: DutyToReferDto?,
-  ) : this(
-    crn = crn,
-    tierScore = caseEntity?.tierScore,
-    sex = sexCode,
-    dob = caseEntity?.dateOfBirth,
-    currentAccommodation = null,
-    currentAccommodationTypeEntity = null,
-    nextAccommodations = emptyList(),
-    cas1Application = null,
-    cas2Application = null,
-    cas3Application = null,
-    dutyToRefer = dutyToRefer,
-    commissionedRehabilitativeServices = null,
-    sexualOffenceRegistrations = null,
   )
 }

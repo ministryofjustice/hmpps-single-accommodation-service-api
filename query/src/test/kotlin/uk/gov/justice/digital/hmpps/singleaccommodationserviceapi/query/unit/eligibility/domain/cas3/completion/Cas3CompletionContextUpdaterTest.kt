@@ -37,7 +37,7 @@ class Cas3CompletionContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_SUBMITTED)
+      assertThat(result.currentResult!!.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_SUBMITTED)
       assertThat(result.currentResult.url).isNull()
     }
   }

@@ -327,15 +327,16 @@ flowchart TD
   CrsCompletion("CrsCompletion (1)
 
 - FAIL if no live CRS referral")
-  return_current_status["return current status"]
+  return_status_CRS_SUBMITTED["return status CRS_SUBMITTED"]
   Set_current_status_to_one_of_CRS_NOT_STARTED_ACCOMMODATION_REFERRAL__CRS_NOT_STARTED_REFERRAL["Set current status to one of CRS_NOT_STARTED_ACCOMMODATION_REFERRAL, CRS_NOT_STARTED_REFERRAL"]
   CrsEligibility("CrsEligibility (2)
 
 - FAIL if candidate has next accommodation
 - FAIL if candidate is settled")
+  return_current_status["return current status"]
   return_status_CRS_NOT_REQUIRED["return status CRS_NOT_REQUIRED"]
   Set_current_status_to_one_of_CRS_UPCOMING_ACCOMMODATION_REFERRAL__CRS_UPCOMING_REFERRAL["Set current status to one of CRS_UPCOMING_ACCOMMODATION_REFERRAL, CRS_UPCOMING_REFERRAL"]
-  CrsCompletion -->|PASS| return_current_status
+  CrsCompletion -->|PASS| return_status_CRS_SUBMITTED
   CrsCompletion -->|FAIL| Set_current_status_to_one_of_CRS_NOT_STARTED_ACCOMMODATION_REFERRAL__CRS_NOT_STARTED_REFERRAL
   CrsEligibility -->|PASS| return_current_status
   CrsEligibility -->|FAIL| return_status_CRS_NOT_REQUIRED
@@ -367,7 +368,7 @@ flowchart TD
 | CRS_NOT_STARTED_REFERRAL | SUBMIT_CRS_REFERRAL (CRS) | - |
 
 
-**return current status** (Outcome)
+**return status CRS_SUBMITTED** (Outcome)
 
 **Set current status to one of CRS_NOT_STARTED_ACCOMMODATION_REFERRAL, CRS_NOT_STARTED_REFERRAL** (ContextUpdater)
 
@@ -375,6 +376,8 @@ flowchart TD
 - [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/NoNextAccommodationRule.kt): FAIL if candidate has next accommodation
 - [`IsSettledRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/eligibility/IsSettledRule.kt): FAIL if candidate is settled
 
+
+**return current status** (Outcome)
 
 **return status CRS_NOT_REQUIRED** (Outcome)
 
@@ -472,14 +475,15 @@ flowchart TD
   PaCompletion("PaCompletion (1)
 
 - FAIL if candidate has no next accommodation")
-  return_current_status["return current status"]
+  return_status_PA_COMPLETED["return status PA_COMPLETED"]
   Set_PA_NOT_STARTED["Set PA_NOT_STARTED"]
   PaEligibility("PaEligibility (2)
 
 - FAIL if candidate has a suitable CAS1 application
 - FAIL if candidate has suitable CAS3 application")
+  return_current_status["return current status"]
   return_status_PA_NOT_ELIGIBLE["return status PA_NOT_ELIGIBLE"]
-  PaCompletion -->|PASS| return_current_status
+  PaCompletion -->|PASS| return_status_PA_COMPLETED
   PaCompletion -->|FAIL| Set_PA_NOT_STARTED
   PaEligibility -->|PASS| return_current_status
   PaEligibility -->|FAIL| return_status_PA_NOT_ELIGIBLE
@@ -497,7 +501,7 @@ flowchart TD
 | PA_NOT_STARTED | ADD_AND_CONFIRM_PROPOSED_ADDRESS (PA) | - |
 
 
-**return current status** (Outcome)
+**return status PA_COMPLETED** (Outcome)
 
 **Set PA_NOT_STARTED** (ContextUpdater)
 
@@ -505,6 +509,8 @@ flowchart TD
 - [`Cas1ApplicationNotSuitableRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/pa/eligibility/Cas1ApplicationNotSuitableRule.kt): FAIL if candidate has a suitable CAS1 application
 - [`Cas3ApplicationNotSuitableRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/pa/eligibility/Cas3ApplicationNotSuitableRule.kt): FAIL if candidate has suitable CAS3 application
 
+
+**return current status** (Outcome)
 
 **return status PA_NOT_ELIGIBLE** (Outcome)
 

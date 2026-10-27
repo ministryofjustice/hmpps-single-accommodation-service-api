@@ -33,7 +33,7 @@ class DtrEligibilityTreeProvider(
 
   override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
     data = data,
-    currentResult = ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_ACCEPTED),
+    currentResult = null,
   )
 
   private fun build(): DecisionNode {

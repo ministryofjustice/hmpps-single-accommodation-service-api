@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
@@ -243,5 +244,46 @@ class DecisionTreeBuilderTest {
 
     assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.DTR_NOT_REQUIRED)
     assertThat(result.failureReasons).isEqualTo(failureReasons)
+  }
+
+  @Test
+  fun `confirmed throws a clear error when currentResult has not been set`() {
+    val builder = DecisionTreeBuilder(engine)
+    val context = EvaluationContext(
+      data = buildDomainData(),
+      currentResult = null,
+    )
+
+    assertThatIllegalArgumentException()
+      .isThrownBy { builder.confirmed().eval(context) }
+      .withMessageContaining("confirmed()")
+  }
+
+  @Test
+  fun `notEligible defaults to no failureReasons when currentResult has not been set`() {
+    val builder = DecisionTreeBuilder(engine)
+    val context = EvaluationContext(
+      data = buildDomainData(),
+      currentResult = null,
+    )
+
+    val result = builder.notEligible(ServiceType.CAS1).eval(context)
+
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
+    assertThat(result.failureReasons).isEmpty()
+  }
+
+  @Test
+  fun `notRequired defaults to no failureReasons when currentResult has not been set`() {
+    val builder = DecisionTreeBuilder(engine)
+    val context = EvaluationContext(
+      data = buildDomainData(),
+      currentResult = null,
+    )
+
+    val result = builder.notRequired(ServiceType.DTR).eval(context)
+
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.DTR_NOT_REQUIRED)
+    assertThat(result.failureReasons).isEmpty()
   }
 }
