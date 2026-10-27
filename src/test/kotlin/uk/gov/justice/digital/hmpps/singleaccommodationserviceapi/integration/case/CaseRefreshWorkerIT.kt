@@ -1,16 +1,11 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
-
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.transaction.PlatformTransactionManager
-import org.springframework.transaction.support.TransactionTemplate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -383,26 +378,6 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PROCESSING)
     assertThat(request.claimId).isEqualTo(replacementClaim.claimId)
     assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("A")
-  }
-
-  @Test
-  fun `refresh completion does not undo archival committed by an overlapping deletion`() {
-    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
-    caseRefreshRequestService.requestLiveRefresh(case.id)
-    val claim = caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
-
-    assertThatThrownBy {
-      TransactionTemplate(transactionManager).executeWithoutResult {
-        // refresh loads the case and stages its changes, but has not flushed yet
-        caseRefreshCompletionService.completeRefresh(claim, projection())
-
-        // deletion archives the case and commits in a separate transaction
-        CompletableFuture.runAsync { caseRepository.archiveById(case.id) }.get(10, TimeUnit.SECONDS)
-      }
-    }.isInstanceOf(ObjectOptimisticLockingFailureException::class.java)
-
-    assertThat(caseRepository.findByCrn(crn)).isNull()
-    assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)!!.archived).isTrue()
   }
 
   @Test

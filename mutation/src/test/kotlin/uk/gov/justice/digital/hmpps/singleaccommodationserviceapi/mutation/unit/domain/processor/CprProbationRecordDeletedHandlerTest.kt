@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
@@ -62,13 +63,16 @@ class CprProbationRecordDeletedHandlerTest {
       withCrn(crn)
       archived = false
     }
+    val refreshRequest = mockk<uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestEntity>()
     every { caseRepository.findByCrn(crn) } returns caseEntity
+    every { caseRefreshRequestRepository.findByCaseId(caseEntity.id) } returns refreshRequest
     every { caseRepository.archiveById(caseEntity.id) } returns 1
     every { inboxEventHelper.findCrn(any()) } returns crn
 
     assertThat(cprProbationRecordDeletedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
     verifyOrder {
-      caseRefreshRequestRepository.deleteById(caseEntity.id)
+      caseRefreshRequestRepository.findByCaseId(caseEntity.id)
+      caseRefreshRequestRepository.delete(refreshRequest)
       caseRepository.archiveById(caseEntity.id)
     }
     verify(exactly = 0) { caseRepository.save(any()) }
@@ -91,6 +95,6 @@ class CprProbationRecordDeletedHandlerTest {
 
     assertThat(cprProbationRecordDeletedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { caseRepository.archiveById(any()) }
-    verify(exactly = 0) { caseRefreshRequestRepository.deleteById(any()) }
+    verify(exactly = 0) { caseRefreshRequestRepository.findByCaseId(any()) }
   }
 }

@@ -30,7 +30,10 @@ class CprProbationRecordDeletedHandler(
     val crn = inboxEventHelper.findCrn(inboxEvent)
     val caseEntity = caseRepository.findByCrn(crn) ?: return InboxEventHandler.Result.IGNORED
 
-    caseRefreshRequestRepository.deleteById(caseEntity.id)
+    caseRefreshRequestRepository.findByCaseId(caseEntity.id)?.let { request ->
+      caseRefreshRequestRepository.delete(request)
+    }
+
     return when (caseRepository.archiveById(caseEntity.id)) {
       0 -> InboxEventHandler.Result.IGNORED
       else -> InboxEventHandler.Result.PROCESSED
