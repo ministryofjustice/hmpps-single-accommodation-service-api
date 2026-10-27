@@ -35,13 +35,16 @@ class Cas1EligibilityTreeProvider(
 
   override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
     data = data,
-    currentResult = serviceResult(),
+    currentResult = null,
   )
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS1)
-    val placementBooked = builder.outcome("return status \"placementBooked\"", serviceResult())
+    val placementBooked = builder.outcome(
+      "return status \"placementBooked\"",
+      ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED),
+    )
 
     val eligibilityNode = builder
       .ruleSet("Cas1Eligibility", eligibility)
@@ -67,8 +70,4 @@ class Cas1EligibilityTreeProvider(
       .onFail(eligibilityNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
   }
-
-  private fun serviceResult(): ServiceResultNew = ServiceResultNew(
-    serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
-  )
 }

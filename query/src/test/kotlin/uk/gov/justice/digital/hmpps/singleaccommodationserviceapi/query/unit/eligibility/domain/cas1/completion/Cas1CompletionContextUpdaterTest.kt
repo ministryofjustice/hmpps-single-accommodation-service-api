@@ -39,7 +39,7 @@ class Cas1CompletionContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_SUBMITTED)
+      assertThat(result.currentResult!!.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_SUBMITTED)
       assertThat(result.currentResult.url).isNull()
     }
   }
@@ -64,7 +64,7 @@ class Cas1CompletionContextUpdaterTest {
 
     val result = updater.update(context)
 
-    assertThat(result.currentResult.serviceStatus).isEqualTo(expectedServiceStatus)
+    assertThat(result.currentResult!!.serviceStatus).isEqualTo(expectedServiceStatus)
     assertThat(result.currentResult.url).isNull()
   }
 

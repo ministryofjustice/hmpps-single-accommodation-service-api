@@ -35,7 +35,7 @@ class Cas3EligibilityTreeProvider(
 
   override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
     data = data,
-    currentResult = serviceResult(),
+    currentResult = null,
   )
 
   private fun build(): DecisionNode {
@@ -44,7 +44,7 @@ class Cas3EligibilityTreeProvider(
     // ideally this would use confirmed, but we need to re-organise the diagram
     val arrived = builder.outcome(
       "arrived",
-      serviceResult(),
+      ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_ARRIVED),
     )
 
     val prerequisiteNode = builder
@@ -71,8 +71,4 @@ class Cas3EligibilityTreeProvider(
       .onFail(eligibilityWithPrereqNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
       .build()
   }
-
-  private fun serviceResult(): ServiceResultNew = ServiceResultNew(
-    serviceStatus = ServiceStatusNew.CAS3_ARRIVED,
-  )
 }

@@ -25,12 +25,13 @@ class PaEligibilityTreeProvider(
 
   override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
     data = data,
-    currentResult = ServiceResultNew(serviceStatus = ServiceStatusNew.PA_COMPLETED),
+    currentResult = null,
   )
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.PA)
+    val completed = builder.outcome("completed", ServiceResultNew(serviceStatus = ServiceStatusNew.PA_COMPLETED))
 
     val eligibilityNode = builder
       .ruleSet("PaEligibility", eligibility)
@@ -40,7 +41,7 @@ class PaEligibilityTreeProvider(
 
     return builder
       .ruleSet("PaCompletion", completion)
-      .onPass(confirmed)
+      .onPass(completed)
       .onFail(eligibilityNode).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.PA_NOT_STARTED))
       .build()
   }

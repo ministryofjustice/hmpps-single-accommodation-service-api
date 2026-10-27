@@ -24,7 +24,7 @@ abstract class ContextUpdater {
   fun update(context: EvaluationContext, failureReasons: List<FailureReason> = emptyList()): EvaluationContext {
     // expose the failing RuleSet failure reasons on the context so updaters can branch on which rules failed
     val contextWithFailureReasons = context.copy(
-      currentResult = context.currentResult.copy(failureReasons = failureReasons),
+      currentResult = context.currentResult?.copy(failureReasons = failureReasons),
     )
 
     val updatedServiceResult = toServiceResult(contextWithFailureReasons)
@@ -45,7 +45,9 @@ abstract class ContextUpdater {
     val identity = object : ContextUpdater() {
       override val propagatesFailureReasons = true
       override val description = "identity"
-      override fun toServiceResult(context: EvaluationContext): ServiceResultNew = context.currentResult.copy(failureReasons = emptyList())
+      override fun toServiceResult(context: EvaluationContext): ServiceResultNew = requireNotNull(context.currentResult) {
+        "identity ContextUpdater requires currentResult to already be set, but it was null"
+      }.copy(failureReasons = emptyList())
     }
 
     /** Always set the value of [EvaluationContext.currentResult] to the same given value */

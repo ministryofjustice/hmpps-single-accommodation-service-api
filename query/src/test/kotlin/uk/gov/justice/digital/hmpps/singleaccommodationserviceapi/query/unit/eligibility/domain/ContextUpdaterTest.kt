@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain
 
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
@@ -31,7 +32,7 @@ class ContextUpdaterTest {
       var reasonsSeenByToServiceResult: List<FailureReason> = emptyList()
       val updater = object : ContextUpdater() {
         override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
-          reasonsSeenByToServiceResult = context.currentResult.failureReasons
+          reasonsSeenByToServiceResult = context.currentResult!!.failureReasons
           return buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
         }
       }
@@ -49,7 +50,7 @@ class ContextUpdaterTest {
 
       val result = updater.update(context, failureReasons)
 
-      assertThat(result.currentResult.failureReasons).isEmpty()
+      assertThat(result.currentResult!!.failureReasons).isEmpty()
     }
 
     @Test
@@ -62,7 +63,7 @@ class ContextUpdaterTest {
 
       val result = updater.update(context, failureReasons)
 
-      assertThat(result.currentResult.failureReasons).containsExactlyElementsOf(failureReasons)
+      assertThat(result.currentResult!!.failureReasons).containsExactlyElementsOf(failureReasons)
     }
   }
 
@@ -81,8 +82,20 @@ class ContextUpdaterTest {
     fun `identity updater keeps current result fields and propagates failure reasons`() {
       val result = ContextUpdater.identity().update(context, failureReasons)
 
-      assertThat(result.currentResult.serviceStatus).isEqualTo(context.currentResult.serviceStatus)
+      assertThat(result.currentResult!!.serviceStatus).isEqualTo(context.currentResult!!.serviceStatus)
       assertThat(result.currentResult.failureReasons).containsExactlyElementsOf(failureReasons)
+    }
+
+    @Test
+    fun `identity updater throws a clear error when currentResult has not been set`() {
+      val contextWithoutResult = EvaluationContext(
+        data = buildDomainData(),
+        currentResult = null,
+      )
+
+      assertThatIllegalArgumentException()
+        .isThrownBy { ContextUpdater.identity().update(contextWithoutResult, failureReasons) }
+        .withMessageContaining("identity")
     }
   }
 }

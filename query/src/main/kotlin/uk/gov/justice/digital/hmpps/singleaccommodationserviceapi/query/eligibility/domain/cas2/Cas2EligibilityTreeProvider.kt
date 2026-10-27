@@ -35,7 +35,7 @@ class Cas2EligibilityTreeProvider(
 
   override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
     data = data,
-    currentResult = serviceResult(),
+    currentResult = null,
   )
 
   private fun build(): DecisionNode {
@@ -43,7 +43,7 @@ class Cas2EligibilityTreeProvider(
     val notEligible = builder.notEligible(ServiceType.CAS2)
     val placementBooked = builder.outcome(
       "awaitingArrival",
-      serviceResult(),
+      ServiceResultNew(serviceStatus = ServiceStatusNew.CAS2_AWAITING_ARRIVAL),
     )
 
     val eligibilityNode = builder
@@ -70,8 +70,4 @@ class Cas2EligibilityTreeProvider(
       .onFail(eligibilityNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
   }
-
-  private fun serviceResult(): ServiceResultNew = ServiceResultNew(
-    serviceStatus = ServiceStatusNew.CAS2_AWAITING_ARRIVAL,
-  )
 }
