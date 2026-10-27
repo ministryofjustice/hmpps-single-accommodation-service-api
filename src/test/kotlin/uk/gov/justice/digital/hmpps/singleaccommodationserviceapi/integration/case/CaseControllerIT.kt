@@ -601,7 +601,7 @@ class CaseControllerIT : IntegrationTestBase() {
         restrictedCrns = listOf(restrictedCrn),
       )
 
-      restTestClient.get().uri { it.path("/case-list").queryParam("searchTerm", "RestrictedForename RestrictedSurname").build() }
+      webTestClient.get().uri { it.path("/case-list").queryParam("searchTerm", "RestrictedForename RestrictedSurname").build() }
         .withDeliusUserJwt()
         .exchangeSuccessfully()
         .expectBody()
@@ -612,7 +612,7 @@ class CaseControllerIT : IntegrationTestBase() {
     fun `returns ServerError when probation access control returns ServerError`() {
       ProbationAccessControlStubs.postUserAccessServerError(USERNAME_OF_LOGGED_IN_DELIUS_USER)
 
-      restTestClient.get().uri("/case-list")
+      webTestClient.get().uri("/case-list")
         .withDeliusUserJwt()
         .exchange()
         .expectStatus()
