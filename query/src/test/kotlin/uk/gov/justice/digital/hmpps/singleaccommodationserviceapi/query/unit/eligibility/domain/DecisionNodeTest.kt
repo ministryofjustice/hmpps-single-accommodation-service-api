@@ -86,9 +86,9 @@ class DecisionNodeTest {
     fun `RuleSetNode on PASS executes ruleset and evaluates onPass node with unchanged context`() {
       val ruleSet: RuleSet = mockk()
       val engine: RulesEngine = mockk()
-      val contextUpdater: ContextUpdater = mockk()
       val onPassNode: DecisionNode = mockk()
       val onFailNode: DecisionNode = mockk()
+      val onFailContextUpdater: ContextUpdater = mockk()
 
       val initialContext =
         EvaluationContext(
@@ -105,8 +105,9 @@ class DecisionNodeTest {
           ruleSet = ruleSet,
           engine = engine,
           onPass = onPassNode,
+          onPassContextUpdater = null,
           onFail = onFailNode,
-          contextUpdater = contextUpdater,
+          onFailContextUpdater = onFailContextUpdater,
           ruleSetName = "Test RuleSet",
         )
 
@@ -115,7 +116,7 @@ class DecisionNodeTest {
       assertThat(result).isEqualTo(expectedResult)
       verify { engine.execute(ruleSet, initialContext.data) }
       verify { onPassNode.eval(initialContext) }
-      verify(exactly = 0) { contextUpdater.update(any(), any()) }
+      verify(exactly = 0) { onFailContextUpdater.update(any(), any()) }
       verify(exactly = 0) { onFailNode.eval(any()) }
     }
 
@@ -148,8 +149,9 @@ class DecisionNodeTest {
           ruleSet = ruleSet,
           engine = engine,
           onPass = onPassNode,
+          onPassContextUpdater = null,
           onFail = onFailNode,
-          contextUpdater = contextUpdater,
+          onFailContextUpdater = contextUpdater,
           ruleSetName = "Test RuleSet",
         )
 
@@ -185,8 +187,9 @@ class DecisionNodeTest {
           ruleSet = ruleSet,
           engine = engine,
           onPass = onPassNode,
+          onPassContextUpdater = null,
           onFail = onFailNode,
-          contextUpdater = contextUpdater,
+          onFailContextUpdater = contextUpdater,
           ruleSetName = "Test RuleSet",
         )
 
@@ -222,8 +225,9 @@ class DecisionNodeTest {
           ruleSet = ruleSet,
           engine = engine,
           onPass = onPassNode,
+          onPassContextUpdater = null,
           onFail = onFailNode,
-          contextUpdater = contextUpdater,
+          onFailContextUpdater = contextUpdater,
           ruleSetName = "Test RuleSet",
         )
 
@@ -259,8 +263,9 @@ class DecisionNodeTest {
         ruleSet = ruleSet,
         engine = engine,
         onPass = onPassNode,
+        onPassContextUpdater = null,
         onFail = onFailNode,
-        contextUpdater = contextUpdater,
+        onFailContextUpdater = contextUpdater,
         ruleSetName = "Test RuleSet",
       )
 
@@ -300,8 +305,9 @@ class DecisionNodeTest {
         ruleSet = ruleSet,
         engine = engine,
         onPass = onPassNode,
+        onPassContextUpdater = null,
         onFail = onFailNode,
-        contextUpdater = contextUpdater,
+        onFailContextUpdater = contextUpdater,
         ruleSetName = "Test RuleSet",
       )
 

@@ -51,7 +51,7 @@ class DtrEligibilityTreeProvider(
     val upcomingNode = builder
       .ruleSet("DtrUpcoming", upcoming)
       .applyContextUpdaterOnFailure(upcomingContextUpdater)
-      .continueWith(confirmed)
+      .onPassAndFail(confirmed)
       .build()
 
     //  has next accommodation to produce NOT_REQUIRED
