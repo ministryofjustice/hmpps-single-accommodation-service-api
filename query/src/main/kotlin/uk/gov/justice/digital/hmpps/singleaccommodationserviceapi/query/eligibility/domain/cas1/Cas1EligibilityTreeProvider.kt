@@ -7,8 +7,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityHighPriorityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityLowPriorityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityCurrentAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityTierRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
@@ -23,8 +23,8 @@ class Cas1EligibilityTreeProvider(
   private val suitability: Cas1SuitabilityRuleSet,
   private val suitabilityContextUpdater: Cas1SuitabilityContextUpdater,
   private val completionContextUpdater: Cas1CompletionContextUpdater,
-  private val eligibilityHighPriority: Cas1EligibilityHighPriorityRuleSet,
-  private val eligibilityLowPriority: Cas1EligibilityLowPriorityRuleSet,
+  private val eligibilityHighPriority: Cas1EligibilityTierRuleSet,
+  private val eligibilityLowPriority: Cas1EligibilityCurrentAccommodationRuleSet,
 
 ) : EligibilityTreeProvider {
 
