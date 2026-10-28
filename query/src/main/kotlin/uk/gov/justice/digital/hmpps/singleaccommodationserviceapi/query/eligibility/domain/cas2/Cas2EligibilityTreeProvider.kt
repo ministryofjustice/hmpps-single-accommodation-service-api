@@ -49,31 +49,31 @@ class Cas2EligibilityTreeProvider(
     val eligibilityRoshNode = builder
       .ruleSet(eligibilityRosh)
       .onPass(confirmed)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(notEligible)
       .build()
 
     val eligibilityNextAccommodationNode = builder
       .ruleSet(eligibilityNextAccommodation)
       .onPass(eligibilityRoshNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(notEligible)
       .build()
 
     val eligibilityCurrentAccommodationNode = builder
       .ruleSet(eligibilityCurrentAccommodation)
       .onPass(eligibilityNextAccommodationNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(notEligible)
       .build()
 
     val eligibilityReleaseDateNode = builder
       .ruleSet(eligibilityReleaseDate)
       .onPass(eligibilityCurrentAccommodationNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(notEligible)
       .build()
 
     val eligibilityPersonNode = builder
       .ruleSet(eligibilityPerson)
       .onPass(eligibilityReleaseDateNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(notEligible)
       .build()
 
     val suitabilityNode = builder

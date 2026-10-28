@@ -10,8 +10,17 @@ sealed interface DecisionNode {
   fun eval(context: EvaluationContext): ServiceResultNew
 }
 
-/** Terminal node that returns a ServiceResult based on the current context.**/
-class OutcomeNode(val name: String = "unnamed", private val outcome: (EvaluationContext) -> ServiceResultNew) : DecisionNode {
+/**
+ * Terminal node that returns a ServiceResult based on the current context.
+ *
+ * [key] is a stable identifier (e.g. a status enum name) used for graph node ids; [name] is the human-readable label,
+ * which may be shared by several distinct outcomes.
+ **/
+class OutcomeNode(
+  val name: String = "unnamed",
+  val key: String = name,
+  private val outcome: (EvaluationContext) -> ServiceResultNew,
+) : DecisionNode {
   override fun eval(context: EvaluationContext): ServiceResultNew = outcome(context)
 }
 
@@ -25,7 +34,7 @@ class RuleSetNode(
   val onPass: DecisionNode,
   val onPassContextUpdater: ContextUpdater?,
   val onFail: DecisionNode,
-  val onFailContextUpdater: ContextUpdater,
+  val onFailContextUpdater: ContextUpdater?,
 ) : DecisionNode {
 
   companion object {
@@ -39,10 +48,12 @@ class RuleSetNode(
       log.debug("RuleSet Result: {}", it.status)
     }
 
-    // Branch based on result: PASS returns current context unchanged, FAIL updates context
     return when (ruleSetResult.status) {
       RuleSetStatus.PASS -> onPass.eval(onPassContextUpdater?.update(context, ruleSetResult.failureReasons) ?: context)
-      RuleSetStatus.FAIL -> onFail.eval(onFailContextUpdater.update(context, ruleSetResult.failureReasons))
+      RuleSetStatus.FAIL -> onFail.eval(
+        onFailContextUpdater?.update(context, ruleSetResult.failureReasons)
+          ?: context.withFailureReasons(ruleSetResult.failureReasons),
+      )
     }
   }
 }

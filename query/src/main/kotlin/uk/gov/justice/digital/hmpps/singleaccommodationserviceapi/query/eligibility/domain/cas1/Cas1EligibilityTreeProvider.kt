@@ -45,19 +45,19 @@ class Cas1EligibilityTreeProvider(
     val eligibilityRoshNode = builder
       .ruleSet(eligibilityRosh)
       .onPass(confirmed)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(notEligible)
       .build()
 
     val eligibilityCurrentAccommodationNode = builder
       .ruleSet(eligibilityCurrentAccommodation)
       .onPass(eligibilityRoshNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(notEligible)
       .build()
 
     val eligibilityTierNode = builder
       .ruleSet(eligibilityTier)
       .onPass(eligibilityCurrentAccommodationNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(notEligible)
       .build()
 
     val suitabilityNode = builder

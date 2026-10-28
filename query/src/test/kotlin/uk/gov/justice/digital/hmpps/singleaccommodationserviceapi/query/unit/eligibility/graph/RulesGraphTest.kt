@@ -63,15 +63,18 @@ class RulesGraphTest {
       val graph = RulesGraphWalker().walk("EXAMPLE", root)
 
       val updaterNode = graph.nodes.single { it.title == updater.description }
-      assertThat(updaterNode.kind).isEqualTo(GraphNodeKind.CONTEXT_UPDATER)
+      assertThat(updaterNode.kind).isEqualTo(GraphNodeKind.OUTCOME)
+
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
+      assertThat(markdown).containsPattern("(?m)^ {2}class (.*,)?${updaterNode.id}(,.*)? outcomeNode$")
       assertThat(graph.nodes.map { it.title }).containsExactlyInAnyOrder(
         "ExampleEligibility",
         "Terminal updater",
-        "return current status",
+        "current status",
       )
       assertThat(graph.edges).containsExactlyInAnyOrder(
         GraphEdge("ExampleEligibility", updaterNode.id, if (onPass) "PASS" else "FAIL"),
-        GraphEdge("ExampleEligibility", "return_current_status", if (onPass) "FAIL" else "PASS"),
+        GraphEdge("ExampleEligibility", "confirmed", if (onPass) "FAIL" else "PASS"),
       )
     }
 
@@ -90,12 +93,12 @@ class RulesGraphTest {
       assertThat(graph.treeName).isEqualTo("EXAMPLE")
       assertThat(graph.nodes.map { it.title }).containsExactlyInAnyOrder(
         "ExampleEligibility",
-        "return current status",
-        "return status CAS1_NOT_ELIGIBLE",
+        "current status",
+        "Not Eligible",
       )
       assertThat(graph.edges.map { "${it.from}->${it.label}->${it.to}" }).containsExactlyInAnyOrder(
-        "ExampleEligibility->PASS->return_current_status",
-        "ExampleEligibility->FAIL->return_status_CAS1_NOT_ELIGIBLE",
+        "ExampleEligibility->PASS->confirmed",
+        "ExampleEligibility->FAIL->CAS1_NOT_ELIGIBLE",
       )
       val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
       assertThat(ruleSetNode.rules).extracting<String> { it.className }.containsExactly("StubRule")
@@ -140,8 +143,8 @@ class RulesGraphTest {
 
       val graph = RulesGraphWalker().walk("SHARED", upcoming)
 
-      assertThat(graph.nodes.filter { it.title == "return current status" }).hasSize(1)
-      val confirmedId = graph.nodes.single { it.title == "return current status" }.id
+      assertThat(graph.nodes.filter { it.title == "current status" }).hasSize(1)
+      val confirmedId = graph.nodes.single { it.title == "current status" }.id
       assertThat(graph.edges.filter { it.to == confirmedId && it.label == "PASS" }).hasSize(2)
     }
 
@@ -156,7 +159,7 @@ class RulesGraphTest {
       val graph = RulesGraphWalker().walk("DTR", upcoming)
 
       val upcomingId = graph.nodes.single { it.title == "Upcoming" }.id
-      val confirmedId = graph.nodes.single { it.title == "return current status" }.id
+      val confirmedId = graph.nodes.single { it.title == "current status" }.id
       assertThat(graph.edges).containsExactlyInAnyOrder(
         GraphEdge(
           upcomingId,
@@ -189,9 +192,9 @@ class RulesGraphTest {
       val graph = RulesGraphWalker().walk("DTR", upcoming)
 
       val upcomingId = graph.nodes.single { it.title == "Upcoming" }.id
-      val contextUpdaterId = graph.nodes.single { it.title == "Set CAS1_NOT_STARTED" }.id
+      val contextUpdaterId = graph.nodes.single { it.title == "Set current status to Not Started" }.id
       assertThat(graph.nodes.single { it.id == contextUpdaterId }.kind).isEqualTo(GraphNodeKind.CONTEXT_UPDATER)
-      val confirmedId = graph.nodes.single { it.title == "return current status" }.id
+      val confirmedId = graph.nodes.single { it.title == "current status" }.id
       assertThat(graph.edges).containsExactlyInAnyOrder(
         GraphEdge(
           upcomingId,
@@ -223,9 +226,9 @@ class RulesGraphTest {
       val graph = RulesGraphWalker().walk("DTR", upcoming)
 
       val upcomingId = graph.nodes.single { it.title == "Upcoming" }.id
-      val contextUpdaterId = graph.nodes.single { it.title == "Set CAS1_NOT_STARTED" }.id
+      val contextUpdaterId = graph.nodes.single { it.title == "Set current status to Not Started" }.id
       assertThat(graph.nodes.single { it.id == contextUpdaterId }.kind).isEqualTo(GraphNodeKind.CONTEXT_UPDATER)
-      val confirmedId = graph.nodes.single { it.title == "return current status" }.id
+      val confirmedId = graph.nodes.single { it.title == "current status" }.id
       assertThat(graph.edges).containsExactlyInAnyOrder(
         GraphEdge(
           upcomingId,
@@ -261,9 +264,17 @@ class RulesGraphTest {
 
       assertThat(markdown).contains("## EXAMPLE")
       assertThat(markdown).contains("flowchart TD")
-      assertThat(markdown).contains("ExampleEligibility(\"ExampleEligibility (1)")
-      assertThat(markdown).contains("ExampleEligibility -->|PASS| return_current_status")
-      assertThat(markdown).contains("ExampleEligibility -->|FAIL| return_status_CAS1_NOT_ELIGIBLE")
+      assertThat(markdown).contains("ExampleEligibility(\"<div style='text-align:left'>FAIL if example</div>\")")
+      assertThat(markdown).contains("ExampleEligibility -->|PASS| confirmed")
+      assertThat(markdown).contains("ExampleEligibility -->|FAIL| CAS1_NOT_ELIGIBLE")
+      assertThat(markdown).contains("linkStyle 0 stroke:green,stroke-width:2px")
+      assertThat(markdown).contains("linkStyle 1 stroke:red,stroke-width:2px")
+      assertThat(markdown).contains("CAS1_NOT_ELIGIBLE[\"<b>Not Eligible</b>\"]")
+      assertThat(markdown).contains("classDef ruleSetNode fill:#FFF8E1")
+      assertThat(markdown).contains("classDef outcomeNode fill:#DCEEFB")
+      assertThat(markdown).contains("classDef updaterNode fill:#EDE7F6")
+      assertThat(markdown).contains("class ExampleEligibility ruleSetNode")
+      assertThat(markdown).contains("class confirmed,CAS1_NOT_ELIGIBLE outcomeNode")
       assertThat(markdown).doesNotContain("_onFail")
       assertThat(markdown).doesNotContain("[ExampleEligibility](#EXAMPLE-ExampleEligibility)")
       assertThat(markdown).containsPattern("(?m)^.*`StubRule`.*: FAIL if example")
@@ -303,7 +314,8 @@ class RulesGraphTest {
       val graph = RulesGraphWalker().walk("EXAMPLE", root)
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
 
-      assertThat(markdown).contains("Upcoming -->|PASS| Set_current_status_to_one_of_")
+      assertThat(markdown).contains("Upcoming -->|PASS| updater_StubContextUpdater")
+      assertThat(markdown).contains("class updater_StubContextUpdater updaterNode")
       assertThat(markdown).doesNotContain(")onPass")
       assertThat(markdown).doesNotContain("[`StubContextUpdater`](#stubcontextupdater)")
       assertThat(markdown).contains("Used by: Upcoming (EXAMPLE)")
@@ -319,7 +331,7 @@ class RulesGraphTest {
       val graph = RulesGraphWalker().walk("EXAMPLE", root)
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
 
-      assertThat(markdown).contains("Upcoming -->|FAIL| Set_current_status_to_one_of_")
+      assertThat(markdown).contains("Upcoming -->|FAIL| updater_StubContextUpdater")
       assertThat(markdown).doesNotContain("_onFail")
       assertThat(markdown).doesNotContain("[`StubContextUpdater`](#stubcontextupdater)")
       assertThat(markdown).contains("Used by: Upcoming (EXAMPLE)")
@@ -336,9 +348,9 @@ class RulesGraphTest {
         .build()
       val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker().walk("PA", root)))
 
-      assertThat(markdown).contains("PaCompletion -->|FAIL| Set_CAS1_NOT_STARTED")
+      assertThat(markdown).contains("PaCompletion -->|FAIL| updater_constant_CAS1_NOT_STARTED")
       assertThat(markdown).doesNotContain("_onFail")
-      assertThat(markdown).contains("- FAIL: Set CAS1_NOT_STARTED")
+      assertThat(markdown).contains("- FAIL: Set current status to Not Started")
       assertThat(markdown).contains("Used by: PaCompletion (PA)")
       assertThat(markdown).contains("| CAS1_NOT_STARTED | START_APPROVED_PREMISE_APPLICATION (CAS1) | CAS1_START_APPLICATION |")
     }
@@ -358,6 +370,53 @@ class RulesGraphTest {
       assertThatThrownBy { RulesGraphWalker().walk("BROKEN", root) }
         .isInstanceOf(IllegalStateException::class.java)
         .hasMessageContaining("anonymous")
+    }
+
+    @Test
+    fun `distinct outcome statuses sharing a UI label get distinct node ids`() {
+      val notStarted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED))
+      val notStartedNew = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED_NEW))
+      val root = builder
+        .ruleSet(StubRuleSet(name = "Root", rules = listOf(PrioritisedRule(StubRule("root")))))
+        .onPass(notStarted)
+        .onFail(notStartedNew)
+        .build()
+
+      val graph = RulesGraphWalker().walk("SHARED_LABEL", root)
+
+      val outcomes = graph.nodes.filter { it.kind == GraphNodeKind.OUTCOME }
+      assertThat(outcomes.map { it.title }).containsExactly("Not Started", "Not Started")
+      assertThat(outcomes.map { it.id }).containsExactly("CAS3_NOT_STARTED", "CAS3_NOT_STARTED_NEW")
+      assertThat(graph.edges).containsExactlyInAnyOrder(
+        GraphEdge("Root", "CAS3_NOT_STARTED", "PASS"),
+        GraphEdge("Root", "CAS3_NOT_STARTED_NEW", "FAIL"),
+      )
+    }
+
+    @Test
+    fun `constant updaters for distinct statuses sharing a UI label get distinct node ids`() {
+      val confirmed = builder.confirmed()
+      val root = builder
+        .ruleSet(StubRuleSet(name = "Root", rules = listOf(PrioritisedRule(StubRule("root")))))
+        .onPassAndFail(confirmed)
+        .applyContextUpdaterOnPass(ContextUpdater.constant(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED)))
+        .setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED_NEW))
+        .build()
+
+      val graph = RulesGraphWalker().walk("SHARED_LABEL", root)
+
+      val updaters = graph.nodes.filter { it.kind == GraphNodeKind.CONTEXT_UPDATER }
+      assertThat(updaters.map { it.title }).containsOnly("Set current status to Not Started").hasSize(2)
+      assertThat(updaters.map { it.id }).containsExactly(
+        "updater_constant_CAS3_NOT_STARTED",
+        "updater_constant_CAS3_NOT_STARTED_NEW",
+      )
+      assertThat(graph.edges).containsExactlyInAnyOrder(
+        GraphEdge("Root", "updater_constant_CAS3_NOT_STARTED", "PASS"),
+        GraphEdge("updater_constant_CAS3_NOT_STARTED", "confirmed", "PASS"),
+        GraphEdge("Root", "updater_constant_CAS3_NOT_STARTED_NEW", "FAIL"),
+        GraphEdge("updater_constant_CAS3_NOT_STARTED_NEW", "confirmed", "FAIL"),
+      )
     }
 
     @Test

@@ -21,7 +21,6 @@ class RulesGraphWalker {
   fun walk(provider: EligibilityTreeProvider): RulesGraph = walk(treeName(provider), provider.tree())
 
   fun walk(treeName: String, root: DecisionNode): RulesGraph {
-    // record the nodes we are currently visiting
     visit(root)
     return RulesGraph(treeName, nodes.values.toList(), edges)
   }
@@ -68,7 +67,7 @@ class RulesGraphWalker {
     val onPassSourceNode = if (contextUpdater == null || contextUpdater === ContextUpdater.identity()) {
       fromGraphNode
     } else {
-      val contextUpdaterNode = contextUpdater.toGraphNode()
+      val contextUpdaterNode = if (contextUpdater.terminalNode) contextUpdater.toOutcomeNode() else contextUpdater.toContextUpdaterNode()
 
       nodes[contextUpdater] = contextUpdaterNode
 
@@ -84,7 +83,7 @@ class RulesGraphWalker {
   }
 
   private fun OutcomeNode.toGraphNode() = GraphNode(
-    id = ensureUniqueId(slug(name), this),
+    id = ensureUniqueId(slug(key), this),
     title = name,
     kind = GraphNodeKind.OUTCOME,
   )
@@ -106,13 +105,25 @@ class RulesGraphWalker {
     ruleSet = ruleSet,
   )
 
-  private fun ContextUpdater.toGraphNode() = GraphNode(
-    id = ensureUniqueId(slug(description), this),
+  private fun ContextUpdater.toOutcomeNode() = GraphNode(
+    id = ensureUniqueId("outcome_" + slug(graphKey()), this),
+    title = description,
+    kind = GraphNodeKind.OUTCOME,
+  )
+
+  private fun ContextUpdater.toContextUpdaterNode() = GraphNode(
+    id = ensureUniqueId("updater_" + slug(graphKey()), this),
     title = description,
     kind = GraphNodeKind.CONTEXT_UPDATER,
     onPassContextUpdater = null,
     onFailContextUpdater = null,
   )
+
+  // Ids come from the class name, or for anonymous (e.g. constant) updaters the status enum names they set,
+  // never from the description, because distinct statuses can share a UI label.
+  private fun ContextUpdater.graphKey(): String = this::class.simpleName
+    ?: outcomes.values.map { it.serviceStatus.name }.distinct().joinToString("_")
+      .let { if (it.isEmpty()) "anonymous" else "constant_$it" }
 
   fun treeName(provider: EligibilityTreeProvider): String = provider::class.simpleName
     ?.removeSuffix("EligibilityTreeProvider")
@@ -122,7 +133,7 @@ class RulesGraphWalker {
   private fun ensureUniqueId(base: String, node: Any): String {
     val existing = usedNodeIds[base]
     require(existing == null || existing === node) {
-      "Duplicate graph node id '$base'. Give RuleSet and outcomes unique names."
+      "Duplicate graph node id '$base'. Give RuleSets unique names, and outcomes and context updaters unique keys."
     }
     usedNodeIds[base] = node
     return base
