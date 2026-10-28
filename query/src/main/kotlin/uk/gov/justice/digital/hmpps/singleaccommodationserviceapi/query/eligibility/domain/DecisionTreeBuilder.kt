@@ -28,7 +28,7 @@ class DecisionTreeBuilder(
   )
 
   /** Creates a terminal outcome node that returns a fixed ServiceResult. */
-  fun outcome(name: String, result: ServiceResultNew) = OutcomeNode(name = "return status ${result.serviceStatus.name}") { _ -> result }
+  fun outcome(result: ServiceResultNew) = OutcomeNode(name = "return status ${result.serviceStatus.uiStatusName}") { _ -> result }
 
   /** Creates a terminal outcome node that returns the current context's ServiceResult. */
   fun confirmed() = OutcomeNode("return current status") { ctx ->
@@ -56,6 +56,6 @@ class DecisionTreeBuilder(
   }
 
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
-  fun notEligible(service: ServiceType) = OutcomeNode("return status ${toNotEligibleServiceStatus(service)}") { ctx -> toNotEligibleServiceResult(service, ctx.currentResult?.failureReasons ?: emptyList()) }
-  fun notRequired(service: ServiceType) = OutcomeNode("return status ${toNotRequiredServiceStatus(service)}") { ctx -> toNotRequiredServiceResult(service, ctx.currentResult?.failureReasons ?: emptyList()) }
+  fun notEligible(service: ServiceType) = OutcomeNode("return status ${toNotEligibleServiceStatus(service).uiStatusName}") { ctx -> toNotEligibleServiceResult(service, ctx.currentResult?.failureReasons ?: emptyList()) }
+  fun notRequired(service: ServiceType) = OutcomeNode("return status ${toNotRequiredServiceStatus(service).uiStatusName}") { ctx -> toNotRequiredServiceResult(service, ctx.currentResult?.failureReasons ?: emptyList()) }
 }

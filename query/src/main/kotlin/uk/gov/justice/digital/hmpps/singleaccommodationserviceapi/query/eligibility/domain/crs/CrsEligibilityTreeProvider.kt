@@ -44,7 +44,6 @@ class CrsEligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notRequired = builder.notRequired(ServiceType.CRS)
     val submitted = builder.outcome(
-      "submitted",
       ServiceResultNew(serviceStatus = ServiceStatusNew.CRS_SUBMITTED, url = url),
     )
 

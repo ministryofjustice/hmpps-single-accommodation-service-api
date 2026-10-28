@@ -91,11 +91,11 @@ class RulesGraphTest {
       assertThat(graph.nodes.map { it.title }).containsExactlyInAnyOrder(
         "ExampleEligibility",
         "return current status",
-        "return status CAS1_NOT_ELIGIBLE",
+        "return status Not Eligible",
       )
       assertThat(graph.edges.map { "${it.from}->${it.label}->${it.to}" }).containsExactlyInAnyOrder(
         "ExampleEligibility->PASS->return_current_status",
-        "ExampleEligibility->FAIL->return_status_CAS1_NOT_ELIGIBLE",
+        "ExampleEligibility->FAIL->return_status_Not_Eligible",
       )
       val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
       assertThat(ruleSetNode.rules).extracting<String> { it.className }.containsExactly("StubRule")
@@ -263,7 +263,10 @@ class RulesGraphTest {
       assertThat(markdown).contains("flowchart TD")
       assertThat(markdown).contains("ExampleEligibility(\"ExampleEligibility (1)")
       assertThat(markdown).contains("ExampleEligibility -->|PASS| return_current_status")
-      assertThat(markdown).contains("ExampleEligibility -->|FAIL| return_status_CAS1_NOT_ELIGIBLE")
+      assertThat(markdown).contains("ExampleEligibility -->|FAIL| return_status_Not_Eligible")
+      assertThat(markdown).contains("linkStyle 0 stroke:green,stroke-width:2px")
+      assertThat(markdown).contains("linkStyle 1 stroke:red,stroke-width:2px")
+      assertThat(markdown).contains("return_status_Not_Eligible[\"return status <b>Not Eligible</b>\"]")
       assertThat(markdown).doesNotContain("_onFail")
       assertThat(markdown).doesNotContain("[ExampleEligibility](#EXAMPLE-ExampleEligibility)")
       assertThat(markdown).containsPattern("(?m)^.*`StubRule`.*: FAIL if example")
