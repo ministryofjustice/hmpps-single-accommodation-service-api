@@ -12,5 +12,7 @@ class CrsEligibilitySettledRuleSet(
     PrioritisedRule(isSettled, 0),
   )
 
+  override val name: String = "Eligibility Settled"
+
   override fun getRules(): List<PrioritisedRule> = rules
 }

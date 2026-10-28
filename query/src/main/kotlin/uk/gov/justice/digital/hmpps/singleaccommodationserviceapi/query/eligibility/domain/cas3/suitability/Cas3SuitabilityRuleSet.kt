@@ -18,5 +18,7 @@ class Cas3SuitabilityRuleSet(
     PrioritisedRule(assessmentSuitability),
   )
 
+  override val name: String = "Suitability"
+
   override fun getRules(): List<PrioritisedRule> = rules
 }

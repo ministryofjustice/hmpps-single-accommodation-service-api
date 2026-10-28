@@ -9,5 +9,6 @@ class CrsUpcomingRuleSet(
   crsUpcomingRule: CrsUpcomingRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(crsUpcomingRule))
+  override val name: String = "Upcoming"
   override fun getRules(): List<PrioritisedRule> = rules
 }
