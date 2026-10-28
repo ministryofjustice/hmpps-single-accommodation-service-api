@@ -13,13 +13,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class CrsSubmittedRuleNonMale : Rule {
   override val description = "FAIL if CRS not submitted and not male"
 
+  override val failureReason: FailureReason? = FailureReason.CRS_NOT_SUBMITTED_NON_MALE
+
   override fun evaluate(data: DomainData): RuleResult {
     val status = data.commissionedRehabilitativeServices?.status
     val isFail = status !in SUBMITTED_STATUSES && data.sex !== SexCode.M
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
-      failureReason = if (isFail) FailureReason.CRS_NOT_SUBMITTED_NON_MALE else null,
+      failureReason = if (isFail) failureReason else null,
     )
   }
 

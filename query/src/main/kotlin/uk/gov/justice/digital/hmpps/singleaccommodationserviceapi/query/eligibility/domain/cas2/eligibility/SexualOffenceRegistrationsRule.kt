@@ -11,12 +11,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class SexualOffenceRegistrationsRule : Rule {
   override val description = "FAIL if individual has sexual offence registrations."
 
+  override val failureReason: FailureReason? = FailureReason.SEXUAL_OFFENCE_REGISTRATIONS_PRESENT
+
   override fun evaluate(data: DomainData): RuleResult {
     val hasRegistrations = !data.sexualOffenceRegistrations?.sexualOffenceRegistrations.isNullOrEmpty()
     return RuleResult(
       description = description,
       ruleStatus = if (hasRegistrations) RuleStatus.FAIL else RuleStatus.PASS,
-      failureReason = if (hasRegistrations) FailureReason.SEXUAL_OFFENCE_REGISTRATIONS_PRESENT else null,
+      failureReason = if (hasRegistrations) failureReason else null,
     )
   }
 }

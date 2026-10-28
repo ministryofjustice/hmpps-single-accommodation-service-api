@@ -40,6 +40,10 @@ class DecisionTreeBuilderTest {
     assertThat(builder.notEligible(ServiceType.CAS1).name).isEqualTo("return status Not Eligible")
     assertThat(builder.notRequired(ServiceType.DTR).name).isEqualTo("return status Not Required")
     assertThat(builder.outcome(expectedResult).name).isEqualTo("return status Placement Booked")
+    assertThat(builder.notEligible(ServiceType.CAS1, listOf(FailureReason.UNDER_18, FailureReason.INVALID_TIER)).name)
+      .isEqualTo("return status Not Eligible\n\nFailed because: [UNDER_18, INVALID_TIER]")
+    assertThat(builder.notRequired(ServiceType.DTR, listOf(FailureReason.HAS_NEXT_ACCOMMODATION)).name)
+      .isEqualTo("return status Not Required\n\nFailed because: [HAS_NEXT_ACCOMMODATION]")
   }
 
   @Test

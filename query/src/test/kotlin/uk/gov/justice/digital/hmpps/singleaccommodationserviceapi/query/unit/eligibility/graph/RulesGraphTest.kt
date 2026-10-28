@@ -350,6 +350,7 @@ class RulesGraphTest {
     fun `anonymous rules fail the walk`() {
       val anonymous = object : Rule {
         override val description = "anon"
+        override val failureReason = null
         override fun evaluate(data: DomainData) = RuleResult(description, RuleStatus.PASS)
       }
       val root = builder

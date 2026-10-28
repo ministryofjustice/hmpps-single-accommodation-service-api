@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 class StubRule(override val description: String) : Rule {
+  override val failureReason: FailureReason? = null
   override fun evaluate(data: DomainData) = RuleResult(description, RuleStatus.PASS)
 }
 
@@ -42,7 +43,7 @@ class AlwaysFailRule :
 open class FixedOutcomeRule(
   override val description: String,
   val ruleStatus: RuleStatus,
-  val failureReason: FailureReason?,
+  override val failureReason: FailureReason?,
 ) : Rule {
   var hasBeenEvaluated: Boolean = false
 

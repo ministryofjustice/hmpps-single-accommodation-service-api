@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
@@ -56,6 +57,8 @@ class DecisionTreeBuilder(
   }
 
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
-  fun notEligible(service: ServiceType) = OutcomeNode("return status ${toNotEligibleServiceStatus(service).uiStatusName}") { ctx -> toNotEligibleServiceResult(service, ctx.currentResult?.failureReasons ?: emptyList()) }
-  fun notRequired(service: ServiceType) = OutcomeNode("return status ${toNotRequiredServiceStatus(service).uiStatusName}") { ctx -> toNotRequiredServiceResult(service, ctx.currentResult?.failureReasons ?: emptyList()) }
+  fun notEligible(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = OutcomeNode(outcomeName(toNotEligibleServiceStatus(service), failureReasons)) { ctx -> toNotEligibleServiceResult(service, ctx.currentResult?.failureReasons ?: emptyList()) }
+  fun notRequired(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = OutcomeNode(outcomeName(toNotRequiredServiceStatus(service), failureReasons)) { ctx -> toNotRequiredServiceResult(service, ctx.currentResult?.failureReasons ?: emptyList()) }
+
+  private fun outcomeName(status: ServiceStatusNew, failureReasons: List<FailureReason>) = "return status ${status.uiStatusName}" + if (failureReasons.isEmpty()) "" else "\n\nFailed because: $failureReasons"
 }

@@ -11,12 +11,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class RoshLevelRule : Rule {
   override val description = "FAIL if candidate has no ROSH level"
 
+  override val failureReason: FailureReason? = FailureReason.HAS_NO_ROSH_LEVEL
+
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.roshLevel == null
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
-      failureReason = if (isFail) FailureReason.HAS_NO_ROSH_LEVEL else null,
+      failureReason = if (isFail) failureReason else null,
     )
   }
 }

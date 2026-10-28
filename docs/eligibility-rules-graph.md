@@ -43,16 +43,24 @@ flowchart TD
 
 - FAIL if candidate has no ROSH level")
   return_current_status["return current status"]
-  return_status_Not_Eligible["return status <b>Not Eligible</b>"]
+  return_status_Not_Eligible__Failed_because___HAS_NO_ROSH_LEVEL_["return status <b>Not Eligible</b>
+
+Failed because: [HAS_NO_ROSH_LEVEL]"]
+  return_status_Not_Eligible__Failed_because___NOT_IN_PRISON_OR_CAS1_ACCOMMODATION_["return status <b>Not Eligible</b>
+
+Failed because: [NOT_IN_PRISON_OR_CAS1_ACCOMMODATION]"]
+  return_status_Not_Eligible__Failed_because___MALE_NOT_HIGH_RISK_TIER__NON_MALE_NOT_HIGH_RISK_TIER_["return status <b>Not Eligible</b>
+
+Failed because: [MALE_NOT_HIGH_RISK_TIER, NON_MALE_NOT_HIGH_RISK_TIER]"]
   Set_current_status_to_Upcoming["Set current status to <b>Upcoming</b>"]
   Suitability -->|PASS| return_status_as_one_of__Arrived___Not_Arrived___Placement_Booked___Placement_Cancelled___Placement_Request_Not_Started___Placement_Request_Withdrawn___Placement_Request_Rejected___Placement_Request_Submitted___Information_Requested___Submitted
   Suitability -->|FAIL| Set_current_status_to_one_of__Not_Submitted___Application_Rejected___Not_Started
   Eligibility_Rosh -->|PASS| return_current_status
-  Eligibility_Rosh -->|FAIL| return_status_Not_Eligible
+  Eligibility_Rosh -->|FAIL| return_status_Not_Eligible__Failed_because___HAS_NO_ROSH_LEVEL_
   Eligibility_Current_Accommodation -->|PASS| Eligibility_Rosh
-  Eligibility_Current_Accommodation -->|FAIL| return_status_Not_Eligible
+  Eligibility_Current_Accommodation -->|FAIL| return_status_Not_Eligible__Failed_because___NOT_IN_PRISON_OR_CAS1_ACCOMMODATION_
   Eligibility_Tier -->|PASS| Eligibility_Current_Accommodation
-  Eligibility_Tier -->|FAIL| return_status_Not_Eligible
+  Eligibility_Tier -->|FAIL| return_status_Not_Eligible__Failed_because___MALE_NOT_HIGH_RISK_TIER__NON_MALE_NOT_HIGH_RISK_TIER_
   Set_current_status_to_one_of__Not_Submitted___Application_Rejected___Not_Started -->|FAIL| Eligibility_Tier
   Upcoming -->|PASS| Suitability
   Upcoming -->|FAIL| Set_current_status_to_Upcoming
@@ -132,7 +140,11 @@ Not Submitted,
 
 **return current status** (Outcome)
 
-**return status Not Eligible** (Outcome)
+**return status Not Eligible** (Outcome)<br>Failed because: [HAS_NO_ROSH_LEVEL]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [NOT_IN_PRISON_OR_CAS1_ACCOMMODATION]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [MALE_NOT_HIGH_RISK_TIER, NON_MALE_NOT_HIGH_RISK_TIER]
 
 
 
@@ -185,20 +197,34 @@ flowchart TD
 
 - FAIL if candidate has no ROSH level")
   return_current_status["return current status"]
-  return_status_Not_Eligible["return status <b>Not Eligible</b>"]
+  return_status_Not_Eligible__Failed_because___HAS_NO_ROSH_LEVEL_["return status <b>Not Eligible</b>
+
+Failed because: [HAS_NO_ROSH_LEVEL]"]
+  return_status_Not_Eligible__Failed_because___HAS_NEXT_ACCOMMODATION_["return status <b>Not Eligible</b>
+
+Failed because: [HAS_NEXT_ACCOMMODATION]"]
+  return_status_Not_Eligible__Failed_because___IN_CAS3_ACCOMMODATION__IN_CAS2_ACCOMMODATION__IN_COMMUNITY_["return status <b>Not Eligible</b>
+
+Failed because: [IN_CAS3_ACCOMMODATION, IN_CAS2_ACCOMMODATION, IN_COMMUNITY]"]
+  return_status_Not_Eligible__Failed_because___IN_PRISON_NO_RELEASE_DATE_["return status <b>Not Eligible</b>
+
+Failed because: [IN_PRISON_NO_RELEASE_DATE]"]
+  return_status_Not_Eligible__Failed_because___UNDER_18__INVALID_TIER__SEXUAL_OFFENCE_REGISTRATIONS_PRESENT_["return status <b>Not Eligible</b>
+
+Failed because: [UNDER_18, INVALID_TIER, SEXUAL_OFFENCE_REGISTRATIONS_PRESENT]"]
   Set_current_status_to_Upcoming["Set current status to <b>Upcoming</b>"]
   Suitability -->|PASS| return_status_as_one_of__Submitted___More_Information_Needed___Awaiting_Decision___On_Waiting_List___Place_Offered___Offer_Accepted___Unknown___Arrived___Awaiting_Arrival
   Suitability -->|FAIL| Set_current_status_to_one_of__Not_Started___Not_Submitted___Offer_Declined_or_Withdrawn___Cancelled___Withdrawn___Unknown
   Eligibility_Rosh -->|PASS| return_current_status
-  Eligibility_Rosh -->|FAIL| return_status_Not_Eligible
+  Eligibility_Rosh -->|FAIL| return_status_Not_Eligible__Failed_because___HAS_NO_ROSH_LEVEL_
   Eligibility_Next_Accommodation -->|PASS| Eligibility_Rosh
-  Eligibility_Next_Accommodation -->|FAIL| return_status_Not_Eligible
+  Eligibility_Next_Accommodation -->|FAIL| return_status_Not_Eligible__Failed_because___HAS_NEXT_ACCOMMODATION_
   Eligibility_Current_Accommodation -->|PASS| Eligibility_Next_Accommodation
-  Eligibility_Current_Accommodation -->|FAIL| return_status_Not_Eligible
+  Eligibility_Current_Accommodation -->|FAIL| return_status_Not_Eligible__Failed_because___IN_CAS3_ACCOMMODATION__IN_CAS2_ACCOMMODATION__IN_COMMUNITY_
   Eligibility_Release_Date -->|PASS| Eligibility_Current_Accommodation
-  Eligibility_Release_Date -->|FAIL| return_status_Not_Eligible
+  Eligibility_Release_Date -->|FAIL| return_status_Not_Eligible__Failed_because___IN_PRISON_NO_RELEASE_DATE_
   Eligibility_Person -->|PASS| Eligibility_Release_Date
-  Eligibility_Person -->|FAIL| return_status_Not_Eligible
+  Eligibility_Person -->|FAIL| return_status_Not_Eligible__Failed_because___UNDER_18__INVALID_TIER__SEXUAL_OFFENCE_REGISTRATIONS_PRESENT_
   Set_current_status_to_one_of__Not_Started___Not_Submitted___Offer_Declined_or_Withdrawn___Cancelled___Withdrawn___Unknown -->|FAIL| Eligibility_Person
   Upcoming -->|PASS| Suitability
   Upcoming -->|FAIL| Set_current_status_to_Upcoming
@@ -291,7 +317,15 @@ Not Started,
 
 **return current status** (Outcome)
 
-**return status Not Eligible** (Outcome)
+**return status Not Eligible** (Outcome)<br>Failed because: [HAS_NO_ROSH_LEVEL]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [HAS_NEXT_ACCOMMODATION]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [IN_CAS3_ACCOMMODATION, IN_CAS2_ACCOMMODATION, IN_COMMUNITY]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [IN_PRISON_NO_RELEASE_DATE]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [UNDER_18, INVALID_TIER, SEXUAL_OFFENCE_REGISTRATIONS_PRESENT]
 
 
 
@@ -336,18 +370,26 @@ flowchart TD
 - FAIL if CRS not submitted and not male")
   return_current_status["return current status"]
   return_status_Cannot_Start_Yet["return status <b>Cannot Start Yet</b>"]
-  return_status_Not_Eligible["return status <b>Not Eligible</b>"]
+  return_status_Not_Eligible__Failed_because___HAS_NO_ROSH_LEVEL_["return status <b>Not Eligible</b>
+
+Failed because: [HAS_NO_ROSH_LEVEL]"]
+  return_status_Not_Eligible__Failed_because___HAS_NEXT_ACCOMMODATION_["return status <b>Not Eligible</b>
+
+Failed because: [HAS_NEXT_ACCOMMODATION]"]
+  return_status_Not_Eligible__Failed_because___INVALID_CURRENT_ACCOMMODATION_TYPE_["return status <b>Not Eligible</b>
+
+Failed because: [INVALID_CURRENT_ACCOMMODATION_TYPE]"]
   Set_current_status_to_Upcoming["Set current status to <b>Upcoming</b>"]
   Suitability -->|PASS| return_status_as_one_of__Bedspace_Offered___Booking_Confirmed___Not_Arrived___Booking_Cancelled___Submitted___Arrived
   Suitability -->|FAIL| Set_current_status_to_one_of__Not_Started___Rejected___Not_Submitted
   Prerequisite -->|PASS| return_current_status
   Prerequisite -->|FAIL| return_status_Cannot_Start_Yet
   Eligibility_Rosh -->|PASS| Prerequisite
-  Eligibility_Rosh -->|FAIL| return_status_Not_Eligible
+  Eligibility_Rosh -->|FAIL| return_status_Not_Eligible__Failed_because___HAS_NO_ROSH_LEVEL_
   Eligibility_Next_Accommodation -->|PASS| Eligibility_Rosh
-  Eligibility_Next_Accommodation -->|FAIL| return_status_Not_Eligible
+  Eligibility_Next_Accommodation -->|FAIL| return_status_Not_Eligible__Failed_because___HAS_NEXT_ACCOMMODATION_
   Eligibility_Current_Accommodation -->|PASS| Eligibility_Next_Accommodation
-  Eligibility_Current_Accommodation -->|FAIL| return_status_Not_Eligible
+  Eligibility_Current_Accommodation -->|FAIL| return_status_Not_Eligible__Failed_because___INVALID_CURRENT_ACCOMMODATION_TYPE_
   Set_current_status_to_one_of__Not_Started___Rejected___Not_Submitted -->|FAIL| Eligibility_Current_Accommodation
   Upcoming -->|PASS| Suitability
   Upcoming -->|FAIL| Set_current_status_to_Upcoming
@@ -436,7 +478,11 @@ Not Started,
 
 
 
-**return status Not Eligible** (Outcome)
+**return status Not Eligible** (Outcome)<br>Failed because: [HAS_NO_ROSH_LEVEL]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [HAS_NEXT_ACCOMMODATION]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [INVALID_CURRENT_ACCOMMODATION_TYPE]
 
 
 
@@ -460,14 +506,19 @@ flowchart TD
 
 - FAIL if candidate has next accommodation")
   return_current_status["return current status"]
-  return_status_Not_Required["return status <b>Not Required</b>"]
+  return_status_Not_Required__Failed_because___HAS_NEXT_ACCOMMODATION_["return status <b>Not Required</b>
+
+Failed because: [HAS_NEXT_ACCOMMODATION]"]
+  return_status_Not_Required__Failed_because___IS_SETTLED_["return status <b>Not Required</b>
+
+Failed because: [IS_SETTLED]"]
   Set_current_status_to_Upcoming["Set current status to <b>Upcoming</b>"]
   Completion -->|PASS| return_status_Submitted
   Completion -->|FAIL| Set_current_status_to_Not_Started
   Eligibility_Next_Accommodation -->|PASS| return_current_status
-  Eligibility_Next_Accommodation -->|FAIL| return_status_Not_Required
+  Eligibility_Next_Accommodation -->|FAIL| return_status_Not_Required__Failed_because___HAS_NEXT_ACCOMMODATION_
   Eligibility_Settled -->|PASS| Eligibility_Next_Accommodation
-  Eligibility_Settled -->|FAIL| return_status_Not_Required
+  Eligibility_Settled -->|FAIL| return_status_Not_Required__Failed_because___IS_SETTLED_
   Set_current_status_to_Not_Started -->|FAIL| Eligibility_Settled
   Upcoming -->|PASS| Completion
   Upcoming -->|FAIL| Set_current_status_to_Upcoming
@@ -512,7 +563,9 @@ flowchart TD
 
 **return current status** (Outcome)
 
-**return status Not Required** (Outcome)
+**return status Not Required** (Outcome)<br>Failed because: [HAS_NEXT_ACCOMMODATION]
+
+**return status Not Required** (Outcome)<br>Failed because: [IS_SETTLED]
 
 
 
@@ -539,13 +592,15 @@ flowchart TD
 - FAIL if not within 8 weeks of release from current accommodation")
   return_current_status["return current status"]
   return_status_Upcoming["return status <b>Upcoming</b>"]
-  return_status_Not_Required["return status <b>Not Required</b>"]
+  return_status_Not_Required__Failed_because___HAS_NEXT_ACCOMMODATION_["return status <b>Not Required</b>
+
+Failed because: [HAS_NEXT_ACCOMMODATION]"]
   Suitability -->|PASS| return_status_as_one_of__Accepted___Not_Accepted___Submitted
   Suitability -->|FAIL| Set_DTR_NOT_STARTED
   Upcoming -->|PASS| return_current_status
   Upcoming -->|FAIL| return_status_Upcoming
   Eligibility -->|PASS| Upcoming
-  Eligibility -->|FAIL| return_status_Not_Required
+  Eligibility -->|FAIL| return_status_Not_Required__Failed_because___HAS_NEXT_ACCOMMODATION_
   Set_DTR_NOT_STARTED -->|FAIL| Eligibility
   linkStyle 0,2,4 stroke:green,stroke-width:2px
   linkStyle 1,3,5,6 stroke:red,stroke-width:2px
@@ -595,7 +650,7 @@ Accepted,
 
 
 
-**return status Not Required** (Outcome)
+**return status Not Required** (Outcome)<br>Failed because: [HAS_NEXT_ACCOMMODATION]
 
 ## PA
 
@@ -612,11 +667,13 @@ flowchart TD
 - FAIL if candidate has a suitable CAS1 application
 - FAIL if candidate has suitable CAS3 application")
   return_current_status["return current status"]
-  return_status_Not_Eligible["return status <b>Not Eligible</b>"]
+  return_status_Not_Eligible__Failed_because___SUITABLE_CAS1_APPLICATION__SUITABLE_CAS3_APPLICATION_["return status <b>Not Eligible</b>
+
+Failed because: [SUITABLE_CAS1_APPLICATION, SUITABLE_CAS3_APPLICATION]"]
   Completion -->|PASS| return_status_Completed
   Completion -->|FAIL| Set_PA_NOT_STARTED
   Eligibility -->|PASS| return_current_status
-  Eligibility -->|FAIL| return_status_Not_Eligible
+  Eligibility -->|FAIL| return_status_Not_Eligible__Failed_because___SUITABLE_CAS1_APPLICATION__SUITABLE_CAS3_APPLICATION_
   Set_PA_NOT_STARTED -->|FAIL| Eligibility
   linkStyle 0,2 stroke:green,stroke-width:2px
   linkStyle 1,3,4 stroke:red,stroke-width:2px
@@ -644,7 +701,7 @@ flowchart TD
 
 **return current status** (Outcome)
 
-**return status Not Eligible** (Outcome)
+**return status Not Eligible** (Outcome)<br>Failed because: [SUITABLE_CAS1_APPLICATION, SUITABLE_CAS3_APPLICATION]
 
 ## Rule catalogue
 

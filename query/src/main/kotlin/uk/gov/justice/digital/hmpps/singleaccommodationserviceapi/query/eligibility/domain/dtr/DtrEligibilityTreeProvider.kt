@@ -36,7 +36,6 @@ class DtrEligibilityTreeProvider(
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notRequired = builder.notRequired(ServiceType.DTR)
 
     // runs when the person is eligible (no next accommodation) and has no active referral
     val upcomingNode = builder
@@ -49,7 +48,7 @@ class DtrEligibilityTreeProvider(
     val eligibilityNode = builder
       .ruleSet(eligibility)
       .onPass(upcomingNode)
-      .onFail(notRequired).propagateContextOnFailure()
+      .onFail(builder.notRequired(ServiceType.DTR, eligibility.failureReasons())).propagateContextOnFailure()
       .build()
 
     // runs when there is an active referral

@@ -189,7 +189,9 @@ object RulesGraphMarkdownRenderer {
       GraphNodeKind.OUTCOME -> "Outcome"
     }
     val ruleSetClassName = node.ruleSet?.javaClass?.simpleName?.let { " `$it`" } ?: ""
-    append("**${node.title}** ($kind)$ruleSetClassName")
+    val titleLines = node.title.split("\n\n", limit = 2)
+    append("**${titleLines.first()}** ($kind)$ruleSetClassName")
+    titleLines.getOrNull(1)?.let { append("<br>$it") }
     if (node.kind == GraphNodeKind.RULE_SET) {
       appendLine()
       if (node.rules.isEmpty()) {
