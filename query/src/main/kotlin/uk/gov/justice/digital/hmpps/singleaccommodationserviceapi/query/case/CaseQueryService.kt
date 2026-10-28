@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
@@ -95,7 +94,8 @@ class CaseQueryService(
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCase(user.username, crn)
     hasMandatoryCaseData(orchestrationResult)
-    val case = orchestrationResult.data.case?.let { toPersonDto(it, limited = it.hasExclusionOrRestriction()) }
+    hasUserAccessData(orchestrationResult.upstreamFailures)
+    val case = orchestrationResult.data.getPersonDto()
 
     val caseOrchestrationDto = orchestrationResult.data
     val data = toCaseDto(
@@ -126,11 +126,14 @@ class CaseQueryService(
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCaseFromDelius(user.username, crn)
     hasMandatoryCaseData(orchestrationResult)
-    val case = orchestrationResult.data.case?.let { toPersonDto(it, limited = it.hasExclusionOrRestriction()) }
+    hasUserAccessData(orchestrationResult.upstreamFailures)
+    val case = orchestrationResult.data.getPersonDto()
     return toApiResponseDto(data = case, upstreamFailures = orchestrationResult.upstreamFailures)
   }
 
-  private fun Case.hasExclusionOrRestriction() = userExcluded == true || userRestricted == true
+  private fun CaseOrchestrationDto.getPersonDto() = case?.let {
+    toPersonDto(it, limited = crn in limitedAccessService.getLimitedAccessCrns(listOf(crn), caseAccess))
+  }
 
   private fun PersonDto.matchesUser(username: Username) = username.value.equals(this.assignedTo.username, ignoreCase = true)
 

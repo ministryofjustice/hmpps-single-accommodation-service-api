@@ -21,10 +21,6 @@ fun buildCase(
   name: Name = buildName(),
   dateOfBirth: LocalDate = LocalDate.of(2000, 12, 3),
   gender: String = "Male",
-  userExcluded: Boolean = false,
-  userRestricted: Boolean = false,
-  exclusionMessage: String? = null,
-  restrictionMessage: String? = null,
   staff: Officer = buildOfficer(),
   roshLevel: RoshLevel = buildRoshLevel(),
   team: Team = buildCaseTeam(),
@@ -39,10 +35,6 @@ fun buildCase(
   staff = staff,
   team = team,
   roshLevel = roshLevel,
-  userExcluded = userExcluded,
-  userRestricted = userRestricted,
-  exclusionMessage = exclusionMessage,
-  restrictionMessage = restrictionMessage,
   limitedAccess = limitedAccess,
 )
 

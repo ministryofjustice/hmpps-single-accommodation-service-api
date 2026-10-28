@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
@@ -17,10 +18,12 @@ fun buildCaseOrchestrationDto(
   tier: Tier? = buildTier(),
   case: Case? = buildCase(crn = crn),
   sexualOffenceRegistrations: SexualOffenceRegistrations? = buildSexualOffenceRegistrations(crn, emptyList()),
+  caseAccess: List<CaseAccess> = listOf(CaseAccess(crn = crn, userExcluded = false, userRestricted = false)),
 ) = CaseOrchestrationDto(
   crn,
   cpr,
   tier,
   case,
   sexualOffenceRegistrations,
+  caseAccess,
 )
