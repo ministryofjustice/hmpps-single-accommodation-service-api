@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
@@ -22,6 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.time.Clock
+import java.time.LocalDate
 
 @Service
 class CaseQueryService(
@@ -71,7 +71,7 @@ class CaseQueryService(
     peopleType: PeopleType? = null,
   ): List<CaseDto> {
     val caseEntitiesByCrn = caseRepository.mapByCrns(personDtos.map { it.crn })
-    val caseDtos = personDtos.map { personDto ->
+    return personDtos.map { personDto ->
 
       when (personDto) {
         is LimitedPersonDto -> personDto.toLimitedCaseDto()
@@ -86,14 +86,8 @@ class CaseQueryService(
         }
       }
     }
-      .sortCases(clock)
-    return when (peopleType) {
-      PeopleType.NFA_RISK ->
-        caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
-      PeopleType.HOUSED ->
-        caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus == CaseAccommodationStatus.SETTLED }
-      else -> caseDtos
-    }
+      .filtered(peopleType)
+      .sortCases(LocalDate.now(clock))
   }
   fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)
 

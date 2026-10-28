@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Lim
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.sortCases
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.time.Clock
+import java.time.LocalDate
 
 @Service
 class CustomCaseListQueryService(
@@ -46,7 +47,10 @@ class CustomCaseListQueryService(
       val crn = it.latestCrn()
       if (crn in limitedAccessCrns) toLimitedCaseDto(crn) else it.toCustomCaseListCaseDto(caseSummariesByCrn[crn])
     }
-    return toApiResponseDto(data = caseDtos.sortCases(clock), upstreamFailures = orchestrationResult.upstreamFailures)
+    return toApiResponseDto(
+      data = caseDtos.sortCases(LocalDate.now(clock)),
+      upstreamFailures = orchestrationResult.upstreamFailures,
+    )
   }
 
   fun getCustomCaseListCrns(): ApiResponseDto<List<String>> {
