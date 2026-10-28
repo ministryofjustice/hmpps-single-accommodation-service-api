@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
@@ -15,13 +13,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.time.Clock
-import java.time.LocalDate
 
 @Service
 class CaseQueryService(
@@ -47,28 +43,6 @@ class CaseQueryService(
 
   fun applyCaseListFilters(
     personDtos: List<PersonDto>,
-    searchTerm: String? = null,
-    riskLevel: RiskLevel? = null,
-    teamCode: String? = null,
-  ) = personDtos
-    .filter {
-      if (!teamCode.isNullOrBlank()) {
-        it.matchesTeam(teamCode)
-      } else {
-        it.matchesUser(userService.getUsername())
-      } &&
-        it.matchesSearch(searchTerm) &&
-        it.matchesRiskLevel(riskLevel)
-    }
-    .sortedWith(
-      compareBy<PersonDto>({ it !is Identifiable })
-        .thenBy { (it as? Identifiable)?.surname?.lowercase() }
-        .thenBy { (it as? Identifiable)?.forename?.lowercase() },
-    )
-
-  fun getCases(
-    personDtos: List<PersonDto>,
-    peopleType: PeopleType? = null,
   ): List<CaseDto> {
     val caseEntitiesByCrn = caseRepository.mapByCrns(personDtos.map { it.crn })
     return personDtos.map { personDto ->
@@ -132,31 +106,4 @@ class CaseQueryService(
   }
 
   private fun Case.hasExclusionOrRestriction() = userExcluded == true || userRestricted == true
-
-  private fun PersonDto.matchesUser(username: Username) = username.value.equals(this.assignedTo.username, ignoreCase = true)
-
-  private fun PersonDto.matchesTeam(teamCode: String): Boolean = when {
-    teamCode.equals(this.teamCode, ignoreCase = true) -> true
-    else -> false
-  }
-
-  private fun PersonDto.matchesRiskLevel(riskLevel: RiskLevel?): Boolean = when {
-    riskLevel == null -> true
-    this is Identifiable && this.riskLevel == riskLevel -> true
-    else -> false
-  }
-
-  private fun PersonDto.matchesSearch(searchTerm: String?): Boolean = when {
-    searchTerm.isNullOrBlank() -> true
-    crn.trim().equals(searchTerm, true) -> true
-    nomsNumber?.trim().equals(searchTerm, true) -> true
-    this is Identifiable -> {
-      val fullName = "$forename ${middleNames ?: ""} $surname"
-      searchTerm
-        .split(" ")
-        .filter { it.isNotBlank() }
-        .all { fullName.contains(it, ignoreCase = true) }
-    }
-    else -> false
-  }
 }

@@ -3,12 +3,20 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ca
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.NullAndEmptySource
+import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.filtered
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.filterCases
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.sortCases
 import java.time.LocalDate
 
@@ -35,33 +43,245 @@ class CaseListSortingTest {
 
   @Nested
   inner class Filtered {
-    private val settled = case("SETTLED1", CaseAccommodationStatus.SETTLED)
-    private val transient = case("TRANSIENT1", CaseAccommodationStatus.TRANSIENT)
-    private val nfa = case("NFA1", CaseAccommodationStatus.NO_FIXED_ABODE)
-    private val risk = case("RISK1", CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
-    private val noStatus = case("NONE1", null)
-    private val noSummaries = case("NOSUM1", null, withSummaries = false)
-    private val all = listOf(settled, transient, nfa, risk, noStatus, noSummaries)
+    private val currentUser = "user1"
+    private val otherUser = "user2"
+
+    private fun full(
+      crn: String,
+      forename: String = "First",
+      middleNames: String? = "Middle",
+      surname: String = "Last",
+      prisonNumber: String? = null,
+      riskLevel: RiskLevel? = null,
+      teamCode: String? = "TeamA",
+      assignedToUsername: String? = currentUser,
+      status: CaseAccommodationStatus? = null,
+    ): CaseDto = buildCaseDto(
+      crn = crn,
+      forename = forename,
+      middleNames = middleNames,
+      surname = surname,
+      prisonNumber = prisonNumber,
+      riskLevel = riskLevel,
+      teamCode = teamCode,
+      assignedTo = buildAssignedToDto(username = assignedToUsername),
+      accommodationSummaries = status?.let { AccommodationSummariesDto(caseAccommodationStatus = it) },
+    )
+
+    private fun limited(crn: String, teamCode: String? = null, assignedToUsername: String? = currentUser) = CaseDto(
+      crn = crn,
+      userAccess = UserAccess.LIMITED,
+      limitedAccess = true,
+      teamCode = teamCode,
+      assignedTo = assignedToUsername?.let { buildAssignedToDto(username = it) },
+    )
+
+    private fun List<CaseDto>.applyFilters(
+      searchTerm: String? = null,
+      riskLevel: RiskLevel? = null,
+      teamCode: String? = null,
+      peopleType: PeopleType? = null,
+      username: () -> Username = { Username(currentUser) },
+    ) = filterCases(
+      searchTerm = searchTerm,
+      riskLevel = riskLevel,
+      teamCode = teamCode,
+      username = username,
+      peopleType = peopleType,
+    ).map { it.crn }
 
     @Test
-    fun `returns all cases when people type is null`() {
-      assertThat(all.filtered(null)).containsExactlyElementsOf(all)
-    }
+    fun `returns only cases assigned to the current user when no filters provided`() {
+      val cases = listOf(
+        full("MINE1"),
+        full("MINE2", assignedToUsername = "USER1"),
+        full("OTHER", assignedToUsername = otherUser),
+        full("UNASSIGNED", assignedToUsername = null),
+      )
 
-    @Test
-    fun `HOUSED returns only settled cases`() {
-      assertThat(all.filtered(PeopleType.HOUSED)).containsExactly(settled)
-    }
-
-    @Test
-    fun `NFA_RISK returns every case that is not settled, including those without a status`() {
-      assertThat(all.filtered(PeopleType.NFA_RISK))
-        .containsExactly(transient, nfa, risk, noStatus, noSummaries)
+      assertThat(cases.applyFilters()).containsExactlyInAnyOrder("MINE1", "MINE2")
     }
 
     @Test
     fun `returns empty list for empty input`() {
-      assertThat(emptyList<CaseDto>().filtered(PeopleType.HOUSED)).isEmpty()
+      assertThat(emptyList<CaseDto>().applyFilters()).isEmpty()
+    }
+
+    @Test
+    fun `orders full access cases by surname then forename ignoring case, followed by limited access cases`() {
+      val cases = listOf(
+        full("CRN1", forename = "CHARLIE", surname = "BROWN"),
+        full("CRN2", forename = "Zoe", surname = "Adams"),
+        limited("CRN3"),
+        full("CRN4", forename = "alice", surname = "brown"),
+      )
+
+      assertThat(cases.applyFilters()).containsExactly("CRN2", "CRN4", "CRN1", "CRN3")
+    }
+
+    @Nested
+    inner class ByTeam {
+      private val cases = listOf(
+        full("A_MINE", teamCode = "TeamA"),
+        full("A_OTHER_USER", teamCode = "TeamA", assignedToUsername = otherUser),
+        full("B_MINE", teamCode = "TeamB"),
+        full("A_NO_TEAM", teamCode = null),
+        limited("A_LIMITED", teamCode = "TeamA"),
+      )
+
+      @Test
+      fun `returns full access cases in the team regardless of assigned user, ignoring case`() {
+        assertThat(cases.applyFilters(teamCode = "teama")).containsExactlyInAnyOrder("A_MINE", "A_OTHER_USER")
+      }
+
+      @Test
+      fun `returns nothing for an unknown team`() {
+        assertThat(cases.applyFilters(teamCode = "TeamZ")).isEmpty()
+      }
+
+      @Test
+      fun `falls back to the current user when team code is blank`() {
+        assertThat(cases.applyFilters(teamCode = " "))
+          .containsExactlyInAnyOrder("A_MINE", "B_MINE", "A_NO_TEAM", "A_LIMITED")
+      }
+
+      @Test
+      fun `does not resolve the username when a team code is provided`() {
+        var resolved = false
+
+        cases.applyFilters(teamCode = "TeamA", username = {
+          resolved = true
+          Username(currentUser)
+        })
+
+        assertThat(resolved).isFalse()
+      }
+    }
+
+    @Nested
+    inner class BySearchTerm {
+      private val cases = listOf(
+        full("X100001", forename = "First", middleNames = "Middle", surname = "MultiCaseSurname", prisonNumber = "PRI_1"),
+        full("X100002", forename = "QQQQQ", middleNames = null, surname = "Last", prisonNumber = "PRI_2"),
+        full("X100003", forename = "First", middleNames = "Middle", surname = "Last", prisonNumber = null),
+        limited("X100004"),
+      )
+
+      @Test
+      fun `matches a full CRN ignoring case, including limited access cases`() {
+        assertThat(cases.applyFilters(searchTerm = "x100001")).containsExactly("X100001")
+        assertThat(cases.applyFilters(searchTerm = "x100004")).containsExactly("X100004")
+      }
+
+      @Test
+      fun `does not match a partial CRN`() {
+        assertThat(cases.applyFilters(searchTerm = "X1000")).isEmpty()
+      }
+
+      @Test
+      fun `matches a full prison number ignoring case but not a partial one`() {
+        assertThat(cases.applyFilters(searchTerm = "pri_2")).containsExactly("X100002")
+        assertThat(cases.applyFilters(searchTerm = "pri_")).isEmpty()
+      }
+
+      @Test
+      fun `matches partial names across forename, middle names and surname ignoring case`() {
+        assertThat(cases.applyFilters(searchTerm = "qqqqq")).containsExactly("X100002")
+        assertThat(cases.applyFilters(searchTerm = "multi")).containsExactly("X100001")
+        assertThat(cases.applyFilters(searchTerm = "rSt Mid")).containsExactlyInAnyOrder("X100001", "X100003")
+        assertThat(cases.applyFilters(searchTerm = "lAsT fIrSt")).containsExactly("X100003")
+        assertThat(cases.applyFilters(searchTerm = " Last   First ")).containsExactly("X100003")
+      }
+
+      @Test
+      fun `does not return limited access cases for a name search`() {
+        assertThat(cases.applyFilters(searchTerm = "First")).doesNotContain("X100004")
+      }
+
+      @Test
+      fun `returns no cases when nothing matches`() {
+        assertThat(cases.applyFilters(searchTerm = "xxxxx")).isEmpty()
+      }
+
+      @ParameterizedTest
+      @NullAndEmptySource
+      @ValueSource(strings = ["  "])
+      fun `does not filter when search term is null or blank`(searchTerm: String?) {
+        assertThat(cases.applyFilters(searchTerm = searchTerm)).hasSize(cases.size)
+      }
+    }
+
+    @Nested
+    inner class ByRiskLevel {
+      private val cases = listOf(
+        full("NONE", riskLevel = null),
+        full("LOW", riskLevel = RiskLevel.LOW),
+        full("MEDIUM", riskLevel = RiskLevel.MEDIUM),
+        full("VERY_HIGH", riskLevel = RiskLevel.VERY_HIGH),
+        limited("LIMITED"),
+      )
+
+      @ParameterizedTest
+      @EnumSource(RiskLevel::class, names = ["LOW", "MEDIUM", "VERY_HIGH"])
+      fun `returns only full access cases with the requested risk level`(riskLevel: RiskLevel) {
+        assertThat(cases.applyFilters(riskLevel = riskLevel)).containsExactly(riskLevel.name)
+      }
+
+      @Test
+      fun `returns nothing when no case has the requested risk level`() {
+        assertThat(cases.applyFilters(riskLevel = RiskLevel.HIGH)).isEmpty()
+      }
+
+      @Test
+      fun `does not filter when risk level is null`() {
+        assertThat(cases.applyFilters(riskLevel = null)).hasSize(cases.size)
+      }
+    }
+
+    @Nested
+    inner class ByPeopleType {
+      private val settled = full("SETTLED", status = CaseAccommodationStatus.SETTLED)
+      private val transient = full("TRANSIENT", status = CaseAccommodationStatus.TRANSIENT)
+      private val nfa = full("NFA", status = CaseAccommodationStatus.NO_FIXED_ABODE)
+      private val risk = full("RISK", status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
+      private val noStatus = full("NONE", status = null)
+      private val cases = listOf(settled, transient, nfa, risk, noStatus)
+
+      @Test
+      fun `returns all cases when people type is null`() {
+        assertThat(cases.applyFilters(peopleType = null)).hasSize(cases.size)
+      }
+
+      @Test
+      fun `HOUSED returns only settled cases`() {
+        assertThat(cases.applyFilters(peopleType = PeopleType.HOUSED)).containsExactly("SETTLED")
+      }
+
+      @Test
+      fun `NFA_RISK returns every case that is not settled, including those without a status`() {
+        assertThat(cases.applyFilters(peopleType = PeopleType.NFA_RISK))
+          .containsExactlyInAnyOrder("TRANSIENT", "NFA", "RISK", "NONE")
+      }
+    }
+
+    @Test
+    fun `combines all filters`() {
+      val cases = listOf(
+        full("MATCH", forename = "Alice", riskLevel = RiskLevel.HIGH, teamCode = "TeamA", status = CaseAccommodationStatus.SETTLED, assignedToUsername = otherUser),
+        full("WRONG_RISK", forename = "Alice", riskLevel = RiskLevel.LOW, teamCode = "TeamA", status = CaseAccommodationStatus.SETTLED),
+        full("WRONG_TEAM", forename = "Alice", riskLevel = RiskLevel.HIGH, teamCode = "TeamB", status = CaseAccommodationStatus.SETTLED),
+        full("WRONG_NAME", forename = "Bob", riskLevel = RiskLevel.HIGH, teamCode = "TeamA", status = CaseAccommodationStatus.SETTLED),
+        full("WRONG_TYPE", forename = "Alice", riskLevel = RiskLevel.HIGH, teamCode = "TeamA", status = CaseAccommodationStatus.TRANSIENT),
+      )
+
+      val result = cases.applyFilters(
+        searchTerm = "alice",
+        riskLevel = RiskLevel.HIGH,
+        teamCode = "TeamA",
+        peopleType = PeopleType.HOUSED,
+      )
+
+      assertThat(result).containsExactly("MATCH")
     }
   }
 
