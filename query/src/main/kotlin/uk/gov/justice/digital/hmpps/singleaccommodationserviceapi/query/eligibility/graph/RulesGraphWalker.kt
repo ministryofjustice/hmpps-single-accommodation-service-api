@@ -74,6 +74,8 @@ class RulesGraphWalker {
 
       edges += GraphEdge(from = fromGraphNode.id, to = contextUpdaterNode.id, label = edgeLabel)
 
+      if (contextUpdater.terminalNode) return
+
       contextUpdaterNode
     }
 
