@@ -52,4 +52,7 @@ class SasAndDeliusCachingService(
 
   @Cacheable(ApiCallKeys.GET_CASE, sync = true)
   fun getCase(username: String, crn: String) = sasAndDeliusClient.getCase(username, crn)
+
+  @Cacheable(ApiCallKeys.GET_CASE_WITHOUT_LAO, key = "#crn", sync = true)
+  fun getCase(crn: String) = sasAndDeliusClient.getCase(crn)
 }

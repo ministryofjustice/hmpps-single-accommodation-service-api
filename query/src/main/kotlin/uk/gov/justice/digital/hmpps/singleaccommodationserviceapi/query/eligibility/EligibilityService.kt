@@ -143,6 +143,7 @@ class EligibilityService(
       crn = crn,
       cpr = eligibilityOrchestrationDto.cpr,
       tier = eligibilityOrchestrationDto.tier,
+      case = eligibilityOrchestrationDto.case,
       cas1Application = eligibilityOrchestrationDto.cas1Application,
       cas2Application = eligibilityOrchestrationDto.cas2Application,
       cas3Application = eligibilityOrchestrationDto.cas3Application,

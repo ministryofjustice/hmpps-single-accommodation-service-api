@@ -445,6 +445,7 @@ enum class FailureReason {
   IN_COMMUNITY,
   SEXUAL_OFFENCE_REGISTRATIONS_PRESENT,
   IN_PRISON_NO_RELEASE_DATE,
+  HAS_NO_ROSH_LEVEL,
 }
 
 enum class BlockingReason {
