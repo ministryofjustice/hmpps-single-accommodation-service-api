@@ -26,12 +26,17 @@ flowchart TD
   Eligibility_Current_Accommodation("Eligibility Current Accommodation (1)
 
 - FAIL if individual is not currently in prison or CAS1 accommodation")
+  Eligibility_Rosh("Eligibility Rosh (1)
+
+- FAIL if candidate has no ROSH level")
   return_status_CAS1_NOT_ELIGIBLE["return status CAS1_NOT_ELIGIBLE"]
   Set_current_status_to_CAS1_UPCOMING["Set current status to CAS1_UPCOMING"]
   Suitability -->|PASS| Set_current_status_to_one_of_CAS1_ARRIVED__CAS1_NOT_ARRIVED__CAS1_PLACEMENT_BOOKED__CAS1_PLACEMENT_CANCELLED__CAS1_PLACEMENT_REQUEST_NOT_STARTED__CAS1_PLACEMENT_REQUEST_WITHDRAWN__CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED__CAS1_PLACEMENT_REQUEST_REJECTED__CAS1_PLACEMENT_REQUEST_SUBMITTED__CAS1_INFO_REQUESTED__CAS1_SUBMITTED
   Set_current_status_to_one_of_CAS1_ARRIVED__CAS1_NOT_ARRIVED__CAS1_PLACEMENT_BOOKED__CAS1_PLACEMENT_CANCELLED__CAS1_PLACEMENT_REQUEST_NOT_STARTED__CAS1_PLACEMENT_REQUEST_WITHDRAWN__CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED__CAS1_PLACEMENT_REQUEST_REJECTED__CAS1_PLACEMENT_REQUEST_SUBMITTED__CAS1_INFO_REQUESTED__CAS1_SUBMITTED -->|PASS| return_current_status
   Suitability -->|FAIL| Set_current_status_to_one_of_CAS1_NOT_SUBMITTED__CAS1_APPLICATION_REJECTED__CAS1_NOT_STARTED
-  Eligibility_Current_Accommodation -->|PASS| return_current_status
+  Eligibility_Rosh -->|PASS| return_current_status
+  Eligibility_Rosh -->|FAIL| return_status_CAS1_NOT_ELIGIBLE
+  Eligibility_Current_Accommodation -->|PASS| Eligibility_Rosh
   Eligibility_Current_Accommodation -->|FAIL| return_status_CAS1_NOT_ELIGIBLE
   Eligibility_Tier -->|PASS| Eligibility_Current_Accommodation
   Eligibility_Tier -->|FAIL| return_status_CAS1_NOT_ELIGIBLE
@@ -95,6 +100,10 @@ flowchart TD
 - [`CurrentAccommodationIsPrisonOrCas1Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/eligibility/CurrentAccommodationIsPrisonOrCas1Rule.kt): FAIL if individual is not currently in prison or CAS1 accommodation
 
 
+**Eligibility Rosh** (RuleSet) `EligibilityRoshRuleSet`
+- [`RoshLevelRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/RoshLevelRule.kt): FAIL if candidate has no ROSH level
+
+
 **return status CAS1_NOT_ELIGIBLE** (Outcome)
 
 
@@ -134,6 +143,9 @@ flowchart TD
   Eligibility_Next_Accommodation("Eligibility Next Accommodation (1)
 
 - FAIL if candidate has next accommodation")
+  Eligibility_Rosh("Eligibility Rosh (1)
+
+- FAIL if candidate has no ROSH level")
   return_status_CAS2_NOT_ELIGIBLE["return status CAS2_NOT_ELIGIBLE"]
   Set_current_status_to_CAS2_UPCOMING["Set current status to CAS2_UPCOMING"]
   Completion -->|PASS| return_status_CAS2_AWAITING_ARRIVAL
@@ -141,7 +153,9 @@ flowchart TD
   Set_current_status_to_one_of_CAS2_SUBMITTED__CAS2_MORE_INFORMATION_NEEDED__CAS2_AWAITING_DECISION__CAS2_ON_WAITING_LIST__CAS2_PLACE_OFFERED__CAS2_OFFER_ACCEPTED__CAS2_UNKNOWN__CAS2_ARRIVED -->|FAIL| return_current_status
   Suitability -->|PASS| Completion
   Suitability -->|FAIL| Set_current_status_to_one_of_CAS2_NOT_STARTED__CAS2_NOT_SUBMITTED__CAS2_OFFER_DECLINED_OR_WITHDRAWN__CAS2_CANCELLED__CAS2_WITHDRAWN__CAS2_UNKNOWN
-  Eligibility_Next_Accommodation -->|PASS| return_current_status
+  Eligibility_Rosh -->|PASS| return_current_status
+  Eligibility_Rosh -->|FAIL| return_status_CAS2_NOT_ELIGIBLE
+  Eligibility_Next_Accommodation -->|PASS| Eligibility_Rosh
   Eligibility_Next_Accommodation -->|FAIL| return_status_CAS2_NOT_ELIGIBLE
   Eligibility_Current_Accommodation -->|PASS| Eligibility_Next_Accommodation
   Eligibility_Current_Accommodation -->|FAIL| return_status_CAS2_NOT_ELIGIBLE
@@ -226,6 +240,10 @@ flowchart TD
 - [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/NoNextAccommodationRule.kt): FAIL if candidate has next accommodation
 
 
+**Eligibility Rosh** (RuleSet) `EligibilityRoshRuleSet`
+- [`RoshLevelRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/RoshLevelRule.kt): FAIL if candidate has no ROSH level
+
+
 **return status CAS2_NOT_ELIGIBLE** (Outcome)
 
 
@@ -256,6 +274,9 @@ flowchart TD
   Eligibility_Next_Accommodation("Eligibility Next Accommodation (1)
 
 - FAIL if candidate has next accommodation")
+  Eligibility_Rosh("Eligibility Rosh (1)
+
+- FAIL if candidate has no ROSH level")
   Prerequisite("Prerequisite (3)
 
 - FAIL if DTR is submitted more than 26 weeks ago.
@@ -272,7 +293,9 @@ flowchart TD
   Prerequisite -->|PASS| return_current_status
   Prerequisite -->|FAIL| Set_current_status_to_one_of_CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION__CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS__CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION__CAS3_CANNOT_START_YET_SUBMIT_CRS__CAS3_CANNOT_START_YET_SUBMIT_DTR
   Set_current_status_to_one_of_CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION__CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS__CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION__CAS3_CANNOT_START_YET_SUBMIT_CRS__CAS3_CANNOT_START_YET_SUBMIT_DTR -->|FAIL| return_current_status
-  Eligibility_Next_Accommodation -->|PASS| Prerequisite
+  Eligibility_Rosh -->|PASS| Prerequisite
+  Eligibility_Rosh -->|FAIL| return_status_CAS3_NOT_ELIGIBLE
+  Eligibility_Next_Accommodation -->|PASS| Eligibility_Rosh
   Eligibility_Next_Accommodation -->|FAIL| return_status_CAS3_NOT_ELIGIBLE
   Eligibility_Current_Accommodation -->|PASS| Eligibility_Next_Accommodation
   Eligibility_Current_Accommodation -->|FAIL| return_status_CAS3_NOT_ELIGIBLE
@@ -336,6 +359,10 @@ flowchart TD
 
 **Eligibility Next Accommodation** (RuleSet) `Cas3EligibilityNextAccommodationRuleSet`
 - [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/NoNextAccommodationRule.kt): FAIL if candidate has next accommodation
+
+
+**Eligibility Rosh** (RuleSet) `EligibilityRoshRuleSet`
+- [`RoshLevelRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/RoshLevelRule.kt): FAIL if candidate has no ROSH level
 
 
 **Prerequisite** (RuleSet) `Cas3PrerequisiteRuleSet`
@@ -603,6 +630,7 @@ flowchart TD
 | ReleaseWithin15DaysRule | FAIL if not within 15 days of release from current accommodation | Upcoming | CAS2, CAS3 |
 | ReleaseWithinEightWeeksRule | FAIL if not within 8 weeks of release from current accommodation | Upcoming | DTR |
 | ReleaseWithinTwentyEightWeeksRule | FAIL if not within 1 year of release from current accommodation | Upcoming | CAS1 |
+| RoshLevelRule | FAIL if candidate has no ROSH level | Eligibility Rosh | CAS1, CAS2, CAS3 |
 | SexualOffenceRegistrationsRule | FAIL if individual has sexual offence registrations. | Eligibility Person | CAS2 |
 | SingleLetterTierRule | FAIL if candidate is not Tier A through G | Eligibility Person | CAS2 |
 | Under18Rule | FAIL if individual is under 18 years old | Eligibility Person | CAS2 |

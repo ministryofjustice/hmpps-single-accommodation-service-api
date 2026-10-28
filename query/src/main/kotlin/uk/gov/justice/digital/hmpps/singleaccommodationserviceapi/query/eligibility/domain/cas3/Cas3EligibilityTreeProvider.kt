@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.EligibilityRoshRuleSet
 
 @Component
 class Cas3EligibilityTreeProvider(
@@ -33,6 +34,7 @@ class Cas3EligibilityTreeProvider(
   private val eligibilityNextAccommodation: Cas3EligibilityNextAccommodationRuleSet,
   private val prerequisite: Cas3PrerequisiteRuleSet,
   private val cas3PrerequisiteContextUpdater: Cas3PrerequisiteContextUpdater,
+  private val eligibilityRosh: EligibilityRoshRuleSet,
 ) : EligibilityTreeProvider {
 
   private val tree: DecisionNode by lazy { build() }
@@ -59,9 +61,15 @@ class Cas3EligibilityTreeProvider(
       .onFail(confirmed).applyContextUpdaterOnFailure(cas3PrerequisiteContextUpdater)
       .build()
 
+    val eligibilityRoshNode = builder
+      .ruleSet(eligibilityRosh)
+      .onPass(prerequisiteNode)
+      .onFail(notEligible).propagateContextOnFailure()
+      .build()
+
     val eligibilityNextAccommodationNode = builder
       .ruleSet(eligibilityNextAccommodation)
-      .onPass(prerequisiteNode)
+      .onPass(eligibilityRoshNode)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 

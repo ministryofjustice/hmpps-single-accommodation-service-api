@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
@@ -40,6 +41,7 @@ class DomainDataTest {
     val dutyToRefer = buildDutyToReferDto()
 
     val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
+    val case = buildCase()
     val sexualOffenceRegistrations = buildSexualOffenceRegistrations(crn = crn)
 
     val currentAccommodation = buildAccommodationSummaryDto(
@@ -104,6 +106,7 @@ class DomainDataTest {
       cas3Application = cas3Application,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
+      roshLevel = case.roshLevel,
       currentAccommodationTypeEntity = currentAccommodationTypeEntity,
       sexualOffenceRegistrations = sexualOffenceRegistrations,
     )
@@ -121,6 +124,7 @@ class DomainDataTest {
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
       sexualOffenceRegistrations = sexualOffenceRegistrations,
+      case = case,
     )
 
     assertThat(result).isEqualTo(expected)

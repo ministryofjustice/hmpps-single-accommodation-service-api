@@ -8,6 +8,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.RoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
@@ -18,6 +20,7 @@ data class DomainData(
   val tierScore: String?,
   val dob: LocalDate?,
   val sex: SexCode?,
+  val roshLevel: RoshLevel?,
   val currentAccommodation: AccommodationSummaryDto?,
   val currentAccommodationTypeEntity: AccommodationTypeEntity?,
   val nextAccommodations: List<AccommodationSummaryDto>,
@@ -41,11 +44,13 @@ data class DomainData(
     commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
     accommodationTypes: List<AccommodationTypeEntity>,
     sexualOffenceRegistrations: SexualOffenceRegistrations?,
+    case: Case?,
   ) : this(
     crn = crn,
     tierScore = tier?.tierScore,
     sex = cpr?.sex?.code,
     dob = cpr?.dateOfBirth,
+    roshLevel = case?.roshLevel,
     currentAccommodation = currentAccommodation,
     currentAccommodationTypeEntity = accommodationTypes.find { it.code == currentAccommodation?.type?.code },
     nextAccommodations = nextAccommodations,
