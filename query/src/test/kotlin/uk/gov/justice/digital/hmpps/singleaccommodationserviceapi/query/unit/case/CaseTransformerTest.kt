@@ -49,7 +49,7 @@ class CaseTransformerTest {
     val person = buildFullPersonDto(crn)
 
     val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null, sexualOffenceRegistrations = null)
-    val fromSasAndDelius = person.toCaseDto(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null, currentAccommodation = null, nextAccommodation = null, teamCode = "TEAM1")
 
     assertThat(fromOrchestration.crn).isEqualTo(crn)
     assertUserAccess(fromOrchestration, UserAccess.FULL)
@@ -61,7 +61,7 @@ class CaseTransformerTest {
     val person = buildFullPersonDto(crn, limitedAccess = true)
 
     val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null, sexualOffenceRegistrations = null)
-    val fromSasAndDelius = person.toCaseDto(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null, currentAccommodation = null, nextAccommodation = null, teamCode = "TEAM1")
 
     assertThat(fromOrchestration.crn).isEqualTo(crn)
     assertUserAccess(fromOrchestration, UserAccess.FULL, limitedAccess = true)
@@ -73,7 +73,7 @@ class CaseTransformerTest {
     val person = buildLimitedPersonDto(crn)
 
     val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null, sexualOffenceRegistrations = null)
-    val fromSasAndDelius = person.toCaseDto(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null, currentAccommodation = null, nextAccommodation = null, teamCode = "TEAM1")
 
     assertThat(fromOrchestration.crn).isEqualTo(crn)
     assertUserAccess(fromOrchestration, UserAccess.LIMITED, limitedAccess = true)
@@ -95,7 +95,7 @@ class CaseTransformerTest {
     assertThat(fromOrchestration.prisonNumber).isEqualTo(prisonNumber)
     assertUserAccess(fromOrchestration, UserAccess.FULL)
 
-    val fromSasAndDelius = person.toCaseDto(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null, currentAccommodation = null, nextAccommodation = null, teamCode = "TEAM1")
     assertThat(fromSasAndDelius.crn).isEqualTo(crn)
     assertThat(fromSasAndDelius.prisonNumber).isEqualTo(prisonNumber)
     assertUserAccess(fromSasAndDelius, UserAccess.FULL)
@@ -195,12 +195,14 @@ class CaseTransformerTest {
         currentAccommodation = currentAccommodationDto,
         nextAccommodation = nextAccommodationDto,
       ),
+      teamCode = "TEAM1",
     )
     assertThat(
       personDto.toCaseDto(
         caseEntity = caseEntity,
         currentAccommodation = currentAccommodationDto,
         nextAccommodation = nextAccommodationDto,
+        teamCode = "TEAM1",
       ),
     ).isEqualTo(expected)
   }
@@ -222,6 +224,7 @@ class CaseTransformerTest {
       pncReference = "PNC123",
       assignedTo = assignedTo,
       limitedAccess = false,
+      teamCode = "TeamX",
     )
 
     assertThat(result).isEqualTo(
@@ -240,6 +243,7 @@ class CaseTransformerTest {
         userAccess = UserAccess.FULL,
         limitedAccess = false,
         accommodationSummaries = accommodationSummaries,
+        teamCode = "TeamX",
       ),
     )
   }
@@ -254,9 +258,10 @@ class CaseTransformerTest {
       pncReference = null,
       assignedTo = null,
       limitedAccess = null,
+      teamCode = "TeamX",
     )
 
-    assertThat(result).isEqualTo(CaseDto(crn = crn, userAccess = UserAccess.FULL, limitedAccess = null))
+    assertThat(result).isEqualTo(CaseDto(crn = crn, userAccess = UserAccess.FULL, limitedAccess = null, teamCode = "TeamX"))
   }
 
   @Test

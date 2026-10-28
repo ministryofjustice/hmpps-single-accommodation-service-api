@@ -72,5 +72,6 @@ class CustomCaseListQueryService(
     pncReference = null,
     assignedTo = toAssignedToDto(),
     limitedAccess = caseSummary?.let { it.currentExclusion || it.currentRestriction } ?: false,
+    teamCode = caseSummary.manager.team.code,
   )
 }

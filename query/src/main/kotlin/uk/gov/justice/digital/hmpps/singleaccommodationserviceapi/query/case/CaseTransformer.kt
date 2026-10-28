@@ -56,6 +56,7 @@ object CaseTransformer {
     caseEntity: CaseEntity?,
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
+    teamCode: String,
   ): CaseDto = when (this) {
     is FullPersonDto -> toCaseDto(
       caseEntity = caseEntity,
@@ -67,6 +68,7 @@ object CaseTransformer {
       limitedAccess = limitedAccess,
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
+      teamCode = teamCode,
     )
 
     is LimitedPersonDto -> toLimitedCaseDto()
@@ -82,6 +84,7 @@ object CaseTransformer {
     limitedAccess: Boolean?,
     currentAccommodation: AccommodationSummaryDto? = caseEntity?.currentAccommodation,
     nextAccommodation: AccommodationSummaryDto? = caseEntity?.nextAccommodation,
+    teamCode: String,
   ) = CaseDto(
     forename = caseEntity?.firstName,
     middleNames = null,
@@ -104,6 +107,7 @@ object CaseTransformer {
         nextAccommodation = nextAccommodation,
       )
     },
+    teamCode = teamCode,
   )
 
   fun toAccommodationSummariesDto(

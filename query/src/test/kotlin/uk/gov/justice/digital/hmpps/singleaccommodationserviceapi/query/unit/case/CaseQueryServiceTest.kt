@@ -530,9 +530,10 @@ class CaseQueryServiceTest {
         caseEntity = caseEntity1,
         currentAccommodation = buildAccommodationSummaryDto(crn = crnOne),
         nextAccommodation = null,
+        teamCode = "TEAM1",
       )
-      val caseDto2 = personDto2.toCaseDto(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null)
-      val caseDto3 = personDto3.toCaseDto(caseEntity = caseEntity3, currentAccommodation = null, nextAccommodation = null)
+      val caseDto2 = personDto2.toCaseDto(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null, teamCode = "TEAM1")
+      val caseDto3 = personDto3.toCaseDto(caseEntity = caseEntity3, currentAccommodation = null, nextAccommodation = null, teamCode = "TEAM1")
       every { caseRepository.mapByCrns(crnList) } returns caseEntities
 
       val result = caseQueryService.getCases(personDtos = personDtos)

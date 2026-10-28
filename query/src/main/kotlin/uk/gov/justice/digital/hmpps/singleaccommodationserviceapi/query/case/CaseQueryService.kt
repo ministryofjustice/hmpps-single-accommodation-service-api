@@ -82,6 +82,7 @@ class CaseQueryService(
             caseEntity = caseEntity,
             currentAccommodation = caseEntity?.currentAccommodation,
             nextAccommodation = caseEntity?.nextAccommodation,
+            teamCode = personDto.teamCode,
           )
         }
       }
