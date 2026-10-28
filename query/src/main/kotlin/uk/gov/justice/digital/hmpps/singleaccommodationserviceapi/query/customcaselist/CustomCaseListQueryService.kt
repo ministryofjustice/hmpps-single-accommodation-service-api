@@ -4,10 +4,6 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
@@ -39,7 +35,7 @@ class CustomCaseListQueryService(
     val caseEntities = caseRepository.findAllWithIdentifiersByIdIn(caseIds)
     val crns = caseEntities.map { it.latestCrn() }
     val orchestrationResult = customCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, crns)
-    hasUserAccessData(orchestrationResult.upstreamFailures)
+    limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
 
     val limitedAccessCrns = limitedAccessService.getLimitedAccessCrns(crns, orchestrationResult.data.caseAccess)
     val caseSummariesByCrn = orchestrationResult.data.caseSummaries.associateBy { it.crn }
@@ -56,12 +52,6 @@ class CustomCaseListQueryService(
   fun getCustomCaseListCrns(): ApiResponseDto<List<String>> {
     val user = userService.authorizeAndRetrieveUser()
     return toApiResponseDto(data = userCustomCaseListRepository.findLatestCrnsBySasUserId(user.id))
-  }
-
-  private fun hasUserAccessData(upstreamFailures: List<UpstreamFailure>) {
-    upstreamFailures.firstOrNull { it.callKey.startsWith(GET_USER_ACCESS) }?.let {
-      throw UpstreamFailureException(UpstreamFailureTransformer.toUpstreamFailureDto(it))
-    }
   }
 
   private fun CaseEntity.toCustomCaseListCaseDto(caseSummary: CaseSummary?) = toCaseDto(

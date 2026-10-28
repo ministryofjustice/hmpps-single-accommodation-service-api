@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ca
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
+import io.mockk.runs
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -22,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.excepti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer.toUpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
@@ -91,6 +94,7 @@ class CaseQueryServiceTest {
       caseRepository = caseRepository,
       clock = clock,
     )
+    every { limitedAccessService.throwIfUserAccessFailed(any()) } just runs
   }
 
   private val crnOne = "X12345"
@@ -225,10 +229,9 @@ class CaseQueryServiceTest {
 
     @Test
     fun `should throw an upstream failure exception when any access check batch fails`() {
-      stubCaseList(
-        cases = listOf(buildCase(crn = crnOne)),
-        upstreamFailures = listOf(buildUpstreamFailure(callKey = GET_USER_ACCESS + 1)),
-      )
+      val failure = buildUpstreamFailure(callKey = GET_USER_ACCESS + 1)
+      stubCaseList(cases = listOf(buildCase(crn = crnOne)), upstreamFailures = listOf(failure))
+      every { limitedAccessService.throwIfUserAccessFailed(listOf(failure)) } throws UpstreamFailureException(toUpstreamFailureDto(failure))
 
       assertThatThrownBy { caseQueryService.getCaseList(null) }
         .isInstanceOf(UpstreamFailureException::class.java)
@@ -763,10 +766,9 @@ class CaseQueryServiceTest {
 
     @Test
     fun `should throw an upstream failure exception when the access check fails`() {
-      stubGetCase(
-        buildCaseOrchestrationDto(crn = crnOne, caseAccess = emptyList()),
-        upstreamFailures = listOf(buildUpstreamFailure(callKey = GET_USER_ACCESS + 0)),
-      )
+      val failure = buildUpstreamFailure(callKey = GET_USER_ACCESS + 0)
+      stubGetCase(buildCaseOrchestrationDto(crn = crnOne, caseAccess = emptyList()), upstreamFailures = listOf(failure))
+      every { limitedAccessService.throwIfUserAccessFailed(listOf(failure)) } throws UpstreamFailureException(toUpstreamFailureDto(failure))
 
       assertThatThrownBy { caseQueryService.getCase(crnOne) }
         .isInstanceOf(UpstreamFailureException::class.java)
@@ -824,10 +826,12 @@ class CaseQueryServiceTest {
 
     @Test
     fun `should throw an upstream failure exception when the access check fails`() {
+      val failure = buildUpstreamFailure(callKey = GET_USER_ACCESS + 0)
       stubGetCaseFromDelius(
         buildCaseOrchestrationDto(crn = crnOne, cpr = null, tier = null, caseAccess = emptyList()),
-        upstreamFailures = listOf(buildUpstreamFailure(callKey = GET_USER_ACCESS + 0)),
+        upstreamFailures = listOf(failure),
       )
+      every { limitedAccessService.throwIfUserAccessFailed(listOf(failure)) } throws UpstreamFailureException(toUpstreamFailureDto(failure))
 
       assertThatThrownBy { caseQueryService.getCaseFromDelius(crnOne) }
         .isInstanceOf(UpstreamFailureException::class.java)
