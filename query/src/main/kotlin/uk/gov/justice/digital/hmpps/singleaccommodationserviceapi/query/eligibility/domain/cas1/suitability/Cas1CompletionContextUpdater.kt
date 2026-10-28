@@ -60,6 +60,7 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
       serviceStatus = ServiceStatusNew.CAS1_SUBMITTED,
     ),
   )
+  override val terminalNode = true
 
   override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
     val applicationStatus = context.data.cas1Application?.application?.status

@@ -1,13 +1,18 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.graph
+
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
@@ -31,6 +36,45 @@ class RulesGraphTest {
 
   @Nested
   inner class WalkerTests {
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `terminal context updater ends its branch as an outcome`(onPass: Boolean) {
+      val updater = object : ContextUpdater() {
+        override val terminalNode = true
+        override val description = "Terminal updater"
+        override fun toServiceResult(context: EvaluationContext) = ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED)
+      }
+      val hidden = builder.notEligible(ServiceType.CAS1)
+      val confirmed = builder.confirmed()
+      val rootBuilder = builder
+        .ruleSet(StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(StubRule("example")))))
+      val root = if (onPass) {
+        rootBuilder
+          .onPass(hidden).applyContextUpdaterOnPass(updater)
+          .onFail(confirmed).propagateContextOnFailure()
+          .build()
+      } else {
+        rootBuilder
+          .onPass(confirmed)
+          .onFail(hidden).applyContextUpdaterOnFailure(updater)
+          .build()
+      }
+
+      val graph = RulesGraphWalker().walk("EXAMPLE", root)
+
+      val updaterNode = graph.nodes.single { it.title == updater.description }
+      assertThat(updaterNode.kind).isEqualTo(GraphNodeKind.CONTEXT_UPDATER)
+      assertThat(graph.nodes.map { it.title }).containsExactlyInAnyOrder(
+        "ExampleEligibility",
+        "Terminal updater",
+        "return current status",
+      )
+      assertThat(graph.edges).containsExactlyInAnyOrder(
+        GraphEdge("ExampleEligibility", updaterNode.id, if (onPass) "PASS" else "FAIL"),
+        GraphEdge("ExampleEligibility", "return_current_status", if (onPass) "FAIL" else "PASS"),
+      )
+    }
+
     @Test
     fun `walk records PASS and FAIL edges and rules on RuleSet nodes`() {
       val pass = builder.confirmed()
@@ -146,6 +190,7 @@ class RulesGraphTest {
 
       val upcomingId = graph.nodes.single { it.title == "Upcoming" }.id
       val contextUpdaterId = graph.nodes.single { it.title == "Set CAS1_NOT_STARTED" }.id
+      assertThat(graph.nodes.single { it.id == contextUpdaterId }.kind).isEqualTo(GraphNodeKind.CONTEXT_UPDATER)
       val confirmedId = graph.nodes.single { it.title == "return current status" }.id
       assertThat(graph.edges).containsExactlyInAnyOrder(
         GraphEdge(
@@ -179,6 +224,7 @@ class RulesGraphTest {
 
       val upcomingId = graph.nodes.single { it.title == "Upcoming" }.id
       val contextUpdaterId = graph.nodes.single { it.title == "Set CAS1_NOT_STARTED" }.id
+      assertThat(graph.nodes.single { it.id == contextUpdaterId }.kind).isEqualTo(GraphNodeKind.CONTEXT_UPDATER)
       val confirmedId = graph.nodes.single { it.title == "return current status" }.id
       assertThat(graph.edges).containsExactlyInAnyOrder(
         GraphEdge(

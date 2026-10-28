@@ -15,11 +15,23 @@ import java.time.LocalDate
 abstract class ContextUpdater {
   open val propagatesFailureReasons: Boolean = false
   open val outcomes: Map<String, ServiceResultSpec> get() = emptyMap()
-  open val description: String get() = if (outcomes.keys.size == 1) {
-    "Set current status to ${outcomes.entries.first().value.serviceStatus}"
-  } else {
-    "Set current status to one of " + outcomes.entries.joinToString(separator = ", ") { "${it.value.serviceStatus}" }
-  }
+  open val terminalNode: Boolean get() = false
+  open val description: String
+    get() = if (outcomes.keys.size == 1) {
+      val status = outcomes.entries.first().value.serviceStatus
+      if (terminalNode) {
+        "return status $status"
+      } else {
+        "Set current status to $status"
+      }
+    } else {
+      val statuses = outcomes.entries.joinToString(separator = ", ") { "${it.value.serviceStatus}" }
+      if (terminalNode) {
+        "return status as one of $statuses"
+      } else {
+        "Set current status to one of $statuses"
+      }
+    }
 
   fun update(context: EvaluationContext, failureReasons: List<FailureReason> = emptyList()): EvaluationContext {
     // expose the failing RuleSet failure reasons on the context so updaters can branch on which rules failed
