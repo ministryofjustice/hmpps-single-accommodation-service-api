@@ -18,6 +18,7 @@ data class Case(
   val team: Team,
   val gender: String,
   val roshLevel: RoshLevel?,
+  // TODO remove these fields when /cases/{crn} and /search/{crn} use probation access control
   val userExcluded: Boolean?,
   val userRestricted: Boolean?,
   val exclusionMessage: String?,

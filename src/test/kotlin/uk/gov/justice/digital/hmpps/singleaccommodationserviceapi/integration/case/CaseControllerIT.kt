@@ -57,6 +57,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationAccessControlStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
@@ -148,6 +149,7 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = cases,
       pageSize = pageSize.toInt(),
     )
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = cases.map { it.crn })
 
     // SAS knows about 2 cases
     assertThat(caseRepository.findAll()).hasSize(2)
@@ -252,6 +254,7 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = cases,
       pageSize = pageSize.toInt(),
     )
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = cases.map { it.crn })
 
     caseRepository.saveAllAndFlush(
       listOf(
@@ -297,6 +300,7 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = listOf(case),
       pageSize = pageSize.toInt(),
     )
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(crn))
 
     assertThat(caseRepository.findByCrn(crn)).isNull()
 
@@ -344,6 +348,7 @@ class CaseControllerIT : IntegrationTestBase() {
         cases = listOf(case),
         pageSize = pageSize.toInt(),
       )
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(crn))
       SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = crn, response = case)
     }
 
@@ -422,6 +427,7 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = listOf(case),
       pageSize = pageSize.toInt(),
     )
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(crn))
 
     // different data in DB to verify that the API returns the DB data when v2 is enabled
     val preSeededCaseEntity = buildCaseEntity(
@@ -477,6 +483,7 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = listOf(assignedCase, teamCase),
       pageSize = pageSize.toInt(),
     )
+    ProbationAccessControlStubs.postUserAccessForCrns(deliusUser.username, accessibleCrns = listOf(assignedCase.crn, teamCase.crn))
 
     assertThat(caseRepository.findAll()).hasSize(0)
 
@@ -537,6 +544,80 @@ class CaseControllerIT : IntegrationTestBase() {
     assertThat(failures)
       .withFailMessage("Incorrect result for:\n%s", failures.joinToString("\n"))
       .isEmpty()
+  }
+
+  @Nested
+  inner class LimitedAccess {
+    private val accessibleCrn = "X12345"
+    private val restrictedCrn = "X12346"
+
+    @BeforeEach
+    fun setup() {
+      val staff = buildOfficer(username = deliusUser.username)
+      SasAndDeliusStubs.stubCaseList(
+        deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        cases = listOf(
+          buildCase(crn = accessibleCrn, nomsNumber = "PRI1", staff = staff),
+          buildCase(crn = restrictedCrn, nomsNumber = "PRI2", staff = staff, name = buildName("RestrictedForename", "RestrictedSurname")),
+        ),
+        pageSize = pageSize.toInt(),
+      )
+    }
+
+    @Test
+    fun `should check access for every crn in the case list with probation access control`() {
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf(accessibleCrn),
+        restrictedCrns = listOf(restrictedCrn),
+      )
+
+      val response = getCaseListResponse().data
+
+      assertThat(response.single { it.crn == accessibleCrn }.userAccess).isEqualTo(UserAccess.FULL)
+      assertThat(response.single { it.crn == restrictedCrn }.userAccess).isEqualTo(UserAccess.LIMITED)
+      sasWiremock.verify(
+        1,
+        WireMock.postRequestedFor(WireMock.urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access"))
+          .withRequestBody(WireMock.equalToJson(jsonMapper.writeValueAsString(listOf(accessibleCrn, restrictedCrn)))),
+      )
+    }
+
+    @Test
+    fun `should return a case missing from the probation access control response as limited`() {
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(accessibleCrn))
+
+      val response = getCaseListResponse().data
+
+      assertThat(response.single { it.crn == restrictedCrn })
+        .isEqualTo(CaseDto(crn = restrictedCrn, userAccess = UserAccess.LIMITED, limitedAccess = true))
+    }
+
+    @Test
+    fun `should not match a restricted case by name when searching`() {
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf(accessibleCrn),
+        restrictedCrns = listOf(restrictedCrn),
+      )
+
+      webTestClient.get().uri { it.path("/case-list").queryParam("searchTerm", "RestrictedForename RestrictedSurname").build() }
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(0)
+    }
+
+    @Test
+    fun `returns ServerError when probation access control returns ServerError`() {
+      ProbationAccessControlStubs.postUserAccessServerError(USERNAME_OF_LOGGED_IN_DELIUS_USER)
+
+      webTestClient.get().uri("/case-list")
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+    }
   }
 
   @Nested
@@ -798,14 +879,6 @@ class CaseControllerIT : IntegrationTestBase() {
         } else {
           buildRoshLevel()
         },
-        userRestricted = when (i) {
-          crns.size - 1 -> true
-          else -> false
-        },
-        userExcluded = when (i) {
-          crns.size - 2 -> true
-          else -> false
-        },
         limitedAccess = when (i) {
           crns.size - 1, crns.size - 2 -> true
           else -> false
@@ -817,6 +890,12 @@ class CaseControllerIT : IntegrationTestBase() {
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       cases = cases,
       pageSize = pageSize.toInt(),
+    )
+    ProbationAccessControlStubs.postUserAccessForCrns(
+      USERNAME_OF_LOGGED_IN_DELIUS_USER,
+      accessibleCrns = crns.dropLast(2),
+      excludedCrns = listOf(crns[crns.size - 2]),
+      restrictedCrns = listOf(crns.last()),
     )
 
     return cases

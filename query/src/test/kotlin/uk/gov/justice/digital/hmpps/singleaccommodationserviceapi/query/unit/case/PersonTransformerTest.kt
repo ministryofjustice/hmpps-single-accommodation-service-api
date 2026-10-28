@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ca
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
@@ -40,7 +38,7 @@ class PersonTransformerTest {
         limitedAccess = true,
       )
 
-      val result = toPersonDto(case)
+      val result = toPersonDto(case, limited = false)
 
       assertThat(result).isInstanceOf(FullPersonDto::class.java)
       val fullResult = result as FullPersonDto
@@ -71,7 +69,7 @@ class PersonTransformerTest {
     fun `should default limitedAccess to false when null`() {
       val case = buildCase().copy(limitedAccess = null)
 
-      val result = toPersonDto(case)
+      val result = toPersonDto(case, limited = false)
 
       assertThat(result).isInstanceOf(FullPersonDto::class.java)
       assertThat((result as FullPersonDto).limitedAccess).isFalse()
@@ -81,7 +79,7 @@ class PersonTransformerTest {
     fun `should return null riskLevel when rosh level code is unknown`() {
       val case = buildCase(roshLevel = buildRoshLevel(code = "UNKNOWN"))
 
-      val result = toPersonDto(case)
+      val result = toPersonDto(case, limited = false)
 
       assertThat(result).isInstanceOf(FullPersonDto::class.java)
       assertThat((result as FullPersonDto).riskLevel).isNull()
@@ -91,27 +89,17 @@ class PersonTransformerTest {
     fun `should return null riskLevel when rosh level is missing`() {
       val case = buildCase().copy(roshLevel = null)
 
-      val result = toPersonDto(case)
+      val result = toPersonDto(case, limited = false)
 
       assertThat(result).isInstanceOf(FullPersonDto::class.java)
       assertThat((result as FullPersonDto).riskLevel).isNull()
     }
 
-    @ParameterizedTest
-    @CsvSource(
-      "true,false",
-      "false,true",
-      "true,true",
-    )
-    fun `should transform excluded or restricted case to LimitedPersonDto`(
-      userExcluded: Boolean,
-      userRestricted: Boolean,
-    ) {
+    @Test
+    fun `should transform limited case to LimitedPersonDto`() {
       val case = buildCase(
         crn = "X99999",
         nomsNumber = "B4321CD",
-        userExcluded = userExcluded,
-        userRestricted = userRestricted,
         staff = buildOfficer(
           name = buildName(),
           username = "user.name",
@@ -119,7 +107,7 @@ class PersonTransformerTest {
         team = buildCaseTeam(code = "TEAM2"),
       )
 
-      val result = toPersonDto(case)
+      val result = toPersonDto(case, limited = true)
 
       assertThat(result).isEqualTo(
         LimitedPersonDto(
