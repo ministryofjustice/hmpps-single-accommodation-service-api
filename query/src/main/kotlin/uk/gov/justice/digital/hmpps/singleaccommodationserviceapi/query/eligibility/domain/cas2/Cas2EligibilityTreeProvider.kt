@@ -53,43 +53,43 @@ class Cas2EligibilityTreeProvider(
     )
 
     val eligibilityNextAccommodationNode = builder
-      .ruleSet("Cas2EligibilityNextAccommodation", eligibilityNextAccommodation)
+      .ruleSet(eligibilityNextAccommodation)
       .onPass(confirmed)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     val eligibilityCurrentAccommodationNode = builder
-      .ruleSet("Cas2EligibilityCurrentAccommodation", eligibilityCurrentAccommodation)
+      .ruleSet(eligibilityCurrentAccommodation)
       .onPass(eligibilityNextAccommodationNode)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     val eligibilityReleaseDateNode = builder
-      .ruleSet("Cas2EligibilityReleaseDate", eligibilityReleaseDate)
+      .ruleSet(eligibilityReleaseDate)
       .onPass(eligibilityCurrentAccommodationNode)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     val eligibilityPersonNode = builder
-      .ruleSet("Cas2EligibilityPerson", eligibilityPerson)
+      .ruleSet(eligibilityPerson)
       .onPass(eligibilityReleaseDateNode)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     val completionNode = builder
-      .ruleSet("Cas2Completion", completion)
+      .ruleSet(completion)
       .onPass(placementBooked)
       .onFail(confirmed).applyContextUpdaterOnFailure(completionContextUpdater)
       .build()
 
     val suitabilityNode = builder
-      .ruleSet("Cas2Suitability", suitability)
+      .ruleSet(suitability)
       .onPass(completionNode)
       .onFail(eligibilityPersonNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
       .build()
 
     return builder
-      .ruleSet("Cas2Upcoming", upcoming)
+      .ruleSet(upcoming)
       .onPass(suitabilityNode)
       .onFail(eligibilityPersonNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()

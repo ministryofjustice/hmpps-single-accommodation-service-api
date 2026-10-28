@@ -13,5 +13,6 @@ class Cas2CompletionRuleSet(
     PrioritisedRule(applicationAwaitingArrival),
     PrioritisedRule(arrivedRule),
   )
+  override val name: String = "Completion"
   override fun getRules(): List<PrioritisedRule> = rules
 }

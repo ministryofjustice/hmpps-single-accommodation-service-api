@@ -9,5 +9,6 @@ class PaCompletionRuleSet(
   hasNextAccommodationRule: HasNextAccommodationRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(hasNextAccommodationRule))
+  override val name: String = "Completion"
   override fun getRules(): List<PrioritisedRule> = rules
 }

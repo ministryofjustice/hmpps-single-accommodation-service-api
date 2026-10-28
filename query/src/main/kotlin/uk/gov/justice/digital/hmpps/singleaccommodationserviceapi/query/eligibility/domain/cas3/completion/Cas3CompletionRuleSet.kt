@@ -9,5 +9,6 @@ class Cas3CompletionRuleSet(
   applicationArrived: Cas3ApplicationArrivedRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(applicationArrived))
+  override val name: String = "Completion"
   override fun getRules(): List<PrioritisedRule> = rules
 }

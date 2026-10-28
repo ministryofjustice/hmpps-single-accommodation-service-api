@@ -9,5 +9,6 @@ class DtrUpcomingRuleSet(
   releaseWithinEightWeeks: ReleaseWithinEightWeeksRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(releaseWithinEightWeeks))
+  override val name: String = "Upcoming"
   override fun getRules(): List<PrioritisedRule> = rules
 }

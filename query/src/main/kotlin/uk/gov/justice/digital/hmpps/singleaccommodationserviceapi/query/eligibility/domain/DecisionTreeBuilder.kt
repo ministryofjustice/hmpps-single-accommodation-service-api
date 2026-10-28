@@ -20,10 +20,9 @@ class DecisionTreeBuilder(
   private val engine: RulesEngine,
 ) {
   fun ruleSet(
-    name: String,
     ruleSet: RuleSet,
   ) = RuleSetNodeBuilder(
-    name = name,
+    name = ruleSet.name,
     ruleSet = ruleSet,
     engine = engine,
   )

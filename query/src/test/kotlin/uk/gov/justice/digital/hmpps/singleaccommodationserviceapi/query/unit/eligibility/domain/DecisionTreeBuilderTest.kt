@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain
 
+import io.mockk.every
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
@@ -22,9 +23,10 @@ class DecisionTreeBuilderTest {
   @Test
   fun `ruleSet creates and returns RuleSetNodeBuilder`() {
     val ruleSet: RuleSet = mockk()
+    every { ruleSet.name } returns "TestRuleSet"
     val builder = DecisionTreeBuilder(engine)
 
-    val result = builder.ruleSet("TestRuleSet", ruleSet)
+    val result = builder.ruleSet(ruleSet)
 
     assertThat(result).isInstanceOf(RuleSetNodeBuilder::class.java)
   }

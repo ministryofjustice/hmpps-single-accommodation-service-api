@@ -12,5 +12,7 @@ class Cas2EligibilityReleaseDateRuleSet(
     PrioritisedRule(inPrisonNoReleaseDate, 1),
   )
 
+  override val name: String = "Eligibility Release Date"
+
   override fun getRules(): List<PrioritisedRule> = rules
 }

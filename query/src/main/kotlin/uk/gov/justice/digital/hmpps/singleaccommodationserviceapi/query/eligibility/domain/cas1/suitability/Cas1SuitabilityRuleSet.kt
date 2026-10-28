@@ -16,5 +16,7 @@ class Cas1SuitabilityRuleSet(
     PrioritisedRule(applicationSuitability),
   )
 
+  override val name: String = "Suitability"
+
   override fun getRules(): List<PrioritisedRule> = rules
 }

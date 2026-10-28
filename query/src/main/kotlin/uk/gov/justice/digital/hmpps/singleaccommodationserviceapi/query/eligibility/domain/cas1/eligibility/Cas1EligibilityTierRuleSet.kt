@@ -14,5 +14,7 @@ class Cas1EligibilityTierRuleSet(
     PrioritisedRule(nonMaleRisk, 0),
   )
 
+  override val name: String = "Eligibility Tier"
+
   override fun getRules(): List<PrioritisedRule> = rules
 }

@@ -13,5 +13,7 @@ class Cas3EligibilityNextAccommodationRuleSet(
     PrioritisedRule(noNextAccommodation, 1),
   )
 
+  override val name: String = "Eligibility Next Accommodation"
+
   override fun getRules(): List<PrioritisedRule> = rules
 }

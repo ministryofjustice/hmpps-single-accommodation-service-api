@@ -42,21 +42,21 @@ class DtrEligibilityTreeProvider(
     val accepted = builder.outcome("accepted", ServiceResultNew(ServiceStatusNew.DTR_ACCEPTED))
 
     val completionNode = builder
-      .ruleSet("DtrCompletion", completion)
+      .ruleSet(completion)
       .onPass(accepted)
       .onFail(confirmed).applyContextUpdaterOnFailure(completionContextUpdater)
       .build()
 
     // runs when the person is eligible (no next accommodation) and has no active referral
     val upcomingNode = builder
-      .ruleSet("DtrUpcoming", upcoming)
+      .ruleSet(upcoming)
       .applyContextUpdaterOnFailure(upcomingContextUpdater)
       .onPassAndFail(confirmed)
       .build()
 
     //  has next accommodation to produce NOT_REQUIRED
     val eligibilityNode = builder
-      .ruleSet("DtrEligibility", eligibility)
+      .ruleSet(eligibility)
       .onPass(upcomingNode)
       .onFail(notRequired).propagateContextOnFailure()
       .build()
@@ -64,7 +64,7 @@ class DtrEligibilityTreeProvider(
     // runs when there is an active referral
     // we dont care about the 8 week release window - surface the referral
     return builder
-      .ruleSet("DtrSuitability", suitability)
+      .ruleSet(suitability)
       .onPass(completionNode)
       .onFail(eligibilityNode).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_STARTED))
       .build()

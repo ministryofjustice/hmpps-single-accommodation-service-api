@@ -10,5 +10,6 @@ class DtrEligibilityRuleSet(
   noNextAccommodation: NoNextAccommodationRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(noNextAccommodation, 0))
+  override val name: String = "Eligibility"
   override fun getRules(): List<PrioritisedRule> = rules
 }
