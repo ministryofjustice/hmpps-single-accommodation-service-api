@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.customc
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
@@ -17,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedAccessService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.filterCases
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.sortCases
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.time.Clock
@@ -31,7 +33,12 @@ class CustomCaseListQueryService(
   private val limitedAccessService: LimitedAccessService,
   private val clock: Clock,
 ) {
-  fun getCustomCaseList(): ApiResponseDto<List<CaseDto>> {
+  fun getCustomCaseList(
+    searchTerm: String? = null,
+    riskLevel: RiskLevel? = null,
+    teamCode: String? = null,
+    peopleType: PeopleType? = null,
+  ): ApiResponseDto<List<CaseDto>> {
     val user = userService.authorizeAndRetrieveUser()
     val caseIds = userCustomCaseListRepository.findAllBySasUserId(user.id).map { it.sasCaseId }
     if (caseIds.isEmpty()) return toApiResponseDto(data = emptyList())
@@ -43,12 +50,25 @@ class CustomCaseListQueryService(
 
     val limitedAccessCrns = limitedAccessService.getLimitedAccessCrns(crns, orchestrationResult.data.caseAccess)
     val caseSummariesByCrn = orchestrationResult.data.caseSummaries.associateBy { it.crn }
-    val caseDtos = caseEntities.map {
-      val crn = it.latestCrn()
-      if (crn in limitedAccessCrns) toLimitedCaseDto(crn) else it.toCustomCaseListCaseDto(caseSummariesByCrn[crn])
-    }
+    val caseDtos = caseEntities.map { entity ->
+      val crn = entity.latestCrn()
+      val summary = caseSummariesByCrn[crn]
+      if (crn in limitedAccessCrns || summary == null) {
+        toLimitedCaseDto(crn, summary?.manager?.team?.code)
+      } else {
+        entity.toCustomCaseListCaseDto(summary)
+      }
+    }.filterCases(
+      searchTerm = searchTerm,
+      riskLevel = riskLevel,
+      teamCode = teamCode,
+      username = null,
+      peopleType = peopleType,
+    ).sortCases(
+      today = LocalDate.now(clock),
+    )
     return toApiResponseDto(
-      data = caseDtos.sortCases(LocalDate.now(clock)),
+      data = caseDtos,
       upstreamFailures = orchestrationResult.upstreamFailures,
     )
   }
@@ -64,14 +84,14 @@ class CustomCaseListQueryService(
     }
   }
 
-  private fun CaseEntity.toCustomCaseListCaseDto(caseSummary: CaseSummary?) = toCaseDto(
+  private fun CaseEntity.toCustomCaseListCaseDto(caseSummary: CaseSummary) = toCaseDto(
     caseEntity = this,
     crn = latestCrn(),
     prisonNumber = latestPrisonNumber(),
     riskLevel = roshLevelCode?.let { RiskLevel.findByCode(it) },
     pncReference = null,
     assignedTo = toAssignedToDto(),
-    limitedAccess = caseSummary?.let { it.currentExclusion || it.currentRestriction } ?: false,
+    limitedAccess = caseSummary.currentExclusion || caseSummary.currentRestriction,
     teamCode = caseSummary.manager.team.code,
   )
 }
