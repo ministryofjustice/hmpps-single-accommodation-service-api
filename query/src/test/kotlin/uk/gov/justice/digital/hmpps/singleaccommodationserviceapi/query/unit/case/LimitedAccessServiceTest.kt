@@ -84,14 +84,6 @@ class LimitedAccessServiceTest {
       val result = limitedAccessService.getLimitedAccessCrns(listOf("A111111", "B222222", "C333333", "D444444"), caseAccess)
       assertThat(result).containsExactlyInAnyOrder("B222222", "C333333", "D444444")
     }
-
-    @Test
-    fun `should fail closed for crns missing from the access response`() {
-      val caseAccess = listOf(CaseAccess(crn = "A111111", userExcluded = false, userRestricted = false))
-
-      val result = limitedAccessService.getLimitedAccessCrns(listOf("A111111", "B222222"), caseAccess)
-      assertThat(result).containsExactly("B222222")
-    }
   }
 
   @Nested

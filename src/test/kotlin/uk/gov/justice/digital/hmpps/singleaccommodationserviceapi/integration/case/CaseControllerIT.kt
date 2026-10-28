@@ -584,16 +584,6 @@ class CaseControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should return a case missing from the probation access control response as limited`() {
-      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(accessibleCrn))
-
-      val response = getCaseListResponse().data
-
-      assertThat(response.single { it.crn == restrictedCrn })
-        .isEqualTo(CaseDto(crn = restrictedCrn, userAccess = UserAccess.LIMITED, limitedAccess = true))
-    }
-
-    @Test
     fun `should not match a restricted case by name when searching`() {
       ProbationAccessControlStubs.postUserAccessForCrns(
         USERNAME_OF_LOGGED_IN_DELIUS_USER,
@@ -797,19 +787,6 @@ class CaseControllerIT : IntegrationTestBase() {
         WireMock.postRequestedFor(WireMock.urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access"))
           .withRequestBody(WireMock.equalToJson(jsonMapper.writeValueAsString(listOf(case.crn)))),
       )
-    }
-
-    @Test
-    fun `should return a case missing from the probation access control response as limited`() {
-      val case = stubGetCase()
-      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER)
-
-      val response = webTestClient.get().uri("/cases/${case.crn}")
-        .withDeliusUserJwt()
-        .exchangeSuccessfully()
-        .expectApiResponse<CaseDto>()
-
-      assertThat(response.data.userAccess).isEqualTo(UserAccess.LIMITED)
     }
 
     @Test

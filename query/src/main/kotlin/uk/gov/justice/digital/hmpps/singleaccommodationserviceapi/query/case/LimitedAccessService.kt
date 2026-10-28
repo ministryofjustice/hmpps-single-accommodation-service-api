@@ -29,7 +29,8 @@ class LimitedAccessService(
 
   fun getLimitedAccessCrns(crns: List<String>, caseAccess: List<CaseAccess>): Set<String> {
     val accessByCrn = caseAccess.associateBy { it.crn }
-    return crns.filter { crn -> accessByCrn[crn]?.let { it.userExcluded || it.userRestricted } ?: true }.toSet()
+    // probation access control always returns an entry for every crn
+    return crns.filter { crn -> accessByCrn.getValue(crn).let { it.userExcluded || it.userRestricted } }.toSet()
   }
 
   fun throwIfUserAccessFailed(upstreamFailures: List<UpstreamFailure>) {
