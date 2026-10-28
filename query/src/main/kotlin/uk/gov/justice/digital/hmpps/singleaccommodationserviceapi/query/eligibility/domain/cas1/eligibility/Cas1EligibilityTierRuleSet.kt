@@ -5,15 +5,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 
 @Component
-class Cas1EligibilityRuleSet(
+class Cas1EligibilityTierRuleSet(
   maleRisk: MaleRiskEligibilityRule,
   nonMaleRisk: NonMaleRiskEligibilityRule,
-  currentAccommodation: CurrentAccommodationIsPrisonOrCas1Rule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(
     PrioritisedRule(maleRisk, 0),
     PrioritisedRule(nonMaleRisk, 0),
-    PrioritisedRule(currentAccommodation, 1),
   )
 
   override fun getRules(): List<PrioritisedRule> = rules

@@ -7,46 +7,35 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.CurrentAccommodationIsPrisonOrCas1Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityTierRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.NonMaleRiskEligibilityRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
-    Cas1EligibilityRuleSet::class,
+    Cas1EligibilityTierRuleSet::class,
     MaleRiskEligibilityRule::class,
     NonMaleRiskEligibilityRule::class,
-    CurrentAccommodationIsPrisonOrCas1Rule::class,
     ClockConfig::class,
   ],
 )
-class Cas1EligibilityRuleSetTest {
+class Cas1EligibilityTierRuleSetTest {
 
   @Autowired
-  lateinit var cas1EligibilityRuleSet: Cas1EligibilityRuleSet
+  lateinit var cas1EligibilityTierRuleSet: Cas1EligibilityTierRuleSet
 
-  private val expectedCas1EligibilityRuleNames = listOf(
+  private val expectedRuleNames = listOf(
     MaleRiskEligibilityRule::class.java.simpleName,
     NonMaleRiskEligibilityRule::class.java.simpleName,
-    CurrentAccommodationIsPrisonOrCas1Rule::class.java.simpleName,
   )
 
   @Test
-  fun `all Cas1EligibilityRule components are included in Cas1EligibilityRuleSet`() {
-    val ruleSetRules = cas1EligibilityRuleSet.getRules().map { it.rule.javaClass.simpleName }
+  fun `all expected rules are included in Cas1EligibilityTierRuleSet`() {
+    val ruleSetRules = cas1EligibilityTierRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(3)
-      .containsExactlyInAnyOrderElementsOf(expectedCas1EligibilityRuleNames)
-  }
-
-  @Test
-  fun `current accommodation rule has priority 1`() {
-    val rule = cas1EligibilityRuleSet.getRules()
-      .single { it.rule is CurrentAccommodationIsPrisonOrCas1Rule }
-
-    assertThat(rule.priority).isEqualTo(1)
+      .hasSize(2)
+      .containsExactlyInAnyOrderElementsOf(expectedRuleNames)
   }
 }

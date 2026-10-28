@@ -11,7 +11,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityCurrentAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityNextAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityPersonRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityReleaseDateRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingContextUpdater
@@ -26,7 +29,10 @@ class Cas2EligibilityTreeProvider(
   private val suitabilityContextUpdater: Cas2SuitabilityContextUpdater,
   private val completion: Cas2CompletionRuleSet,
   private val completionContextUpdater: Cas2CompletionContextUpdater,
-  private val eligibility: Cas2EligibilityRuleSet,
+  private val eligibilityPerson: Cas2EligibilityPersonRuleSet,
+  private val eligibilityReleaseDate: Cas2EligibilityReleaseDateRuleSet,
+  private val eligibilityCurrentAccommodation: Cas2EligibilityCurrentAccommodationRuleSet,
+  private val eligibilityNextAccommodation: Cas2EligibilityNextAccommodationRuleSet,
 ) : EligibilityTreeProvider {
 
   private val tree: DecisionNode by lazy { build() }
@@ -46,9 +52,27 @@ class Cas2EligibilityTreeProvider(
       ServiceResultNew(serviceStatus = ServiceStatusNew.CAS2_AWAITING_ARRIVAL),
     )
 
-    val eligibilityNode = builder
-      .ruleSet("Cas2Eligibility", eligibility)
+    val eligibilityNextAccommodationNode = builder
+      .ruleSet("Cas2EligibilityNextAccommodation", eligibilityNextAccommodation)
       .onPass(confirmed)
+      .onFail(notEligible).propagateContextOnFailure()
+      .build()
+
+    val eligibilityCurrentAccommodationNode = builder
+      .ruleSet("Cas2EligibilityCurrentAccommodation", eligibilityCurrentAccommodation)
+      .onPass(eligibilityNextAccommodationNode)
+      .onFail(notEligible).propagateContextOnFailure()
+      .build()
+
+    val eligibilityReleaseDateNode = builder
+      .ruleSet("Cas2EligibilityReleaseDate", eligibilityReleaseDate)
+      .onPass(eligibilityCurrentAccommodationNode)
+      .onFail(notEligible).propagateContextOnFailure()
+      .build()
+
+    val eligibilityPersonNode = builder
+      .ruleSet("Cas2EligibilityPerson", eligibilityPerson)
+      .onPass(eligibilityReleaseDateNode)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
@@ -61,13 +85,13 @@ class Cas2EligibilityTreeProvider(
     val suitabilityNode = builder
       .ruleSet("Cas2Suitability", suitability)
       .onPass(completionNode)
-      .onFail(eligibilityNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
+      .onFail(eligibilityPersonNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
       .build()
 
     return builder
       .ruleSet("Cas2Upcoming", upcoming)
       .onPass(suitabilityNode)
-      .onFail(eligibilityNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
+      .onFail(eligibilityPersonNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
   }
 }

@@ -70,7 +70,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityCurrentAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityTierRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.CurrentAccommodationIsPrisonOrCas1Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.NonMaleRiskEligibilityRule
@@ -88,7 +89,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationAwaitingArrivalRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityCurrentAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityNextAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityPersonRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityReleaseDateRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas2Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas3Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCommunityRule
@@ -106,7 +110,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationArrivedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityCurrentAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityNextAccommodationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
@@ -127,7 +132,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsSubmittedRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityNextAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilitySettledRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsSettledRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRule
@@ -183,9 +189,11 @@ class EligibilityServiceTest {
   var cas1ApplicationStartUrl = "CAS1_APPLICATION_START_URL"
   var cas1CompletionContextUpdater = Cas1CompletionContextUpdater()
   var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(Cas1ApplicationPresentRule(), Cas1ApplicationSuitabilityRule(), Cas1ApplicationRelevantExpiredRule())
-  var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
+  var cas1EligibilityTierRuleSet = Cas1EligibilityTierRuleSet(
     MaleRiskEligibilityRule(),
     NonMaleRiskEligibilityRule(),
+  )
+  var cas1EligibilityCurrentAccommodationRuleSet = Cas1EligibilityCurrentAccommodationRuleSet(
     CurrentAccommodationIsPrisonOrCas1Rule(),
   )
   val cas1UpcomingContextUpdater = Cas1UpcomingContextUpdater()
@@ -201,15 +209,21 @@ class EligibilityServiceTest {
     Cas2ApplicationArrivedRule(),
   )
   var cas2SuitabilityRuleSet = Cas2SuitabilityRuleSet(Cas2ApplicationSubmittedRule(), Cas2SuitableStatusRule())
-  var cas2EligibilityRuleSet = Cas2EligibilityRuleSet(
+  var cas2EligibilityPersonRuleSet = Cas2EligibilityPersonRuleSet(
     Under18Rule(clock),
+    SingleLetterTierRule(),
+    SexualOffenceRegistrationsRule(),
+  )
+  var cas2EligibilityReleaseDateRuleSet = Cas2EligibilityReleaseDateRuleSet(
+    InPrisonNoReleaseDateRule(),
+  )
+  var cas2EligibilityCurrentAccommodationRuleSet = Cas2EligibilityCurrentAccommodationRuleSet(
     CurrentAccommodationTypeIsCas3Rule(),
     CurrentAccommodationTypeIsCas2Rule(),
     CurrentAccommodationTypeIsCommunityRule(),
+  )
+  var cas2EligibilityNextAccommodationRuleSet = Cas2EligibilityNextAccommodationRuleSet(
     NoNextAccommodationRule(),
-    SingleLetterTierRule(),
-    SexualOffenceRegistrationsRule(),
-    InPrisonNoReleaseDateRule(),
   )
   val cas2UpcomingContextUpdater = Cas2UpcomingContextUpdater()
   var cas2UpcomingRuleSet = Cas2UpcomingRuleSet(ReleaseWithin15DaysRule(clock))
@@ -228,8 +242,10 @@ class EligibilityServiceTest {
     Cas3AssessmentSuitabilityRule(),
   )
   var cas3CompletionRuleSet = Cas3CompletionRuleSet(Cas3ApplicationArrivedRule())
-  var cas3EligibilityRuleSet = Cas3EligibilityRuleSet(
+  var cas3EligibilityCurrentAccommodationRuleSet = Cas3EligibilityCurrentAccommodationRuleSet(
     CurrentAccommodationTypeRule(),
+  )
+  var cas3EligibilityNextAccommodationRuleSet = Cas3EligibilityNextAccommodationRuleSet(
     NoNextAccommodationRule(),
   )
   var cas3PrerequisiteRuleSet = Cas3PrerequisiteRuleSet(
@@ -255,9 +271,11 @@ class EligibilityServiceTest {
 
   // CRS
   var crsUiUrl = "CRS_UI_URL"
-  var crsEligibilityRuleSet = CrsEligibilityRuleSet(
-    NoNextAccommodationRule(),
+  var crsEligibilitySettledRuleSet = CrsEligibilitySettledRuleSet(
     IsSettledRule(),
+  )
+  var crsEligibilityNextAccommodationRuleSet = CrsEligibilityNextAccommodationRuleSet(
+    NoNextAccommodationRule(),
   )
   var crsCompletionRuleSet = CrsCompletionRuleSet(
     CrsSubmittedRule(),
@@ -284,7 +302,8 @@ class EligibilityServiceTest {
     suitability = cas1SuitabilityRuleSet,
     suitabilityContextUpdater = cas1SuitabilityContextUpdater,
     completionContextUpdater = cas1CompletionContextUpdater,
-    eligibility = cas1EligibilityRuleSet,
+    eligibilityTier = cas1EligibilityTierRuleSet,
+    eligibilityCurrentAccommodation = cas1EligibilityCurrentAccommodationRuleSet,
   )
 
   private val cas2Tree = Cas2EligibilityTreeProvider(
@@ -295,7 +314,10 @@ class EligibilityServiceTest {
     suitabilityContextUpdater = cas2SuitabilityContextUpdater,
     completion = cas2CompletionRuleSet,
     completionContextUpdater = cas2CompletionContextUpdater,
-    eligibility = cas2EligibilityRuleSet,
+    eligibilityPerson = cas2EligibilityPersonRuleSet,
+    eligibilityReleaseDate = cas2EligibilityReleaseDateRuleSet,
+    eligibilityCurrentAccommodation = cas2EligibilityCurrentAccommodationRuleSet,
+    eligibilityNextAccommodation = cas2EligibilityNextAccommodationRuleSet,
   )
 
   private val cas3Tree = Cas3EligibilityTreeProvider(
@@ -306,7 +328,8 @@ class EligibilityServiceTest {
     suitabilityContextUpdater = cas3SuitabilityContextUpdater,
     completion = cas3CompletionRuleSet,
     completionContextUpdater = cas3CompletionContextUpdater,
-    eligibility = cas3EligibilityRuleSet,
+    eligibilityCurrentAccommodation = cas3EligibilityCurrentAccommodationRuleSet,
+    eligibilityNextAccommodation = cas3EligibilityNextAccommodationRuleSet,
     prerequisite = cas3PrerequisiteRuleSet,
     cas3PrerequisiteContextUpdater = cas3PrerequisiteContextUpdater,
   )
@@ -323,7 +346,8 @@ class EligibilityServiceTest {
 
   private val crsTree = CrsEligibilityTreeProvider(
     builder = builder,
-    eligibility = crsEligibilityRuleSet,
+    eligibilitySettled = crsEligibilitySettledRuleSet,
+    eligibilityNextAccommodation = crsEligibilityNextAccommodationRuleSet,
     completion = crsCompletionRuleSet,
     completionContextUpdater = crsCompletionContextUpdater,
     upcoming = crsUpcomingRuleSet,

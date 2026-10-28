@@ -7,7 +7,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityCurrentAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityTierRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
@@ -22,7 +23,9 @@ class Cas1EligibilityTreeProvider(
   private val suitability: Cas1SuitabilityRuleSet,
   private val suitabilityContextUpdater: Cas1SuitabilityContextUpdater,
   private val completionContextUpdater: Cas1CompletionContextUpdater,
-  private val eligibility: Cas1EligibilityRuleSet,
+  private val eligibilityTier: Cas1EligibilityTierRuleSet,
+  private val eligibilityCurrentAccommodation: Cas1EligibilityCurrentAccommodationRuleSet,
+
 ) : EligibilityTreeProvider {
 
   private val tree: DecisionNode by lazy { build() }
@@ -38,22 +41,28 @@ class Cas1EligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS1)
 
-    val eligibilityNode = builder
-      .ruleSet("Cas1Eligibility", eligibility)
+    val eligibilityCurrentAccommodationNode = builder
+      .ruleSet("Cas1EligibilityCurrentAccommodation", eligibilityCurrentAccommodation)
       .onPass(confirmed)
+      .onFail(notEligible).propagateContextOnFailure()
+      .build()
+
+    val eligibilityTierNode = builder
+      .ruleSet("Cas1EligibilityTier", eligibilityTier)
+      .onPass(eligibilityCurrentAccommodationNode)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     val suitabilityNode = builder
       .ruleSet("Cas1Suitability", suitability)
       .onPass(confirmed).applyContextUpdaterOnPass(completionContextUpdater)
-      .onFail(eligibilityNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
+      .onFail(eligibilityTierNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
       .build()
 
     return builder
       .ruleSet("Cas1Upcoming", upcoming)
       .onPass(suitabilityNode)
-      .onFail(eligibilityNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
+      .onFail(eligibilityTierNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
   }
 }

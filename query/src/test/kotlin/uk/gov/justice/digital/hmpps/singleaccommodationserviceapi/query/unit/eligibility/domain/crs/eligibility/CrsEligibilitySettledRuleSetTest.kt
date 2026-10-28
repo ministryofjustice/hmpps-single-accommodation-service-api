@@ -7,35 +7,32 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilitySettledRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsSettledRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
-    CrsEligibilityRuleSet::class,
+    CrsEligibilitySettledRuleSet::class,
     IsSettledRule::class,
-    NoNextAccommodationRule::class,
     ClockConfig::class,
   ],
 )
-class CrsEligibilityRuleSetTest {
+class CrsEligibilitySettledRuleSetTest {
 
   @Autowired
-  lateinit var crsEligibilityRuleSet: CrsEligibilityRuleSet
+  lateinit var crsEligibilitySettledRuleSet: CrsEligibilitySettledRuleSet
 
-  private val expectedCrsEligibilityRuleNames = listOf(
-    NoNextAccommodationRule::class.java.simpleName,
+  private val expectedRuleNames = listOf(
     IsSettledRule::class.java.simpleName,
   )
 
   @Test
-  fun `all CrsEligibilityRule components are included in CrsEligibilityRuleSet`() {
-    val ruleSetRules = crsEligibilityRuleSet.getRules().map { it.rule.javaClass.simpleName }
+  fun `all expected rules are included in CrsEligibilitySettledRuleSet`() {
+    val ruleSetRules = crsEligibilitySettledRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(2)
-      .containsExactlyInAnyOrderElementsOf(expectedCrsEligibilityRuleNames)
+      .hasSize(1)
+      .containsExactlyInAnyOrderElementsOf(expectedRuleNames)
   }
 }

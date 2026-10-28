@@ -6,34 +6,33 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityCurrentAccommodationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
-    Cas3EligibilityRuleSet::class,
+    Cas3EligibilityCurrentAccommodationRuleSet::class,
     CurrentAccommodationTypeRule::class,
-    NoNextAccommodationRule::class,
+    ClockConfig::class,
   ],
 )
-class Cas3EligibilityRuleSetTest {
+class Cas3EligibilityCurrentAccommodationRuleSetTest {
 
   @Autowired
-  lateinit var cas3EligibilityRuleSet: Cas3EligibilityRuleSet
+  lateinit var cas3EligibilityCurrentAccommodationRuleSet: Cas3EligibilityCurrentAccommodationRuleSet
 
-  private val expectedCas3EligibilityRuleNames = listOf(
+  private val expectedRuleNames = listOf(
     CurrentAccommodationTypeRule::class.java.simpleName,
-    NoNextAccommodationRule::class.java.simpleName,
   )
 
   @Test
-  fun `all Cas3EligibilityRule components are included in Cas3EligibilityRuleSet`() {
-    val ruleSetRules = cas3EligibilityRuleSet.getRules().map { it.rule.javaClass.simpleName }
+  fun `all expected rules are included in Cas3EligibilityCurrentAccommodationRuleSet`() {
+    val ruleSetRules = cas3EligibilityCurrentAccommodationRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(2)
-      .containsExactlyInAnyOrderElementsOf(expectedCas3EligibilityRuleNames)
+      .hasSize(1)
+      .containsExactlyInAnyOrderElementsOf(expectedRuleNames)
   }
 }
