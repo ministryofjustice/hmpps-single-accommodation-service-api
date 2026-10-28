@@ -117,19 +117,19 @@ val notEligible = treeBuilder.notEligible()
 
 // Build from bottom up (last → first)
 val eligibility = treeBuilder
-    .ruleSet("Cas1Eligibility", eligibilityRuleSet, contextUpdater)
+    .ruleSet(eligibilityRuleSet, contextUpdater)
     .onPass(confirmed)
     .onFail(notEligible)
     .build()
 
 val suitability = treeBuilder
-    .ruleSet("Cas1Suitability", suitabilityRuleSet, contextUpdater)
+    .ruleSet(suitabilityRuleSet, contextUpdater)
     .onPass(confirmed)
     .onFail(eligibility)
     .build()
 
 val tree = treeBuilder
-    .ruleSet("Cas1Completion", completionRuleSet, contextUpdater)
+    .ruleSet(completionRuleSet, contextUpdater)
     .onPass(confirmed)
     .onFail(suitability)
     .build()
@@ -147,7 +147,7 @@ val customOutcome = treeBuilder.outcome(
 )
 
 val tree = treeBuilder
-    .ruleSet("MyRuleSet", myRuleSet, myContextUpdater)
+    .ruleSet(myRuleSet, myContextUpdater)
     .onPass(customOutcome)
     .onFail(treeBuilder.notEligible())
     .build()

@@ -54,37 +54,37 @@ class Cas3EligibilityTreeProvider(
     )
 
     val prerequisiteNode = builder
-      .ruleSet("Cas3Prerequisite", prerequisite)
+      .ruleSet(prerequisite)
       .onPass(confirmed)
       .onFail(confirmed).applyContextUpdaterOnFailure(cas3PrerequisiteContextUpdater)
       .build()
 
     val eligibilityNextAccommodationNode = builder
-      .ruleSet("Cas3EligibilityNextAccommodation", eligibilityNextAccommodation)
+      .ruleSet(eligibilityNextAccommodation)
       .onPass(prerequisiteNode)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     val eligibilityCurrentAccommodationNode = builder
-      .ruleSet("Cas3EligibilityCurrentAccommodation", eligibilityCurrentAccommodation)
+      .ruleSet(eligibilityCurrentAccommodation)
       .onPass(eligibilityNextAccommodationNode)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     val completionNode = builder
-      .ruleSet("Cas3Completion", completion)
+      .ruleSet(completion)
       .onPass(arrived)
       .onFail(confirmed).applyContextUpdaterOnFailure(completionContextUpdater)
       .build()
 
     val suitabilityNode = builder
-      .ruleSet("Cas3Suitability", suitability)
+      .ruleSet(suitability)
       .onPass(completionNode)
       .onFail(eligibilityCurrentAccommodationNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
       .build()
 
     return builder
-      .ruleSet("Cas3Upcoming", upcoming)
+      .ruleSet(upcoming)
       .onPass(suitabilityNode)
       .onFail(eligibilityCurrentAccommodationNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()

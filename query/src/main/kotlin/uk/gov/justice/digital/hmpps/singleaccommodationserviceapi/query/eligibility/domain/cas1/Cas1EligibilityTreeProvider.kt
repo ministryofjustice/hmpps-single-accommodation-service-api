@@ -42,25 +42,25 @@ class Cas1EligibilityTreeProvider(
     val notEligible = builder.notEligible(ServiceType.CAS1)
 
     val eligibilityCurrentAccommodationNode = builder
-      .ruleSet("Cas1EligibilityCurrentAccommodation", eligibilityCurrentAccommodation)
+      .ruleSet(eligibilityCurrentAccommodation)
       .onPass(confirmed)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     val eligibilityTierNode = builder
-      .ruleSet("Cas1EligibilityTier", eligibilityTier)
+      .ruleSet(eligibilityTier)
       .onPass(eligibilityCurrentAccommodationNode)
       .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     val suitabilityNode = builder
-      .ruleSet("Cas1Suitability", suitability)
+      .ruleSet(suitability)
       .onPass(confirmed).applyContextUpdaterOnPass(completionContextUpdater)
       .onFail(eligibilityTierNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
       .build()
 
     return builder
-      .ruleSet("Cas1Upcoming", upcoming)
+      .ruleSet(upcoming)
       .onPass(suitabilityNode)
       .onFail(eligibilityTierNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
