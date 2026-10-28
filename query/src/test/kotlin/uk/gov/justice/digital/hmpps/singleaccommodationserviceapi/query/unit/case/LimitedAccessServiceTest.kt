@@ -6,9 +6,11 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorCallOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.ErrorDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.FailureType
@@ -18,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.ProbationAccessControlService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.UserCaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedAccessService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 
 @ExtendWith(MockKExtension::class)
 class LimitedAccessServiceTest {
@@ -81,13 +84,23 @@ class LimitedAccessServiceTest {
       val result = limitedAccessService.getLimitedAccessCrns(listOf("A111111", "B222222", "C333333", "D444444"), caseAccess)
       assertThat(result).containsExactlyInAnyOrder("B222222", "C333333", "D444444")
     }
+  }
+
+  @Nested
+  inner class ThrowIfUserAccessFailed {
+    @Test
+    fun `should throw an upstream failure error when any user access batch calls fail`() {
+      val failures = listOf(buildUpstreamFailure(callKey = POST_CASE_SUMMARIES), buildUpstreamFailure(callKey = GET_USER_ACCESS + 1))
+
+      assertThatThrownBy { limitedAccessService.throwIfUserAccessFailed(failures) }
+        .isInstanceOf(UpstreamFailureException::class.java)
+    }
 
     @Test
-    fun `should fail closed for crns missing from the access response`() {
-      val caseAccess = listOf(CaseAccess(crn = "A111111", userExcluded = false, userRestricted = false))
+    fun `should not throw when other upstream calls fail`() {
+      val failures = listOf(buildUpstreamFailure(callKey = POST_CASE_SUMMARIES))
 
-      val result = limitedAccessService.getLimitedAccessCrns(listOf("A111111", "B222222"), caseAccess)
-      assertThat(result).containsExactly("B222222")
+      limitedAccessService.throwIfUserAccessFailed(failures)
     }
   }
 }

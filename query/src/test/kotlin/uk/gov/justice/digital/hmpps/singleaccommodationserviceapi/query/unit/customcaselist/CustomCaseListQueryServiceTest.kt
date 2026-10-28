@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.cu
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
+import io.mockk.runs
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -18,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.excepti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer.toUpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.POST_CASE_SUMMARIES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummary
@@ -76,6 +79,7 @@ class CustomCaseListQueryServiceTest {
       clock = clock,
     )
     every { userService.authorizeAndRetrieveUser() } returns user
+    every { limitedAccessService.throwIfUserAccessFailed(any()) } just runs
   }
 
   @Test
@@ -180,11 +184,13 @@ class CustomCaseListQueryServiceTest {
 
   @Test
   fun `throws an upstream failure exception when the access check fails`() {
+    val failure = buildUpstreamFailure(callKey = GET_USER_ACCESS + 0)
     stubCases(buildCaseEntity { withCrn("A123456") })
     every { customCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, any()) } returns OrchestrationResultDto(
       data = buildCustomCaseListOrchestrationDto(),
-      upstreamFailures = listOf(buildUpstreamFailure(callKey = GET_USER_ACCESS + 0)),
+      upstreamFailures = listOf(failure),
     )
+    every { limitedAccessService.throwIfUserAccessFailed(listOf(failure)) } throws UpstreamFailureException(toUpstreamFailureDto(failure))
 
     assertThatThrownBy { customCaseListQueryService.getCustomCaseList() }
       .isInstanceOf(UpstreamFailureException::class.java)
