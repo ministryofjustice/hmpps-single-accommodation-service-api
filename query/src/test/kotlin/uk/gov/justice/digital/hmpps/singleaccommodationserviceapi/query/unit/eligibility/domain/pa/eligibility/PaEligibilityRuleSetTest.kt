@@ -24,13 +24,13 @@ class PaEligibilityRuleSetTest {
   lateinit var paEligibilityRuleSet: PaEligibilityRuleSet
 
   private val expectedPaEligibilityRuleNames = listOf(
-    Cas3ApplicationNotSuitableRule::class.simpleName,
-    Cas1ApplicationNotSuitableRule::class.simpleName,
+    Cas3ApplicationNotSuitableRule::class.java.simpleName,
+    Cas1ApplicationNotSuitableRule::class.java.simpleName,
   )
 
   @Test
   fun `all PaEligibilityRule components are included in PaEligibilityRuleSet`() {
-    val ruleSetRules = paEligibilityRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = paEligibilityRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(2)

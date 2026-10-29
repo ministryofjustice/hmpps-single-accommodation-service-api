@@ -3,18 +3,26 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controlle
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.constraints.Pattern
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ArrivalDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.EligibilityMutationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 
 @Validated
@@ -22,12 +30,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 class CaseController(
   private val caseQueryService: CaseQueryService,
   private val caseApplicationService: CaseApplicationService,
+  private val userService: UserService,
+  private val eligibilityMutationService: EligibilityMutationService,
 ) {
 
   @Operation(
     summary = "Get list of cases for the current user or selected team",
     description = """Returns the case list for the authenticated user. By default, returns cases allocated to the 
       current user. Supplying the teamCode parameter returns cases allocated to all users in that team. 
+      Supplying the peopleType parameter returns cases filtered by the selected tab (support needed or housing secured).
       Results can be further filtered by risk level and a free-text search term.""",
   )
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
@@ -39,6 +50,8 @@ class CaseController(
     @RequestParam(required = false) searchTerm: String?,
     @Parameter(description = "Team code to retrieve cases for all users in a team rather than the current user.")
     @RequestParam(required = false) teamCode: String?,
+    @Parameter(description = "People type to filter based on tabs")
+    @RequestParam(required = false) peopleType: PeopleType?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     val normalizedTeamCode = teamCode?.trim()?.takeIf { it.isNotEmpty() }
     val personDtos = caseQueryService.getCaseList(normalizedTeamCode)
@@ -46,8 +59,8 @@ class CaseController(
 
     val filteredCaseList = caseQueryService.applyCaseListFilters(personDtos.data, searchTerm, riskLevel, normalizedTeamCode)
     val crnsToPrisonNumbers = filteredCaseList.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
-    caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = !caseQueryService.caseListV2Enabled)
-    val caseDtos = caseQueryService.getCases(filteredCaseList)
+    caseApplicationService.createCases(crnsToPrisonNumbers)
+    val caseDtos = caseQueryService.getCases(filteredCaseList, peopleType)
     return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))
   }
 
@@ -66,8 +79,20 @@ class CaseController(
 
     val crnToPrisonNumber = caseResponse.data?.let { CrnToPrisonNumber(it.crn, it.nomsNumber) }
     // TODO: Change this to upsertCases after MVP
-    caseApplicationService.createCases(listOfNotNull(crnToPrisonNumber), createAsBlankRecord = !caseQueryService.caseListV2Enabled)
+    caseApplicationService.createCases(listOfNotNull(crnToPrisonNumber))
     val caseDto = caseQueryService.getCases(listOfNotNull(caseResponse.data)).first()
     return ResponseEntity.ok(ApiResponseDto(data = caseDto, upstreamFailures = caseResponse.upstreamFailures))
+  }
+
+  @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @PostMapping("/cases/{crn}/applications/{applicationId}/arrival")
+  @ResponseStatus(HttpStatus.CREATED)
+  fun postCas2Arrival(
+    @PathVariable crn: String,
+    @PathVariable applicationId: String,
+    @RequestBody cas2ArrivalDto: Cas2ArrivalDto,
+  ): ResponseEntity<Void> {
+    eligibilityMutationService.markCas2Arrival(crn, applicationId, cas2ArrivalDto, userService.getUsername().toString())
+    return ResponseEntity(HttpStatus.CREATED)
   }
 }

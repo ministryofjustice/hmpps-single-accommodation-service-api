@@ -61,13 +61,4 @@ class CprProbationRecordUpdatedHandlerTest {
     assertThat(cprProbationRecordUpdatedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
-
-  @Test
-  fun `should not refresh case and should process message when case refresh request service is null`() {
-    cprProbationRecordUpdatedHandler =
-      CprProbationRecordUpdatedHandler(caseRepository, inboxEventHelper, null)
-
-    assertThat(cprProbationRecordUpdatedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
-  }
 }

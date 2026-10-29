@@ -30,7 +30,7 @@ object ProposedAccommodationTransformer {
     nextAccommodationStatus = proposedAccommodationEntity.nextAccommodationStatus?.let { toNextAccommodationStatus(it) },
     address = toAddressDetails(proposedAccommodationEntity),
     createdBy = createdBy,
-    createdAt = proposedAccommodationEntity.createdAt!!,
+    createdAt = proposedAccommodationEntity.createdAt,
   )
 
   fun toAddressDetails(entity: ProposedAccommodationEntity): AccommodationAddressDetails = AccommodationAddressDetails(

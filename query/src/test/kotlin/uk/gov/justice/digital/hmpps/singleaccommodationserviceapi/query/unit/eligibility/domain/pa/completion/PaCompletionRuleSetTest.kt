@@ -24,12 +24,12 @@ class PaCompletionRuleSetTest {
   lateinit var paCompletionRuleSet: PaCompletionRuleSet
 
   private val expectedPaCompletionRuleNames = listOf(
-    HasNextAccommodationRule::class.simpleName,
+    HasNextAccommodationRule::class.java.simpleName,
   )
 
   @Test
   fun `all PaCompletionRule components are included in PaCompletionRuleSet`() {
-    val ruleSetRules = paCompletionRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = paCompletionRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(1)

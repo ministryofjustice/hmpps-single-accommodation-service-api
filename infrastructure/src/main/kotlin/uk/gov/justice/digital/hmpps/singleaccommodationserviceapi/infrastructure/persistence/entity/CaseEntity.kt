@@ -12,6 +12,7 @@ import jakarta.persistence.Table
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import java.time.LocalDate
 import java.util.UUID
@@ -39,7 +40,13 @@ class CaseEntity(
   @Enumerated(EnumType.STRING)
   var accommodationStatus: CaseAccommodationStatus? = null,
 
+  var accommodationStatusDate: LocalDate? = null,
+
   var roshLevelCode: String? = null,
+
+  var assignedToForename: String? = null,
+  var assignedToSurname: String? = null,
+  var assignedToUsername: String? = null,
 
   @OneToMany(
     mappedBy = "caseEntity",
@@ -54,4 +61,10 @@ class CaseEntity(
     .identifier
   fun latestPrisonNumber() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.PRISON_NUMBER }.maxByOrNull { it.createdAt }
     ?.identifier
+}
+
+fun CaseEntity.toAssignedToDto(): AssignedToDto? {
+  val forename = assignedToForename ?: return null
+  val surname = assignedToSurname ?: return null
+  return AssignedToDto(forename = forename, surname = surname, username = assignedToUsername)
 }

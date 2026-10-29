@@ -121,14 +121,14 @@ class ProposedAccommodationTimelineServiceTest {
           note = note1Content,
           createdByUserId = user1Id,
           createdAt = noteCreatedAt,
-          proposedAccommodationEntity,
+          proposedAccommodationEntity = proposedAccommodationEntity,
         ),
         buildProposedAccommodationNoteEntity(
           id = UUID.randomUUID(),
           note = note2Content,
           createdByUserId = user2Id,
           createdAt = note2CreatedAt,
-          proposedAccommodationEntity,
+          proposedAccommodationEntity = proposedAccommodationEntity,
         ),
       )
       proposedAccommodationEntity.apply {

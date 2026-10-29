@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 @Component
 class AccommodationCas3EventHandler(
   private val caseRepository: CaseRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
   private val inboxEventHelper: InboxEventHelper,
 ) : InboxEventHandler {
 
@@ -31,7 +31,7 @@ class AccommodationCas3EventHandler(
       null -> InboxEventHandler.Result.IGNORED
 
       else -> {
-        caseRefreshRequestService?.requestLiveRefresh(case.id)
+        caseRefreshRequestService.requestLiveRefresh(case.id)
         log.info(
           "ACCOMMODATION_CAS3 event processed successfully [inboxEventId={}, crn={}]",
           inboxEvent.id,

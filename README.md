@@ -124,7 +124,9 @@ The steps are also available in the pull request checklist[PULL_REQUEST_TEMPLATE
 The eligibility rules engine is in the codebase, you can extract a markdown version, (complete with mermaid diagrams) of the rules engine by running the following command:
 
 ```bash
-./gradlew :query-service:generateRulesEngineMarkdown
+./gradlew :query:generateEligibilityRulesGraph
 ```
 
 the file generated is viewable [here](./docs/eligibility-rules-graph.md)
+
+The pre-push hook in `scripts/hooks/pre-push` regenerates this graph and blocks the push if it differs from the committed version. Review and commit the updated graph before pushing again. Gradle's `copyGitHooks` task installs the script locally (also run automatically by root `compileKotlin`).

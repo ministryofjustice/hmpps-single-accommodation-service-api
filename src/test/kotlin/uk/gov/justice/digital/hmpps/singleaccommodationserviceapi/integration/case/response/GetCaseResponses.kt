@@ -13,7 +13,7 @@ fun expectedGetCaseResponse(): String = """
     "crn": "FAKECRN1",
     "prisonNumber": "PRI1",
     "photoUrl": null,
-    "tierScore": "A1",
+    "tierScore": "A",
     "riskLevel": "VERY_HIGH",
     "pncReference": "Some PNC Reference",
     "assignedTo": {
@@ -23,6 +23,7 @@ fun expectedGetCaseResponse(): String = """
     },
     "userAccess": "FULL",
     "limitedAccess": false,
+    "sexualOffenceRegistrations": ["ARSO"],
     "accommodationSummaries": null
   }
 }
@@ -49,6 +50,7 @@ fun expectedGetCaseResponseSearch(): String = """
     },
     "userAccess": "FULL",
     "limitedAccess": false,
+    "sexualOffenceRegistrations": [],
     "accommodationSummaries": {
       "caseAccommodationStatus": "SETTLED",
       "caseAccommodationStatusDate": null,

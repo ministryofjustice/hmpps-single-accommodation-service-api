@@ -15,6 +15,9 @@ fun buildCaseEntity(
   lastName: String? = "Last",
   dateOfBirth: LocalDate? = LocalDate.of(2000, 12, 3),
   roshLevelCode: String? = null,
+  assignedToForename: String? = null,
+  assignedToSurname: String? = null,
+  assignedToUsername: String? = null,
   accommodationSummariesDto: AccommodationSummariesDto? = null,
   customise: (CaseEntity.() -> Unit)? = null,
 ) = CaseEntity(
@@ -25,9 +28,13 @@ fun buildCaseEntity(
   lastName = lastName,
   dateOfBirth = dateOfBirth,
   roshLevelCode = roshLevelCode,
+  assignedToForename = assignedToForename,
+  assignedToSurname = assignedToSurname,
+  assignedToUsername = assignedToUsername,
   currentAccommodation = accommodationSummariesDto?.currentAccommodation,
   nextAccommodation = accommodationSummariesDto?.nextAccommodation,
   accommodationStatus = accommodationSummariesDto?.caseAccommodationStatus,
+  accommodationStatusDate = accommodationSummariesDto?.caseAccommodationStatusDate,
 ).also { case ->
 
   if (customise != null) {

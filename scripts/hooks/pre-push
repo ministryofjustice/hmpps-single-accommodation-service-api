@@ -8,6 +8,14 @@ echo "Running 'gradle ktlintCheck detekt'"
 
 echo "ktlintCheck complete."
 
+echo "Regenerating eligibility rules graph"
+./gradlew :query:generateEligibilityRulesGraph --no-daemon
+
+if ! git diff --quiet HEAD -- docs/eligibility-rules-graph.md; then
+    echo "Eligibility rules graph differs from the committed version. Review and commit docs/eligibility-rules-graph.md, then push again." >&2
+    exit 1
+fi
+
 # Run prek hooks
 # Resolve PREK
 if [ -n "$PREK" ] && [ -x "$PREK" ]; then

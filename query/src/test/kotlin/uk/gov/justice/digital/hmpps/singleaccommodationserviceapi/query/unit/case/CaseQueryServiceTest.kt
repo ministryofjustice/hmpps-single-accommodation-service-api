@@ -3,22 +3,31 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ca
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
+import io.mockk.runs
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer.toUpstreamFailureDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
@@ -29,19 +38,39 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDtoV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.FullPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedAccessService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseListOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildLimitedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 @ExtendWith(MockKExtension::class)
 class CaseQueryServiceTest {
+  private val clock: Clock = Clock.fixed(Instant.parse("2026-10-01T00:00:00Z"), ZoneOffset.UTC)
+  private val today: LocalDate = LocalDate.now(clock)
+
+  private data class SortCaseDefinition(
+    val crn: String,
+    val status: CaseAccommodationStatus,
+    val statusDate: LocalDate? = null,
+    val firstName: String = "First",
+    val lastName: String = "Last",
+    val hasCurrentAccommodation: Boolean = false,
+  )
+
   @MockK
   lateinit var caseOrchestrationService: CaseOrchestrationService
 
@@ -51,20 +80,32 @@ class CaseQueryServiceTest {
   @MockK
   lateinit var caseRepository: CaseRepository
 
+  @MockK
+  lateinit var limitedAccessService: LimitedAccessService
+
   lateinit var caseQueryService: CaseQueryService
 
   @BeforeEach
   fun setUpCaseQueryService() {
     caseQueryService = CaseQueryService(
       caseOrchestrationService = caseOrchestrationService,
+      limitedAccessService = limitedAccessService,
       userService = userService,
       caseRepository = caseRepository,
-      caseListV2Enabled = false,
+      clock = clock,
     )
+    every { limitedAccessService.throwIfUserAccessFailed(any()) } just runs
   }
 
   private val crnOne = "X12345"
   private val crnTwo = "X12346"
+  private val crnThree = "X12347"
+  private val crnFour = "X12348"
+  private val crnFive = "X12349"
+  private val crnSix = "X12350"
+  private val crnSeven = "X12351"
+  private val crnEight = "X12352"
+  private val crnNine = "X12353"
   private val username = "user1"
 
   val assignedTo = AssignedToDto(
@@ -138,11 +179,12 @@ class CaseQueryServiceTest {
       val roshLevel = buildRoshLevel(code = "RMRH", description = "Medium Risk")
       val case2 = buildCase(crn = crnTwo, name = buildName("Bob"), nomsNumber = "12234", roshLevel = roshLevel)
 
-      val caseList = OrchestrationResultDto(data = listOf(case1, case2))
+      val caseList = OrchestrationResultDto(data = buildCaseListOrchestrationDto(cases = listOf(case1, case2)))
 
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 
       every { caseOrchestrationService.getCaseList(username, "testTeam") } returns caseList
+      every { limitedAccessService.getLimitedAccessCrns(any(), any()) } returns emptySet()
 
       val result = caseQueryService.getCaseList("testTeam")
       assertThat(result.data).hasSize(2)
@@ -170,6 +212,56 @@ class CaseQueryServiceTest {
       assertThat(lastPerson.assignedTo.username).isEqualTo(case2.staff.username)
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
       assertThat(lastPerson.riskLevel).isEqualTo(RiskLevel.MEDIUM)
+    }
+
+    @Test
+    fun `should return cases the limited access service marks as limited as a LimitedPersonDto`() {
+      stubCaseList(
+        cases = listOf(buildCase(crn = crnOne), buildCase(crn = crnTwo)),
+        limitedCrns = setOf(crnTwo),
+      )
+
+      val result = caseQueryService.getCaseList(null)
+
+      assertThat(result.data.single { it.crn == crnOne }).isInstanceOf(FullPersonDto::class.java)
+      assertThat(result.data.single { it.crn == crnTwo }).isInstanceOf(LimitedPersonDto::class.java)
+    }
+
+    @Test
+    fun `should throw an upstream failure exception when any access check batch fails`() {
+      val failure = buildUpstreamFailure(callKey = GET_USER_ACCESS + 1)
+      stubCaseList(cases = listOf(buildCase(crn = crnOne)), upstreamFailures = listOf(failure))
+      every { limitedAccessService.throwIfUserAccessFailed(listOf(failure)) } throws UpstreamFailureException(toUpstreamFailureDto(failure))
+
+      assertThatThrownBy { caseQueryService.getCaseList(null) }
+        .isInstanceOf(UpstreamFailureException::class.java)
+    }
+
+    @Test
+    fun `should return the case list with upstream failures when a Delius page fails`() {
+      stubCaseList(
+        cases = listOf(buildCase(crn = crnOne)),
+        upstreamFailures = listOf(buildUpstreamFailure(callKey = GET_CASE_LIST + username + 1)),
+      )
+
+      val result = caseQueryService.getCaseList(null)
+
+      assertThat(result.data).hasSize(1)
+      assertThat(result.upstreamFailures).hasSize(1)
+    }
+
+    private fun stubCaseList(
+      cases: List<Case>,
+      limitedCrns: Set<String> = emptySet(),
+      upstreamFailures: List<UpstreamFailure> = emptyList(),
+    ) {
+      val caseListOrchestrationDto = buildCaseListOrchestrationDto(cases = cases)
+      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
+      every { caseOrchestrationService.getCaseList(username, null) } returns OrchestrationResultDto(
+        data = caseListOrchestrationDto,
+        upstreamFailures = upstreamFailures,
+      )
+      every { limitedAccessService.getLimitedAccessCrns(cases.map { it.crn }, caseListOrchestrationDto.caseAccess) } returns limitedCrns
     }
   }
 
@@ -337,6 +429,26 @@ class CaseQueryServiceTest {
   @Nested
   inner class GetCases {
 
+    private fun sortCase(
+      crn: String,
+      status: CaseAccommodationStatus,
+      statusDate: LocalDate? = null,
+      firstName: String = "First",
+      lastName: String = "Last",
+      hasCurrentAccommodation: Boolean = false,
+    ) = SortCaseDefinition(
+      crn = crn,
+      status = status,
+      statusDate = statusDate,
+      firstName = firstName,
+      lastName = lastName,
+      hasCurrentAccommodation = hasCurrentAccommodation,
+    )
+
+    private fun assertCrnOrder(result: List<CaseDto>, vararg expectedCrns: String) {
+      assertThat(result.map { it.crn }).containsExactly(*expectedCrns)
+    }
+
     private fun toLimitedCaseDto(crn: String) = CaseDto(
       dateOfBirth = null,
       crn = crn,
@@ -350,22 +462,40 @@ class CaseQueryServiceTest {
       limitedAccess = true,
     )
 
+    private fun setupSortScenario(vararg cases: SortCaseDefinition): List<PersonDto> {
+      val staff = buildOfficer(username = username)
+      val crnList = cases.map { it.crn }
+
+      every { caseRepository.mapByCrns(crnList) } returns cases.associate { sortCase ->
+        sortCase.crn to buildCaseEntity {
+          withCrn(sortCase.crn)
+          accommodationStatus = sortCase.status
+          accommodationStatusDate = sortCase.statusDate
+          firstName = sortCase.firstName
+          lastName = sortCase.lastName
+          if (sortCase.hasCurrentAccommodation) {
+            currentAccommodation = buildAccommodationSummaryDto(crn = sortCase.crn)
+          }
+        }
+      }
+
+      return cases.map { buildFullPersonDto(crn = it.crn, staff = staff) }
+    }
+
+    private fun setupFourCaseScenario(): List<PersonDto> = setupSortScenario(
+      sortCase(crn = crnOne, status = CaseAccommodationStatus.SETTLED, hasCurrentAccommodation = true),
+      sortCase(crn = crnTwo, status = CaseAccommodationStatus.TRANSIENT),
+      sortCase(crn = crnThree, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE),
+      sortCase(crn = crnFour, status = CaseAccommodationStatus.NO_FIXED_ABODE),
+    )
+
     @BeforeEach
     fun setUp() {
       every { userService.getUsername() } returns Username(username)
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = [true, false])
-    fun `CaseDto is redacted when UserAccess is Limited`(v2Enabled: Boolean) {
-      if (v2Enabled) {
-        caseQueryService = CaseQueryService(
-          caseOrchestrationService = caseOrchestrationService,
-          userService = userService,
-          caseRepository = caseRepository,
-          caseListV2Enabled = true,
-        )
-      }
+    @Test
+    fun `CaseDto is redacted when UserAccess is Limited`() {
       every { caseRepository.mapByCrns(any()) } returns emptyMap()
 
       val result = caseQueryService.getCases(personDtos = personDtos)
@@ -379,17 +509,8 @@ class CaseQueryServiceTest {
       assertThat(limitedCases).containsExactly(limitedCaseDto1, limitedCaseDto2)
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = [true, false])
-    fun `should get cases as all cases from case table and populate missing data from personDtos`(v2Enabled: Boolean) {
-      if (v2Enabled) {
-        caseQueryService = CaseQueryService(
-          caseOrchestrationService = caseOrchestrationService,
-          userService = userService,
-          caseRepository = caseRepository,
-          caseListV2Enabled = true,
-        )
-      }
+    @Test
+    fun `should get cases as all cases from case table and populate missing data from personDtos`() {
       val limitedCrn = "limitedCrn"
       val crnList = listOf(crnOne, crnTwo, limitedCrn)
       val staff = buildOfficer(username = username)
@@ -409,110 +530,161 @@ class CaseQueryServiceTest {
       val caseEntity2 = buildCaseEntity { withCrn(crnTwo) }
       val caseEntity3 = buildCaseEntity { withCrn(limitedCrn) }
       val caseEntities = mapOf(crnOne to caseEntity1, crnTwo to caseEntity2, limitedCrn to caseEntity3)
-
-      val caseDto1 = buildCaseDto(crn = crnOne)
-      val caseDto2 = buildCaseDto(crn = crnTwo)
-
+      val caseDto1 = personDto1.toCaseDto(
+        caseEntity = caseEntity1,
+        currentAccommodation = buildAccommodationSummaryDto(crn = crnOne),
+        nextAccommodation = null,
+      )
+      val caseDto2 = personDto2.toCaseDto(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null)
+      val caseDto3 = personDto3.toCaseDto(caseEntity = caseEntity3, currentAccommodation = null, nextAccommodation = null)
       every { caseRepository.mapByCrns(crnList) } returns caseEntities
 
       val result = caseQueryService.getCases(personDtos = personDtos)
 
       assertThat(result).hasSize(3)
-
-      if (v2Enabled) {
-        assertThat(result[0]).isEqualTo(
-          personDto2.toCaseDtoV2(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null),
+      assertThat(result.map { it to it.limitedAccess to it.userAccess })
+        .contains(
+          caseDto1 to false to UserAccess.FULL,
+          caseDto2 to false to UserAccess.FULL,
+          caseDto3 to true to UserAccess.LIMITED,
         )
-        assertThat(result[1])
-          .extracting(CaseDto::crn, CaseDto::limitedAccess, CaseDto::userAccess)
-          .containsExactly(limitedCrn, true, UserAccess.LIMITED)
-        assertThat(result[2]).isEqualTo(
-          personDto1.toCaseDtoV2(
-            caseEntity = caseEntity1,
-            currentAccommodation = buildAccommodationSummaryDto(crn = crnOne),
-            nextAccommodation = null,
-          ),
-        )
-      } else {
-        assertThat(result[0]).isEqualTo(caseDto1)
-        assertThat(result[1]).isEqualTo(caseDto2)
-        assertThat(result[2])
-          .extracting(CaseDto::crn, CaseDto::limitedAccess, CaseDto::userAccess)
-          .containsExactly(limitedCrn, true, UserAccess.LIMITED)
-      }
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = [true, false])
-    fun `should get cases as all cases from case table and sort them`(v2Enabled: Boolean) {
-      if (v2Enabled) {
-        caseQueryService = CaseQueryService(
-          caseOrchestrationService = caseOrchestrationService,
-          userService = userService,
-          caseRepository = caseRepository,
-          caseListV2Enabled = true,
-        )
-      }
-      val crnThree = "X12347"
-      val crnFour = "X12348"
-      val crnList = listOf(crnOne, crnTwo, crnThree, crnFour)
-
-      val staff = buildOfficer(username = username)
-      val personDto1 = buildFullPersonDto(crn = crnOne, staff = staff)
-      val personDto2 = buildFullPersonDto(crn = crnTwo, staff = staff)
-      val personDto3 = buildFullPersonDto(crn = crnThree, staff = staff)
-      val personDto4 = buildFullPersonDto(crn = crnFour, staff = staff)
-      val personDtos = listOf(
-        personDto1,
-        personDto2,
-        personDto3,
-        personDto4,
-      )
-      val caseEntitySettled = buildCaseEntity {
-        withCrn(crnOne)
-        currentAccommodation = buildAccommodationSummaryDto(crn = crnOne)
-        accommodationStatus = CaseAccommodationStatus.SETTLED
-      }
-      val caseEntityTransient = buildCaseEntity {
-        withCrn(crnTwo)
-        accommodationStatus = CaseAccommodationStatus.TRANSIENT
-      }
-      val caseEntityRisk = buildCaseEntity {
-        withCrn(crnThree)
-        accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
-      }
-      val caseEntityNo = buildCaseEntity {
-        withCrn(crnFour)
-        accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
-      }
-      val caseEntities = mapOf(
-        crnOne to caseEntitySettled,
-        crnTwo to caseEntityTransient,
-        crnThree to caseEntityRisk,
-        crnFour to caseEntityNo,
-      )
-
-      val caseDto1 = buildCaseDto(crn = crnOne)
-      val caseDto2 = buildCaseDto(crn = crnTwo)
-      val caseDto3 = buildCaseDto(crn = crnThree)
-      val caseDto4 = buildCaseDto(crn = crnFour)
-
-      every { caseRepository.mapByCrns(crnList) } returns caseEntities
+    @Test
+    fun `should get cases as all cases from case table and sort them`() {
+      val personDtos = setupFourCaseScenario()
 
       val result = caseQueryService.getCases(personDtos = personDtos)
 
       assertThat(result).hasSize(4)
 
-      if (v2Enabled) {
-        assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
-          .containsExactly(
-            crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
-            crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
-            crnTwo to CaseAccommodationStatus.TRANSIENT,
-            crnOne to CaseAccommodationStatus.SETTLED,
-          )
-      } else {
-        assertThat(result).containsExactly(caseDto1, caseDto2, caseDto3, caseDto4)
+      assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+        .containsExactly(
+          crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+          crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
+          crnTwo to CaseAccommodationStatus.TRANSIENT,
+          crnOne to CaseAccommodationStatus.SETTLED,
+        )
+    }
+
+    @Test
+    fun `should sort RISK_OF_NO_FIXED_ABODE by soonest status date, surname, firstname, then crn`() {
+      val personDtos = setupSortScenario(
+        sortCase(crn = crnFive, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Zulu", lastName = "Beta"),
+        sortCase(crn = crnThree, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnOne, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today, firstName = "Whisky", lastName = "Tango"),
+        sortCase(crn = crnFour, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Zulu", lastName = "Beta"),
+        sortCase(crn = crnTwo, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Zulu", lastName = "Alpha"),
+      )
+
+      val result = caseQueryService.getCases(personDtos = personDtos)
+
+      assertCrnOrder(result, crnOne, crnTwo, crnThree, crnFour, crnFive)
+    }
+
+    @Test
+    fun `should sort NO_FIXED_ABODE by oldest status date, surname, firstname, then crn`() {
+      val personDtos = setupSortScenario(
+        sortCase(crn = crnFour, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Zulu", lastName = "Beta"),
+        sortCase(crn = crnOne, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(2), firstName = "Whisky", lastName = "Tango"),
+        sortCase(crn = crnFive, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Zulu", lastName = "Beta"),
+        sortCase(crn = crnThree, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnTwo, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Zulu", lastName = "Alpha"),
+      )
+
+      val result = caseQueryService.getCases(personDtos = personDtos)
+
+      assertCrnOrder(result, crnOne, crnTwo, crnThree, crnFour, crnFive)
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = CaseAccommodationStatus::class, names = ["TRANSIENT", "SETTLED"])
+    fun `should sort by oldest future status dates, then same rules but for past dates`(status: CaseAccommodationStatus) {
+      val personDtos = setupSortScenario(
+        sortCase(crn = crnSix, status = status, statusDate = today.minusDays(2), firstName = "CHARLIE", lastName = "CHARLIE"),
+        sortCase(crn = crnEight, status = status, statusDate = today, firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnSeven, status = status, statusDate = today.minusDays(1), firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnThree, status = status, statusDate = today.plusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnFour, status = status, statusDate = today.plusDays(2), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnOne, status = status, firstName = "Zulu", lastName = "Zulu"),
+        sortCase(crn = crnFive, status = status, statusDate = today.minusDays(2), firstName = "beta", lastName = "beta"),
+        sortCase(crn = crnTwo, status = status, statusDate = today.plusDays(1), firstName = "Alpha", lastName = "Beta"),
+      )
+
+      val result = caseQueryService.getCases(personDtos = personDtos)
+
+      assertCrnOrder(result, crnOne, crnTwo, crnThree, crnFour, crnFive, crnSix, crnSeven, crnEight)
+    }
+
+    @Test
+    fun `should sort each status group independently within the overall status ordering`() {
+      val personDtos = setupSortScenario(
+        sortCase(crn = crnEight, status = CaseAccommodationStatus.SETTLED, statusDate = today.plusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnSix, status = CaseAccommodationStatus.TRANSIENT, statusDate = today, firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnThree, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(2), firstName = "Zulu", lastName = "Zulu"),
+        sortCase(crn = crnSeven, status = CaseAccommodationStatus.SETTLED, firstName = "Zulu", lastName = "Zulu"),
+        sortCase(crn = crnOne, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today, firstName = "Zulu", lastName = "Zulu"),
+        sortCase(crn = crnNine, status = CaseAccommodationStatus.SETTLED, statusDate = today, firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnFour, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnTwo, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnFive, status = CaseAccommodationStatus.TRANSIENT, firstName = "Zulu", lastName = "Zulu"),
+      )
+
+      val result = caseQueryService.getCases(personDtos = personDtos)
+
+      assertCrnOrder(
+        result,
+        crnOne,
+        crnTwo,
+        crnThree,
+        crnFour,
+        crnFive,
+        crnSix,
+        crnSeven,
+        crnEight,
+        crnNine,
+      )
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = ["HOUSED", "NFA_RISK", "<NULL>"],
+      nullValues = ["<NULL>"],
+    )
+    fun `should get cases as all cases from case table and filter them`(peopleType: PeopleType?) {
+      val personDtos = setupFourCaseScenario()
+
+      val result = caseQueryService.getCases(personDtos = personDtos, peopleType = peopleType)
+
+      when (peopleType) {
+        PeopleType.HOUSED -> {
+          assertThat(result).hasSize(1)
+          assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+            .containsExactly(
+              crnOne to CaseAccommodationStatus.SETTLED,
+            )
+        }
+
+        PeopleType.NFA_RISK -> {
+          assertThat(result).hasSize(3)
+          assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+            .contains(
+              crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+              crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
+              crnTwo to CaseAccommodationStatus.TRANSIENT,
+            )
+        }
+
+        else -> {
+          assertThat(result).hasSize(4)
+          assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+            .contains(
+              crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+              crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
+              crnTwo to CaseAccommodationStatus.TRANSIENT,
+              crnOne to CaseAccommodationStatus.SETTLED,
+            )
+        }
       }
     }
   }
@@ -544,14 +716,9 @@ class CaseQueryServiceTest {
 
     @Test
     fun `should return case with no upstream failures when all calls succeed`() {
-      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
-      val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne)
+      val caseOrchestrationDto = stubGetCase(buildCaseOrchestrationDto(crn = crnOne))
 
-      every { caseOrchestrationService.getCase(username, crnOne) } returns OrchestrationResultDto(
-        data = caseOrchestrationDto,
-      )
-
-      val person = toPersonDto(caseOrchestrationDto.case!!)
+      val person = toPersonDto(caseOrchestrationDto.case!!, limited = false)
 
       val result = caseQueryService.getCase(crnOne)
       assertThat(result.data).isEqualTo(
@@ -560,6 +727,7 @@ class CaseQueryServiceTest {
           person = person,
           cpr = caseOrchestrationDto.cpr,
           tier = caseOrchestrationDto.tier,
+          sexualOffenceRegistrations = caseOrchestrationDto.sexualOffenceRegistrations,
         ),
       )
       assertThat(result.upstreamFailures).isEmpty()
@@ -567,20 +735,57 @@ class CaseQueryServiceTest {
 
     @Test
     fun `should return case with upstream failures on partial success`() {
-      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
-      val failures = listOf(
-        buildUpstreamFailure(callKey = "getTierByCrn"),
-      )
-      val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne, tier = null)
-
-      every { caseOrchestrationService.getCase(username, crnOne) } returns OrchestrationResultDto(
-        data = caseOrchestrationDto,
-        upstreamFailures = failures,
+      stubGetCase(
+        buildCaseOrchestrationDto(crn = crnOne, tier = null),
+        upstreamFailures = listOf(buildUpstreamFailure(callKey = "getTierByCrn")),
       )
 
       val result = caseQueryService.getCase(crnOne)
       assertThat(result.data.tierScore).isNull()
       assertThat(result.upstreamFailures).hasSize(1)
+    }
+
+    @Test
+    fun `should return a limited case when the limited access service marks the crn as limited`() {
+      stubGetCase(buildCaseOrchestrationDto(crn = crnOne), limitedCrns = setOf(crnOne))
+
+      val result = caseQueryService.getCase(crnOne)
+
+      assertThat(result.data).isEqualTo(CaseDto(crn = crnOne, userAccess = UserAccess.LIMITED, limitedAccess = true))
+    }
+
+    @Test
+    fun `should return a full case with limitedAccess when the user can see a case that has exclusions or restrictions`() {
+      stubGetCase(buildCaseOrchestrationDto(crn = crnOne, case = buildCase(crn = crnOne, limitedAccess = true)))
+
+      val result = caseQueryService.getCase(crnOne)
+
+      assertThat(result.data.userAccess).isEqualTo(UserAccess.FULL)
+      assertThat(result.data.limitedAccess).isTrue()
+    }
+
+    @Test
+    fun `should throw an upstream failure exception when the access check fails`() {
+      val failure = buildUpstreamFailure(callKey = GET_USER_ACCESS + 0)
+      stubGetCase(buildCaseOrchestrationDto(crn = crnOne, caseAccess = emptyList()), upstreamFailures = listOf(failure))
+      every { limitedAccessService.throwIfUserAccessFailed(listOf(failure)) } throws UpstreamFailureException(toUpstreamFailureDto(failure))
+
+      assertThatThrownBy { caseQueryService.getCase(crnOne) }
+        .isInstanceOf(UpstreamFailureException::class.java)
+    }
+
+    private fun stubGetCase(
+      caseOrchestrationDto: CaseOrchestrationDto,
+      limitedCrns: Set<String> = emptySet(),
+      upstreamFailures: List<UpstreamFailure> = emptyList(),
+    ): CaseOrchestrationDto {
+      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
+      every { caseOrchestrationService.getCase(username, crnOne) } returns OrchestrationResultDto(
+        data = caseOrchestrationDto,
+        upstreamFailures = upstreamFailures,
+      )
+      every { limitedAccessService.getLimitedAccessCrns(listOf(crnOne), caseOrchestrationDto.caseAccess) } returns limitedCrns
+      return caseOrchestrationDto
     }
   }
 
@@ -589,46 +794,61 @@ class CaseQueryServiceTest {
 
     @Test
     fun `should return case from delius with no upstream failures when all calls succeed`() {
-      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
-      val caseOrchestrationDto = buildCaseOrchestrationDto(
-        crn = crnOne,
-        cpr = null,
-        tier = null,
-        case = buildCase(crnOne),
-      )
-
-      every { caseOrchestrationService.getCaseFromDelius(username, crnOne) } returns OrchestrationResultDto(
-        data = caseOrchestrationDto,
-      )
+      val caseOrchestrationDto = stubGetCaseFromDelius(buildCaseOrchestrationDto(crn = crnOne, cpr = null, tier = null))
 
       val result = caseQueryService.getCaseFromDelius(crnOne)
 
-      assertThat(result.data).isEqualTo(toPersonDto(caseOrchestrationDto.case!!))
+      assertThat(result.data).isEqualTo(toPersonDto(caseOrchestrationDto.case!!, limited = false))
       assertThat(result.upstreamFailures).isEmpty()
     }
 
     @Test
     fun `should return null case from delius with upstream failures`() {
-      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
-      val failures = listOf(
-        buildUpstreamFailure(callKey = "getCase"),
-      )
-      val caseOrchestrationDto = buildCaseOrchestrationDto(
-        crn = crnOne,
-        cpr = null,
-        tier = null,
-        case = null,
-      )
-
-      every { caseOrchestrationService.getCaseFromDelius(username, crnOne) } returns OrchestrationResultDto(
-        data = caseOrchestrationDto,
-        upstreamFailures = failures,
+      stubGetCaseFromDelius(
+        buildCaseOrchestrationDto(crn = crnOne, cpr = null, tier = null, case = null),
+        upstreamFailures = listOf(buildUpstreamFailure(callKey = "getCase")),
       )
 
       val result = caseQueryService.getCaseFromDelius(crnOne)
 
       assertThat(result.data).isNull()
       assertThat(result.upstreamFailures).hasSize(1)
+    }
+
+    @Test
+    fun `should return a LimitedPersonDto when the limited access service marks the crn as limited`() {
+      stubGetCaseFromDelius(buildCaseOrchestrationDto(crn = crnOne, cpr = null, tier = null), limitedCrns = setOf(crnOne))
+
+      val result = caseQueryService.getCaseFromDelius(crnOne)
+
+      assertThat(result.data).isInstanceOf(LimitedPersonDto::class.java)
+    }
+
+    @Test
+    fun `should throw an upstream failure exception when the access check fails`() {
+      val failure = buildUpstreamFailure(callKey = GET_USER_ACCESS + 0)
+      stubGetCaseFromDelius(
+        buildCaseOrchestrationDto(crn = crnOne, cpr = null, tier = null, caseAccess = emptyList()),
+        upstreamFailures = listOf(failure),
+      )
+      every { limitedAccessService.throwIfUserAccessFailed(listOf(failure)) } throws UpstreamFailureException(toUpstreamFailureDto(failure))
+
+      assertThatThrownBy { caseQueryService.getCaseFromDelius(crnOne) }
+        .isInstanceOf(UpstreamFailureException::class.java)
+    }
+
+    private fun stubGetCaseFromDelius(
+      caseOrchestrationDto: CaseOrchestrationDto,
+      limitedCrns: Set<String> = emptySet(),
+      upstreamFailures: List<UpstreamFailure> = emptyList(),
+    ): CaseOrchestrationDto {
+      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
+      every { caseOrchestrationService.getCaseFromDelius(username, crnOne) } returns OrchestrationResultDto(
+        data = caseOrchestrationDto,
+        upstreamFailures = upstreamFailures,
+      )
+      every { limitedAccessService.getLimitedAccessCrns(listOf(crnOne), caseOrchestrationDto.caseAccess) } returns limitedCrns
+      return caseOrchestrationDto
     }
   }
 }

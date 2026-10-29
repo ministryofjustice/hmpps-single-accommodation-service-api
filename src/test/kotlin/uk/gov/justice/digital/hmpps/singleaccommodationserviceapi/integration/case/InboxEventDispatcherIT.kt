@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
@@ -163,6 +164,13 @@ class InboxEventDispatcherIT : DomainEventIntegrationTestBase() {
     // With 4 events and semaphore(4), parallel execution: ~delayMs. Sequential would be
     // 4*delayMs.
     assertThat(elapsed).isLessThan((delayMs * 3).toLong())
+  }
+
+  @Test
+  fun `fails an event without a handler`() {
+    inboxEventRepository.save(buildInboxEventEntity(eventType = "OTHER"))
+    inboxEventDispatcher.process()
+    inboxAsserter.assertFailedCount(1)
   }
 
   private fun createInboxEvent(

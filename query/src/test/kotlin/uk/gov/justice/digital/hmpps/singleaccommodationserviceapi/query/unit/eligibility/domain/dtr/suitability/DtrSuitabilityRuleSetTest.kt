@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrNotWithdrawnRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
@@ -28,14 +28,14 @@ class DtrSuitabilityRuleSetTest {
   lateinit var dtrSuitabilityRuleSet: DtrSuitabilityRuleSet
 
   private val expectedDtrSuitabilityRuleNames = listOf(
-    DtrPresentRule::class.simpleName,
-    DtrNotWithdrawnRule::class.simpleName,
-    DtrExpiredReferralRule::class.simpleName,
+    DtrPresentRule::class.java.simpleName,
+    DtrNotWithdrawnRule::class.java.simpleName,
+    DtrExpiredReferralRule::class.java.simpleName,
   )
 
   @Test
   fun `all DtrSuitabilityRule components are included in DtrSuitabilityRuleSet`() {
-    val ruleSetRules = dtrSuitabilityRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = dtrSuitabilityRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(3)

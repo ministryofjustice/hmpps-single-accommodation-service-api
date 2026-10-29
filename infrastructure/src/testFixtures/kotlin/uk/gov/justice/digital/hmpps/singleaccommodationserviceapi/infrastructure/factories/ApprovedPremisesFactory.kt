@@ -12,15 +12,20 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBookingCancellation
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3LatestBooking
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PreviousBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Staff
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3SubmittedApplication
+import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -45,10 +50,44 @@ fun buildCas2Application(
   submittedApplication: Cas2SubmittedApplicationSummary? = null,
   id: UUID = UUID.randomUUID(),
   uiUrl: String = "https://cas2-ui/applications/$id",
+  createdAt: OffsetDateTime = OffsetDateTime.now(),
+  createdBy: Cas2Staff = buildCas2Staff(),
+  cohort: String? = null,
 ) = Cas2Application(
   uiUrl = uiUrl,
   id = id,
   submittedApplication = submittedApplication,
+  createdAt = createdAt,
+  createdBy = createdBy,
+  cohort = cohort,
+)
+
+fun buildCas2SubmittedApplicationSummary(
+  latestAssessmentStatus: Cas2AssessmentStatus? = null,
+  submittedAt: OffsetDateTime = OffsetDateTime.now(),
+  offerDeclinedReason: String? = null,
+  cancelledReason: String? = null,
+  markedArrivedDateTime: Instant? = null,
+) = Cas2SubmittedApplicationSummary(
+  submittedAt = submittedAt,
+  latestAssessmentStatus = latestAssessmentStatus,
+  offerDeclinedReason = offerDeclinedReason,
+  cancelledReason = cancelledReason,
+  markedAsArrivedDateTime = markedArrivedDateTime,
+)
+
+fun buildCas2Staff(
+  name: String = "Test Tester",
+  username: String = "testTester@gov.uk",
+  deliusStaffCode: String? = "ABCD123",
+  nomisStaffId: Long? = null,
+  userType: String = "NOMIS",
+) = Cas2Staff(
+  name = name,
+  username = username,
+  deliusStaffCode = deliusStaffCode,
+  nomisStaffId = nomisStaffId,
+  userType = userType,
 )
 
 fun buildCas1PlacementPair(
@@ -81,12 +120,14 @@ fun buildCas1PlacementSummary(
   status: Cas1PlacementStatus? = null,
   cancellationReason: String? = null,
   actualDepartureDate: LocalDate? = null,
+  expectedDepartureDate: LocalDate? = null,
   actualArrivalDate: LocalDate? = null,
   premises: Cas1PremisesSummary? = null,
 ) = Cas1PlacementSummary(
   status = status,
   actualArrivalDate = actualArrivalDate,
   actualDepartureDate = actualDepartureDate,
+  expectedDepartureDate = expectedDepartureDate,
   cancellationReason = cancellationReason,
   premises = premises,
 )
@@ -137,14 +178,6 @@ fun buildCas1ApplicationSummary(
   expiresAt = expiresAt,
 )
 
-fun buildCas2SubmittedApplicationSummary(
-  latestAssessmentStatus: String? = null,
-  submittedAt: OffsetDateTime = OffsetDateTime.now(),
-) = Cas2SubmittedApplicationSummary(
-  submittedAt = submittedAt,
-  latestAssessmentStatus = latestAssessmentStatus,
-)
-
 fun buildCas1Staff(
   name: String = "Test Tester",
   username: String = "testTester",
@@ -158,27 +191,56 @@ fun buildCas1Staff(
 fun buildCas3Application(
   id: UUID = UUID.randomUUID(),
   applicationStatus: Cas3ApplicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
-  assessmentStatus: Cas3AssessmentStatus? = null,
-  bookingStatus: Cas3BookingStatus? = null,
-  premises: Cas3PremisesSummary? = null,
+  submittedApplication: Cas3SubmittedApplication? = when (applicationStatus) {
+    Cas3ApplicationStatus.IN_PROGRESS -> null
+    Cas3ApplicationStatus.SUBMITTED -> buildCas3SubmittedApplication()
+    Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION -> buildCas3SubmittedApplication()
+    Cas3ApplicationStatus.REJECTED -> buildCas3SubmittedApplication()
+  },
   uiUrl: String = "https://cas3-ui/referrals/$id/full",
-  applicationSubmittedDate: LocalDate? = null,
-  applicationSubmittedBy: Cas3Staff = buildCas3Staff(),
-  applicationRejectedReason: String? = null,
-  bookingProvisionalOfferSentDate: LocalDate? = null,
-  previousBookings: List<Cas3ExternalPreviousBooking>? = emptyList(),
 ) = Cas3Application(
   id = id,
   applicationStatus = applicationStatus,
-  bookingStatus = bookingStatus,
-  assessmentStatus = assessmentStatus,
-  premises = premises,
+  submittedApplication = submittedApplication,
   uiUrl = uiUrl,
-  applicationSubmittedDate = applicationSubmittedDate,
-  applicationSubmittedBy = applicationSubmittedBy,
-  applicationRejectedReason = applicationRejectedReason,
-  bookingProvisionalOfferSentDate = bookingProvisionalOfferSentDate,
-  previousBookings = previousBookings,
+)
+
+fun buildCas3SubmittedApplication(
+  submittedDate: LocalDate = LocalDate.now(),
+  submittedBy: Cas3Staff = buildCas3Staff(),
+  assessmentStatus: Cas3AssessmentStatus? = null,
+  assessmentRejectionReason: String? = null,
+  latestBooking: Cas3LatestBooking? = null,
+  previousBookings: List<Cas3PreviousBooking>? = emptyList(),
+) = Cas3SubmittedApplication(
+  submittedDate,
+  submittedBy,
+  assessmentStatus,
+  assessmentRejectionReason,
+  latestBooking,
+  previousBookings,
+)
+
+fun buildCas3LatestBooking(
+  status: Cas3BookingStatus? = null,
+  provisionalOfferSentDate: LocalDate? = null,
+  premises: Cas3BookingPremises = buildCas3LatestBookingPremisesDto(),
+  cancellation: Cas3ExternalPreviousBookingCancellation? = null,
+) = Cas3LatestBooking(
+  status = status,
+  provisionalOfferSentDate = provisionalOfferSentDate,
+  premises = premises,
+  cancellation = cancellation,
+)
+
+fun buildCas3LatestBookingPremisesDto() = Cas3BookingPremises(
+  startDate = LocalDate.now().plusDays(1),
+  endDate = LocalDate.now().plusDays(10),
+  addressLine1 = "123 Test Street",
+  addressLine2 = "Test Village",
+  town = "Test Town",
+  postcode = "AB1 2CD",
+  name = "Test Premises",
 )
 
 fun buildCas3Staff(
@@ -194,7 +256,7 @@ fun buildCas3Staff(
 fun buildCas3ExternalPreviousBooking(
   bookingStatus: Cas3BookingStatus? = null,
   cancellation: Cas3ExternalPreviousBookingCancellation? = null,
-) = Cas3ExternalPreviousBooking(
+) = Cas3PreviousBooking(
   bookingStatus = bookingStatus,
   cancellation = cancellation,
 )
@@ -215,7 +277,7 @@ fun buildCas3PremisesSummary(
   town: String? = "Test Town",
   postcode: String = "AB1 2CD",
   name: String? = "Test Premises",
-) = Cas3PremisesSummary(
+) = Cas3BookingPremises(
   startDate = startDate,
   endDate = endDate,
   addressLine1 = addressLine1,

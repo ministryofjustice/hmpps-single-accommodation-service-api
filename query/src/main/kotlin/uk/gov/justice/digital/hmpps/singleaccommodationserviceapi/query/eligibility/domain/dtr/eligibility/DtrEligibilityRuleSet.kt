@@ -1,14 +1,15 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 
 @Component
 class DtrEligibilityRuleSet(
   noNextAccommodation: NoNextAccommodationRule,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(noNextAccommodation)
-  override fun getRules(): List<Rule> = rules
+  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(noNextAccommodation, 0))
+  override val name: String = "Eligibility"
+  override fun getRules(): List<PrioritisedRule> = rules
 }

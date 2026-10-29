@@ -65,13 +65,6 @@ class DutyToReferController(
     return ResponseEntity(HttpStatus.CREATED)
   }
 
-  @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN')")
-  @GetMapping("/duty-to-refers/{id}")
-  fun getById(@PathVariable id: UUID): ResponseEntity<ApiResponseDto<DutyToReferDto>> {
-    val dutyToRefer = dutyToReferQueryService.getDutyToRefer(id)
-    return ResponseEntity.ok(ApiResponseDto(data = dutyToRefer))
-  }
-
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PutMapping("/cases/{crn}/dtr/{id}")
   fun update(

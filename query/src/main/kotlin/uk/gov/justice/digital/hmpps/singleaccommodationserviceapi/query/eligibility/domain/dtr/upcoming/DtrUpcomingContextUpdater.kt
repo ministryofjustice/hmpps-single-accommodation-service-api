@@ -1,23 +1,24 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
 @Component
 class DtrUpcomingContextUpdater : ContextUpdater() {
+  override val terminalNode = true
+  val upcoming = "upcoming"
 
-  override fun toServiceResult(context: EvaluationContext) = ServiceResult(
-    serviceStatus = ServiceStatus.UPCOMING,
-    action = CaseAction(
-      type = CaseActionType.SUBMIT_DTR_REFERRAL,
-      startDate = context.data.currentAccommodation!!.endDate!!.minusWeeks(8),
-      service = AccommodationService.DTR,
+  override val outcomes = mapOf(
+    upcoming to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.DTR_UPCOMING,
     ),
+  )
+
+  override fun toServiceResult(context: EvaluationContext) = outcome(
+    key = upcoming,
+    actionStartDate = context.data.currentAccommodation!!.endDate!!.minusWeeks(8),
   )
 }

@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import java.util.stream.Stream
 
 class MaleRiskRuleTest {
-  private val description = "FAIL if candidate is Male and is not Tier A3 - B1"
+  private val description = "FAIL if candidate is Male and is not Tier A, B or C"
 
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.eligibility.MaleRiskRuleTest#provideSexAndTierToPass")
@@ -45,39 +45,24 @@ class MaleRiskRuleTest {
   @Test
   fun `rule has correct description`() {
     val result = MaleRiskEligibilityRule().description
-    assertThat(result).isEqualTo("FAIL if candidate is Male and is not Tier A3 - B1")
+    assertThat(result).isEqualTo("FAIL if candidate is Male and is not Tier A, B or C")
   }
 
   private companion object {
 
     private val highRiskTiers = listOf(
-      "A3",
-      "A2",
-      "A1",
-      "A3S",
-      "A2S",
-      "A1S",
-      "B3",
-      "B2",
-      "B1",
-      "B3S",
-      "B2S",
-      "B1S",
+      "A",
+      "B",
+      "C",
     )
 
     private val lowRiskTiers = listOf(
-      "C3",
-      "C3S",
-      "C2",
-      "C1",
-      "C2S",
-      "C1S",
-      "D3",
-      "D2",
-      "D1",
-      "D3S",
-      "D2S",
-      "D1S",
+      "D",
+      "E",
+      "F",
+      "G",
+      "MISSING",
+      "NOT_SUPERVISED",
     )
 
     private val allTiers = highRiskTiers + lowRiskTiers

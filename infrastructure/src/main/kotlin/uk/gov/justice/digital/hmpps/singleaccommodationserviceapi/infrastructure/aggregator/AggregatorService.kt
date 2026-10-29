@@ -9,19 +9,13 @@ import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.client.ResourceAccessException
-import org.springframework.web.client.RestClientResponseException
-import java.net.http.HttpTimeoutException
+import org.springframework.web.reactive.function.client.WebClientRequestException
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isTimeout
 import java.time.LocalDateTime
-
-data class CallsPerIdentifier(
-  val calls: Map<String, (String) -> Any>,
-  val identifiersToIterate: List<String>,
-)
 
 data class AggregatorResult(
   val standardCallsNoIterationResults: Map<String, Any>?,
-  val callsPerIdentifierResults: Map<String, Map<String, Any>>?,
 )
 
 @Service
@@ -34,20 +28,16 @@ class AggregatorService(
 
   fun orchestrateAsyncCalls(
     standardCallsNoIteration: Map<String, () -> Any?> = emptyMap(),
-    callsPerIdentifier: CallsPerIdentifier? = null,
   ): AggregatorResult = runBlocking {
-    if (standardCallsNoIteration.isEmpty() && callsPerIdentifier == null) {
+    if (standardCallsNoIteration.isEmpty()) {
       log.debug("No API calls to execute")
-      return@runBlocking AggregatorResult(emptyMap(), emptyMap())
+      return@runBlocking AggregatorResult(emptyMap())
     }
 
     log.debug("Starting async calls: {}", LocalDateTime.now())
 
     val standardCallsSuspend: Map<String, suspend () -> Any?> =
       standardCallsNoIteration.mapValues { (_, f) -> suspend { f() } }
-
-    val perIdentifierCallsSuspend: Map<String, suspend (String) -> Any>? =
-      callsPerIdentifier?.calls?.mapValues { (_, f) -> f.asSuspend() }
 
     val standardDeferred = async(Dispatchers.IO) {
       if (standardCallsSuspend.isNotEmpty()) {
@@ -57,21 +47,8 @@ class AggregatorService(
       }
     }
 
-    val perIdentifierDeferred = async(Dispatchers.IO) {
-      if (perIdentifierCallsSuspend != null) {
-        orchestrateAsyncCalls(
-          identifiers = callsPerIdentifier.identifiersToIterate,
-          functionCalls = perIdentifierCallsSuspend,
-          semaphore = semaphore,
-        )
-      } else {
-        null
-      }
-    }
-
     val result = AggregatorResult(
       standardCallsNoIterationResults = standardDeferred.await(),
-      callsPerIdentifierResults = perIdentifierDeferred.await(),
     )
     log.debug("Finished async calls at: {}. ", LocalDateTime.now())
 
@@ -122,20 +99,19 @@ class AggregatorService(
   private fun classifyAndWrap(key: String, exception: Exception, identifier: String? = null): AggregatorCallOutcome.Failure {
     val logPrefix = if (identifier != null) "'$key' [identifier=$identifier]" else "'$key'"
     val failure = when (exception) {
-      is RestClientResponseException -> {
+      is WebClientResponseException -> {
         log.error("Upstream HTTP error for call {}: {} {}", logPrefix, exception.statusCode, exception.message)
         AggregatorCallOutcome.Failure(
           FailureType.UPSTREAM_HTTP_ERROR,
           ErrorDetail(
             httpStatus = HttpStatus.resolve(exception.statusCode.value()),
-            message = exception.message ?: "Upstream HTTP error",
+            message = exception.message,
           ),
           identifier = identifier,
         )
       }
-      is ResourceAccessException -> {
-        val isTimeout = exception.cause is HttpTimeoutException
-        if (isTimeout) {
+      is WebClientRequestException -> {
+        if (exception.isTimeout()) {
           log.error("Timeout for call {}: {}", logPrefix, exception.message)
           AggregatorCallOutcome.Failure(
             FailureType.TIMEOUT,

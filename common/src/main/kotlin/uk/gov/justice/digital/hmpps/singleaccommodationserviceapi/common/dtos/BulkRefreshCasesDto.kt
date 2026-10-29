@@ -1,5 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
+data class BulkRefreshAllCasesCommand(
+  val dryRun: Boolean = true,
+)
+
 data class BulkRefreshCasesByCrnCommand(
   val crns: List<String>,
   val dryRun: Boolean = true,

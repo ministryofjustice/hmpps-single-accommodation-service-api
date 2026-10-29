@@ -11,7 +11,6 @@ dependencies {
   testImplementation(libs.mockk)
   testImplementation(testFixtures(project(":infrastructure")))
   testImplementation(testFixtures(project(":common")))
-  testImplementation(libs.apache.commons.csv)
 }
 
 tasks.register<JavaExec>("generateEligibilityRulesGraph") {
@@ -22,5 +21,16 @@ tasks.register<JavaExec>("generateEligibilityRulesGraph") {
     "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GenerateEligibilityRulesGraphKt",
   )
   args(rootProject.projectDir.resolve("docs/eligibility-rules-graph.md").absolutePath)
+  dependsOn(tasks.named("classes"))
+}
+
+tasks.register<JavaExec>("generateEligibilityRulesGraphHtml") {
+  group = "documentation"
+  description = "Generate interactive (Cytoscape.js) eligibility rules graph from code"
+  classpath = sourceSets.main.get().runtimeClasspath
+  mainClass.set(
+    "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GenerateEligibilityRulesGraphHtmlKt",
+  )
+  args(rootProject.projectDir.resolve("docs/eligibility-rules-graph.html").absolutePath)
   dependsOn(tasks.named("classes"))
 }

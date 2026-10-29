@@ -35,4 +35,5 @@ fun buildNomisUserDetail(
   admin = admin,
   active = active,
   staffStatus = staffStatus,
+  administratorOfUserGroups = emptyList(),
 )

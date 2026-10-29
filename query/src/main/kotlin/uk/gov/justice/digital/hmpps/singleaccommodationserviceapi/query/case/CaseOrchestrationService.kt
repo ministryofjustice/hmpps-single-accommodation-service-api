@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierCachingService
 
@@ -26,14 +27,15 @@ class CaseOrchestrationService(
   val sasAndDeliusCachingService: SasAndDeliusCachingService,
   val corePersonRecordCachingService: CorePersonRecordCachingService,
   val tierCachingService: TierCachingService,
+  val limitedAccessService: LimitedAccessService,
   @param:Value($$"${case-list.page-size:100}") val pageSize: Long,
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
   private val initialPage = 0L
 
-  @Cacheable(FULL_CASE_LIST)
-  fun getCaseList(username: String, teamCode: String?): OrchestrationResultDto<List<Case>> {
+  @Cacheable(FULL_CASE_LIST, unless = "!#result.upstreamFailures.isEmpty()")
+  fun getCaseList(username: String, teamCode: String?): OrchestrationResultDto<CaseListOrchestrationDto> {
     log.debug("Retrieving case list from Delius for username {}", username)
     val initialCall = mapOf(
       getCallKey(username, initialPage) to {
@@ -68,9 +70,14 @@ class CaseOrchestrationService(
         getRemainingCases(list.page, username, teamCode)
       } ?: (emptyList<Case>() to emptyList())
 
+    val cases = caseList?.cases?.plus(additionalCases) ?: emptyList()
+    val caseAccessResults = aggregatorService.orchestrateAsyncCalls(
+      standardCallsNoIteration = limitedAccessService.userAccessCalls(username, cases.map { it.crn }),
+    ).standardCallsNoIterationResults!!
+
     return OrchestrationResultDto(
-      data = caseList?.cases?.plus(additionalCases) ?: emptyList(),
-      upstreamFailures = initialResultSet.getFailures() + additionalFailures,
+      data = CaseListOrchestrationDto(cases = cases, caseAccess = limitedAccessService.getCaseAccess(caseAccessResults)),
+      upstreamFailures = initialResultSet.getFailures() + additionalFailures + caseAccessResults.getFailures(),
     )
   }
 
@@ -106,15 +113,17 @@ class CaseOrchestrationService(
     val calls = mapOf(
       ApiCallKeys.GET_CASE to { sasAndDeliusCachingService.getCase(username, crn) },
       ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },
-      ApiCallKeys.GET_TIER to { tierCachingService.getTier(crn) },
-    )
+      ApiCallKeys.GET_TIER_V3 to { tierCachingService.getTier(crn) },
+      ApiCallKeys.GET_SEXUAL_OFFENCE_REGISTRATIONS to { sasAndDeliusCachingService.getSexualOffenceRegistrations(crn) },
+    ) + limitedAccessService.userAccessCalls(username, listOf(crn))
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = calls,
     )
 
     val case = results.standardCallsNoIterationResults!!.getResult<Case>(ApiCallKeys.GET_CASE)
     val cpr = results.standardCallsNoIterationResults!!.getResult<CorePersonRecord>(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
-    val tier = results.standardCallsNoIterationResults!!.getResult<Tier>(ApiCallKeys.GET_TIER)
+    val tier = results.standardCallsNoIterationResults!!.getResult<Tier>(ApiCallKeys.GET_TIER_V3)
+    val sexualOffenceRegistrations = results.standardCallsNoIterationResults!!.getResult<SexualOffenceRegistrations>(ApiCallKeys.GET_SEXUAL_OFFENCE_REGISTRATIONS)
 
     return OrchestrationResultDto(
       data = CaseOrchestrationDto(
@@ -122,6 +131,8 @@ class CaseOrchestrationService(
         cpr = cpr,
         tier = tier,
         case = case,
+        sexualOffenceRegistrations = sexualOffenceRegistrations,
+        caseAccess = limitedAccessService.getCaseAccess(results.standardCallsNoIterationResults!!),
       ),
       upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
     )
@@ -130,7 +141,7 @@ class CaseOrchestrationService(
   fun getCaseFromDelius(username: String, crn: String): OrchestrationResultDto<CaseOrchestrationDto> {
     val calls = mapOf(
       ApiCallKeys.GET_CASE to { sasAndDeliusCachingService.getCase(username, crn) },
-    )
+    ) + limitedAccessService.userAccessCalls(username, listOf(crn))
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = calls,
     )
@@ -143,6 +154,8 @@ class CaseOrchestrationService(
         cpr = null,
         tier = null,
         case = case,
+        sexualOffenceRegistrations = null,
+        caseAccess = limitedAccessService.getCaseAccess(results.standardCallsNoIterationResults!!),
       ),
       upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
     )

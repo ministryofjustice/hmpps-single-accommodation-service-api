@@ -50,6 +50,7 @@ data class Cas1PlacementSummary(
   val status: Cas1PlacementStatus?,
   val actualArrivalDate: LocalDate?,
   val actualDepartureDate: LocalDate?,
+  val expectedDepartureDate: LocalDate?,
   val cancellationReason: String?,
   val premises: Cas1PremisesSummary?,
 )

@@ -1,0 +1,65 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity
+
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
+import org.javers.core.metamodel.annotation.DiffIgnore
+import java.time.LocalDate
+import java.util.UUID
+
+@Entity
+@Table(name = "external_referral")
+open class ExternalReferralEntity(
+  @Id
+  val id: UUID,
+  val crn: String,
+  val caseId: UUID,
+  var referenceNumber: String?,
+  var submissionDate: LocalDate,
+  @Enumerated(EnumType.STRING)
+  var status: ExternalReferralStatus,
+  var organisationName: String?,
+  var email: String?,
+  var phoneNumber: String?,
+  var website: String?,
+  var submissionNote: String?,
+  @Enumerated(EnumType.STRING)
+  var withdrawalReason: ExternalReferralWithdrawalReason?,
+  var otherReason: String?,
+  var withdrawalNote: String?,
+  var outcomeNote: String?,
+
+  @DiffIgnore
+  @OneToMany(
+    mappedBy = "externalReferral",
+    fetch = FetchType.LAZY,
+    cascade = [CascadeType.ALL],
+    orphanRemoval = true,
+  )
+  var notes: MutableList<ExternalReferralNoteEntity> = mutableListOf(),
+
+) : BaseAuditedEntity()
+
+enum class ExternalReferralStatus {
+  SUBMITTED,
+  ACCEPTED,
+  REJECTED,
+  COMPLETED,
+  ARCHIVED,
+}
+
+enum class ExternalReferralWithdrawalReason {
+  PLACEMENT_COMPLETE,
+  ANOTHER_ACCOMMODATION_FOUND,
+  NO_RESPONSE_FROM_ORGANISATION,
+  PERSON_CANNOT_BE_CONTACTED_OR_DISENGAGED,
+  PERSON_NO_LONGER_CONSENTS,
+  PERSON_NOT_SUITABLE,
+  NO_CAPACITY,
+  ANOTHER_REASON,
+}

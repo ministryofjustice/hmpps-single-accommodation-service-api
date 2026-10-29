@@ -26,13 +26,13 @@ class Cas2SuitabilityRuleSetTest {
   lateinit var cas2SuitabilityRuleSet: Cas2SuitabilityRuleSet
 
   private val expectedCas2SuitabilityRuleNames = listOf(
-    Cas2ApplicationSubmittedRule::class.simpleName,
-    Cas2SuitableStatusRule::class.simpleName,
+    Cas2ApplicationSubmittedRule::class.java.simpleName,
+    Cas2SuitableStatusRule::class.java.simpleName,
   )
 
   @Test
   fun `all Cas2SuitabilityRule components are included in Cas2SuitabilityRuleSet`() {
-    val ruleSetRules = cas2SuitabilityRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = cas2SuitabilityRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(2)

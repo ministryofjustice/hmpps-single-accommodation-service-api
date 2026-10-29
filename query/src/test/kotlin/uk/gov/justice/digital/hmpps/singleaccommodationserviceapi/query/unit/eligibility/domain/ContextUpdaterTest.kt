@@ -1,30 +1,27 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain
 
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 
 class ContextUpdaterTest {
   private val context = EvaluationContext(
     data = buildDomainData(),
-    currentResult = buildServiceResult(
-      serviceStatus = ServiceStatus.NOT_STARTED,
-      action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, service = AccommodationService.CAS1),
+    currentResult = buildServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,
     ),
   )
 
   private val failureReasons = listOf(
-    FailureReason.CRS_NOT_SUBMITTED,
+    FailureReason.CRS_NOT_SUBMITTED_MALE,
     FailureReason.DTR_REFERRAL_EXPIRED,
   )
 
@@ -34,9 +31,9 @@ class ContextUpdaterTest {
     fun `update passes failure reasons to toServiceResult context`() {
       var reasonsSeenByToServiceResult: List<FailureReason> = emptyList()
       val updater = object : ContextUpdater() {
-        override fun toServiceResult(context: EvaluationContext): ServiceResult {
-          reasonsSeenByToServiceResult = context.currentResult.failureReasons
-          return buildServiceResult(serviceStatus = ServiceStatus.CANNOT_START_YET)
+        override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
+          reasonsSeenByToServiceResult = context.currentResult!!.failureReasons
+          return buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
         }
       }
 
@@ -48,12 +45,12 @@ class ContextUpdaterTest {
     @Test
     fun `update does not propagate failure reasons by default`() {
       val updater = object : ContextUpdater() {
-        override fun toServiceResult(context: EvaluationContext): ServiceResult = buildServiceResult(serviceStatus = ServiceStatus.CANNOT_START_YET)
+        override fun toServiceResult(context: EvaluationContext): ServiceResultNew = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
       }
 
       val result = updater.update(context, failureReasons)
 
-      assertThat(result.currentResult.failureReasons).isEmpty()
+      assertThat(result.currentResult!!.failureReasons).isEmpty()
     }
 
     @Test
@@ -61,12 +58,12 @@ class ContextUpdaterTest {
       val updater = object : ContextUpdater() {
         override val propagatesFailureReasons: Boolean = true
 
-        override fun toServiceResult(context: EvaluationContext): ServiceResult = buildServiceResult(serviceStatus = ServiceStatus.CANNOT_START_YET)
+        override fun toServiceResult(context: EvaluationContext): ServiceResultNew = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
       }
 
       val result = updater.update(context, failureReasons)
 
-      assertThat(result.currentResult.failureReasons).containsExactlyElementsOf(failureReasons)
+      assertThat(result.currentResult!!.failureReasons).containsExactlyElementsOf(failureReasons)
     }
   }
 
@@ -74,7 +71,7 @@ class ContextUpdaterTest {
   inner class CompanionObjectTests {
     @Test
     fun `constant updater replaces service result and does not propagate failure reasons`() {
-      val constantResult = buildServiceResult(serviceStatus = ServiceStatus.ACCEPTED)
+      val constantResult = buildServiceResultNew(serviceStatus = ServiceStatusNew.DTR_ACCEPTED)
 
       val result = ContextUpdater.constant(constantResult).update(context, failureReasons)
 
@@ -85,9 +82,20 @@ class ContextUpdaterTest {
     fun `identity updater keeps current result fields and propagates failure reasons`() {
       val result = ContextUpdater.identity().update(context, failureReasons)
 
-      assertThat(result.currentResult.serviceStatus).isEqualTo(context.currentResult.serviceStatus)
-      assertThat(result.currentResult.action).isEqualTo(context.currentResult.action)
+      assertThat(result.currentResult!!.serviceStatus).isEqualTo(context.currentResult!!.serviceStatus)
       assertThat(result.currentResult.failureReasons).containsExactlyElementsOf(failureReasons)
+    }
+
+    @Test
+    fun `identity updater throws a clear error when currentResult has not been set`() {
+      val contextWithoutResult = EvaluationContext(
+        data = buildDomainData(),
+        currentResult = null,
+      )
+
+      assertThatIllegalArgumentException()
+        .isThrownBy { ContextUpdater.identity().update(contextWithoutResult, failureReasons) }
+        .withMessageContaining("identity")
     }
   }
 }

@@ -1,33 +1,36 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityCurrentAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityNextAccommodationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.EligibilityRoshRuleSet
 
 @Component
 class Cas3EligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
+  private val upcoming: Cas3UpcomingRuleSet,
+  private val upcomingContextUpdater: Cas3UpcomingContextUpdater,
   private val suitability: Cas3SuitabilityRuleSet,
   private val suitabilityContextUpdater: Cas3SuitabilityContextUpdater,
-  private val completion: Cas3CompletionRuleSet,
   private val completionContextUpdater: Cas3CompletionContextUpdater,
-  private val eligibility: Cas3EligibilityRuleSet,
+  private val eligibilityCurrentAccommodation: Cas3EligibilityCurrentAccommodationRuleSet,
+  private val eligibilityNextAccommodation: Cas3EligibilityNextAccommodationRuleSet,
   private val prerequisite: Cas3PrerequisiteRuleSet,
   private val cas3PrerequisiteContextUpdater: Cas3PrerequisiteContextUpdater,
+  private val eligibilityRosh: EligibilityRoshRuleSet,
 ) : EligibilityTreeProvider {
 
   private val tree: DecisionNode by lazy { build() }
@@ -36,46 +39,47 @@ class Cas3EligibilityTreeProvider(
 
   override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
     data = data,
-    currentResult = serviceResult(),
+    currentResult = null,
   )
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notEligible = builder.notEligible()
-    val cannotStartYet = builder.currentOutcome()
-    val bookingConfirmed = builder.outcome(
-      "bookingConfirmed",
-      serviceResult(),
-    )
+    val notEligible = builder.notEligible(ServiceType.CAS3)
 
     val prerequisiteNode = builder
-      .ruleSet("Cas3Prerequisite", prerequisite, cas3PrerequisiteContextUpdater)
+      .ruleSet(prerequisite)
       .onPass(confirmed)
-      .onFail(cannotStartYet)
+      .onFail(confirmed).applyContextUpdaterOnFailure(cas3PrerequisiteContextUpdater)
       .build()
 
-    val eligibilityWithPrereqNode = builder
-      .ruleSet("Cas3Eligibility", eligibility)
+    val eligibilityRoshNode = builder
+      .ruleSet(eligibilityRosh)
       .onPass(prerequisiteNode)
-      .onFail(notEligible)
+      .onFail(notEligible).propagateContextOnFailure()
       .build()
 
-    val completionNode = builder
-      .ruleSet("Cas3Completion", completion, completionContextUpdater)
-      .onPass(bookingConfirmed)
-      .onFail(confirmed)
+    val eligibilityNextAccommodationNode = builder
+      .ruleSet(eligibilityNextAccommodation)
+      .onPass(eligibilityRoshNode)
+      .onFail(notEligible).propagateContextOnFailure()
+      .build()
+
+    val eligibilityCurrentAccommodationNode = builder
+      .ruleSet(eligibilityCurrentAccommodation)
+      .onPass(eligibilityNextAccommodationNode)
+      .onFail(notEligible).propagateContextOnFailure()
+      .build()
+
+    val suitabilityNode = builder
+      .ruleSet(suitability)
+      .onPass(confirmed).applyContextUpdaterOnPass(completionContextUpdater)
+      .onFail(eligibilityCurrentAccommodationNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
       .build()
 
     return builder
-      .ruleSet("Cas3Suitability", suitability, suitabilityContextUpdater)
-      .onPass(completionNode)
-      .onFail(eligibilityWithPrereqNode)
+      .ruleSet(upcoming)
+      .onPass(suitabilityNode)
+      .onFail(eligibilityCurrentAccommodationNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
   }
-
-  private fun serviceResult(): ServiceResult = ServiceResult(
-    serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
-    link = EligibilityKeys.VIEW_REFERRAL,
-    linkType = LinkType.CAS3_VIEW_REFERRAL,
-  )
 }

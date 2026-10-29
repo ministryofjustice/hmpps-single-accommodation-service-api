@@ -3,15 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 import java.time.LocalDate
 
 class Cas2UpcomingContextUpdaterTest {
@@ -20,25 +17,21 @@ class Cas2UpcomingContextUpdaterTest {
   @Nested
   inner class UpdateTests {
     @Test
-    fun `update returns context UPCOMING with due date one year before end date`() {
-      val endDate = LocalDate.of(2025, 2, 2).plusYears(2)
+    fun `update returns context UPCOMING with due date 15 days before end date`() {
+      val endDate = LocalDate.of(2025, 1, 17)
       val data = buildDomainData(
         currentAccommodation = buildAccommodationSummaryDto(endDate = endDate),
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(),
+        currentResult = buildServiceResultNew(),
       )
 
       val expectedContext = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(
-          serviceStatus = ServiceStatus.UPCOMING,
-          action = CaseAction(
-            type = CaseActionType.START_CAS2_REFERRAL,
-            startDate = endDate.minusYears(1),
-            service = AccommodationService.CAS2,
-          ),
+        currentResult = buildServiceResultNew(
+          serviceStatus = ServiceStatusNew.CAS2_UPCOMING,
+          actionStartDate = endDate.minusDays(15),
         ),
       )
 

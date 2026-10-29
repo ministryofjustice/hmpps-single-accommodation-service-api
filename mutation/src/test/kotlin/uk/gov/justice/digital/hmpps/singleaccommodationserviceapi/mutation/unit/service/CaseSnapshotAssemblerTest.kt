@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseSnapshotAssembler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
+import java.time.LocalDate
 
 @ExtendWith(MockKExtension::class)
 class CaseSnapshotAssemblerTest {
@@ -35,7 +36,7 @@ class CaseSnapshotAssemblerTest {
     val crn = "X12345"
     val cpr = buildCorePersonRecord()
     val prisoner = buildPrisoner()
-    val tier = buildTier(tierScore = "A1")
+    val tier = buildTier(tierScore = "A")
     val currentAccommodation = buildAccommodationSummaryDto(crn = crn)
     val nextAccommodation = buildAccommodationSummaryDto(crn = crn)
     val case = buildCase(crn = crn, roshLevel = buildRoshLevel(code = "RMRH"))
@@ -66,6 +67,7 @@ class CaseSnapshotAssemblerTest {
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       caseAccommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+      caseAccommodationStatusDate = LocalDate.now(),
     )
 
     val aggregate = CaseAggregate.hydrateNew()
@@ -92,7 +94,11 @@ class CaseSnapshotAssemblerTest {
     assertThat(snapshot.currentAccommodation).isEqualTo(currentAccommodation)
     assertThat(snapshot.nextAccommodation).isEqualTo(nextAccommodation)
     assertThat(snapshot.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
+    assertThat(snapshot.accommodationStatusDate).isEqualTo(LocalDate.now())
     assertThat(snapshot.roshLevelCode).isEqualTo("RMRH")
+    assertThat(snapshot.assignedToForename).isEqualTo(case.staff.name.forename)
+    assertThat(snapshot.assignedToSurname).isEqualTo(case.staff.name.surname)
+    assertThat(snapshot.assignedToUsername).isEqualTo(case.staff.username)
   }
 
   @Test
@@ -129,6 +135,10 @@ class CaseSnapshotAssemblerTest {
     assertThat(snapshot.currentAccommodation).isNull()
     assertThat(snapshot.nextAccommodation).isNull()
     assertThat(snapshot.accommodationStatus).isNull()
+    assertThat(snapshot.accommodationStatusDate).isNull()
     assertThat(snapshot.roshLevelCode).isNull()
+    assertThat(snapshot.assignedToForename).isNull()
+    assertThat(snapshot.assignedToSurname).isNull()
+    assertThat(snapshot.assignedToUsername).isNull()
   }
 }

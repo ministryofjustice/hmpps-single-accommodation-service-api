@@ -2,11 +2,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.u
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.test.web.servlet.client.expectBody
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
@@ -14,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.up
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.upstreamfailure.response.expectedSingleCrnTierTimeout
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationAccessControlStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import java.util.UUID
@@ -38,8 +40,10 @@ class UpstreamFailureIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
 
     SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = crn, response = case)
+    SasAndDeliusStubs.stubGetSexualOffenceRegistrations(crn, buildSexualOffenceRegistrations(crn, emptyList()))
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
     TierStubs.getTierOKResponse(crn = crn, tier)
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(crn))
   }
 
   // normalize non-deterministic parts of the failure response (wiremock ports, HTTP client error messages)
@@ -50,7 +54,7 @@ class UpstreamFailureIT : IntegrationTestBase() {
   @Test
   fun `getCase should return ServerError when CPR returns server error`() {
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
@@ -60,7 +64,7 @@ class UpstreamFailureIT : IntegrationTestBase() {
   @Test
   fun `getCase should return ServerError when CPR call times out`() {
     CorePersonRecordStubs.getCorePersonRecordTimeoutResponse(crn)
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
@@ -69,14 +73,14 @@ class UpstreamFailureIT : IntegrationTestBase() {
 
   @Test
   fun `getCase should return partial success when Tier call returns server error`() {
-    TierStubs.getTierServerErrorResponse(crn)
+    val upstreamUrl = TierStubs.getTierServerErrorResponse(crn)
 
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedSingleCrnTierServerError(crn, prisonNumber))
+        assertThatJson(it!!).matchesExpectedJson(expectedSingleCrnTierServerError(crn, prisonNumber, upstreamUrl))
       }
   }
 
@@ -84,7 +88,7 @@ class UpstreamFailureIT : IntegrationTestBase() {
   fun `getCase should return partial success when Tier call times out`() {
     TierStubs.getTierTimeoutResponse(crn)
 
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -98,7 +102,7 @@ class UpstreamFailureIT : IntegrationTestBase() {
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
     TierStubs.getTierServerErrorResponse(crn)
 
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()

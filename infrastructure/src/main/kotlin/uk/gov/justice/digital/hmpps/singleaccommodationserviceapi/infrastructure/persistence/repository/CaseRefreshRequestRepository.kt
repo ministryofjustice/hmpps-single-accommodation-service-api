@@ -14,6 +14,8 @@ import java.util.UUID
 
 interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity, UUID> {
 
+  fun countByStatus(status: CaseRefreshRequestStatus): Long
+
   // Atomic upsert used by live triggers and manual refresh.
   // Invariants:
   // - Always bump generation when a trigger arrives.

@@ -6,19 +6,21 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeam
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OnboardedTeamEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
@@ -26,20 +28,20 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WiremockStubber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.TierEventHandlerConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.UUID
 
-@TestPropertySource(
-  properties = [
-    "scheduling.enabled=true",
-  ],
-)
+@EnableMessageProcessing
 class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
 
   @Autowired
   lateinit var tierEventHandlerConfig: TierEventHandlerConfig
+
+  @Autowired
+  lateinit var onboardedTeamRepository: OnboardedTeamRepository
 
   private lateinit var crn: String
 
@@ -63,6 +65,8 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
     val crn = UUID.randomUUID().toString()
     val prisonNumber = UUID.randomUUID().toString()
 
+    val responses = WiremockStubber().setupCaseOrchestrationStubs(crn, prisonNumber)
+
     caseRepository.save(
       buildCaseEntity(tierScore = null) {
         withCrn(crn)
@@ -84,8 +88,6 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
       ),
       additionalInformation = null,
     )
-
-    val responses = WiremockStubber().setupCaseOrchestrationStubs(crn, prisonNumber)
 
     // identify which event types should trigger a case refresh, add any event specific stubs / data setup.
     val shouldRefresh = when (eventType) {
@@ -121,6 +123,7 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
       }
 
       IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
+      IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED,
       IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED,
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_CANCELLED,
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_CHANGED,
@@ -138,6 +141,7 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
 
       IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED,
       -> {
+        onboardedTeamRepository.save(OnboardedTeamEntity(teamCode = buildTeam().code))
         ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
           CaseSummaries(listOf(buildCaseSummary(crn = crn, nomsId = prisonNumber))),
         )
@@ -158,13 +162,13 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
         assertThat(updated.lastName).isEqualTo(responses.cpr!!.lastName)
       }
     } else {
+      testInboxEventHelper.assertInboxEvent(
+        crn,
+        eventType = eventType.typeName,
+        eventDetailUrl = domainEvent.detailUrl,
+        processedStatus = ProcessedStatus.PROCESSED,
+      )
       waitFor {
-        testInboxEventHelper.assertInboxEvent(
-          crn,
-          eventType = eventType.typeName,
-          eventDetailUrl = domainEvent.detailUrl,
-          processedStatus = ProcessedStatus.PROCESSED,
-        )
         assertThat(caseRefreshRequestRepository.findAll()).hasSize(0)
       }
     }
@@ -174,9 +178,11 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
         inboxEventRepository.findAll().filter { it.payload.contains(crn) || it.payload.contains(prisonNumber) }
       assertThat(matchingEvents).hasSize(1)
       assertThat(matchingEvents.none { it.processedStatus == ProcessedStatus.PENDING }).isTrue()
+      // No refresh request may remain pending or claimed, so no further upstream calls are still to come.
+      assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
     }
 
-    // Hard-fail if any outbound request was not stubbed for this scenario.
+    // Hard-fail if any outbound request was not stubbed for this scenario. Only assert once all work has settled.
     assertThat(sasWiremock.findUnmatchedRequests().requests.map { it.url }).isEmpty()
   }
 
@@ -204,23 +210,26 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
           PersonIdentifier(type = "NOMS", value = prisonNumber),
         ),
       ),
-      additionalInformation = mapOf("cprAddressId" to UUID.randomUUID().toString(), "staffCode" to "123456"),
+      additionalInformation = mapOf(
+        "cprAddressId" to UUID.randomUUID().toString(),
+        "staffCode" to "123456",
+        "prisonId" to "OTHER",
+      ),
     )
 
     testInboxEventHelper.publish(domainEvent)
 
-    waitFor {
-      testInboxEventHelper.assertInboxEvent(
-        crn,
-        eventType = eventType.typeName,
-        eventDetailUrl = domainEvent.detailUrl,
-        processedStatus = ProcessedStatus.IGNORED,
-      )
-      val matchingEvents =
-        inboxEventRepository.findAll().filter { it.payload.contains(crn) || it.payload.contains(prisonNumber) }
-      assertThat(matchingEvents).hasSize(1)
-      assertThat(matchingEvents.none { it.processedStatus == ProcessedStatus.PENDING }).isTrue()
-    }
+    testInboxEventHelper.assertInboxEvent(
+      crn,
+      eventType = eventType.typeName,
+      eventDetailUrl = domainEvent.detailUrl,
+      processedStatus = ProcessedStatus.IGNORED,
+    )
+
+    val matchingEvents =
+      inboxEventRepository.findAll().filter { it.payload.contains(crn) || it.payload.contains(prisonNumber) }
+    assertThat(matchingEvents).hasSize(1)
+    assertThat(matchingEvents.none { it.processedStatus == ProcessedStatus.PENDING }).isTrue()
   }
 
   @Test

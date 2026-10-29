@@ -1,0 +1,96 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.suitability
+
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1CompletionContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
+import java.util.UUID
+import java.util.stream.Stream
+
+class Cas1CompletionContextUpdaterTest {
+  private val updater = Cas1CompletionContextUpdater()
+
+  @Nested
+  inner class UpdateTests {
+    @Test
+    fun `update builds service result using toServiceResult`() {
+      val applicationId = UUID.randomUUID()
+      val data = buildDomainData(
+        cas1Application = buildCas1Application(
+          application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.AWAITING_ASSESSMENT, id = applicationId),
+        ),
+      )
+      val context = EvaluationContext(
+        data = data,
+        currentResult = buildServiceResultNew(),
+      )
+
+      val result = updater.update(context)
+
+      assertThat(result.currentResult!!.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_SUBMITTED)
+      assertThat(result.currentResult.url).isNull()
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("placementAllocatedWithoutLivePlacement")
+  fun `PLACEMENT_ALLOCATED with no live placement maps on the next placement request`(
+    requestForPlacementStatus: Cas1RequestForPlacementStatus,
+    expectedServiceStatus: ServiceStatusNew,
+  ) {
+    val data = buildDomainData(
+      cas1Application = buildCas1Application(
+        application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED),
+        requestForPlacement = buildCas1RequestForPlacementSummary(status = requestForPlacementStatus),
+        placement = null,
+      ),
+    )
+    val context = EvaluationContext(
+      data = data,
+      currentResult = buildServiceResultNew(),
+    )
+
+    val result = updater.update(context)
+
+    assertThat(result.currentResult!!.serviceStatus).isEqualTo(expectedServiceStatus)
+    assertThat(result.currentResult.url).isNull()
+  }
+
+  private companion object {
+    @JvmStatic
+    fun placementAllocatedWithoutLivePlacement(): Stream<Arguments> = Stream.of(
+      Arguments.of(
+        Cas1RequestForPlacementStatus.REQUEST_REJECTED,
+        ServiceStatusNew.CAS1_PLACEMENT_REQUEST_REJECTED,
+      ),
+      Arguments.of(
+        Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN,
+        ServiceStatusNew.CAS1_PLACEMENT_REQUEST_WITHDRAWN,
+      ),
+      Arguments.of(
+        Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED,
+        ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED,
+      ),
+      Arguments.of(
+        Cas1RequestForPlacementStatus.AWAITING_MATCH,
+        ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED,
+      ),
+      Arguments.of(
+        Cas1RequestForPlacementStatus.REQUEST_SUBMITTED,
+        ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED,
+      ),
+    )
+  }
+}

@@ -2,13 +2,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
@@ -19,13 +15,23 @@ class CrsCompletionContextUpdater(
 
   val url = crsUiBaseUrl
 
-  override fun toServiceResult(context: EvaluationContext) = ServiceResult(
-    serviceStatus = ServiceStatus.NOT_STARTED,
-    action = CaseAction(
-      type = if (context.data.sex == SexCode.M) CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL else CaseActionType.SUBMIT_CRS_REFERRAL,
-      service = AccommodationService.CRS,
+  val notStartedMale = "notStartedMale"
+  val notStartedNonMale = "notStartedNonMale"
+
+  override val outcomes = mapOf(
+    notStartedMale to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL,
+      url = url,
     ),
-    link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
-    url = url,
+    notStartedNonMale to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_REFERRAL,
+      url = url,
+    ),
   )
+
+  override fun toServiceResult(context: EvaluationContext) = if (context.data.sex == SexCode.M) {
+    outcome(notStartedMale)
+  } else {
+    outcome(notStartedNonMale)
+  }
 }

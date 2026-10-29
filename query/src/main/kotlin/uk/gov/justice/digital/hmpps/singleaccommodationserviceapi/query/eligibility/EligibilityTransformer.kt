@@ -12,10 +12,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PremisesSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1RequestForPlacementSummaryDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ApplicationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2AssessmentStatusDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2CohortDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ServiceResultWrapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2SubmittedApplicationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationStatus
@@ -24,18 +27,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ExternalPreviousBookingCancellationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ExternalPreviousBookingDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3PremisesSummaryDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CommissionedRehabilitativeServicesDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResultWrapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDtoNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationSummary
@@ -46,11 +50,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBooking
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBookingCancellation
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PreviousBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
@@ -66,107 +72,155 @@ object EligibilityTransformer {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
+  fun getServiceResultActionOrder(
+    cas1: ServiceResultNew,
+    cas2: ServiceResultNew,
+    cas3: ServiceResultNew,
+    dtr: ServiceResultNew,
+    crs: ServiceResultNew,
+    pa: ServiceResultNew,
+  ) = listOf(dtr, crs, cas1, cas2, cas3, pa)
+    .filter { it.serviceStatus.proposedAction != null }
+    .sortedWith(compareBy(nullsLast()) { it.actionStartDate })
+
   fun toEligibilityDto(
     crn: String,
-    cas1: ServiceResult,
-    cas2: ServiceResult,
-    cas3: ServiceResult,
-    dtr: ServiceResult,
-    crs: ServiceResult,
-    pa: ServiceResult,
+    cas1: ServiceResultNew,
+    cas2: ServiceResultNew,
+    cas3: ServiceResultNew,
+    dtr: ServiceResultNew,
+    crs: ServiceResultNew,
+    pa: ServiceResultNew,
     data: DomainData,
-  ) = EligibilityDto(
-    crn = crn,
-    cas1 = Cas1ServiceResult(
-      serviceResult = cas1,
-      cas1Application = toCas1ApplicationDto(data.cas1Application),
-    ),
-    cas2 = Cas2ServiceResult(
-      serviceResult = cas2,
-      cas2Application = toCas2ApplicationDto(data.cas2Application),
-    ),
-    cas3 = Cas3ServiceResult(
-      serviceResult = cas3,
-      cas3Application = toCas3ApplicationDto(data.cas3Application),
-    ),
-    dtr = DtrServiceResult(
-      serviceResult = dtr,
-      caseId = data.dutyToRefer?.caseId,
-      submission = data.dutyToRefer?.submission?.takeIf { surfacesReferralData(dtr) },
-    ),
-    crs = CrsServiceResult(
-      serviceResult = crs,
-      commissionedRehabilitativeServices = toCommissionedRehabilitativeServicesDto(data.commissionedRehabilitativeServices)
-        ?.takeIf { surfacesReferralData(crs) },
-    ),
-    pa = PaServiceResult(
-      serviceResult = pa,
-    ),
-    caseActions = listOf(dtr, crs, cas1, cas2, cas3, pa)
-      .mapNotNull { it.action }
-      .sortedWith(compareBy(nullsLast()) { it.startDate }),
-  )
+  ): EligibilityDtoNew {
+    val serviceResultActionOrder = getServiceResultActionOrder(cas1, cas2, cas3, dtr, crs, pa)
+
+    return EligibilityDtoNew(
+      crn = crn,
+      cas1 = Cas1ServiceResultWrapper(
+        serviceResult = cas1,
+        cas1Application = toCas1ApplicationDto(data.cas1Application),
+        actionPosition = serviceResultActionOrder.indexOf(cas1),
+      ),
+      cas2 = Cas2ServiceResultWrapper(
+        serviceResult = cas2,
+        cas2Application = toCas2ApplicationDto(data.cas2Application),
+        actionPosition = serviceResultActionOrder.indexOf(cas2),
+      ),
+      cas3 = Cas3ServiceResultWrapper(
+        serviceResult = cas3,
+        cas3Application = toCas3ApplicationDto(data.cas3Application),
+        actionPosition = serviceResultActionOrder.indexOf(cas3),
+      ),
+      dtr = DtrServiceResultWrapper(
+        serviceResult = dtr,
+        caseId = data.dutyToRefer?.caseId,
+        submission = data.dutyToRefer?.submission?.takeIf { surfacesReferralData(dtr) },
+        actionPosition = serviceResultActionOrder.indexOf(dtr),
+      ),
+      crs = CrsServiceResultWrapper(
+        serviceResult = crs,
+        commissionedRehabilitativeServices = toCommissionedRehabilitativeServicesDto(data.commissionedRehabilitativeServices)
+          ?.takeIf { crs.serviceStatus == ServiceStatusNew.CRS_SUBMITTED },
+        actionPosition = serviceResultActionOrder.indexOf(crs),
+      ),
+      pa = PaServiceResultWrapper(
+        serviceResult = pa,
+        actionPosition = serviceResultActionOrder.indexOf(pa),
+      ),
+    )
+  }
 
   fun toFailedEligibilityDto(
     crn: String,
-  ) = EligibilityDto(
+  ) = EligibilityDtoNew(
     crn = crn,
-    cas1 = Cas1ServiceResult(
-      serviceResult = toNotEligibleServiceStatus(),
+    cas1 = Cas1ServiceResultWrapper(
+      serviceResult = toNotEligibleServiceResult(ServiceType.CAS1),
       cas1Application = null,
+      actionPosition = -1,
     ),
-    cas2 = Cas2ServiceResult(
-      serviceResult = toNotEligibleServiceStatus(),
+    cas2 = Cas2ServiceResultWrapper(
+      serviceResult = toNotEligibleServiceResult(ServiceType.CAS2),
       cas2Application = null,
+      actionPosition = -1,
     ),
-    cas3 = Cas3ServiceResult(
-      serviceResult = toNotEligibleServiceStatus(),
+    cas3 = Cas3ServiceResultWrapper(
+      serviceResult = toNotEligibleServiceResult(ServiceType.CAS3),
       cas3Application = null,
+      actionPosition = -1,
     ),
-    dtr = DtrServiceResult(
-      serviceResult = toNotEligibleServiceStatus(),
+    dtr = DtrServiceResultWrapper(
+      serviceResult = toNotEligibleServiceResult(ServiceType.DTR),
       caseId = null,
       submission = null,
+      actionPosition = -1,
     ),
-    crs = CrsServiceResult(
-      serviceResult = toNotEligibleServiceStatus(),
+    crs = CrsServiceResultWrapper(
+      serviceResult = toNotEligibleServiceResult(ServiceType.CRS),
       commissionedRehabilitativeServices = null,
+      actionPosition = -1,
     ),
-    pa = PaServiceResult(
-      serviceResult = toNotEligibleServiceStatus(),
+    pa = PaServiceResultWrapper(
+      serviceResult = toNotEligibleServiceResult(ServiceType.PA),
+      actionPosition = -1,
     ),
-    caseActions = emptyList(),
   )
 
-  fun toNotEligibleServiceStatus(failureReasons: List<FailureReason> = emptyList()) = ServiceResult(
-    serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+  fun toNotEligibleServiceResult(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultNew(
+    serviceStatus = toNotEligibleServiceStatus(service),
     failureReasons = failureReasons,
   )
 
-  fun toNotRequiredServiceStatus(failureReasons: List<FailureReason> = emptyList()) = ServiceResult(
-    serviceStatus = ServiceStatus.NOT_REQUIRED,
+  fun toNotEligibleServiceStatus(service: ServiceType) = when (service) {
+    ServiceType.CAS2 -> ServiceStatusNew.CAS2_NOT_ELIGIBLE
+    ServiceType.CAS3 -> ServiceStatusNew.CAS3_NOT_ELIGIBLE
+    ServiceType.CAS1 -> ServiceStatusNew.CAS1_NOT_ELIGIBLE
+    ServiceType.PA -> ServiceStatusNew.PA_NOT_ELIGIBLE
+    ServiceType.DTR -> ServiceStatusNew.DTR_NOT_ELIGIBLE
+    ServiceType.CRS -> ServiceStatusNew.CRS_NOT_ELIGIBLE
+  }
+
+  fun toNotRequiredServiceResult(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultNew(
+    serviceStatus = toNotRequiredServiceStatus(service),
     failureReasons = failureReasons,
   )
 
-  // DTR/CRS referral data should only be surfaced when a referral exists and has relevant service status to show the data
-  private val surfacingStatuses = setOf(ServiceStatus.SUBMITTED, ServiceStatus.ACCEPTED, ServiceStatus.NOT_ACCEPTED)
-  private fun surfacesReferralData(result: ServiceResult) = result.serviceStatus in surfacingStatuses
+  fun toNotRequiredServiceStatus(service: ServiceType) = when (service) {
+    ServiceType.DTR -> ServiceStatusNew.DTR_NOT_REQUIRED
+    ServiceType.CRS -> ServiceStatusNew.CRS_NOT_REQUIRED
+    else -> throw IllegalArgumentException("Unexpected not required service: $service")
+  }
+
+  // DTR referral data should only be surfaced when a referral exists and has relevant service status to show the data
+  private val surfacingStatuses = setOf(
+    ServiceStatusNew.DTR_SUBMITTED,
+    ServiceStatusNew.DTR_ACCEPTED,
+    ServiceStatusNew.DTR_NOT_ACCEPTED,
+  )
+
+  private fun surfacesReferralData(result: ServiceResultNew) = result.serviceStatus in surfacingStatuses
 
   private fun toCas3ApplicationDto(
     cas3Application: Cas3Application?,
   ) = cas3Application?.let { application ->
+
+    val submittedApplication = application.submittedApplication
+    val latestBooking = submittedApplication?.latestBooking
+
     Cas3ApplicationDto(
       id = application.id,
       applicationStatus = toCas3ApplicationStatus(application.applicationStatus),
-      assessmentStatus = toCas3AssessmentStatus(application.assessmentStatus),
-      bookingStatus = toCas3BookingStatus(application.bookingStatus),
-      applicationSubmittedDate = application.applicationSubmittedDate,
-      applicationSubmittedBy = toCas3StaffDto(application.applicationSubmittedBy),
-      applicationRejectedReason = application.applicationRejectedReason,
-      bookingProvisionalOfferSentDate = application.bookingProvisionalOfferSentDate,
-      previousBookings = toPreviousBookings(application.previousBookings),
-      premises = toCas3PremisesSummaryDto(application.premises),
+      assessmentStatus = toCas3AssessmentStatus(submittedApplication?.assessmentStatus),
+      bookingStatus = toCas3BookingStatus(latestBooking?.status),
+      applicationSubmittedDate = submittedApplication?.submittedDate,
+      applicationSubmittedBy = submittedApplication?.submittedBy?.let { toCas3StaffDto(it) },
+      applicationRejectedReason = submittedApplication?.assessmentRejectionReason,
+      bookingProvisionalOfferSentDate = latestBooking?.provisionalOfferSentDate,
+      previousBookings = toPreviousBookings(submittedApplication?.previousBookings),
+      premises = latestBooking?.let { toCas3PremisesSummaryDto(it.premises) },
       uiUrl = application.uiUrl,
+      cancellation = toCancellation(latestBooking?.cancellation),
     )
   }
 
@@ -184,7 +238,7 @@ object EligibilityTransformer {
   }
 
   private fun toCas3PremisesSummaryDto(
-    premises: Cas3PremisesSummary?,
+    premises: Cas3BookingPremises?,
   ) = premises?.let { premises ->
     Cas3PremisesSummaryDto(
       startDate = premises.startDate,
@@ -204,7 +258,52 @@ object EligibilityTransformer {
       uiUrl = application.uiUrl,
       id = application.id,
       submittedApplication = toCas2SubmittedApplicationSummaryDto(application.submittedApplication),
+      createdAt = application.createdAt,
+      createdBy = toCas2StaffDto(application.createdBy),
+      cohort = toCas2CohortDto(application.cohort),
     )
+  }
+
+  private fun toCas2StaffDto(
+    staff: Cas2Staff,
+  ) = Cas2StaffDto(
+    name = staff.name,
+    username = staff.username,
+    deliusStaffCode = staff.deliusStaffCode,
+    nomisStaffId = staff.nomisStaffId,
+    userType = staff.userType,
+  )
+
+  private fun toCas2CohortDto(
+    cohort: String?,
+  ) = when (cohort) {
+    null -> null
+    "atcr" -> Cas2CohortDto.ALTERNATIVE_TO_CUSTODIAL_RECALL
+    "hcrd" -> Cas2CohortDto.HOMELESS_AT_CONDITIONAL_RELEASE_DATE
+    "hefr" -> Cas2CohortDto.HOMELESS_AT_END_OF_FIXED_TERM_RECALL
+    "isc" -> Cas2CohortDto.INTENSIVE_SUPERVISION_COURTS
+    "rarr" -> Cas2CohortDto.RISK_ASSESSED_RECALL_REVIEW
+    "from_ap" -> Cas2CohortDto.REFERRAL_FROM_APPROVED_PREMISES
+    else -> {
+      log.error("Unexpected cohort value: $cohort")
+      Cas2CohortDto.UNKNOWN
+    }
+  }
+
+  private fun toCas2AssessmentStatusDto(
+    assessmentStatus: Cas2AssessmentStatus?,
+  ) = when (assessmentStatus) {
+    Cas2AssessmentStatus.MORE_INFO_REQUESTED -> Cas2AssessmentStatusDto.MORE_INFO_REQUESTED
+    Cas2AssessmentStatus.AWAITING_DECISION -> Cas2AssessmentStatusDto.AWAITING_DECISION
+    Cas2AssessmentStatus.ON_WAITING_LIST -> Cas2AssessmentStatusDto.ON_WAITING_LIST
+    Cas2AssessmentStatus.PLACE_OFFERED -> Cas2AssessmentStatusDto.PLACE_OFFERED
+    Cas2AssessmentStatus.OFFER_ACCEPTED -> Cas2AssessmentStatusDto.OFFER_ACCEPTED
+    Cas2AssessmentStatus.OFFER_DECLINED -> Cas2AssessmentStatusDto.OFFER_DECLINED
+    Cas2AssessmentStatus.WITHDRAWN -> Cas2AssessmentStatusDto.WITHDRAWN
+    Cas2AssessmentStatus.CANCELLED -> Cas2AssessmentStatusDto.CANCELLED
+    Cas2AssessmentStatus.AWAITING_ARRIVAL -> Cas2AssessmentStatusDto.AWAITING_ARRIVAL
+    Cas2AssessmentStatus.UNKNOWN -> Cas2AssessmentStatusDto.UNKNOWN
+    null -> null
   }
 
   private fun toCas1ApplicationDto(
@@ -235,7 +334,7 @@ object EligibilityTransformer {
   }
 
   private fun toPreviousBookings(
-    previousBookings: List<Cas3ExternalPreviousBooking>?,
+    previousBookings: List<Cas3PreviousBooking>?,
   ) = previousBookings?.map { booking ->
     Cas3ExternalPreviousBookingDto(
       bookingStatus = toCas3BookingStatus(booking.bookingStatus),
@@ -268,7 +367,10 @@ object EligibilityTransformer {
   ) = submittedApplication?.let {
     Cas2SubmittedApplicationSummaryDto(
       submittedAt = it.submittedAt,
-      latestAssessmentStatus = it.latestAssessmentStatus,
+      latestAssessmentStatus = toCas2AssessmentStatusDto(it.latestAssessmentStatus),
+      offerDeclinedReason = it.offerDeclinedReason,
+      cancelledReason = it.cancelledReason,
+      markedAsArrivedDateTime = it.markedAsArrivedDateTime,
     )
   }
 
@@ -297,6 +399,7 @@ object EligibilityTransformer {
       actualDepartureDate = it.actualDepartureDate,
       cancellationReason = it.cancellationReason,
       premises = toCas1PremisesSummaryDto(it.premises),
+      expectedDepartureDate = it.expectedDepartureDate,
     )
   }
 

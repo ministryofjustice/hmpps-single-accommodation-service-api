@@ -9,11 +9,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseList
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 
 object SasAndDeliusStubs {
+
+  fun stubGetSexualOffenceRegistrations(crn: String, response: SexualOffenceRegistrations) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/case/$crn/sexual-offence-registrations"))
+        .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
 
   fun stubCaseList(
     deliusUsername: String,

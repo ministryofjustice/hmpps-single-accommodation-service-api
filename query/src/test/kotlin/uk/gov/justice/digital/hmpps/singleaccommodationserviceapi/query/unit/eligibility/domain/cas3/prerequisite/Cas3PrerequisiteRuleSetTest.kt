@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.C
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleMale
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleNonMale
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
@@ -28,14 +28,14 @@ class Cas3PrerequisiteRuleSetTest {
   lateinit var cas3PrerequisiteRuleSet: Cas3PrerequisiteRuleSet
 
   private val expectedCas3PrerequisiteRuleNames = listOf(
-    DtrExpiredReferralRule::class.simpleName,
-    CrsSubmittedRuleMale::class.simpleName,
-    CrsSubmittedRuleNonMale::class.simpleName,
+    DtrExpiredReferralRule::class.java.simpleName,
+    CrsSubmittedRuleMale::class.java.simpleName,
+    CrsSubmittedRuleNonMale::class.java.simpleName,
   )
 
   @Test
   fun `all Cas3PrerequisiteRule components are included in Cas3PrerequisiteRuleSet`() {
-    val ruleSetRules = cas3PrerequisiteRuleSet.getRules().map { it.javaClass.simpleName }
+    val ruleSetRules = cas3PrerequisiteRuleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(3)

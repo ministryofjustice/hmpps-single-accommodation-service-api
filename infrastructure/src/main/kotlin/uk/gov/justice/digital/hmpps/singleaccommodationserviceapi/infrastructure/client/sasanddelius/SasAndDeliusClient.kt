@@ -7,23 +7,30 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.WebClientRetry
 
 interface SasAndDeliusClient {
+  @WebClientRetry
   @GetExchange(value = "/case-list/{username}")
   fun getCaseList(@PathVariable username: String, @RequestParam(required = false) teamCode: String?, @RequestParam page: Long, @RequestParam size: Long): CaseList
 
+  @WebClientRetry
   @GetExchange(value = "/case/{username}/{crn}")
   fun getCase(@PathVariable username: String, @PathVariable crn: String): Case
 
+  @WebClientRetry
   @GetExchange(value = "/team/{teamCode}/case-list")
   fun getCasesByTeamCode(@PathVariable teamCode: String, @RequestParam page: Long, @RequestParam size: Long): TeamCaseList
 
+  @WebClientRetry
   @GetExchange(value = "/case/{crn}")
   fun getCase(@PathVariable crn: String): Case
+
+  @WebClientRetry
+  @GetExchange(value = "/case/{crn}/sexual-offence-registrations")
+  fun getSexualOffenceRegistrations(@PathVariable crn: String): SexualOffenceRegistrations
 }
 
-@RestClientRetry
 @Service
 class SasAndDeliusCachingService(
   val sasAndDeliusClient: SasAndDeliusClient,
@@ -40,6 +47,12 @@ class SasAndDeliusCachingService(
     return sasAndDeliusClient.getCaseList(username = username, teamCode = teamCode, page = page, size = size)
   }
 
+  @Cacheable(ApiCallKeys.GET_SEXUAL_OFFENCE_REGISTRATIONS, key = "#crn", sync = true)
+  fun getSexualOffenceRegistrations(crn: String) = sasAndDeliusClient.getSexualOffenceRegistrations(crn)
+
   @Cacheable(ApiCallKeys.GET_CASE, sync = true)
   fun getCase(username: String, crn: String) = sasAndDeliusClient.getCase(username, crn)
+
+  @Cacheable(ApiCallKeys.GET_CASE_WITHOUT_LAO, key = "#crn", sync = true)
+  fun getCase(crn: String) = sasAndDeliusClient.getCase(crn)
 }

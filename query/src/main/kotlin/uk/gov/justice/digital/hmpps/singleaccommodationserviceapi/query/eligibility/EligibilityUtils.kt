@@ -4,6 +4,7 @@ import java.time.Clock
 import java.time.LocalDate
 
 const val DTR_EXPIRY_WEEKS = 26L
+const val CAS1_UPCOMING_WEEKS = 28L
 
 fun isDtrExpired(submissionDate: LocalDate?, clock: Clock): Boolean = !isLessThanXWeeksInThePast(submissionDate, LocalDate.now(clock), DTR_EXPIRY_WEEKS)
 
@@ -13,10 +14,10 @@ fun isLessThanXWeeksInTheFuture(endDate: LocalDate?, today: LocalDate, numOfWeek
   return endDate <= xWeeksFromNow
 }
 
-fun isLessThanOneYearInTheFuture(endDate: LocalDate?, today: LocalDate): Boolean {
+fun isLessThan15DaysInTheFuture(endDate: LocalDate?, today: LocalDate): Boolean {
   if (endDate == null) return true
-  val oneYearFromNow = today.plusYears(1)
-  return endDate <= oneYearFromNow
+  val fifteenDaysFromNow = today.plusDays(15)
+  return endDate <= fifteenDaysFromNow
 }
 
 fun isLessThanXWeeksInThePast(endDate: LocalDate?, today: LocalDate, numOfWeeks: Long): Boolean {

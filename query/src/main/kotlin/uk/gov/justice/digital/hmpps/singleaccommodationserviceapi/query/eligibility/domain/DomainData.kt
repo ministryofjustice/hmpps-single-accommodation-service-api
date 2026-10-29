@@ -8,14 +8,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.RoshLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import java.time.LocalDate
 
 data class DomainData(
   val crn: String,
   val tierScore: String?,
+  val dob: LocalDate?,
   val sex: SexCode?,
+  val roshLevel: RoshLevel?,
   val currentAccommodation: AccommodationSummaryDto?,
   val currentAccommodationTypeEntity: AccommodationTypeEntity?,
   val nextAccommodations: List<AccommodationSummaryDto>,
@@ -24,6 +29,7 @@ data class DomainData(
   val cas3Application: Cas3Application?,
   val dutyToRefer: DutyToReferDto?,
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
+  val sexualOffenceRegistrations: SexualOffenceRegistrations?,
 ) {
   constructor(
     crn: String,
@@ -37,10 +43,14 @@ data class DomainData(
     dutyToRefer: DutyToReferDto?,
     commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
     accommodationTypes: List<AccommodationTypeEntity>,
+    sexualOffenceRegistrations: SexualOffenceRegistrations?,
+    case: Case?,
   ) : this(
     crn = crn,
     tierScore = tier?.tierScore,
     sex = cpr?.sex?.code,
+    dob = cpr?.dateOfBirth,
+    roshLevel = case?.roshLevel,
     currentAccommodation = currentAccommodation,
     currentAccommodationTypeEntity = accommodationTypes.find { it.code == currentAccommodation?.type?.code },
     nextAccommodations = nextAccommodations,
@@ -49,24 +59,6 @@ data class DomainData(
     cas3Application = cas3Application,
     dutyToRefer = dutyToRefer,
     commissionedRehabilitativeServices = commissionedRehabilitativeServices,
-  )
-
-  constructor(
-    crn: String,
-    sexCode: SexCode?,
-    caseEntity: CaseEntity?,
-    dutyToRefer: DutyToReferDto?,
-  ) : this(
-    crn = crn,
-    tierScore = caseEntity?.tierScore,
-    sex = sexCode,
-    currentAccommodation = null,
-    currentAccommodationTypeEntity = null,
-    nextAccommodations = emptyList(),
-    cas1Application = null,
-    cas2Application = null,
-    cas3Application = null,
-    dutyToRefer = dutyToRefer,
-    commissionedRehabilitativeServices = null,
+    sexualOffenceRegistrations = sexualOffenceRegistrations,
   )
 }
