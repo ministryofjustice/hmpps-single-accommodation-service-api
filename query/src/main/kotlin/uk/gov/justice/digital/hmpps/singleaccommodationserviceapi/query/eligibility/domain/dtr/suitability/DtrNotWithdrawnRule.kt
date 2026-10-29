@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class DtrNotWithdrawnRule : Rule {
-  override val description = "FAIL if DTR referral has been withdrawn"
+  override val description = "FAIL if referral has been withdrawn"
 
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,

@@ -14,7 +14,7 @@ import java.time.LocalDate
 
 class InPrisonNoReleaseDateRuleTest {
   private val rule = InPrisonNoReleaseDateRule()
-  private val description = "FAIL if person is in Prison and has no release date"
+  private val description = "FAIL if person is in prison and has no release date"
 
   @Test
   fun `person in prison without a release date fails`() {

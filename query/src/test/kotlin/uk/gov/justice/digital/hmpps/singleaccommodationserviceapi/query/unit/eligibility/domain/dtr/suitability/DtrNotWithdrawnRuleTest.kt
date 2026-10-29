@@ -49,6 +49,6 @@ class DtrNotWithdrawnRuleTest {
   @Test
   fun `rule has correct description`() {
     assertThat(DtrNotWithdrawnRule().description)
-      .isEqualTo("FAIL if DTR referral has been withdrawn")
+      .isEqualTo("FAIL if referral has been withdrawn")
   }
 }

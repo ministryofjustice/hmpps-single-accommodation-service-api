@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3BookingSuitabilityRule : Rule {
-  override val description = "FAIL if booking is departed or closed"
+  override val description = "FAIL if the booking is departed or closed"
 
   override fun evaluate(data: DomainData): RuleResult {
     val expiredStatuses = listOf(

@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas3AssessmentSuitabilityRuleTest {
-  private val description = "FAIL if the assessment is not active"
+  private val description = "FAIL if the assessment is closed or rejected"
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(value = Cas3AssessmentStatus::class, names = ["REJECTED", "CLOSED"])

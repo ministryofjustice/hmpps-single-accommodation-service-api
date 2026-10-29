@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class CurrentAccommodationTypeRuleTest {
-  private val description = "FAIL if current accommodation is not Approved Premise (CAS1), CAS2, or Prison"
+  private val description = "FAIL if person is not in CAS1, CAS2 or prison"
 
   @Test
   fun `person passes when current accommodation is prison type`() {

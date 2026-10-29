@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas3ApplicationPresentSuitabilityRuleTest {
-  private val description = "FAIL if CAS3 application is not present"
+  private val description = "FAIL if person does not have an application"
 
   @Test
   fun `application is present so rule passes`() {

@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3ApplicationPresentSuitabilityRule : Rule {
-  override val description = "FAIL if CAS3 application is not present"
+  override val description = "FAIL if person does not have an application"
 
   override fun evaluate(data: DomainData): RuleResult {
     val ruleStatus = if (data.cas3Application == null) RuleStatus.FAIL else RuleStatus.PASS

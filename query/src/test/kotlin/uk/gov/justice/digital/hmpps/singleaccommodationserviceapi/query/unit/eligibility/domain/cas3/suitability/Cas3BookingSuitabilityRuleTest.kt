@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas3BookingSuitabilityRuleTest {
-  private val description = "FAIL if booking is departed or closed"
+  private val description = "FAIL if the booking is departed or closed"
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(value = Cas3BookingStatus::class, names = ["CLOSED", "DEPARTED"])
