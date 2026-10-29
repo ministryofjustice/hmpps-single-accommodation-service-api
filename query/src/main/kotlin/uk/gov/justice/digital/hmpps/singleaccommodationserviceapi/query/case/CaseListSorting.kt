@@ -5,26 +5,26 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import java.time.LocalDate
 
 fun List<CaseDto>.filterCases(
   searchTerm: String?,
   riskLevel: RiskLevel?,
   teamCode: String?,
-  username: () -> Username,
+  username: String?,
   peopleType: PeopleType?,
 ) = this
   .filter {
     if (!teamCode.isNullOrBlank()) {
       it.matchesTeam(teamCode)
     } else {
-      it.matchesUser(username())
+      it.matchesUser(username)
     } &&
       it.matchesSearch(searchTerm) &&
       it.matchesRiskLevel(riskLevel) &&
       it.matchesPeopleType(peopleType)
   }
+  // TODO: This is copied over from main, but looks like we're double sorting with sortCases(), which is called after this.
   .sortedWith(
     compareBy<CaseDto>({ it.userAccess != UserAccess.FULL })
       .thenBy { it.surname?.lowercase() }
@@ -41,10 +41,10 @@ private fun CaseDto.matchesPeopleType(peopleType: PeopleType?) = when (peopleTyp
     this.accommodationSummaries?.caseAccommodationStatus == CaseAccommodationStatus.SETTLED
 }
 
-private fun CaseDto.matchesUser(username: Username) = username.value.equals(this.assignedTo?.username, ignoreCase = true)
+private fun CaseDto.matchesUser(username: String?) = username == null || username.equals(this.assignedTo?.username, ignoreCase = true)
 
 private fun CaseDto.matchesTeam(teamCode: String): Boolean = when {
-  userAccess == UserAccess.FULL && teamCode.equals(this.teamCode, ignoreCase = true) -> true
+  teamCode.equals(this.teamCode, ignoreCase = true) -> true
   else -> false
 }
 
@@ -78,6 +78,13 @@ fun List<CaseDto>.sortCases(today: LocalDate): List<CaseDto> = sortedWith(
     .thenBy { it.forename?.lowercase() }
     .thenBy { it.crn },
 )
+
+/*
+this has been added during a refactor to retain existing results. It's probably not needed.
+ */
+fun List<CaseDto>.obfuscateLimitedAccessCases(): List<CaseDto> = map {
+  if (it.userAccess == UserAccess.LIMITED) it.copy(assignedTo = null, teamCode = null) else it
+}
 
 private fun CaseDto.sortByStatusDate(today: LocalDate): Comparable<*>? {
   val statusDate = accommodationSummaries?.caseAccommodationStatusDate

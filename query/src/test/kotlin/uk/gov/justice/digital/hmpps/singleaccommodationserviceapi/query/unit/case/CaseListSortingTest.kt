@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ri
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.filterCases
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.sortCases
 import java.time.LocalDate
@@ -81,7 +80,7 @@ class CaseListSortingTest {
       riskLevel: RiskLevel? = null,
       teamCode: String? = null,
       peopleType: PeopleType? = null,
-      username: () -> Username = { Username(currentUser) },
+      username: String? = currentUser,
     ) = filterCases(
       searchTerm = searchTerm,
       riskLevel = riskLevel,
@@ -130,8 +129,12 @@ class CaseListSortingTest {
       )
 
       @Test
-      fun `returns full access cases in the team regardless of assigned user, ignoring case`() {
-        assertThat(cases.applyFilters(teamCode = "teama")).containsExactlyInAnyOrder("A_MINE", "A_OTHER_USER")
+      fun `returns cases in the team, including limited access ones, regardless of assigned user, ignoring case`() {
+        assertThat(cases.applyFilters(teamCode = "teama")).containsExactlyInAnyOrder(
+          "A_MINE",
+          "A_OTHER_USER",
+          "A_LIMITED",
+        )
       }
 
       @Test
@@ -143,18 +146,6 @@ class CaseListSortingTest {
       fun `falls back to the current user when team code is blank`() {
         assertThat(cases.applyFilters(teamCode = " "))
           .containsExactlyInAnyOrder("A_MINE", "B_MINE", "A_NO_TEAM", "A_LIMITED")
-      }
-
-      @Test
-      fun `does not resolve the username when a team code is provided`() {
-        var resolved = false
-
-        cases.applyFilters(teamCode = "TeamA", username = {
-          resolved = true
-          Username(currentUser)
-        })
-
-        assertThat(resolved).isFalse()
       }
     }
 
