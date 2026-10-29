@@ -19,7 +19,7 @@ class CurrentAccommodationEligibleForCas2RuleSet(
     PrioritisedRule(currentAccommodationTypeIsCommunity, 2),
   )
 
-  override val name: String = "Eligibility Current Accommodation"
+  override val name: String = "Current Accommodation Eligible For CAS2"
 
   override fun getRules(): List<PrioritisedRule> = rules
 }

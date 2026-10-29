@@ -19,7 +19,7 @@ class Cas1RuleSet(
     PrioritisedRule(applicationSuitability),
   )
 
-  override val name: String = "Suitability"
+  override val name: String = "CAS1 Referral"
 
   override fun getRules(): List<PrioritisedRule> = rules
 }

@@ -10,6 +10,6 @@ class ReleaseWithinTwentyEightWeeksRuleSet(
   releaseOutsideTwentyEightWeeksRule: ReleaseOutsideTwentyEightWeeksRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(releaseOutsideTwentyEightWeeksRule))
-  override val name: String = "Upcoming"
+  override val name: String = "Release Within 28 Weeks"
   override fun getRules(): List<PrioritisedRule> = rules
 }

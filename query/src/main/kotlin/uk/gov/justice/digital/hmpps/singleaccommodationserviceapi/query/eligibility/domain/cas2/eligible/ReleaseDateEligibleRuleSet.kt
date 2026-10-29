@@ -13,7 +13,7 @@ class ReleaseDateEligibleRuleSet(
     PrioritisedRule(inPrisonNoReleaseDate, 1),
   )
 
-  override val name: String = "Eligibility Release Date"
+  override val name: String = "Release Date Eligible"
 
   override fun getRules(): List<PrioritisedRule> = rules
 }

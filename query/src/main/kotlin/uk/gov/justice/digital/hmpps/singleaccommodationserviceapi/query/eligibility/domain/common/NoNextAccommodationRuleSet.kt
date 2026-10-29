@@ -13,7 +13,7 @@ class NoNextAccommodationRuleSet(
     PrioritisedRule(hasNextAccommodation, 3),
   )
 
-  override val name: String = "Eligibility Next Accommodation"
+  override val name: String = "No Next Accommodation"
 
   override fun getRules(): List<PrioritisedRule> = rules
 }

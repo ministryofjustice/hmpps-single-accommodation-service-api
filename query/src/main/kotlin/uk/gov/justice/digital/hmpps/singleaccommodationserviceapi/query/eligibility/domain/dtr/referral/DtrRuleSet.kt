@@ -14,6 +14,6 @@ class DtrRuleSet(
   dtrExpiredReferral: DtrExpiredRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(dtrPresent), PrioritisedRule(dtrNotWithdrawn), PrioritisedRule(dtrExpiredReferral))
-  override val name: String = "Suitability"
+  override val name: String = "DTR"
   override fun getRules(): List<PrioritisedRule> = rules
 }

@@ -13,7 +13,7 @@ class NotSettledRuleSet(
     PrioritisedRule(isSettled, 0),
   )
 
-  override val name: String = "Eligibility Settled"
+  override val name: String = "Not Settled"
 
   override fun getRules(): List<PrioritisedRule> = rules
 }

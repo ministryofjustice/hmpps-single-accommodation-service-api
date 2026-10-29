@@ -12,6 +12,6 @@ class NoActiveCas1OrCas3ReferralsRuleSet(
   cas3ActiveRule: Cas3ActiveRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(cas1ApplicationNotSuitableRule, 0), PrioritisedRule(cas3ActiveRule, 0))
-  override val name: String = "Eligibility"
+  override val name: String = "No Active CAS1 Or CAS3 Referrals"
   override fun getRules(): List<PrioritisedRule> = rules
 }

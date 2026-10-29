@@ -9,8 +9,8 @@ Diamond RuleSet nodes have a FAIL context updater.
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
-  Upcoming("<div style='text-align:left'>FAIL if release is more than 28 weeks from today</div>")
-  Suitability("<div style='text-align:left'>FAIL if person does not have an application
+  Release_Within_28_Weeks("<div style='text-align:left'>FAIL if release is more than 28 weeks from today</div>")
+  CAS1_Referral("<div style='text-align:left'>FAIL if person does not have an application
 FAIL if the application is expired and its placement status is neither upcoming nor arrived
 FAIL if the application is not submitted and active</div>")
   outcome_Cas1ActiveContextUpdater["<b>Arrived</b>,
@@ -27,38 +27,38 @@ FAIL if the application is not submitted and active</div>")
 <b>Application Rejected</b>,
  <b>Not Started</b>,
  <b>Not Submitted</b>"]
-  Eligibility_Tier("<div style='text-align:left'>FAIL if person is Male and is not Tier A, B or C
+  Tier_Eligible_For_CAS1("<div style='text-align:left'>FAIL if person is Male and is not Tier A, B or C
 FAIL if person is not Male and is not Tier A, B, C or D</div>")
-  Eligibility_Current_Accommodation("<div style='text-align:left'>FAIL if person is not in prison or CAS1</div>")
-  Eligibility_Rosh("<div style='text-align:left'>FAIL if person has no ROSH level</div>")
+  Current_Accommodation_Eligible_For_CAS1("<div style='text-align:left'>FAIL if person is not in prison or CAS1</div>")
+  ROSH_Eligible("<div style='text-align:left'>FAIL if person has no ROSH level</div>")
   confirmed["current status"]
   CAS1_NOT_ELIGIBLE["<b>Not Eligible</b>"]
   updater_Cas1UpcomingContextUpdater["Set current status to <b>Upcoming</b>"]
-  Suitability -->|PASS| outcome_Cas1ActiveContextUpdater
-  Suitability -->|FAIL| updater_Cas1StartContextUpdater
-  Eligibility_Rosh -->|PASS| confirmed
-  Eligibility_Rosh -->|FAIL| CAS1_NOT_ELIGIBLE
-  Eligibility_Current_Accommodation -->|PASS| Eligibility_Rosh
-  Eligibility_Current_Accommodation -->|FAIL| CAS1_NOT_ELIGIBLE
-  Eligibility_Tier -->|PASS| Eligibility_Current_Accommodation
-  Eligibility_Tier -->|FAIL| CAS1_NOT_ELIGIBLE
-  updater_Cas1StartContextUpdater -->|FAIL| Eligibility_Tier
-  Upcoming -->|PASS| Suitability
-  Upcoming -->|FAIL| updater_Cas1UpcomingContextUpdater
-  updater_Cas1UpcomingContextUpdater -->|FAIL| Eligibility_Tier
+  CAS1_Referral -->|PASS| outcome_Cas1ActiveContextUpdater
+  CAS1_Referral -->|FAIL| updater_Cas1StartContextUpdater
+  ROSH_Eligible -->|PASS| confirmed
+  ROSH_Eligible -->|FAIL| CAS1_NOT_ELIGIBLE
+  Current_Accommodation_Eligible_For_CAS1 -->|PASS| ROSH_Eligible
+  Current_Accommodation_Eligible_For_CAS1 -->|FAIL| CAS1_NOT_ELIGIBLE
+  Tier_Eligible_For_CAS1 -->|PASS| Current_Accommodation_Eligible_For_CAS1
+  Tier_Eligible_For_CAS1 -->|FAIL| CAS1_NOT_ELIGIBLE
+  updater_Cas1StartContextUpdater -->|FAIL| Tier_Eligible_For_CAS1
+  Release_Within_28_Weeks -->|PASS| CAS1_Referral
+  Release_Within_28_Weeks -->|FAIL| updater_Cas1UpcomingContextUpdater
+  updater_Cas1UpcomingContextUpdater -->|FAIL| Tier_Eligible_For_CAS1
   linkStyle 0,2,4,6,9 stroke:green,stroke-width:2px
   linkStyle 1,3,5,7,8,10,11 stroke:red,stroke-width:2px
   classDef ruleSetNode fill:#FFF8E1,stroke:#C9B37E,color:#333
   classDef outcomeNode fill:#DCEEFB,stroke:#7FA7C9,color:#333
   classDef updaterNode fill:#EDE7F6,stroke:#A99BC9,color:#333
-  class Upcoming,Suitability,Eligibility_Tier,Eligibility_Current_Accommodation,Eligibility_Rosh ruleSetNode
+  class Release_Within_28_Weeks,CAS1_Referral,Tier_Eligible_For_CAS1,Current_Accommodation_Eligible_For_CAS1,ROSH_Eligible ruleSetNode
   class outcome_Cas1ActiveContextUpdater,confirmed,CAS1_NOT_ELIGIBLE outcomeNode
   class updater_Cas1StartContextUpdater,updater_Cas1UpcomingContextUpdater updaterNode
 ```
 
 ### Nodes
 
-**Upcoming** (RuleSet) `ReleaseWithinTwentyEightWeeksRuleSet`
+**Release Within 28 Weeks** (RuleSet) `ReleaseWithinTwentyEightWeeksRuleSet`
 - [`ReleaseOutsideTwentyEightWeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/rules/ReleaseOutsideTwentyEightWeeksRule.kt): FAIL if release is more than 28 weeks from today
 - FAIL: [`Cas1UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/Cas1UpcomingContextUpdater.kt) - Set current status to Upcoming
 
@@ -67,7 +67,7 @@ FAIL if person is not Male and is not Tier A, B, C or D</div>")
 | CAS1_UPCOMING | START_APPROVED_PREMISE_APPLICATION (CAS1) | - |
 
 
-**Suitability** (RuleSet) `Cas1RuleSet`
+**CAS1 Referral** (RuleSet) `Cas1RuleSet`
 - [`Cas1NotPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/rules/Cas1NotPresentRule.kt): FAIL if person does not have an application
 - [`Cas1ExpiredRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/rules/Cas1ExpiredRule.kt): FAIL if the application is expired and its placement status is neither upcoming nor arrived
 - [`Cas1NotActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/rules/Cas1NotActiveRule.kt): FAIL if the application is not submitted and active
@@ -111,16 +111,16 @@ Application Rejected,
 
 
 
-**Eligibility Tier** (RuleSet) `TierEligibleForCas1RuleSet`
+**Tier Eligible For CAS1** (RuleSet) `TierEligibleForCas1RuleSet`
 - [`MaleRiskEligibilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/eligible/rules/MaleRiskEligibilityRule.kt): FAIL if person is Male and is not Tier A, B or C
 - [`NonMaleRiskEligibilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/eligible/rules/NonMaleRiskEligibilityRule.kt): FAIL if person is not Male and is not Tier A, B, C or D
 
 
-**Eligibility Current Accommodation** (RuleSet) `CurrentAccommodationEligibleForCas1RuleSet`
+**Current Accommodation Eligible For CAS1** (RuleSet) `CurrentAccommodationEligibleForCas1RuleSet`
 - [`CurrentAccommodationIsPrisonOrCas1Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/eligible/rules/CurrentAccommodationIsPrisonOrCas1Rule.kt): FAIL if person is not in prison or CAS1
 
 
-**Eligibility Rosh** (RuleSet) `RoshEligibleRuleSet`
+**ROSH Eligible** (RuleSet) `RoshEligibleRuleSet`
 - [`NoRoshLevelRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/NoRoshLevelRule.kt): FAIL if person has no ROSH level
 
 
@@ -135,8 +135,8 @@ Application Rejected,
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
-  Upcoming("<div style='text-align:left'>FAIL if release is more than 15 days from today</div>")
-  Suitability("<div style='text-align:left'>FAIL if the application is not submitted
+  Release_Within_15_Days("<div style='text-align:left'>FAIL if release is more than 15 days from today</div>")
+  CAS2_Referral("<div style='text-align:left'>FAIL if the application is not submitted
 FAIL if assessment is present and not active</div>")
   outcome_Cas2ActiveContextUpdater["<b>Arrived</b>,
  <b>Awaiting Arrival</b>,
@@ -154,47 +154,47 @@ FAIL if assessment is present and not active</div>")
  <b>Offer Declined or Withdrawn</b>,
  <b>Unknown</b>,
  <b>Withdrawn</b>"]
-  Eligibility_Person("<div style='text-align:left'>FAIL if person is under 18 years old
+  Person_Eligible("<div style='text-align:left'>FAIL if person is under 18 years old
 FAIL if person is not Tier A through G
 FAIL if person has sexual offence registrations.</div>")
-  Eligibility_Release_Date("<div style='text-align:left'>FAIL if person is in prison and has no release date</div>")
-  Eligibility_Current_Accommodation("<div style='text-align:left'>FAIL if person is in CAS3
+  Release_Date_Eligible("<div style='text-align:left'>FAIL if person is in prison and has no release date</div>")
+  Current_Accommodation_Eligible_For_CAS2("<div style='text-align:left'>FAIL if person is in CAS3
 FAIL if person is in CAS2
 FAIL if person is in the community</div>")
-  Eligibility_Next_Accommodation("<div style='text-align:left'>FAIL if person has next accommodation</div>")
-  Eligibility_Rosh("<div style='text-align:left'>FAIL if person has no ROSH level</div>")
+  No_Next_Accommodation("<div style='text-align:left'>FAIL if person has next accommodation</div>")
+  ROSH_Eligible("<div style='text-align:left'>FAIL if person has no ROSH level</div>")
   confirmed["current status"]
   CAS2_NOT_ELIGIBLE["<b>Not Eligible</b>"]
   updater_Cas2UpcomingContextUpdater["Set current status to <b>Upcoming</b>"]
-  Suitability -->|PASS| outcome_Cas2ActiveContextUpdater
-  Suitability -->|FAIL| updater_Cas2StartContextUpdater
-  Eligibility_Rosh -->|PASS| confirmed
-  Eligibility_Rosh -->|FAIL| CAS2_NOT_ELIGIBLE
-  Eligibility_Next_Accommodation -->|PASS| Eligibility_Rosh
-  Eligibility_Next_Accommodation -->|FAIL| CAS2_NOT_ELIGIBLE
-  Eligibility_Current_Accommodation -->|PASS| Eligibility_Next_Accommodation
-  Eligibility_Current_Accommodation -->|FAIL| CAS2_NOT_ELIGIBLE
-  Eligibility_Release_Date -->|PASS| Eligibility_Current_Accommodation
-  Eligibility_Release_Date -->|FAIL| CAS2_NOT_ELIGIBLE
-  Eligibility_Person -->|PASS| Eligibility_Release_Date
-  Eligibility_Person -->|FAIL| CAS2_NOT_ELIGIBLE
-  updater_Cas2StartContextUpdater -->|FAIL| Eligibility_Person
-  Upcoming -->|PASS| Suitability
-  Upcoming -->|FAIL| updater_Cas2UpcomingContextUpdater
-  updater_Cas2UpcomingContextUpdater -->|FAIL| Eligibility_Person
+  CAS2_Referral -->|PASS| outcome_Cas2ActiveContextUpdater
+  CAS2_Referral -->|FAIL| updater_Cas2StartContextUpdater
+  ROSH_Eligible -->|PASS| confirmed
+  ROSH_Eligible -->|FAIL| CAS2_NOT_ELIGIBLE
+  No_Next_Accommodation -->|PASS| ROSH_Eligible
+  No_Next_Accommodation -->|FAIL| CAS2_NOT_ELIGIBLE
+  Current_Accommodation_Eligible_For_CAS2 -->|PASS| No_Next_Accommodation
+  Current_Accommodation_Eligible_For_CAS2 -->|FAIL| CAS2_NOT_ELIGIBLE
+  Release_Date_Eligible -->|PASS| Current_Accommodation_Eligible_For_CAS2
+  Release_Date_Eligible -->|FAIL| CAS2_NOT_ELIGIBLE
+  Person_Eligible -->|PASS| Release_Date_Eligible
+  Person_Eligible -->|FAIL| CAS2_NOT_ELIGIBLE
+  updater_Cas2StartContextUpdater -->|FAIL| Person_Eligible
+  Release_Within_15_Days -->|PASS| CAS2_Referral
+  Release_Within_15_Days -->|FAIL| updater_Cas2UpcomingContextUpdater
+  updater_Cas2UpcomingContextUpdater -->|FAIL| Person_Eligible
   linkStyle 0,2,4,6,8,10,13 stroke:green,stroke-width:2px
   linkStyle 1,3,5,7,9,11,12,14,15 stroke:red,stroke-width:2px
   classDef ruleSetNode fill:#FFF8E1,stroke:#C9B37E,color:#333
   classDef outcomeNode fill:#DCEEFB,stroke:#7FA7C9,color:#333
   classDef updaterNode fill:#EDE7F6,stroke:#A99BC9,color:#333
-  class Upcoming,Suitability,Eligibility_Person,Eligibility_Release_Date,Eligibility_Current_Accommodation,Eligibility_Next_Accommodation,Eligibility_Rosh ruleSetNode
+  class Release_Within_15_Days,CAS2_Referral,Person_Eligible,Release_Date_Eligible,Current_Accommodation_Eligible_For_CAS2,No_Next_Accommodation,ROSH_Eligible ruleSetNode
   class outcome_Cas2ActiveContextUpdater,confirmed,CAS2_NOT_ELIGIBLE outcomeNode
   class updater_Cas2StartContextUpdater,updater_Cas2UpcomingContextUpdater updaterNode
 ```
 
 ### Nodes
 
-**Upcoming** (RuleSet) `ReleaseWithin15DaysRuleSet`
+**Release Within 15 Days** (RuleSet) `ReleaseWithin15DaysRuleSet`
 - [`ReleaseOutside15DaysRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/ReleaseOutside15DaysRule.kt): FAIL if release is more than 15 days from today
 - FAIL: [`Cas2UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/upcoming/Cas2UpcomingContextUpdater.kt) - Set current status to Upcoming
 
@@ -203,7 +203,7 @@ FAIL if person is in the community</div>")
 | CAS2_UPCOMING | START_CAS2_REFERRAL (CAS2) | - |
 
 
-**Suitability** (RuleSet) `Cas2RuleSet`
+**CAS2 Referral** (RuleSet) `Cas2RuleSet`
 - [`Cas2NotSubmittedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/referral/rules/Cas2NotSubmittedRule.kt): FAIL if the application is not submitted
 - [`Cas2NotActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/referral/rules/Cas2NotActiveRule.kt): FAIL if assessment is present and not active
 - PASS: [`Cas2ActiveContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/referral/Cas2ActiveContextUpdater.kt) - Arrived,
@@ -249,27 +249,27 @@ Cancelled,
 
 
 
-**Eligibility Person** (RuleSet) `PersonEligibleRuleSet`
+**Person Eligible** (RuleSet) `PersonEligibleRuleSet`
 - [`Under18Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligible/rules/Under18Rule.kt): FAIL if person is under 18 years old
 - [`WrongTierRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligible/rules/WrongTierRule.kt): FAIL if person is not Tier A through G
 - [`HasSexualOffenceRegistrationsRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligible/rules/HasSexualOffenceRegistrationsRule.kt): FAIL if person has sexual offence registrations.
 
 
-**Eligibility Release Date** (RuleSet) `ReleaseDateEligibleRuleSet`
+**Release Date Eligible** (RuleSet) `ReleaseDateEligibleRuleSet`
 - [`InPrisonNoReleaseRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligible/rules/InPrisonNoReleaseRule.kt): FAIL if person is in prison and has no release date
 
 
-**Eligibility Current Accommodation** (RuleSet) `CurrentAccommodationEligibleForCas2RuleSet`
+**Current Accommodation Eligible For CAS2** (RuleSet) `CurrentAccommodationEligibleForCas2RuleSet`
 - [`CurrentAccommodationTypeIsCas3Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligible/rules/CurrentAccommodationTypeIsCas3Rule.kt): FAIL if person is in CAS3
 - [`CurrentAccommodationTypeIsCas2Rule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligible/rules/CurrentAccommodationTypeIsCas2Rule.kt): FAIL if person is in CAS2
 - [`CurrentAccommodationTypeIsCommunityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligible/rules/CurrentAccommodationTypeIsCommunityRule.kt): FAIL if person is in the community
 
 
-**Eligibility Next Accommodation** (RuleSet) `NoNextAccommodationRuleSet`
+**No Next Accommodation** (RuleSet) `NoNextAccommodationRuleSet`
 - [`HasNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/HasNextAccommodationRule.kt): FAIL if person has next accommodation
 
 
-**Eligibility Rosh** (RuleSet) `RoshEligibleRuleSet`
+**ROSH Eligible** (RuleSet) `RoshEligibleRuleSet`
 - [`NoRoshLevelRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/NoRoshLevelRule.kt): FAIL if person has no ROSH level
 
 
@@ -284,8 +284,8 @@ Cancelled,
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
-  Upcoming("<div style='text-align:left'>FAIL if release is more than 15 days from today</div>")
-  Suitability("<div style='text-align:left'>FAIL if the application is rejected or in progress
+  Release_Within_15_Days("<div style='text-align:left'>FAIL if release is more than 15 days from today</div>")
+  CAS3_Referral("<div style='text-align:left'>FAIL if the application is rejected or in progress
 FAIL if person does not have an application
 FAIL if the booking is departed or closed
 FAIL if the assessment is closed or rejected</div>")
@@ -299,9 +299,9 @@ FAIL if the assessment is closed or rejected</div>")
 <b>Not Started</b>,
  <b>Not Submitted</b>,
  <b>Rejected</b>"]
-  Eligibility_Current_Accommodation("<div style='text-align:left'>FAIL if person is not in CAS1, CAS2 or prison</div>")
-  Eligibility_Next_Accommodation("<div style='text-align:left'>FAIL if person has next accommodation</div>")
-  Eligibility_Rosh("<div style='text-align:left'>FAIL if person has no ROSH level</div>")
+  Current_Accommodation_Eligible_For_CAS3("<div style='text-align:left'>FAIL if person is not in CAS1, CAS2 or prison</div>")
+  No_Next_Accommodation("<div style='text-align:left'>FAIL if person has next accommodation</div>")
+  ROSH_Eligible("<div style='text-align:left'>FAIL if person has no ROSH level</div>")
   Prerequisite("<div style='text-align:left'>FAIL if the DTR submission date is missing or more than 26 weeks ago
 FAIL if person is male and the referral is neither live nor completed
 FAIL if person is not male and the referral is neither live nor completed</div>")
@@ -309,33 +309,33 @@ FAIL if person is not male and the referral is neither live nor completed</div>"
   outcome_Cas3CannotStartContextUpdater["<b>Cannot Start Yet</b>"]
   CAS3_NOT_ELIGIBLE["<b>Not Eligible</b>"]
   updater_Cas3UpcomingContextUpdater["Set current status to <b>Upcoming</b>"]
-  Suitability -->|PASS| outcome_Cas3ActiveContextUpdater
-  Suitability -->|FAIL| updater_Cas3StartContextUpdater
+  CAS3_Referral -->|PASS| outcome_Cas3ActiveContextUpdater
+  CAS3_Referral -->|FAIL| updater_Cas3StartContextUpdater
   Prerequisite -->|PASS| confirmed
   Prerequisite -->|FAIL| outcome_Cas3CannotStartContextUpdater
-  Eligibility_Rosh -->|PASS| Prerequisite
-  Eligibility_Rosh -->|FAIL| CAS3_NOT_ELIGIBLE
-  Eligibility_Next_Accommodation -->|PASS| Eligibility_Rosh
-  Eligibility_Next_Accommodation -->|FAIL| CAS3_NOT_ELIGIBLE
-  Eligibility_Current_Accommodation -->|PASS| Eligibility_Next_Accommodation
-  Eligibility_Current_Accommodation -->|FAIL| CAS3_NOT_ELIGIBLE
-  updater_Cas3StartContextUpdater -->|FAIL| Eligibility_Current_Accommodation
-  Upcoming -->|PASS| Suitability
-  Upcoming -->|FAIL| updater_Cas3UpcomingContextUpdater
-  updater_Cas3UpcomingContextUpdater -->|FAIL| Eligibility_Current_Accommodation
+  ROSH_Eligible -->|PASS| Prerequisite
+  ROSH_Eligible -->|FAIL| CAS3_NOT_ELIGIBLE
+  No_Next_Accommodation -->|PASS| ROSH_Eligible
+  No_Next_Accommodation -->|FAIL| CAS3_NOT_ELIGIBLE
+  Current_Accommodation_Eligible_For_CAS3 -->|PASS| No_Next_Accommodation
+  Current_Accommodation_Eligible_For_CAS3 -->|FAIL| CAS3_NOT_ELIGIBLE
+  updater_Cas3StartContextUpdater -->|FAIL| Current_Accommodation_Eligible_For_CAS3
+  Release_Within_15_Days -->|PASS| CAS3_Referral
+  Release_Within_15_Days -->|FAIL| updater_Cas3UpcomingContextUpdater
+  updater_Cas3UpcomingContextUpdater -->|FAIL| Current_Accommodation_Eligible_For_CAS3
   linkStyle 0,2,4,6,8,11 stroke:green,stroke-width:2px
   linkStyle 1,3,5,7,9,10,12,13 stroke:red,stroke-width:2px
   classDef ruleSetNode fill:#FFF8E1,stroke:#C9B37E,color:#333
   classDef outcomeNode fill:#DCEEFB,stroke:#7FA7C9,color:#333
   classDef updaterNode fill:#EDE7F6,stroke:#A99BC9,color:#333
-  class Upcoming,Suitability,Eligibility_Current_Accommodation,Eligibility_Next_Accommodation,Eligibility_Rosh,Prerequisite ruleSetNode
+  class Release_Within_15_Days,CAS3_Referral,Current_Accommodation_Eligible_For_CAS3,No_Next_Accommodation,ROSH_Eligible,Prerequisite ruleSetNode
   class outcome_Cas3ActiveContextUpdater,confirmed,outcome_Cas3CannotStartContextUpdater,CAS3_NOT_ELIGIBLE outcomeNode
   class updater_Cas3StartContextUpdater,updater_Cas3UpcomingContextUpdater updaterNode
 ```
 
 ### Nodes
 
-**Upcoming** (RuleSet) `ReleaseWithin15DaysRuleSet`
+**Release Within 15 Days** (RuleSet) `ReleaseWithin15DaysRuleSet`
 - [`ReleaseOutside15DaysRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/ReleaseOutside15DaysRule.kt): FAIL if release is more than 15 days from today
 - FAIL: [`Cas3UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/upcoming/Cas3UpcomingContextUpdater.kt) - Set current status to Upcoming
 
@@ -344,7 +344,7 @@ FAIL if person is not male and the referral is neither live nor completed</div>"
 | CAS3_UPCOMING | START_CAS3_REFERRAL (CAS3) | - |
 
 
-**Suitability** (RuleSet) `Cas3RuleSet`
+**CAS3 Referral** (RuleSet) `Cas3RuleSet`
 - [`Cas3ReferralNotActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/referral/rules/Cas3ReferralNotActiveRule.kt): FAIL if the application is rejected or in progress
 - [`Cas3NotPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/referral/rules/Cas3NotPresentRule.kt): FAIL if person does not have an application
 - [`Cas3BookingNotActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/referral/rules/Cas3BookingNotActiveRule.kt): FAIL if the booking is departed or closed
@@ -381,15 +381,15 @@ Not Started,
 
 
 
-**Eligibility Current Accommodation** (RuleSet) `CurrentAccommodationEligibleForCas3RuleSet`
+**Current Accommodation Eligible For CAS3** (RuleSet) `CurrentAccommodationEligibleForCas3RuleSet`
 - [`WrongCurrentAccommodationForCas3TypeRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/eligible/rules/WrongCurrentAccommodationForCas3TypeRule.kt): FAIL if person is not in CAS1, CAS2 or prison
 
 
-**Eligibility Next Accommodation** (RuleSet) `NoNextAccommodationRuleSet`
+**No Next Accommodation** (RuleSet) `NoNextAccommodationRuleSet`
 - [`HasNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/HasNextAccommodationRule.kt): FAIL if person has next accommodation
 
 
-**Eligibility Rosh** (RuleSet) `RoshEligibleRuleSet`
+**ROSH Eligible** (RuleSet) `RoshEligibleRuleSet`
 - [`NoRoshLevelRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/NoRoshLevelRule.kt): FAIL if person has no ROSH level
 
 
@@ -421,38 +421,38 @@ Not Started,
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
-  Upcoming("<div style='text-align:left'>FAIL if release is more than 12 weeks from today</div>")
-  Completion("<div style='text-align:left'>FAIL if no live CRS referral</div>")
+  Release_Within_12_Weeks("<div style='text-align:left'>FAIL if release is more than 12 weeks from today</div>")
+  Live_CRS("<div style='text-align:left'>FAIL if no live CRS referral</div>")
   CRS_SUBMITTED["<b>Submitted</b>"]
   updater_CrsStartContextUpdater["Set current status to <b>Not Started</b>"]
-  Eligibility_Settled("<div style='text-align:left'>FAIL if person is settled</div>")
-  Eligibility_Next_Accommodation("<div style='text-align:left'>FAIL if person has next accommodation</div>")
+  Not_Settled("<div style='text-align:left'>FAIL if person is settled</div>")
+  No_Next_Accommodation("<div style='text-align:left'>FAIL if person has next accommodation</div>")
   confirmed["current status"]
   CRS_NOT_REQUIRED["<b>Not Required</b>"]
   updater_CrsUpcomingContextUpdater["Set current status to <b>Upcoming</b>"]
-  Completion -->|PASS| CRS_SUBMITTED
-  Completion -->|FAIL| updater_CrsStartContextUpdater
-  Eligibility_Next_Accommodation -->|PASS| confirmed
-  Eligibility_Next_Accommodation -->|FAIL| CRS_NOT_REQUIRED
-  Eligibility_Settled -->|PASS| Eligibility_Next_Accommodation
-  Eligibility_Settled -->|FAIL| CRS_NOT_REQUIRED
-  updater_CrsStartContextUpdater -->|FAIL| Eligibility_Settled
-  Upcoming -->|PASS| Completion
-  Upcoming -->|FAIL| updater_CrsUpcomingContextUpdater
-  updater_CrsUpcomingContextUpdater -->|FAIL| Eligibility_Settled
+  Live_CRS -->|PASS| CRS_SUBMITTED
+  Live_CRS -->|FAIL| updater_CrsStartContextUpdater
+  No_Next_Accommodation -->|PASS| confirmed
+  No_Next_Accommodation -->|FAIL| CRS_NOT_REQUIRED
+  Not_Settled -->|PASS| No_Next_Accommodation
+  Not_Settled -->|FAIL| CRS_NOT_REQUIRED
+  updater_CrsStartContextUpdater -->|FAIL| Not_Settled
+  Release_Within_12_Weeks -->|PASS| Live_CRS
+  Release_Within_12_Weeks -->|FAIL| updater_CrsUpcomingContextUpdater
+  updater_CrsUpcomingContextUpdater -->|FAIL| Not_Settled
   linkStyle 0,2,4,7 stroke:green,stroke-width:2px
   linkStyle 1,3,5,6,8,9 stroke:red,stroke-width:2px
   classDef ruleSetNode fill:#FFF8E1,stroke:#C9B37E,color:#333
   classDef outcomeNode fill:#DCEEFB,stroke:#7FA7C9,color:#333
   classDef updaterNode fill:#EDE7F6,stroke:#A99BC9,color:#333
-  class Upcoming,Completion,Eligibility_Settled,Eligibility_Next_Accommodation ruleSetNode
+  class Release_Within_12_Weeks,Live_CRS,Not_Settled,No_Next_Accommodation ruleSetNode
   class CRS_SUBMITTED,confirmed,CRS_NOT_REQUIRED outcomeNode
   class updater_CrsStartContextUpdater,updater_CrsUpcomingContextUpdater updaterNode
 ```
 
 ### Nodes
 
-**Upcoming** (RuleSet) `ReleaseWithin12WeeksRuleSet`
+**Release Within 12 Weeks** (RuleSet) `ReleaseWithin12WeeksRuleSet`
 - [`ReleaseOutside12WeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/upcoming/rules/ReleaseOutside12WeeksRule.kt): FAIL if release is more than 12 weeks from today
 - FAIL: [`CrsUpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/upcoming/CrsUpcomingContextUpdater.kt) - Set current status to Upcoming
 
@@ -462,7 +462,7 @@ flowchart TD
 | CRS_UPCOMING_REFERRAL | SUBMIT_CRS_REFERRAL (CRS) | - |
 
 
-**Completion** (RuleSet) `LiveCrsRuleSet`
+**Live CRS** (RuleSet) `LiveCrsRuleSet`
 - [`NoLiveCrsRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/referral/rules/NoLiveCrsRule.kt): FAIL if no live CRS referral
 - FAIL: [`CrsStartContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/referral/CrsStartContextUpdater.kt) - Set current status to Not Started
 
@@ -476,11 +476,11 @@ flowchart TD
 
 
 
-**Eligibility Settled** (RuleSet) `NotSettledRuleSet`
+**Not Settled** (RuleSet) `NotSettledRuleSet`
 - [`IsSettledRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/eligible/rules/IsSettledRule.kt): FAIL if person is settled
 
 
-**Eligibility Next Accommodation** (RuleSet) `NoNextAccommodationRuleSet`
+**No Next Accommodation** (RuleSet) `NoNextAccommodationRuleSet`
 - [`HasNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/HasNextAccommodationRule.kt): FAIL if person has next accommodation
 
 
@@ -495,35 +495,35 @@ flowchart TD
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
-  Suitability("<div style='text-align:left'>FAIL if DTR status is not present
+  DTR("<div style='text-align:left'>FAIL if DTR status is not present
 FAIL if referral has been withdrawn
 FAIL if the DTR submission date is missing or more than 26 weeks ago</div>")
   outcome_DtrActiveContextUpdater["<b>Accepted</b>,
  <b>Not Accepted</b>,
  <b>Submitted</b>"]
-  Eligibility_Next_Accommodation("<div style='text-align:left'>FAIL if person has next accommodation</div>")
-  Upcoming("<div style='text-align:left'>FAIL if release is more than 8 weeks from today</div>")
+  No_Next_Accommodation("<div style='text-align:left'>FAIL if person has next accommodation</div>")
+  Release_Within_8_Weeks("<div style='text-align:left'>FAIL if release is more than 8 weeks from today</div>")
   DTR_NOT_STARTED["<b>Not Started</b>"]
   outcome_DtrUpcomingContextUpdater["<b>Upcoming</b>"]
   DTR_NOT_REQUIRED["<b>Not Required</b>"]
-  Suitability -->|PASS| outcome_DtrActiveContextUpdater
-  Upcoming -->|PASS| DTR_NOT_STARTED
-  Upcoming -->|FAIL| outcome_DtrUpcomingContextUpdater
-  Eligibility_Next_Accommodation -->|PASS| Upcoming
-  Eligibility_Next_Accommodation -->|FAIL| DTR_NOT_REQUIRED
-  Suitability -->|FAIL| Eligibility_Next_Accommodation
+  DTR -->|PASS| outcome_DtrActiveContextUpdater
+  Release_Within_8_Weeks -->|PASS| DTR_NOT_STARTED
+  Release_Within_8_Weeks -->|FAIL| outcome_DtrUpcomingContextUpdater
+  No_Next_Accommodation -->|PASS| Release_Within_8_Weeks
+  No_Next_Accommodation -->|FAIL| DTR_NOT_REQUIRED
+  DTR -->|FAIL| No_Next_Accommodation
   linkStyle 0,1,3 stroke:green,stroke-width:2px
   linkStyle 2,4,5 stroke:red,stroke-width:2px
   classDef ruleSetNode fill:#FFF8E1,stroke:#C9B37E,color:#333
   classDef outcomeNode fill:#DCEEFB,stroke:#7FA7C9,color:#333
   classDef updaterNode fill:#EDE7F6,stroke:#A99BC9,color:#333
-  class Suitability,Eligibility_Next_Accommodation,Upcoming ruleSetNode
+  class DTR,No_Next_Accommodation,Release_Within_8_Weeks ruleSetNode
   class outcome_DtrActiveContextUpdater,DTR_NOT_STARTED,outcome_DtrUpcomingContextUpdater,DTR_NOT_REQUIRED outcomeNode
 ```
 
 ### Nodes
 
-**Suitability** (RuleSet) `DtrRuleSet`
+**DTR** (RuleSet) `DtrRuleSet`
 - [`DtrNotPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/referral/rules/DtrNotPresentRule.kt): FAIL if DTR status is not present
 - [`DtrWithdrawnRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/referral/rules/DtrWithdrawnRule.kt): FAIL if referral has been withdrawn
 - [`DtrExpiredRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/DtrExpiredRule.kt): FAIL if the DTR submission date is missing or more than 26 weeks ago
@@ -540,11 +540,11 @@ FAIL if the DTR submission date is missing or more than 26 weeks ago</div>")
 
 **Accepted, Not Accepted, Submitted** (Outcome)
 
-**Eligibility Next Accommodation** (RuleSet) `NoNextAccommodationRuleSet`
+**No Next Accommodation** (RuleSet) `NoNextAccommodationRuleSet`
 - [`HasNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/HasNextAccommodationRule.kt): FAIL if person has next accommodation
 
 
-**Upcoming** (RuleSet) `ReleaseWithinEightWeeksRuleSet`
+**Release Within 8 Weeks** (RuleSet) `ReleaseWithinEightWeeksRuleSet`
 - [`ReleaseOutsideEightWeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/upcoming/rules/ReleaseOutsideEightWeeksRule.kt): FAIL if release is more than 8 weeks from today
 - FAIL: [`DtrUpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/upcoming/DtrUpcomingContextUpdater.kt) - Upcoming
 
@@ -564,34 +564,34 @@ FAIL if the DTR submission date is missing or more than 26 weeks ago</div>")
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
-  Completion("<div style='text-align:left'>FAIL if person has no future accommodation</div>")
+  Has_Next_Accommodation("<div style='text-align:left'>FAIL if person has no future accommodation</div>")
   PA_COMPLETED["<b>Completed</b>"]
-  Eligibility("<div style='text-align:left'>FAIL if CAS1 application is submitted and active
+  No_Active_CAS1_Or_CAS3_Referrals("<div style='text-align:left'>FAIL if CAS1 application is submitted and active
 FAIL if CAS3 application is submitted and active</div>")
   PA_NOT_STARTED["<b>Not Started</b>"]
   PA_NOT_ELIGIBLE["<b>Not Eligible</b>"]
-  Completion -->|PASS| PA_COMPLETED
-  Eligibility -->|PASS| PA_NOT_STARTED
-  Eligibility -->|FAIL| PA_NOT_ELIGIBLE
-  Completion -->|FAIL| Eligibility
+  Has_Next_Accommodation -->|PASS| PA_COMPLETED
+  No_Active_CAS1_Or_CAS3_Referrals -->|PASS| PA_NOT_STARTED
+  No_Active_CAS1_Or_CAS3_Referrals -->|FAIL| PA_NOT_ELIGIBLE
+  Has_Next_Accommodation -->|FAIL| No_Active_CAS1_Or_CAS3_Referrals
   linkStyle 0,1 stroke:green,stroke-width:2px
   linkStyle 2,3 stroke:red,stroke-width:2px
   classDef ruleSetNode fill:#FFF8E1,stroke:#C9B37E,color:#333
   classDef outcomeNode fill:#DCEEFB,stroke:#7FA7C9,color:#333
   classDef updaterNode fill:#EDE7F6,stroke:#A99BC9,color:#333
-  class Completion,Eligibility ruleSetNode
+  class Has_Next_Accommodation,No_Active_CAS1_Or_CAS3_Referrals ruleSetNode
   class PA_COMPLETED,PA_NOT_STARTED,PA_NOT_ELIGIBLE outcomeNode
 ```
 
 ### Nodes
 
-**Completion** (RuleSet) `HasNextAccommodationRuleSet`
+**Has Next Accommodation** (RuleSet) `HasNextAccommodationRuleSet`
 - [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/pa/referral/rules/NoNextAccommodationRule.kt): FAIL if person has no future accommodation
 
 
 **Completed** (Outcome)
 
-**Eligibility** (RuleSet) `NoActiveCas1OrCas3ReferralsRuleSet`
+**No Active CAS1 Or CAS3 Referrals** (RuleSet) `NoActiveCas1OrCas3ReferralsRuleSet`
 - [`Cas1ActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/pa/eligible/rules/Cas1ActiveRule.kt): FAIL if CAS1 application is submitted and active
 - [`Cas3ActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/pa/eligible/rules/Cas3ActiveRule.kt): FAIL if CAS3 application is submitted and active
 
@@ -604,42 +604,42 @@ FAIL if CAS3 application is submitted and active</div>")
 
 | Rule | Description | RuleSets | Trees |
 | --- | --- | --- | --- |
-| Cas1ActiveRule | FAIL if CAS1 application is submitted and active | Eligibility | PA |
-| Cas1ExpiredRule | FAIL if the application is expired and its placement status is neither upcoming nor arrived | Suitability | CAS1 |
-| Cas1NotActiveRule | FAIL if the application is not submitted and active | Suitability | CAS1 |
-| Cas1NotPresentRule | FAIL if person does not have an application | Suitability | CAS1 |
-| Cas2NotActiveRule | FAIL if assessment is present and not active | Suitability | CAS2 |
-| Cas2NotSubmittedRule | FAIL if the application is not submitted | Suitability | CAS2 |
-| Cas3ActiveRule | FAIL if CAS3 application is submitted and active | Eligibility | PA |
-| Cas3AssessmentNotActiveRule | FAIL if the assessment is closed or rejected | Suitability | CAS3 |
-| Cas3BookingNotActiveRule | FAIL if the booking is departed or closed | Suitability | CAS3 |
-| Cas3NotPresentRule | FAIL if person does not have an application | Suitability | CAS3 |
-| Cas3ReferralNotActiveRule | FAIL if the application is rejected or in progress | Suitability | CAS3 |
+| Cas1ActiveRule | FAIL if CAS1 application is submitted and active | No Active CAS1 Or CAS3 Referrals | PA |
+| Cas1ExpiredRule | FAIL if the application is expired and its placement status is neither upcoming nor arrived | CAS1 Referral | CAS1 |
+| Cas1NotActiveRule | FAIL if the application is not submitted and active | CAS1 Referral | CAS1 |
+| Cas1NotPresentRule | FAIL if person does not have an application | CAS1 Referral | CAS1 |
+| Cas2NotActiveRule | FAIL if assessment is present and not active | CAS2 Referral | CAS2 |
+| Cas2NotSubmittedRule | FAIL if the application is not submitted | CAS2 Referral | CAS2 |
+| Cas3ActiveRule | FAIL if CAS3 application is submitted and active | No Active CAS1 Or CAS3 Referrals | PA |
+| Cas3AssessmentNotActiveRule | FAIL if the assessment is closed or rejected | CAS3 Referral | CAS3 |
+| Cas3BookingNotActiveRule | FAIL if the booking is departed or closed | CAS3 Referral | CAS3 |
+| Cas3NotPresentRule | FAIL if person does not have an application | CAS3 Referral | CAS3 |
+| Cas3ReferralNotActiveRule | FAIL if the application is rejected or in progress | CAS3 Referral | CAS3 |
 | CrsSubmittedRuleMale | FAIL if person is male and the referral is neither live nor completed | Prerequisite | CAS3 |
 | CrsSubmittedRuleNonMale | FAIL if person is not male and the referral is neither live nor completed | Prerequisite | CAS3 |
-| CurrentAccommodationIsPrisonOrCas1Rule | FAIL if person is not in prison or CAS1 | Eligibility Current Accommodation | CAS1 |
-| CurrentAccommodationTypeIsCas2Rule | FAIL if person is in CAS2 | Eligibility Current Accommodation | CAS2 |
-| CurrentAccommodationTypeIsCas3Rule | FAIL if person is in CAS3 | Eligibility Current Accommodation | CAS2 |
-| CurrentAccommodationTypeIsCommunityRule | FAIL if person is in the community | Eligibility Current Accommodation | CAS2 |
-| DtrExpiredRule | FAIL if the DTR submission date is missing or more than 26 weeks ago | Prerequisite, Suitability | CAS3, DTR |
-| DtrNotPresentRule | FAIL if DTR status is not present | Suitability | DTR |
-| DtrWithdrawnRule | FAIL if referral has been withdrawn | Suitability | DTR |
-| HasNextAccommodationRule | FAIL if person has next accommodation | Eligibility Next Accommodation | CAS2, CAS3, CRS, DTR |
-| HasSexualOffenceRegistrationsRule | FAIL if person has sexual offence registrations. | Eligibility Person | CAS2 |
-| InPrisonNoReleaseRule | FAIL if person is in prison and has no release date | Eligibility Release Date | CAS2 |
-| IsSettledRule | FAIL if person is settled | Eligibility Settled | CRS |
-| MaleRiskEligibilityRule | FAIL if person is Male and is not Tier A, B or C | Eligibility Tier | CAS1 |
-| NoLiveCrsRule | FAIL if no live CRS referral | Completion | CRS |
-| NoNextAccommodationRule | FAIL if person has no future accommodation | Completion | PA |
-| NoRoshLevelRule | FAIL if person has no ROSH level | Eligibility Rosh | CAS1, CAS2, CAS3 |
-| NonMaleRiskEligibilityRule | FAIL if person is not Male and is not Tier A, B, C or D | Eligibility Tier | CAS1 |
-| ReleaseOutside12WeeksRule | FAIL if release is more than 12 weeks from today | Upcoming | CRS |
-| ReleaseOutside15DaysRule | FAIL if release is more than 15 days from today | Upcoming | CAS2, CAS3 |
-| ReleaseOutsideEightWeeksRule | FAIL if release is more than 8 weeks from today | Upcoming | DTR |
-| ReleaseOutsideTwentyEightWeeksRule | FAIL if release is more than 28 weeks from today | Upcoming | CAS1 |
-| Under18Rule | FAIL if person is under 18 years old | Eligibility Person | CAS2 |
-| WrongCurrentAccommodationForCas3TypeRule | FAIL if person is not in CAS1, CAS2 or prison | Eligibility Current Accommodation | CAS3 |
-| WrongTierRule | FAIL if person is not Tier A through G | Eligibility Person | CAS2 |
+| CurrentAccommodationIsPrisonOrCas1Rule | FAIL if person is not in prison or CAS1 | Current Accommodation Eligible For CAS1 | CAS1 |
+| CurrentAccommodationTypeIsCas2Rule | FAIL if person is in CAS2 | Current Accommodation Eligible For CAS2 | CAS2 |
+| CurrentAccommodationTypeIsCas3Rule | FAIL if person is in CAS3 | Current Accommodation Eligible For CAS2 | CAS2 |
+| CurrentAccommodationTypeIsCommunityRule | FAIL if person is in the community | Current Accommodation Eligible For CAS2 | CAS2 |
+| DtrExpiredRule | FAIL if the DTR submission date is missing or more than 26 weeks ago | DTR, Prerequisite | CAS3, DTR |
+| DtrNotPresentRule | FAIL if DTR status is not present | DTR | DTR |
+| DtrWithdrawnRule | FAIL if referral has been withdrawn | DTR | DTR |
+| HasNextAccommodationRule | FAIL if person has next accommodation | No Next Accommodation | CAS2, CAS3, CRS, DTR |
+| HasSexualOffenceRegistrationsRule | FAIL if person has sexual offence registrations. | Person Eligible | CAS2 |
+| InPrisonNoReleaseRule | FAIL if person is in prison and has no release date | Release Date Eligible | CAS2 |
+| IsSettledRule | FAIL if person is settled | Not Settled | CRS |
+| MaleRiskEligibilityRule | FAIL if person is Male and is not Tier A, B or C | Tier Eligible For CAS1 | CAS1 |
+| NoLiveCrsRule | FAIL if no live CRS referral | Live CRS | CRS |
+| NoNextAccommodationRule | FAIL if person has no future accommodation | Has Next Accommodation | PA |
+| NoRoshLevelRule | FAIL if person has no ROSH level | ROSH Eligible | CAS1, CAS2, CAS3 |
+| NonMaleRiskEligibilityRule | FAIL if person is not Male and is not Tier A, B, C or D | Tier Eligible For CAS1 | CAS1 |
+| ReleaseOutside12WeeksRule | FAIL if release is more than 12 weeks from today | Release Within 12 Weeks | CRS |
+| ReleaseOutside15DaysRule | FAIL if release is more than 15 days from today | Release Within 15 Days | CAS2, CAS3 |
+| ReleaseOutsideEightWeeksRule | FAIL if release is more than 8 weeks from today | Release Within 8 Weeks | DTR |
+| ReleaseOutsideTwentyEightWeeksRule | FAIL if release is more than 28 weeks from today | Release Within 28 Weeks | CAS1 |
+| Under18Rule | FAIL if person is under 18 years old | Person Eligible | CAS2 |
+| WrongCurrentAccommodationForCas3TypeRule | FAIL if person is not in CAS1, CAS2 or prison | Current Accommodation Eligible For CAS3 | CAS3 |
+| WrongTierRule | FAIL if person is not Tier A through G | Person Eligible | CAS2 |
 
 ## Context updater catalogue
 
@@ -655,7 +655,7 @@ Arrived,
  Placement Request Withdrawn,
  Submitted
 
-Used by: Suitability (CAS1) on pass
+Used by: CAS1 Referral (CAS1) on pass
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -677,7 +677,7 @@ Application Rejected,
  Not Started,
  Not Submitted
 
-Used by: Suitability (CAS1) on fail
+Used by: CAS1 Referral (CAS1) on fail
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -688,7 +688,7 @@ Used by: Suitability (CAS1) on fail
 
 Set current status to Upcoming
 
-Used by: Upcoming (CAS1) on fail
+Used by: Release Within 28 Weeks (CAS1) on fail
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -705,7 +705,7 @@ Arrived,
  Submitted,
  Unknown
 
-Used by: Suitability (CAS2) on pass
+Used by: CAS2 Referral (CAS2) on pass
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -728,7 +728,7 @@ Cancelled,
  Unknown,
  Withdrawn
 
-Used by: Suitability (CAS2) on fail
+Used by: CAS2 Referral (CAS2) on fail
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -742,7 +742,7 @@ Used by: Suitability (CAS2) on fail
 
 Set current status to Upcoming
 
-Used by: Upcoming (CAS2) on fail
+Used by: Release Within 15 Days (CAS2) on fail
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -756,7 +756,7 @@ Arrived,
  Not Arrived,
  Submitted
 
-Used by: Suitability (CAS3) on pass
+Used by: CAS3 Referral (CAS3) on pass
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -786,7 +786,7 @@ Not Started,
  Not Submitted,
  Rejected
 
-Used by: Suitability (CAS3) on fail
+Used by: CAS3 Referral (CAS3) on fail
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -798,7 +798,7 @@ Used by: Suitability (CAS3) on fail
 
 Set current status to Upcoming
 
-Used by: Upcoming (CAS3) on fail
+Used by: Release Within 15 Days (CAS3) on fail
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -807,7 +807,7 @@ Used by: Upcoming (CAS3) on fail
 
 Set current status to Not Started
 
-Used by: Completion (CRS) on fail
+Used by: Live CRS (CRS) on fail
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -817,7 +817,7 @@ Used by: Completion (CRS) on fail
 
 Set current status to Upcoming
 
-Used by: Upcoming (CRS) on fail
+Used by: Release Within 12 Weeks (CRS) on fail
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -829,7 +829,7 @@ Accepted,
  Not Accepted,
  Submitted
 
-Used by: Suitability (DTR) on pass
+Used by: DTR (DTR) on pass
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -840,7 +840,7 @@ Used by: Suitability (DTR) on pass
 
 Upcoming
 
-Used by: Upcoming (DTR) on fail
+Used by: Release Within 8 Weeks (DTR) on fail
 
 | Status | Action | Link type |
 | --- | --- | --- |

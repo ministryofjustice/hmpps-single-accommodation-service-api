@@ -19,7 +19,7 @@ class PersonEligibleRuleSet(
     PrioritisedRule(sexualOffenceRegistrations, 0),
   )
 
-  override val name: String = "Eligibility Person"
+  override val name: String = "Person Eligible"
 
   override fun getRules(): List<PrioritisedRule> = rules
 }
