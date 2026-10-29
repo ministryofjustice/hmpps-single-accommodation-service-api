@@ -3,16 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 
 class CrsCompletionContextUpdaterTest {
   val crsUiUrl = "CRS_UI_URL"
@@ -25,15 +21,13 @@ class CrsCompletionContextUpdaterTest {
       val data = buildDomainData(sex = SexCode.M)
       val context = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(),
+        currentResult = buildServiceResultNew(),
       )
 
       val expectedContext = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(
-          serviceStatus = ServiceStatus.NOT_STARTED,
-          action = CaseAction(type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL, service = AccommodationService.CRS),
-          link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
+        currentResult = buildServiceResultNew(
+          serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL,
           url = crsUiUrl,
         ),
       )
@@ -48,15 +42,13 @@ class CrsCompletionContextUpdaterTest {
       val data = buildDomainData(sex = null)
       val context = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(),
+        currentResult = buildServiceResultNew(),
       )
 
       val expectedContext = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(
-          serviceStatus = ServiceStatus.NOT_STARTED,
-          action = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, service = AccommodationService.CRS),
-          link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
+        currentResult = buildServiceResultNew(
+          serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_REFERRAL,
           url = crsUiUrl,
         ),
       )

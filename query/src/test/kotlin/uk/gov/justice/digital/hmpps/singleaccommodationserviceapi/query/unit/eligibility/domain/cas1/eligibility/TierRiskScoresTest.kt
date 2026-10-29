@@ -2,44 +2,48 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.TierRiskScores
 
 class TierRiskScoresTest {
 
   @ParameterizedTest
-  @ValueSource(strings = ["A3", "A2", "A1", "A3S", "A2S", "A1S", "B3", "B2", "B1", "B3S", "B2S", "B1S"])
-  fun `male high risk tiers include A and B tiers`(tierScore: String) {
+  @ValueSource(strings = ["A", "B", "C"])
+  fun `male high risk tiers include A, B and C tiers`(tierScore: String) {
     assertThat(TierRiskScores.isHighRiskForMale(tierScore)).isTrue()
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["C3", "C3S", "C2", "C1", "D3", "D2", "D1"])
-  fun `male high risk tiers exclude C D and unknown tiers`(tierScore: String) {
+  @ValueSource(strings = ["D", "E", "F", "G", "MISSING", "NOT_SUPERVISED"])
+  @NullSource
+  fun `male high risk tiers exclude all tiers other than A, B or C`(tierScore: String?) {
     assertThat(TierRiskScores.isHighRiskForMale(tierScore)).isFalse()
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["A3", "A2", "A1", "B3", "B2", "B1", "C3", "A3S", "B3S", "C3S"])
-  fun `non-male high risk tiers include A B and C3 tiers`(tierScore: String) {
+  @ValueSource(strings = ["A", "B", "C", "D"])
+  fun `non-male high risk tiers include A, B, C and D tiers`(tierScore: String) {
     assertThat(TierRiskScores.isHighRiskForNonMale(tierScore)).isTrue()
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["C2", "C1", "D3", "D2", "D1"])
-  fun `non-male high risk tiers exclude lower C D and unknown tiers`(tierScore: String) {
+  @ValueSource(strings = ["E", "F", "G", "MISSING", "NOT_SUPERVISED"])
+  @NullSource
+  fun `non-male high risk tiers exclude all tiers other than A, B, C and D`(tierScore: String?) {
     assertThat(TierRiskScores.isHighRiskForNonMale(tierScore)).isFalse()
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["A3S", "B1S", "C2S", "D1S", "Z9S"])
-  fun `S tiers are scores ending with S`(tierScore: String) {
-    assertThat(TierRiskScores.isSTier(tierScore)).isTrue()
+  @ValueSource(strings = ["A", "B", "C", "D", "E", "F", "G"])
+  fun `is-single-letter-tier tiers include A-G tiers`(tierScore: String) {
+    assertThat(TierRiskScores.isSingleLetterTier(tierScore)).isTrue()
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["A3", "B1", "C2", "D1", "Z9"])
-  fun `non-S tiers are scores not ending with S`(tierScore: String) {
-    assertThat(TierRiskScores.isSTier(tierScore)).isFalse()
+  @ValueSource(strings = ["MISSING", "NOT_SUPERVISED"])
+  @NullSource
+  fun `is-single-letter-tier tiers excludes MISSING, NOT_SUPERVISED`(tierScore: String?) {
+    assertThat(TierRiskScores.isSingleLetterTier(tierScore)).isFalse()
   }
 }

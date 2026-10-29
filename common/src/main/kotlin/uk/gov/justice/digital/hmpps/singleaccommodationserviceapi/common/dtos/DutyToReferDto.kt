@@ -36,6 +36,12 @@ data class DtrSubmissionDto(
   val outcomeNote: String? = null,
 )
 
+data class DtrEventDetailsDto(
+  val id: UUID,
+  val crn: String,
+  val viewUrl: String,
+)
+
 data class LocalAuthorityDto(
   val localAuthorityAreaId: UUID,
   val localAuthorityAreaName: String?,

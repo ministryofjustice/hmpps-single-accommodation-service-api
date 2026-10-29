@@ -7,7 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 import java.time.LocalDate
 import java.util.UUID
 
@@ -37,13 +37,13 @@ class Cas3PrerequisiteContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(),
+        currentResult = buildServiceResultNew(),
       )
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CANNOT_START_YET)
+      assertThat(result.currentResult!!.serviceStatus.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR)
     }
 
     @Nested
@@ -55,7 +55,7 @@ class Cas3PrerequisiteContextUpdaterTest {
 
         return EvaluationContext(
           data = data,
-          currentResult = buildServiceResult(),
+          currentResult = buildServiceResultNew(),
         )
       }
 
@@ -66,7 +66,7 @@ class Cas3PrerequisiteContextUpdaterTest {
         fun `returns SUBMIT_DTR_BEFORE_CAS3`(sex: SexCode) {
           val result = updater.update(context(sex), listOf(FailureReason.DTR_REFERRAL_EXPIRED))
 
-          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
+          assertThat(result.currentResult!!.serviceStatus.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
         }
       }
 
@@ -79,7 +79,7 @@ class Cas3PrerequisiteContextUpdaterTest {
             listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED_MALE),
           )
 
-          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3)
+          assertThat(result.currentResult!!.serviceStatus.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3)
         }
 
         @ParameterizedTest
@@ -90,7 +90,7 @@ class Cas3PrerequisiteContextUpdaterTest {
             listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED_NON_MALE),
           )
 
-          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3)
+          assertThat(result.currentResult!!.serviceStatus.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3)
         }
       }
 
@@ -100,7 +100,7 @@ class Cas3PrerequisiteContextUpdaterTest {
         fun `returns SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 for male`() {
           val result = updater.update(context(SexCode.M), listOf(FailureReason.CRS_NOT_SUBMITTED_MALE))
 
-          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3)
+          assertThat(result.currentResult!!.serviceStatus.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3)
         }
 
         @ParameterizedTest
@@ -108,7 +108,7 @@ class Cas3PrerequisiteContextUpdaterTest {
         fun `returns SUBMIT_CRS_BEFORE_CAS3 for non-male`(sex: SexCode) {
           val result = updater.update(context(sex), listOf(FailureReason.CRS_NOT_SUBMITTED_NON_MALE))
 
-          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_BEFORE_CAS3)
+          assertThat(result.currentResult!!.serviceStatus.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_BEFORE_CAS3)
         }
       }
     }

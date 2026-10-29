@@ -1,20 +1,16 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
@@ -25,7 +21,6 @@ class DtrEligibilityTreeProvider(
   private val upcoming: DtrUpcomingRuleSet,
   private val upcomingContextUpdater: DtrUpcomingContextUpdater,
   private val suitability: DtrSuitabilityRuleSet,
-  private val completion: DtrCompletionRuleSet,
   private val completionContextUpdater: DtrCompletionContextUpdater,
   private val eligibility: DtrEligibilityRuleSet,
 ) : EligibilityTreeProvider {
@@ -36,47 +31,33 @@ class DtrEligibilityTreeProvider(
 
   override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
     data = data,
-    currentResult = ServiceResult(serviceStatus = ServiceStatus.ACCEPTED),
+    currentResult = null,
   )
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notRequired = builder.notRequired()
-    val accepted = builder.outcome("accepted", ServiceResult(ServiceStatus.ACCEPTED))
-
-    val completionNode = builder
-      .ruleSet("DtrCompletion", completion, completionContextUpdater)
-      .onPass(accepted)
-      .onFail(confirmed)
-      .build()
+    val notRequired = builder.notRequired(ServiceType.DTR)
 
     // runs when the person is eligible (no next accommodation) and has no active referral
     val upcomingNode = builder
-      .ruleSet("DtrUpcoming", upcoming, upcomingContextUpdater)
-      .continueWith(confirmed)
+      .ruleSet(upcoming)
+      .applyContextUpdaterOnFailure(upcomingContextUpdater)
+      .onPassAndFail(confirmed)
       .build()
 
     //  has next accommodation to produce NOT_REQUIRED
     val eligibilityNode = builder
-      .ruleSet("DtrEligibility", eligibility)
+      .ruleSet(eligibility)
       .onPass(upcomingNode)
-      .onFail(notRequired)
+      .onFail(notRequired).propagateContextOnFailure()
       .build()
 
     // runs when there is an active referral
     // we dont care about the 8 week release window - surface the referral
     return builder
-      .ruleSet(
-        "DtrSuitability",
-        suitability,
-        onFailResult = ServiceResult(
-          serviceStatus = ServiceStatus.NOT_STARTED,
-          action = CaseAction(type = CaseActionType.ADD_DTR_REFERRAL_DETAILS, service = AccommodationService.DTR),
-          link = EligibilityKeys.ADD_REFERRAL_DETAILS,
-        ),
-      )
-      .onPass(completionNode)
-      .onFail(eligibilityNode)
+      .ruleSet(suitability)
+      .onPass(confirmed).applyContextUpdaterOnPass(completionContextUpdater)
+      .onFail(eligibilityNode).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_STARTED))
       .build()
   }
 }

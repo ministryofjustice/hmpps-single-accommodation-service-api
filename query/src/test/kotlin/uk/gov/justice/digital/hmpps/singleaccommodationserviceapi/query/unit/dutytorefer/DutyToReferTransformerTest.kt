@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.UrlTemplate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferTransformer
 import java.time.Instant
@@ -14,6 +15,8 @@ import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
 class DutyToReferTransformerTest {
+
+  val transformer = DutyToReferTransformer(UrlTemplate("http://localhost"))
 
   @Nested
   inner class ToDutyToReferDto {
@@ -28,7 +31,7 @@ class DutyToReferTransformerTest {
         status = EntityDtrStatus.SUBMITTED,
       )
 
-      val dto = DutyToReferTransformer.toDutyToReferDto(entity, crn, createdByName, "Test Local Authority")
+      val dto = transformer.toDutyToReferDto(entity, crn, createdByName, "Test Local Authority")
 
       assertThat(dto.caseId).isEqualTo(caseId)
       assertThat(dto.crn).isEqualTo(crn)
@@ -55,7 +58,7 @@ class DutyToReferTransformerTest {
       )
       val localAuthorityAreaName = "Test Local Authority"
 
-      val result = DutyToReferTransformer.toSubmission(entity, createdByName, localAuthorityAreaName)
+      val result = transformer.toSubmission(entity, createdByName, localAuthorityAreaName)
 
       assertThat(result.id).isEqualTo(id)
       assertThat(result.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
@@ -70,7 +73,7 @@ class DutyToReferTransformerTest {
     fun `should handle nullable fields correctly`() {
       val entity = buildDutyToReferEntity(referenceNumber = null)
 
-      val result = DutyToReferTransformer.toSubmission(entity, createdByName, null)
+      val result = transformer.toSubmission(entity, createdByName, null)
 
       assertThat(result.localAuthority.localAuthorityAreaName).isNull()
       assertThat(result.referenceNumber).isNull()
@@ -87,7 +90,7 @@ class DutyToReferTransformerTest {
         outcomeNote = "An outcome note",
       )
 
-      val result = DutyToReferTransformer.toSubmission(entity, createdByName, "Test LA")
+      val result = transformer.toSubmission(entity, createdByName, "Test LA")
 
       assertThat(result.submissionNote).isEqualTo("A submission note")
       assertThat(result.outcomeNote).isEqualTo("An outcome note")
@@ -103,7 +106,7 @@ class DutyToReferTransformerTest {
       val entity = buildDutyToReferEntity(localAuthorityAreaId = localAuthorityAreaId)
       val localAuthorityAreaName = "Test Local Authority"
 
-      val result = DutyToReferTransformer.toLocalAuthority(entity, localAuthorityAreaName)
+      val result = transformer.toLocalAuthority(entity, localAuthorityAreaName)
 
       assertThat(result.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
       assertThat(result.localAuthorityAreaName).isEqualTo(localAuthorityAreaName)
@@ -113,7 +116,7 @@ class DutyToReferTransformerTest {
     fun `should handle null name`() {
       val entity = buildDutyToReferEntity()
 
-      val result = DutyToReferTransformer.toLocalAuthority(entity, null)
+      val result = transformer.toLocalAuthority(entity, null)
 
       assertThat(result.localAuthorityAreaId).isEqualTo(entity.localAuthorityAreaId)
       assertThat(result.localAuthorityAreaName).isNull()
@@ -126,8 +129,28 @@ class DutyToReferTransformerTest {
     @ParameterizedTest
     @EnumSource(EntityDtrStatus::class)
     fun `should map all DtrStatus values correctly`(entityStatus: EntityDtrStatus) {
-      val result = DutyToReferTransformer.toStatus(entityStatus)
+      val result = transformer.toStatus(entityStatus)
       assertThat(result.name).isEqualTo(entityStatus.name)
+    }
+  }
+
+  @Nested
+  inner class ToDutyToReferEventDetailsDto {
+
+    @Test
+    fun `should map to dto`() {
+      val dtrId = UUID.randomUUID()
+      val crn = "X123456"
+      val entity = buildDutyToReferEntity(id = dtrId)
+      val transformer = DutyToReferTransformer(
+        UrlTemplate("https://single-accommodation-service-test.hmpps.service.justice.gov.uk/cases/$crn/dtr/$dtrId/details"),
+      )
+
+      val result = transformer.toDutyToReferEventDetailsDto(entity, crn)
+
+      assertThat(result.id).isEqualTo(dtrId)
+      assertThat(result.crn).isEqualTo(crn)
+      assertThat(result.viewUrl).isEqualTo("https://single-accommodation-service-test.hmpps.service.justice.gov.uk/cases/X123456/dtr/$dtrId/details")
     }
   }
 }

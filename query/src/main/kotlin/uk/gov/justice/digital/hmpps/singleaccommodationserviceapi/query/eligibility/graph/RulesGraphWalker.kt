@@ -5,75 +5,128 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.OutcomeNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetNode
+import kotlin.reflect.KClass
 
-object RulesGraphWalker {
+private const val QUERY_MAIN_KOTLIN = "../query/src/main/kotlin"
+
+/**
+ * Produces a RulesGraph (nodes and edges) for a given EligibilityTreeProvider
+ */
+class RulesGraphWalker {
+
+  val nodes = LinkedHashMap<Any, GraphNode>()
+  val usedNodeIds = mutableMapOf<String, Any>()
+  val edges = mutableListOf<GraphEdge>()
 
   fun walk(provider: EligibilityTreeProvider): RulesGraph = walk(treeName(provider), provider.tree())
 
   fun walk(treeName: String, root: DecisionNode): RulesGraph {
-    // Map of nodes converted to Graph items
-    val nodes = LinkedHashMap<DecisionNode, GraphNode>()
-    // Map of node ids
-    val usedIds = mutableMapOf<String, DecisionNode>()
-    // Node Edges
-    val edges = mutableListOf<GraphEdge>()
     // record the nodes we are currently visiting
-    val visitingStack = mutableSetOf<DecisionNode>()
-
-    fun visit(node: DecisionNode) {
-      if (node in visitingStack || node in nodes) return
-
-      visitingStack += node
-      when (node) {
-        is OutcomeNode -> {
-          nodes[node] = GraphNode(
-            id = uniqueId(slug(node.name), node, usedIds),
-            title = node.name,
-            kind = GraphNodeKind.OUTCOME,
-          )
-        }
-        is RuleSetNode -> {
-          val graphNode = GraphNode(
-            id = uniqueId(slug(node.ruleSetName), node, usedIds),
-            title = node.ruleSetName,
-            kind = GraphNodeKind.RULE_SET,
-            rules = node.ruleSet.getRules().map { rule ->
-              RuleInfo(
-                className = rule::class.simpleName
-                  ?: error("Rules should not be defined as anonymous classes"),
-                description = rule.description,
-              )
-            },
-            contextUpdater = contextUpdaterName(node.contextUpdater),
-            ruleSet = node.ruleSet,
-          )
-          nodes[node] = graphNode
-          visit(node.onPass)
-          visit(node.onFail)
-          edges += GraphEdge(graphNode.id, nodes.getValue(node.onPass).id, "PASS")
-          edges += GraphEdge(graphNode.id, nodes.getValue(node.onFail).id, "FAIL")
-        }
-      }
-      visitingStack -= node
-    }
-
     visit(root)
     return RulesGraph(treeName, nodes.values.toList(), edges)
   }
+
+  fun visit(node: DecisionNode) {
+    val visitingStack = mutableSetOf<DecisionNode>()
+
+    if (node in visitingStack || node in nodes) return
+
+    visitingStack += node
+    when (node) {
+      is OutcomeNode -> {
+        nodes[node] = node.toGraphNode()
+      }
+
+      is RuleSetNode -> {
+        val graphNode = node.toGraphNode()
+        nodes[node] = graphNode
+
+        addOutcomeEdge(
+          fromGraphNode = graphNode,
+          toNode = node.onPass,
+          contextUpdater = node.onPassContextUpdater,
+          edgeLabel = "PASS",
+        )
+
+        addOutcomeEdge(
+          fromGraphNode = graphNode,
+          toNode = node.onFail,
+          contextUpdater = node.onFailContextUpdater,
+          edgeLabel = "FAIL",
+        )
+      }
+    }
+    visitingStack -= node
+  }
+
+  private fun addOutcomeEdge(
+    fromGraphNode: GraphNode,
+    toNode: DecisionNode,
+    contextUpdater: ContextUpdater?,
+    edgeLabel: String,
+  ) {
+    val onPassSourceNode = if (contextUpdater == null || contextUpdater === ContextUpdater.identity()) {
+      fromGraphNode
+    } else {
+      val contextUpdaterNode = contextUpdater.toGraphNode()
+
+      nodes[contextUpdater] = contextUpdaterNode
+
+      edges += GraphEdge(from = fromGraphNode.id, to = contextUpdaterNode.id, label = edgeLabel)
+
+      if (contextUpdater.terminalNode) return
+
+      contextUpdaterNode
+    }
+
+    visit(toNode)
+    edges += GraphEdge(onPassSourceNode.id, nodes.getValue(toNode).id, edgeLabel)
+  }
+
+  private fun OutcomeNode.toGraphNode() = GraphNode(
+    id = ensureUniqueId(slug(name), this),
+    title = name,
+    kind = GraphNodeKind.OUTCOME,
+  )
+
+  private fun RuleSetNode.toGraphNode() = GraphNode(
+    id = ensureUniqueId(slug(ruleSetName), this),
+    title = ruleSetName,
+    kind = GraphNodeKind.RULE_SET,
+    rules = ruleSet.getRules().map { priorityRule ->
+      RuleInfo(
+        className = priorityRule.rule::class.simpleName
+          ?: error("Rules should not be defined as anonymous classes"),
+        description = priorityRule.rule.description,
+        sourcePath = sourceLinkPath(priorityRule.rule::class),
+      )
+    },
+    onPassContextUpdater = contextUpdaterInfo(onPassContextUpdater, ContextUpdaterKind.ON_PASS),
+    onFailContextUpdater = contextUpdaterInfo(onFailContextUpdater, ContextUpdaterKind.ON_FAIL),
+    ruleSet = ruleSet,
+  )
+
+  private fun ContextUpdater.toGraphNode() = GraphNode(
+    id = ensureUniqueId(slug(description), this),
+    title = description,
+    kind = GraphNodeKind.CONTEXT_UPDATER,
+    onPassContextUpdater = null,
+    onFailContextUpdater = null,
+  )
 
   fun treeName(provider: EligibilityTreeProvider): String = provider::class.simpleName
     ?.removeSuffix("EligibilityTreeProvider")
     ?.uppercase()
     ?: provider.javaClass.simpleName
-}
 
-private fun uniqueId(base: String, node: DecisionNode, used: MutableMap<String, DecisionNode>): String {
-  val existing = used[base]
-  require(existing == null || existing === node) {
-    "Duplicate graph node id '$base'. Give RuleSet and outcomes unique names."
+  private fun ensureUniqueId(base: String, node: Any): String {
+    val existing = usedNodeIds[base]
+    require(existing == null || existing === node) {
+      "Duplicate graph node id '$base'. Give RuleSet and outcomes unique names."
+    }
+    usedNodeIds[base] = node
+    return base
   }
-  used[base] = node
-  return base
 }
 
 internal fun slug(raw: String): String {
@@ -81,13 +134,31 @@ internal fun slug(raw: String): String {
   return if (cleaned.firstOrNull()?.isLetter() == true) cleaned else "n_$cleaned"
 }
 
-private fun nodeLabel(node: DecisionNode): String = when (node) {
-  is OutcomeNode -> node.name
-  is RuleSetNode -> node.ruleSetName
+internal fun contextUpdaterInfo(
+  updater: ContextUpdater?,
+  updaterKind: ContextUpdaterKind,
+): ContextUpdaterInfo? {
+  if (updater == null) return null
+  val kClass = updater::class
+  val simple = kClass.simpleName
+  if (simple.isNullOrBlank()) {
+    if (updater.propagatesFailureReasons) return null
+    return ContextUpdaterInfo(name = "constant", description = updater.description, outcomes = updater.outcomes, kind = updaterKind)
+  }
+  return ContextUpdaterInfo(
+    name = simple,
+    description = updater.description,
+    outcomes = updater.outcomes,
+    sourcePath = sourceLinkPath(kClass),
+    kind = updaterKind,
+  )
 }
 
-internal fun contextUpdaterName(updater: ContextUpdater): String {
-  val simple = updater::class.simpleName
-  if (!simple.isNullOrBlank()) return simple
-  return if (updater.propagatesFailureReasons) "identity" else "constant"
+internal fun sourceLinkPath(kClass: KClass<*>): String? {
+  val javaClass = kClass.java
+  if (javaClass.isAnonymousClass || javaClass.isLocalClass || javaClass.enclosingClass != null) return null
+  val packageName = javaClass.packageName
+  val simpleName = kClass.simpleName ?: return null
+  if (packageName.isBlank()) return null
+  return "$QUERY_MAIN_KOTLIN/${packageName.replace('.', '/')}/$simpleName.kt"
 }

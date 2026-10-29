@@ -1,25 +1,36 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler
 
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getAdditionalInformation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getRequiredAdditionalInformation
+
+@ConfigurationProperties(prefix = "case-list")
+class OffenderManagementAllocationChangedProperties(
+  var onboardedPrisonCodes: List<String> = emptyList(),
+)
 
 @Component
 class OffenderManagementAllocationChangedHandler(
-  private val caseCreationService: CaseCreationService,
+  private val caseApplicationService: CaseApplicationService,
   private val inboxEventHelper: InboxEventHelper,
   private val userRepository: UserRepository,
   private val caseRepository: CaseRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
   private val corePersonRecordClient: CorePersonRecordClient,
+  private val offenderManagementAllocationChangedProperties: OffenderManagementAllocationChangedProperties,
 ) : InboxEventHandler {
 
   override fun supportedEventTypes() = setOf(IncomingHmppsDomainEventType.OFFENDER_MANAGEMENT_ALLOCATION_CHANGED.typeName)
@@ -32,8 +43,8 @@ class OffenderManagementAllocationChangedHandler(
    * user views their caselist, or by being manually preloaded. This event will be processed:
    *  a) update - if the prisonNumber from the event is in the database, we will refresh the case.
    * -OR-
-   *  b) create - if the prisonNumber is unknown but allocated user exists in the sas_users table, we create a
-   *     populated entry into the SAS_CASE table.
+   *  b) create - if the prisonNumber is unknown but allocated user exists in the sas_users table, or if the team has
+   *  been onboarded. we create a blank row in the SAS_CASE table and request a live refresh to populate it
    * -OR-
    *  c) ignore - if neither are known, we ignore the event.
    */
@@ -42,15 +53,12 @@ class OffenderManagementAllocationChangedHandler(
     val prisonNumber = getPartitionKey(inboxEvent)
     val case = caseRepository.findByPrisonNumber(prisonNumber)
     if (case != null) {
-      caseRefreshRequestService?.requestLiveRefresh(case.id)
+      caseRefreshRequestService.requestLiveRefresh(case.id)
       return InboxEventHandler.Result.PROCESSED
     }
 
     val event = inboxEventHelper.toDomainEvent(inboxEvent)
-    val staffCode = event.getRequiredAdditionalInformation("staffCode").toLong()
-
-    val user = userRepository.findByNomisStaffId(staffCode)
-    if (user != null) {
+    if (prisonIsOnboarded(event) || staffMemberIsKnown(event)) {
       val cpr = corePersonRecordClient.getByPrisonNumber(prisonNumber)
       val identifiers = cpr.identifiers
 
@@ -61,9 +69,24 @@ class OffenderManagementAllocationChangedHandler(
       require(identifiers?.crns?.size == 1) { "This requires a single CRN in cpr identifiers for prisonNumber: [$prisonNumber]." }
 
       val crn = identifiers.crns.single()
-      caseCreationService.upsertCase(crn, prisonNumber)
+      caseApplicationService.createBlankCases(
+        listOf(CrnToPrisonNumber(crn, prisonNumber)),
+        refreshPriority = CaseRefreshPriority.LIVE,
+      )
       return InboxEventHandler.Result.PROCESSED
+    } else {
+      return InboxEventHandler.Result.IGNORED
     }
-    return InboxEventHandler.Result.IGNORED
+  }
+
+  private fun prisonIsOnboarded(event: SnsDomainEvent): Boolean = offenderManagementAllocationChangedProperties.onboardedPrisonCodes.contains(
+    event.getRequiredAdditionalInformation(
+      "prisonId",
+    ),
+  )
+
+  private fun staffMemberIsKnown(event: SnsDomainEvent): Boolean {
+    val staffCode = event.getAdditionalInformation("staffCode")
+    return staffCode != null && userRepository.findByNomisStaffId(staffCode.toLong()) != null
   }
 }

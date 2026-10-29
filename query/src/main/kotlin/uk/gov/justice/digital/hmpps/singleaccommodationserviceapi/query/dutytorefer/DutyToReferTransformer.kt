@@ -1,17 +1,24 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer
 
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrEventDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LocalAuthorityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.UrlTemplate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
-object DutyToReferTransformer {
-
+@Service
+class DutyToReferTransformer(
+  @Value("\${frontend.duty-to-refer.view}")
+  val dutyToReferViewUrl: UrlTemplate,
+) {
   fun toDutyToReferDto(
     entity: DutyToReferEntity,
     crn: String,
@@ -50,7 +57,7 @@ object DutyToReferTransformer {
     referenceNumber = entity.referenceNumber,
     submissionDate = entity.submissionDate,
     createdBy = createdByName,
-    createdAt = entity.createdAt!!,
+    createdAt = entity.createdAt,
     withdrawalReason = entity.withdrawalReason?.let { WithdrawalReason.valueOf(it.name) },
     withdrawalReasonOther = entity.withdrawalReasonOther,
     outcomeReason = entity.outcomeReason?.let { OutcomeReason.valueOf(it.name) },
@@ -69,7 +76,7 @@ object DutyToReferTransformer {
     submissionDate = entity.submissionDate,
     createdBy = createdByUser.displayName(),
     createdByUsername = createdByUser.username,
-    createdAt = entity.createdAt!!,
+    createdAt = entity.createdAt,
     withdrawalReason = entity.withdrawalReason?.let { WithdrawalReason.valueOf(it.name) },
     withdrawalReasonOther = entity.withdrawalReasonOther,
     outcomeReason = entity.outcomeReason?.let { OutcomeReason.valueOf(it.name) },
@@ -81,4 +88,18 @@ object DutyToReferTransformer {
   )
 
   fun toStatus(status: EntityDtrStatus): DtrStatus = DtrStatus.valueOf(status.name)
+
+  fun toDutyToReferEventDetailsDto(
+    dtrEntity: DutyToReferEntity,
+    crn: String,
+  ): DtrEventDetailsDto = DtrEventDetailsDto(
+    id = dtrEntity.id,
+    crn = crn,
+    viewUrl = dutyToReferViewUrl.resolve(
+      mapOf(
+        "crn" to crn,
+        "dtrId" to dtrEntity.id.toString(),
+      ),
+    ),
+  )
 }

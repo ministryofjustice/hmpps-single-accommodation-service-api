@@ -92,19 +92,6 @@ class AdminBulkRefreshCasesServiceTest {
     verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any(), any()) }
   }
 
-  @Test
-  fun `fails before doing anything when the case refresh mechanism is not enabled`() {
-    val service = AdminBulkRefreshCasesService(
-      caseRepository = caseRepository,
-      caseRefreshRequestService = null,
-    )
-
-    val exception = assertThrows<IllegalStateException> { service.bulkRefreshCasesByCrn(listOf("CRN1"), dryRun = false) }
-
-    assertThat(exception.message).contains("not enabled")
-    verify(exactly = 0) { caseRepository.mapByCrns(any()) }
-  }
-
   private fun stubCases(vararg cases: Pair<String, UUID>) {
     every { caseRepository.mapByCrns(any()) } returns cases.associate { (crn, id) ->
       crn to buildCaseEntity(id = id) { withCrn(crn) }

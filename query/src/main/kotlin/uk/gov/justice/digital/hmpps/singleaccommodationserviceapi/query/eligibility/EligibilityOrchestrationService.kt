@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_WITHOUT_LAO
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_APPLICATION
@@ -13,19 +14,23 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CRS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_PRISONER
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_SEXUAL_OFFENCE_REGISTRATIONS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER_V3
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServicesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierCachingService
 
@@ -37,12 +42,15 @@ class EligibilityOrchestrationService(
   val corePersonRecordCachingService: CorePersonRecordCachingService,
   val prisonerSearchCachingService: PrisonerSearchCachingService,
   val tierCachingService: TierCachingService,
+  val sasAndDeliusCachingService: SasAndDeliusCachingService,
 ) {
 
   fun getData(crn: String, prisonNumber: String?): OrchestrationResultDto<EligibilityOrchestrationDto> {
     val calls = buildMap {
       put(GET_CORE_PERSON_RECORD_BY_CRN) { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) }
-      put(GET_TIER) { tierCachingService.getTier(crn) }
+      put(GET_TIER_V3) { tierCachingService.getTier(crn) }
+      put(GET_CASE_WITHOUT_LAO) { sasAndDeliusCachingService.getCase(crn) }
+      put(GET_SEXUAL_OFFENCE_REGISTRATIONS) { sasAndDeliusCachingService.getSexualOffenceRegistrations(crn) }
       put(GET_CAS_1_APPLICATION) { approvedPremisesCachingService.getSuitableCas1Application(crn) }
       put(GET_CAS_2_APPLICATION) { approvedPremisesCachingService.getSuitableCas2Application(crn) }
       put(GET_CAS_3_APPLICATION) { approvedPremisesCachingService.getSuitableCas3Application(crn) }
@@ -56,14 +64,16 @@ class EligibilityOrchestrationService(
     ).standardCallsNoIterationResults!!
 
     val cpr = results.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD_BY_CRN)
-    val tier = results.getResult<Tier>(GET_TIER)
+    val tier = results.getResult<Tier>(GET_TIER_V3)
+    val case = results.getResult<Case>(GET_CASE_WITHOUT_LAO)
+    val sexualOffenceRegistrations = results.getResult<SexualOffenceRegistrations>(GET_SEXUAL_OFFENCE_REGISTRATIONS)
     val cas1Application = results.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
     val cas2Application = results.getResult<Cas2Application>(GET_CAS_2_APPLICATION)
     val cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
     val crs = results.getResult<List<CommissionedRehabilitativeServices>>(GET_CRS)
     val prisoner = results.getResult<Prisoner>(GET_PRISONER)
     val cas1CurrentPremises = results.getResult<Cas1PremisesSummary>(GET_CAS_1_CURRENT_PREMISES)
-    val cas3CurrentPremises = results.getResult<Cas3PremisesSummary>(GET_CAS_3_CURRENT_PREMISES)
+    val cas3CurrentPremises = results.getResult<Cas3BookingPremises>(GET_CAS_3_CURRENT_PREMISES)
 
     return OrchestrationResultDto(
       data = EligibilityOrchestrationDto(
@@ -77,6 +87,8 @@ class EligibilityOrchestrationService(
         prisoner = prisoner,
         cas1CurrentPremises = cas1CurrentPremises,
         cas3CurrentPremises = cas3CurrentPremises,
+        sexualOffenceRegistrations = sexualOffenceRegistrations,
+        case = case,
       ),
       upstreamFailures = results.getFailures(),
     )

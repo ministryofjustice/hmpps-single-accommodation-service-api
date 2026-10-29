@@ -13,8 +13,10 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.FULL_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS1_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_WITHOUT_LAO
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_URL_TEMPLATES
@@ -26,9 +28,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CRS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_NOMIS_USER_DETAIL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_PRISONER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_SEXUAL_OFFENCE_REGISTRATIONS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_STAFF_DETAIL
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER_V3
 
 @Configuration
 @Profile("dev", "preprod", "prod")
@@ -102,11 +106,14 @@ class RedissonCacheConfig {
   fun cacheManager(redissonClient: RedissonClient): CacheManager {
     val configs = mapOf(
       GET_STAFF_DETAIL to CacheConfig(600_000, 300_000),
+      GET_SEXUAL_OFFENCE_REGISTRATIONS to CacheConfig(600_000, 300_000),
       GET_CASE to CacheConfig(60_000, 30_000),
+      GET_CASE_WITHOUT_LAO to CacheConfig(60_000, 30_000),
       GET_CORE_PERSON_RECORD_BY_CRN to CacheConfig(500, 250),
       GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER to CacheConfig(60_000, 30_000),
-      GET_TIER to CacheConfig(60_000, 30_000),
+      GET_TIER_V3 to CacheConfig(60_000, 30_000),
       GET_CAS1_REFERRAL to CacheConfig(60_000, 30_000),
+      GET_CAS2_REFERRAL to CacheConfig(60_000, 30_000),
       GET_CAS3_REFERRAL to CacheConfig(60_000, 30_000),
       GET_CAS_1_APPLICATION to CacheConfig(60_000, 30_000),
       GET_CAS_1_CURRENT_PREMISES to CacheConfig(60_000, 30_000),
@@ -119,6 +126,7 @@ class RedissonCacheConfig {
       FULL_CASE_LIST to CacheConfig(600_000, 600_000),
       GET_CRS to CacheConfig(60_000, 30_000),
       GET_PRISONER to CacheConfig(60_000, 30_000),
+      GET_NOMIS_USER_DETAIL to CacheConfig(600_000, 600_000),
     )
     return RedissonSpringCacheManager(redissonClient, configs)
   }

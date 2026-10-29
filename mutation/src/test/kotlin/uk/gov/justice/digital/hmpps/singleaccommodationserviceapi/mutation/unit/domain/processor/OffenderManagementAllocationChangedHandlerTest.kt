@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit
 
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
@@ -19,14 +20,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.OffenderManagementAllocationChangedHandler
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.OffenderManagementAllocationChangedProperties
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -34,7 +38,7 @@ import java.util.UUID
 class OffenderManagementAllocationChangedHandlerTest {
 
   @RelaxedMockK
-  private lateinit var caseCreationService: CaseCreationService
+  private lateinit var caseApplicationService: CaseApplicationService
 
   @RelaxedMockK
   private lateinit var inboxEventHelper: InboxEventHelper
@@ -51,10 +55,15 @@ class OffenderManagementAllocationChangedHandlerTest {
   @RelaxedMockK
   private lateinit var corePersonRecordClient: CorePersonRecordClient
 
+  @MockK
+  private lateinit var offenderManagementAllocationChangedProperties: OffenderManagementAllocationChangedProperties
+
   @InjectMockKs
   private lateinit var offenderManagementAllocationChangedHandler: OffenderManagementAllocationChangedHandler
 
   private val prisonNumber = "A1234BC"
+  private val onboardedPrisonId = "SAS"
+  private val nonOnboardedPrisonId = "MDI"
   private val staffCode = 99999123L
   private val crn = "X123456"
 
@@ -69,6 +78,7 @@ class OffenderManagementAllocationChangedHandlerTest {
   @BeforeEach
   fun setUp() {
     every { inboxEventHelper.findPrisonNumber(any()) } returns prisonNumber
+    every { offenderManagementAllocationChangedProperties.onboardedPrisonCodes } returns listOf("SAS")
   }
 
   @Test
@@ -92,55 +102,68 @@ class OffenderManagementAllocationChangedHandlerTest {
 
     assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
     verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(caseId) }
-    verify(exactly = 0) { caseCreationService.upsertCase(any(), any()) }
-  }
-
-  @Test
-  fun `should process OFFENDER_MANAGEMENT_ALLOCATION_CHANGED message when case is known and refresh request service is null`() {
-    offenderManagementAllocationChangedHandler = OffenderManagementAllocationChangedHandler(
-      caseCreationService = caseCreationService,
-      inboxEventHelper = inboxEventHelper,
-      userRepository = userRepository,
-      caseRepository = caseRepository,
-      caseRefreshRequestService = null,
-      corePersonRecordClient = corePersonRecordClient,
-    )
-
-    every { caseRepository.findByPrisonNumber(prisonNumber) } returns mockk()
-
-    assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   @Test
   fun `should ignore OFFENDER_MANAGEMENT_ALLOCATION_CHANGED message when case is unknown and user does not exist`() {
     every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
-    every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent()
+    every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent(prisonId = nonOnboardedPrisonId)
     every { userRepository.findByNomisStaffId(staffCode) } returns null
 
     assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { corePersonRecordClient.getByPrisonNumber(any()) }
-    verify(exactly = 0) { caseCreationService.upsertCase(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   @Test
   fun `should create case and process OFFENDER_MANAGEMENT_ALLOCATION_CHANGED message when case is unknown and allocated user exists`() {
     every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
-    every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent()
+    every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent(prisonId = nonOnboardedPrisonId)
     every { userRepository.findByNomisStaffId(staffCode) } returns mockk<UserEntity>()
     every { corePersonRecordClient.getByPrisonNumber(prisonNumber) } returns CorePersonRecord(
       identifiers = Identifiers(crns = listOf(crn)),
     )
 
     assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 1) { caseCreationService.upsertCase(crn, prisonNumber) }
+    verify(exactly = 1) { caseApplicationService.createBlankCases(listOf(CrnToPrisonNumber(crn, prisonNumber)), CaseRefreshPriority.LIVE) }
     verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
+  }
+
+  @Test
+  fun `should create case and process OFFENDER_MANAGEMENT_ALLOCATION_CHANGED message when case is unknown and prison is onboarded with no staff code`() {
+    every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
+    every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent(
+      prisonId = onboardedPrisonId,
+      staffCode = null,
+    )
+    every { corePersonRecordClient.getByPrisonNumber(prisonNumber) } returns CorePersonRecord(
+      identifiers = Identifiers(crns = listOf(crn)),
+    )
+
+    assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
+    verify(exactly = 0) { userRepository.findByNomisStaffId(any()) }
+    verify(exactly = 1) { caseApplicationService.createBlankCases(listOf(CrnToPrisonNumber(crn, prisonNumber)), CaseRefreshPriority.LIVE) }
+  }
+
+  @Test
+  fun `should ignore OFFENDER_MANAGEMENT_ALLOCATION_CHANGED message when case is unknown and prison is not onboarded with no staff code`() {
+    every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
+    every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent(
+      prisonId = nonOnboardedPrisonId,
+      staffCode = null,
+    )
+
+    assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
+    verify(exactly = 0) { userRepository.findByNomisStaffId(any()) }
+    verify(exactly = 0) { corePersonRecordClient.getByPrisonNumber(any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   @Test
   fun `should throw when cpr identifiers are missing`() {
     every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
-    every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent()
+    every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent(prisonId = nonOnboardedPrisonId)
     every { userRepository.findByNomisStaffId(staffCode) } returns mockk<UserEntity>()
     every { corePersonRecordClient.getByPrisonNumber(prisonNumber) } returns CorePersonRecord(identifiers = null)
 
@@ -148,13 +171,13 @@ class OffenderManagementAllocationChangedHandlerTest {
       .isInstanceOf(IllegalArgumentException::class.java)
       .hasMessage("This requires a single CRN in cpr identifiers for prisonNumber: [$prisonNumber].")
 
-    verify(exactly = 0) { caseCreationService.upsertCase(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   @Test
   fun `should throw when cpr response has more than one CRN`() {
     every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
-    every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent()
+    every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent(prisonId = nonOnboardedPrisonId)
     every { userRepository.findByNomisStaffId(staffCode) } returns mockk<UserEntity>()
     every { corePersonRecordClient.getByPrisonNumber(prisonNumber) } returns CorePersonRecord(
       identifiers = Identifiers(crns = listOf("X111111", "X222222")),
@@ -164,16 +187,22 @@ class OffenderManagementAllocationChangedHandlerTest {
       .isInstanceOf(IllegalArgumentException::class.java)
       .hasMessage("This requires a single CRN in cpr identifiers for prisonNumber: [$prisonNumber].")
 
-    verify(exactly = 0) { caseCreationService.upsertCase(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
-  private fun offenderAllocationChangedEvent() = SnsDomainEvent(
+  private fun offenderAllocationChangedEvent(
+    prisonId: String,
+    staffCode: Long? = this.staffCode,
+  ) = SnsDomainEvent(
     eventType = eventTypeName,
     version = 1,
     occurredAt = OffsetDateTime.now(),
     personReference = PersonReference(
       identifiers = listOf(PersonIdentifier(type = "NOMS", value = prisonNumber)),
     ),
-    additionalInformation = mapOf("staffCode" to staffCode),
+    additionalInformation = buildMap<String, Any> {
+      put("prisonId", prisonId)
+      staffCode?.let { put("staffCode", it) }
+    },
   )
 }

@@ -28,3 +28,5 @@ class InboxEventHelper(private val jsonMapper: JsonMapper) {
 fun SnsDomainEvent.getRequiredAdditionalInformation(field: String): String = requireNotNull(additionalInformation?.get(field)?.toString()) {
   "Additional information missing for [field=$field]"
 }
+
+fun SnsDomainEvent.getAdditionalInformation(field: String): String? = additionalInformation?.get(field)?.toString()

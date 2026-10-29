@@ -1,0 +1,13 @@
+ALTER TABLE other_accommodation_referral RENAME TO external_referral;
+ALTER TABLE other_accommodation_referral_note RENAME TO external_referral_note;
+
+ALTER TABLE external_referral_note RENAME COLUMN other_accommodation_referral_id TO external_referral_id;
+
+ALTER TABLE external_referral RENAME CONSTRAINT fk_other_accommodation_referral_sas_case TO fk_external_referral_sas_case;
+
+ALTER TABLE external_referral_note RENAME CONSTRAINT other_accommodation_referral__other_accommodation_referral_fkey TO external_referral_note_external_referral_id_fkey;
+
+ALTER INDEX idx_other_accommodation_referral_note_referral_id RENAME TO idx_external_referral_note_referral_id;
+
+ALTER INDEX other_accommodation_referral_pkey RENAME TO external_referral_pkey;
+ALTER INDEX other_accommodation_referral_note_pkey RENAME TO external_referral_note_pkey;

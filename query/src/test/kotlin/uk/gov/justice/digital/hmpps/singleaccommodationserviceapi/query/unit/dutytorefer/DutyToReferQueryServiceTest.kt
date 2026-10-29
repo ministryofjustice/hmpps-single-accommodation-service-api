@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.dutytorefer
 
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Fi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.UrlTemplate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferNoteEntity
@@ -30,10 +31,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.Instant
 import java.time.LocalDate
-import java.util.Optional
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
@@ -55,12 +56,24 @@ class DutyToReferQueryServiceTest {
   @MockK
   lateinit var auditService: AuditService
 
-  @InjectMockKs
   lateinit var service: DutyToReferQueryService
 
   private val caseId = UUID.randomUUID()
   private val crn = UUID.randomUUID().toString()
   private val clock = MutableClock()
+
+  @BeforeEach
+  fun setupService() {
+    service = DutyToReferQueryService(
+      dutyToReferRepository,
+      userRepository,
+      localAuthorityAreaRepository,
+      caseRepository,
+      auditService,
+      DutyToReferTransformer(UrlTemplate("https://localhost/view/dtr")),
+      clock,
+    )
+  }
 
   @Nested
   inner class GetDutyToReferByCrnAndCaseEntity {
@@ -361,52 +374,6 @@ class DutyToReferQueryServiceTest {
       assertThatThrownBy { service.getDutyToRefer(crn, id) }
         .isInstanceOf(NotFoundException::class.java)
         .hasMessage("DutyToReferEntity not found for [id=$id, crn=$crn]")
-    }
-  }
-
-  @Nested
-  inner class GetDutyToReferById {
-
-    private val id = UUID.randomUUID()
-
-    @Test
-    fun `should return dtr when found by id`() {
-      val createdByUserId = UUID.randomUUID()
-      val localAuthorityAreaId = UUID.randomUUID()
-      val dtrEntity = buildDutyToReferEntity(
-        caseId = caseId,
-        localAuthorityAreaId = localAuthorityAreaId,
-        createdByUserId = createdByUserId,
-      )
-      val userEntity = buildUserEntity()
-      val localAuthorityAreaEntity = buildLocalAuthorityAreaEntity(
-        id = localAuthorityAreaId,
-        name = "Test Local Authority",
-      )
-      every { dutyToReferRepository.findById(id) } returns Optional.of(dtrEntity)
-      every { caseRepository.findWithIdentifiersById(caseId) } returns buildCaseEntity { withCrn(crn) }
-      every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
-      every { localAuthorityAreaRepository.findByIdOrNull(localAuthorityAreaId) } returns localAuthorityAreaEntity
-
-      val result = service.getDutyToRefer(id)
-
-      assertThat(result.crn).isEqualTo(crn)
-      assertThat(result.caseId).isEqualTo(caseId)
-      assertThat(result.status).isEqualTo(DtrStatus.SUBMITTED)
-      assertThat(result.submission).isNotNull()
-      val submission = result.submission!!
-      assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
-      assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
-      assertThat(submission.createdBy).isEqualTo(userEntity.displayName())
-    }
-
-    @Test
-    fun `should throw NotFoundException when not found`() {
-      every { dutyToReferRepository.findByIdOrNull(id) } returns null
-
-      assertThatThrownBy { service.getDutyToRefer(id) }
-        .isInstanceOf(NotFoundException::class.java)
-        .hasMessage("DutyToReferEntity not found for [id=$id]")
     }
   }
 
@@ -749,5 +716,33 @@ class DutyToReferQueryServiceTest {
         ),
       ),
     )
+  }
+
+  @Nested
+  inner class GetEventDetailsDto {
+
+    @Test
+    fun `should return DTR event details with CRN and frontend view URL`() {
+      val dtrEntity = buildDutyToReferEntity(caseId = caseId)
+      every { dutyToReferRepository.findByIdOrNull(dtrEntity.id) } returns dtrEntity
+      every { caseRepository.findWithIdentifiersById(caseId) } returns buildCaseEntity { withCrn(crn) }
+
+      val result = service.getEventDetailsDto(dtrEntity.id)
+
+      assertThat(result.id).isEqualTo(dtrEntity.id)
+      assertThat(result.crn).isEqualTo(crn)
+      assertThat(result.viewUrl).isEqualTo("https://localhost/view/dtr")
+    }
+
+    @Test
+    fun `should throw NotFoundException when DTR not found`() {
+      val id = UUID.randomUUID()
+
+      every { dutyToReferRepository.findByIdOrNull(id) } returns null
+
+      assertThatThrownBy { service.getEventDetailsDto(id) }
+        .isInstanceOf(NotFoundException::class.java)
+        .hasMessage("DutyToReferEntity not found for [id=$id]")
+    }
   }
 }

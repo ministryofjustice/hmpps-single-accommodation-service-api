@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
@@ -14,11 +13,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.TierEventHandlerConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
-@TestPropertySource(properties = ["scheduling.enabled=true"])
+@EnableMessageProcessing
 class TierCalculationChangedIT : DomainEventIntegrationTestBase() {
 
   @Autowired
@@ -40,8 +40,8 @@ class TierCalculationChangedIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should process incoming HMPPS TIER_CALCULATION_CHANGED domain events on existing record`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
-    val tier = buildTier(tierScore = "A3")
+    caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+    val tier = buildTier(tierScore = "C")
     TierStubs.getTierOKResponse(crn, response = tier)
 
     publishTierEvent()
@@ -54,9 +54,9 @@ class TierCalculationChangedIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `process multiple incoming HMPPS TIER_CALCULATION_CHANGED domain events for the same CRN`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
 
-    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A2"))
+    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "B"))
     publishTierEvent()
     publishTierEvent()
     publishTierEvent()
@@ -71,7 +71,7 @@ class TierCalculationChangedIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should not process incoming HMPPS TIER_CALCULATION_CHANGED domain events on unknown record`() {
-    val tier = buildTier(tierScore = "A3")
+    val tier = buildTier(tierScore = "C")
     TierStubs.getTierOKResponse(crn, response = tier)
 
     assertThat(caseRepository.findAll()).hasSize(0)

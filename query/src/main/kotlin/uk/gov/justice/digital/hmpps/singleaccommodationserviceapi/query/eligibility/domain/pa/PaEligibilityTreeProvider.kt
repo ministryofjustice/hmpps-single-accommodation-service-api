@@ -1,11 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -27,30 +25,24 @@ class PaEligibilityTreeProvider(
 
   override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
     data = data,
-    currentResult = ServiceResult(serviceStatus = ServiceStatus.COMPLETED),
+    currentResult = null,
   )
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notEligible = builder.notEligible()
+    val notEligible = builder.notEligible(ServiceType.PA)
+    val completed = builder.outcome("completed", ServiceResultNew(serviceStatus = ServiceStatusNew.PA_COMPLETED))
 
     val eligibilityNode = builder
-      .ruleSet("PaEligibility", eligibility)
+      .ruleSet(eligibility)
       .onPass(confirmed)
-      .onFail(notEligible)
+      .onFail(notEligible).propagateContextOnFailure()
       .build()
 
     return builder
-      .ruleSet(
-        "PaCompletion",
-        completion,
-        onFailResult = ServiceResult(
-          serviceStatus = ServiceStatus.NOT_STARTED,
-          action = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, service = AccommodationService.PA),
-        ),
-      )
-      .onPass(confirmed)
-      .onFail(eligibilityNode)
+      .ruleSet(completion)
+      .onPass(completed)
+      .onFail(eligibilityNode).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.PA_NOT_STARTED))
       .build()
   }
 }

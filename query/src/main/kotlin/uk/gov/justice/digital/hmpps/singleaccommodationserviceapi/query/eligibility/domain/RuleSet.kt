@@ -1,5 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain
 
 interface RuleSet {
-  fun getRules(): List<Rule>
+  /**
+   * Human-readable label
+   */
+  val name: String
+
+  fun getRules(): List<PrioritisedRule>
 }

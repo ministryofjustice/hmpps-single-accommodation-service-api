@@ -2,12 +2,17 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.SexualOffenceRegistrationCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import java.time.LocalDate
 
 object CaseTransformer {
   fun toCaseDto(
@@ -15,9 +20,10 @@ object CaseTransformer {
     person: PersonDto?,
     cpr: CorePersonRecord?,
     tier: Tier?,
+    sexualOffenceRegistrations: SexualOffenceRegistrations?,
   ) = when (person) {
     is LimitedPersonDto -> person.toLimitedCaseDto()
-    is FullPersonDto -> person.toOrchestratedCaseDto(person, cpr, tier)
+    is FullPersonDto -> person.toOrchestratedCaseDto(person, cpr, tier, sexualOffenceRegistrations)
     null -> CaseDto(crn = crn, userAccess = UserAccess.UNKNOWN, limitedAccess = null)
   }
 
@@ -25,6 +31,7 @@ object CaseTransformer {
     person: FullPersonDto,
     cpr: CorePersonRecord?,
     tier: Tier?,
+    sexualOffenceRegistrations: SexualOffenceRegistrations?,
   ) = CaseDto(
     forename = cpr?.firstName,
     middleNames = cpr?.middleNames,
@@ -39,77 +46,81 @@ object CaseTransformer {
     photoUrl = null,
     userAccess = UserAccess.FULL,
     limitedAccess = this.limitedAccess,
+    sexualOffenceRegistrations = sexualOffenceRegistrations
+      ?.sexualOffenceRegistrations
+      ?.map { SexualOffenceRegistrationCode.valueOf(it.type.code.name) }
+      .orEmpty(),
   )
 
   fun PersonDto.toCaseDto(
     caseEntity: CaseEntity?,
-  ): CaseDto = when (this) {
-    is FullPersonDto -> {
-      CaseDto(
-        forename = forename,
-        middleNames = middleNames,
-        surname = surname,
-        dateOfBirth = dateOfBirth,
-        crn = crn,
-        prisonNumber = nomsNumber,
-        riskLevel = riskLevel,
-        pncReference = pncNumber,
-        assignedTo = assignedTo,
-        photoUrl = null,
-        tierScore = caseEntity?.tierScore,
-        userAccess = UserAccess.FULL,
-        limitedAccess = this.limitedAccess,
-      )
-    }
-
-    is LimitedPersonDto -> toLimitedCaseDto()
-  }
-
-  fun PersonDto.toCaseDtoV2(
-    caseEntity: CaseEntity?,
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
   ): CaseDto = when (this) {
-    is FullPersonDto -> {
-      CaseDto(
-        forename = caseEntity?.firstName,
-        middleNames = null,
-        surname = caseEntity?.lastName,
-        dateOfBirth = caseEntity?.dateOfBirth,
-        crn = crn,
-        prisonNumber = nomsNumber,
-        riskLevel = riskLevel,
-        pncReference = pncNumber,
-        assignedTo = assignedTo,
-        photoUrl = null,
-        tierScore = caseEntity?.tierScore,
-        userAccess = UserAccess.FULL,
-        limitedAccess = this.limitedAccess,
-        accommodationSummaries = caseEntity?.let {
-          toAccommodationSummariesDto(
-            accommodationStatus = it.accommodationStatus,
-            currentAccommodation = currentAccommodation,
-            nextAccommodation = nextAccommodation,
-          )
-        },
-      )
-    }
+    is FullPersonDto -> toCaseDto(
+      caseEntity = caseEntity,
+      crn = crn,
+      prisonNumber = nomsNumber,
+      riskLevel = riskLevel,
+      pncReference = pncNumber,
+      assignedTo = assignedTo,
+      limitedAccess = limitedAccess,
+      currentAccommodation = currentAccommodation,
+      nextAccommodation = nextAccommodation,
+    )
 
     is LimitedPersonDto -> toLimitedCaseDto()
   }
 
+  fun toCaseDto(
+    caseEntity: CaseEntity?,
+    crn: String,
+    prisonNumber: String?,
+    riskLevel: RiskLevel?,
+    pncReference: String?,
+    assignedTo: AssignedToDto?,
+    limitedAccess: Boolean?,
+    currentAccommodation: AccommodationSummaryDto? = caseEntity?.currentAccommodation,
+    nextAccommodation: AccommodationSummaryDto? = caseEntity?.nextAccommodation,
+  ) = CaseDto(
+    forename = caseEntity?.firstName,
+    middleNames = null,
+    surname = caseEntity?.lastName,
+    dateOfBirth = caseEntity?.dateOfBirth,
+    crn = crn,
+    prisonNumber = prisonNumber,
+    riskLevel = riskLevel,
+    pncReference = pncReference,
+    assignedTo = assignedTo,
+    photoUrl = null,
+    tierScore = caseEntity?.tierScore,
+    userAccess = UserAccess.FULL,
+    limitedAccess = limitedAccess,
+    accommodationSummaries = caseEntity?.let {
+      toAccommodationSummariesDto(
+        accommodationStatus = it.accommodationStatus,
+        accommodationStatusDate = it.accommodationStatusDate,
+        currentAccommodation = currentAccommodation,
+        nextAccommodation = nextAccommodation,
+      )
+    },
+  )
+
   fun toAccommodationSummariesDto(
     accommodationStatus: CaseAccommodationStatus?,
+    accommodationStatusDate: LocalDate?,
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
   ) = AccommodationSummariesDto(
     caseAccommodationStatus = accommodationStatus,
-    caseAccommodationStatusDate = null,
+    caseAccommodationStatusDate = accommodationStatusDate,
     currentAccommodation = currentAccommodation,
     nextAccommodation = nextAccommodation,
   )
 
-  fun PersonDto.toLimitedCaseDto() = CaseDto(
+  fun PersonDto.toLimitedCaseDto() = toLimitedCaseDto(crn)
+
+  fun toLimitedCaseDto(crn: String) = CaseDto(
     crn = crn,
     userAccess = UserAccess.LIMITED,
     limitedAccess = true,

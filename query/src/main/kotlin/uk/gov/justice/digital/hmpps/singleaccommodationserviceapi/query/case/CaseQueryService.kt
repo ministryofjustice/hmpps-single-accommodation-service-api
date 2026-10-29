@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
@@ -14,22 +14,28 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDtoV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
+import java.time.Clock
+import java.time.LocalDate
 
 @Service
 class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
+  private val limitedAccessService: LimitedAccessService,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
-  @param:Value($$"${case-list.v2-enabled}") val caseListV2Enabled: Boolean,
+  private val clock: Clock,
 ) {
   fun getCaseList(teamCode: String?): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
     val caseOrchestrationResult = caseOrchestrationService.getCaseList(user.username, teamCode)
-    val caseList = caseOrchestrationResult.data.map { toPersonDto(it) }
+    limitedAccessService.throwIfUserAccessFailed(caseOrchestrationResult.upstreamFailures)
+
+    val cases = caseOrchestrationResult.data.cases
+    val limitedAccessCrns = limitedAccessService.getLimitedAccessCrns(cases.map { it.crn }, caseOrchestrationResult.data.caseAccess)
+    val caseList = cases.map { toPersonDto(it, limited = it.crn in limitedAccessCrns) }
     return toApiResponseDto(
       data = caseList,
       upstreamFailures = caseOrchestrationResult.upstreamFailures,
@@ -59,9 +65,9 @@ class CaseQueryService(
 
   fun getCases(
     personDtos: List<PersonDto>,
+    peopleType: PeopleType? = null,
   ): List<CaseDto> {
     val caseEntitiesByCrn = caseRepository.mapByCrns(personDtos.map { it.crn })
-
     return personDtos.map { personDto ->
 
       when (personDto) {
@@ -69,28 +75,25 @@ class CaseQueryService(
 
         is FullPersonDto -> {
           val caseEntity = caseEntitiesByCrn[personDto.crn]
-          if (caseListV2Enabled) {
-            personDto.toCaseDtoV2(
-              caseEntity = caseEntity,
-              currentAccommodation = caseEntity?.currentAccommodation,
-              nextAccommodation = caseEntity?.nextAccommodation,
-            )
-          } else {
-            personDto.toCaseDto(caseEntity = caseEntity)
-          }
+          personDto.toCaseDto(
+            caseEntity = caseEntity,
+            currentAccommodation = caseEntity?.currentAccommodation,
+            nextAccommodation = caseEntity?.nextAccommodation,
+          )
         }
       }
     }
-      .sortedWith(compareBy(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus })
+      .filtered(peopleType)
+      .sortCases(LocalDate.now(clock))
   }
-
   fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)
 
   fun getCase(crn: String): ApiResponseDto<CaseDto> {
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCase(user.username, crn)
     hasMandatoryCaseData(orchestrationResult)
-    val case = orchestrationResult.data.case?.let { toPersonDto(it) }
+    limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
+    val case = orchestrationResult.data.getPersonDto()
 
     val caseOrchestrationDto = orchestrationResult.data
     val data = toCaseDto(
@@ -98,6 +101,7 @@ class CaseQueryService(
       case,
       caseOrchestrationDto.cpr,
       caseOrchestrationDto.tier,
+      caseOrchestrationDto.sexualOffenceRegistrations,
     )
     return toApiResponseDto(data = data, upstreamFailures = orchestrationResult.upstreamFailures)
   }
@@ -114,8 +118,13 @@ class CaseQueryService(
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCaseFromDelius(user.username, crn)
     hasMandatoryCaseData(orchestrationResult)
-    val case = orchestrationResult.data.case?.let { toPersonDto(it) }
+    limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
+    val case = orchestrationResult.data.getPersonDto()
     return toApiResponseDto(data = case, upstreamFailures = orchestrationResult.upstreamFailures)
+  }
+
+  private fun CaseOrchestrationDto.getPersonDto() = case?.let {
+    toPersonDto(it, limited = crn in limitedAccessService.getLimitedAccessCrns(listOf(crn), caseAccess))
   }
 
   private fun PersonDto.matchesUser(username: Username) = username.value.equals(this.assignedTo.username, ignoreCase = true)

@@ -2,11 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
-import io.mockk.every
-import io.mockk.spyk
-import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -16,13 +12,9 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
-import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
@@ -31,8 +23,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Arrival
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Name
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
@@ -45,89 +39,46 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOfficer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponseSorted
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponseSearch
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.expectApiResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationAccessControlStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseSnapshotAssembler
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
+import java.time.Instant
 import java.time.LocalDate
 
-@Import(CaseControllerIT.CaseListV2FeatureFlagTestConfig::class)
 class CaseControllerIT : IntegrationTestBase() {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @TestConfiguration
-  class CaseListV2FeatureFlagTestConfig {
-    @Bean
-    @Primary
-    fun caseQueryService(
-      caseOrchestrationService: CaseOrchestrationService,
-      userService: UserService,
-      caseRepository: CaseRepository,
-    ): CaseQueryService = spyk(
-      CaseQueryService(
-        caseOrchestrationService = caseOrchestrationService,
-        userService = userService,
-        caseRepository = caseRepository,
-        caseListV2Enabled = false,
-      ),
-    )
-
-    @Bean
-    @Primary
-    fun caseCreationService(
-      caseOrchestrationService: CaseMutationOrchestrationService,
-      caseSnapshotAssembler: CaseSnapshotAssembler,
-      caseRepository: CaseRepository,
-      caseMapper: CaseMapper,
-      entityManager: EntityManager,
-    ): CaseCreationService = spyk(
-      CaseCreationService(
-        caseOrchestrationService = caseOrchestrationService,
-        caseSnapshotAssembler = caseSnapshotAssembler,
-        caseRepository = caseRepository,
-        caseMapper = caseMapper,
-        entityManager = entityManager,
-        caseListV2Enabled = false,
-      ),
-    )
-  }
-
   @Value("\${case-list.page-size:1}")
   private lateinit var pageSize: String
-
-  @Autowired
-  private lateinit var caseQueryService: CaseQueryService
-
-  @Autowired
-  private lateinit var caseCreationService: CaseCreationService
 
   private val crns = (1..20).map { "FAKECRN$it" }
   private val nomsNumbers = (1..20).map { "PRI$it" }
 
   lateinit var deliusUser: UserEntity
+
+  @Autowired
+  private lateinit var caseRefreshRequestRepository: CaseRefreshRequestRepository
 
   @BeforeEach
   fun setup() {
@@ -144,22 +95,8 @@ class CaseControllerIT : IntegrationTestBase() {
     TierStubs.getTierOKResponse(crns[1], tier)
   }
 
-  @AfterEach
-  fun resetCaseListV2Flag() {
-    every { caseQueryService.caseListV2Enabled } returns false
-    every { caseCreationService.caseListV2Enabled } returns false
-  }
-
-  private fun setCaseListV2Enabled(v2Enabled: Boolean) {
-    every { caseQueryService.caseListV2Enabled } returns v2Enabled
-    every { caseCreationService.caseListV2Enabled } returns v2Enabled
-  }
-
-  @ParameterizedTest
-  @ValueSource(booleans = [true, false])
-  fun `does not add identifiers from CorePersonRecord`(v2Enabled: Boolean) {
-    setCaseListV2Enabled(v2Enabled)
-
+  @Test
+  fun `does not add identifiers from CorePersonRecord`() {
     // case 1 identifiers
     val knownCrnForCase1 = "knownCrnForCase1"
 
@@ -212,11 +149,12 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = cases,
       pageSize = pageSize.toInt(),
     )
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = cases.map { it.crn })
 
     // SAS knows about 2 cases
     assertThat(caseRepository.findAll()).hasSize(2)
 
-    restTestClient.get().uri { it.path("/case-list").build() }
+    webTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -255,42 +193,25 @@ class CaseControllerIT : IntegrationTestBase() {
       .containsExactlyInAnyOrderElementsOf(expectedIdentifiers)
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = [true, false])
-  fun `should update existing, create new and return expected case list`(v2Enabled: Boolean) {
-    setCaseListV2Enabled(v2Enabled)
-
+  @Test
+  fun `should update existing, create new and return expected case list`() {
     // there are 20 crns created and stubbed for the case list.
     val cases = stubCaseList()
 
-    val preSeededCount = if (v2Enabled) {
-      // v2 renders forename/surname/dateOfBirth from the DB CaseEntity, so pre-seed all
-      seedAllCaseEntitiesForV2(cases)
-      cases.size
-    } else {
-      // there are 10 added to the SAS database
-      seedCaseEntities()
-      tierScoresByCrn.size
-    }
-    // and 10 we will need to call CPR for. 2 of these are errors.
+    // forename/surname/dateOfBirth are rendered from the DB CaseEntity, so pre-seed all
+    seedAllCaseEntities(cases)
     stubAdditionalCorePersonRecords()
 
-    assertThat(caseRepository.findAll().size).isEqualTo(preSeededCount)
+    assertThat(caseRepository.findAll().size).isEqualTo(cases.size)
 
-    val result = restTestClient.get().uri { it.path("/case-list").build() }
+    val result = webTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-
-    result.expectBody().jsonPath("$.data.length()").isEqualTo(20)
+      .expectBody()
+      .jsonPath("$.data.length()").isEqualTo(20)
+      .json(expectedGetCaseListResponse())
 
     assertThat(caseRepository.findAll().size).isEqualTo(20)
-
-    val expectedJson = if (v2Enabled) expectedGetCaseListResponseSorted() else expectedGetCaseListResponse()
-
-    result.expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedJson)
-      }
 
     // verify we call case-list endpoint 20 times (once per CRN)
     sasWiremock.verify(
@@ -299,11 +220,8 @@ class CaseControllerIT : IntegrationTestBase() {
     )
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = [true, false])
-  fun `should sort case list by accommodation status when caseListV2Enabled is true`(v2Enabled: Boolean) {
-    setCaseListV2Enabled(v2Enabled)
-
+  @Test
+  fun `should sort case list by accommodation status`() {
     val staff = buildOfficer(username = deliusUser.username)
     val settledCase = buildCase(
       crn = "X12345",
@@ -336,6 +254,7 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = cases,
       pageSize = pageSize.toInt(),
     )
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = cases.map { it.crn })
 
     caseRepository.saveAllAndFlush(
       listOf(
@@ -360,116 +279,138 @@ class CaseControllerIT : IntegrationTestBase() {
 
     val response = getCaseListResponse().data
 
-    if (v2Enabled) {
-      assertThat(response.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
-        .containsExactly(
-          riskCase.crn to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
-          noFixedAbodeCase.crn to CaseAccommodationStatus.NO_FIXED_ABODE,
-          transientCase.crn to CaseAccommodationStatus.TRANSIENT,
-          settledCase.crn to CaseAccommodationStatus.SETTLED,
-        )
-    } else {
-      assertThat(response.map(CaseDto::crn))
-        .containsExactly(
-          settledCase.crn,
-          transientCase.crn,
-          riskCase.crn,
-          noFixedAbodeCase.crn,
-        )
-    }
+    assertThat(response.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+      .containsExactly(
+        riskCase.crn to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+        noFixedAbodeCase.crn to CaseAccommodationStatus.NO_FIXED_ABODE,
+        transientCase.crn to CaseAccommodationStatus.TRANSIENT,
+        settledCase.crn to CaseAccommodationStatus.SETTLED,
+      )
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = [false, true])
-  fun `should hydrate a newly created case with real upstream data only when caseListV2Enabled is true`(v2Enabled: Boolean) {
-    setCaseListV2Enabled(v2Enabled)
-
+  @Test
+  fun `should hydrate a newly created case with real upstream data`() {
     val crn = "X12345"
     val nomsNumber = "12345"
-    val staff = buildOfficer(username = deliusUser.username)
     val deliusName = buildName("NewForename", "NewSurname")
-    val dateOfBirth = LocalDate.of(1980, 3, 20)
-    val case = buildCase(crn = crn, nomsNumber = nomsNumber, staff = staff, name = deliusName, dateOfBirth = dateOfBirth)
+    val case = stubNewCase(crn = crn, nomsNumber = nomsNumber, deliusName = deliusName)
 
     SasAndDeliusStubs.stubCaseList(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       cases = listOf(case),
       pageSize = pageSize.toInt(),
     )
-
-    stubCorePersonRecord(crn = crn, prisonNumber = nomsNumber, firstName = deliusName.forename, lastName = deliusName.surname)
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A2"))
-    PrisonerSearchStubs.getPrisonerOKResponse(
-      prisonNumber = nomsNumber,
-      response = buildPrisoner(
-        prisonNumber = nomsNumber,
-        inOutStatus = InOutStatus.IN,
-        prisonName = "HMP Test Prison",
-        releaseDate = LocalDate.of(2027, 1, 1),
-      ),
-    )
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
-      crn = crn,
-      response = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = Cas1PlacementStatus.UPCOMING,
-          premises = buildCas1PremisesSummary(
-            postcode = "AP1 1AP",
-            addressLine1 = "AP House",
-            addressLine2 = "AP Area",
-            town = "AP Town",
-            startDate = LocalDate.of(2026, 6, 1),
-            endDate = null,
-          ),
-        ),
-      ),
-    )
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(crn))
 
     assertThat(caseRepository.findByCrn(crn)).isNull()
 
-    restTestClient.get().uri { it.path("/case-list").build() }
+    webTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
       .jsonPath("$.data.length()").isEqualTo(1)
 
     val createdCase = caseRepository.findByCrn(crn)!!
-    if (!v2Enabled) {
+    assertThat(createdCase.tierScore).isEqualTo("B")
+    assertThat(createdCase.firstName).isEqualTo(deliusName.forename)
+    assertThat(createdCase.lastName).isEqualTo(deliusName.surname)
+
+    val currentAccommodation = createdCase.currentAccommodation!!
+    assertThat(currentAccommodation.type?.code).isEqualTo("HMP")
+    assertThat(currentAccommodation.status?.code).isEqualTo("C")
+    assertThat(currentAccommodation.status?.description).isEqualTo("Custody")
+    assertThat(currentAccommodation.address.buildingName).isEqualTo("HMP Test Prison")
+
+    val nextAccommodation = createdCase.nextAccommodation!!
+    assertThat(nextAccommodation.type?.code).isEqualTo("A02")
+    assertThat(nextAccommodation.type?.description).isEqualTo("Approved Premises")
+    assertThat(nextAccommodation.status?.code).isEqualTo("PR1")
+    assertThat(nextAccommodation.status?.description).isEqualTo("Proposed for Resettlement")
+    assertThat(nextAccommodation.address.postcode).isEqualTo("AP1 1AP")
+    assertThat(nextAccommodation.address.thoroughfareName).isEqualTo("AP House")
+    assertThat(nextAccommodation.address.dependentLocality).isEqualTo("AP Area")
+    assertThat(nextAccommodation.address.postTown).isEqualTo("AP Town")
+
+    assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+  }
+
+  @Nested
+  inner class UpstreamFailuresWhenCreatingCases {
+    private val crn = "X543211"
+    private val nomsNumber = "543211"
+
+    @BeforeEach
+    fun setup() {
+      val case = stubNewCase(crn = crn, nomsNumber = nomsNumber, deliusName = buildName("NewForename", "NewSurname"))
+      SasAndDeliusStubs.stubCaseList(
+        deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        cases = listOf(case),
+        pageSize = pageSize.toInt(),
+      )
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(crn))
+      SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = crn, response = case)
+    }
+
+    @Test
+    fun `should create a partial case and request a refresh on case-list when the tier API returns a server error`() {
+      TierStubs.getTierServerErrorResponse(crn)
+
+      getCaseListResponse()
+
+      assertPartialCaseWithLiveRefreshRequest()
+    }
+
+    @Test
+    fun `should create a partial case and request a refresh on case-list when the tier API returns not found`() {
+      TierStubs.getTierNotFoundResponse(crn)
+
+      getCaseListResponse()
+
+      assertPartialCaseWithLiveRefreshRequest()
+    }
+
+    @Test
+    fun `should create a populated case without a refresh request on case-list when CAS1 and CAS3 return not found`() {
+      ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
+      ApprovedPremisesStubs.getCas3SuitableApplicationNotFoundResponse(crn)
+
+      getCaseListResponse()
+
+      val createdCase = caseRepository.findByCrn(crn)!!
+      assertThat(createdCase.tierScore).isEqualTo("B")
+      assertThat(createdCase.firstName).isEqualTo("NewForename")
+      assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+    }
+
+    @Test
+    fun `should create a partial case and request a refresh on search when the tier API returns a server error`() {
+      TierStubs.getTierServerErrorResponse(crn)
+
+      webTestClient.get().uri("/search/$crn")
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+
+      assertPartialCaseWithLiveRefreshRequest()
+    }
+
+    private fun assertPartialCaseWithLiveRefreshRequest() {
+      val createdCase = caseRepository.findByCrn(crn)!!
       assertThat(createdCase.tierScore).isNull()
-      assertThat(createdCase.firstName).isNull()
-      assertThat(createdCase.lastName).isNull()
-      assertThat(createdCase.currentAccommodation).isNull()
-      assertThat(createdCase.nextAccommodation).isNull()
-      assertThat(createdCase.accommodationStatus).isNull()
-    } else {
-      assertThat(createdCase.tierScore).isEqualTo("A2")
-      assertThat(createdCase.firstName).isEqualTo(deliusName.forename)
-      assertThat(createdCase.lastName).isEqualTo(deliusName.surname)
+      assertThat(createdCase.firstName).isEqualTo("NewForename")
+      assertThat(createdCase.lastName).isEqualTo("NewSurname")
+      assertThat(createdCase.currentAccommodation).isNotNull
+      assertThat(createdCase.nextAccommodation).isNotNull
 
-      val currentAccommodation = createdCase.currentAccommodation!!
-      assertThat(currentAccommodation.type?.code).isEqualTo("HMP")
-      assertThat(currentAccommodation.status?.code).isEqualTo("C")
-      assertThat(currentAccommodation.status?.description).isEqualTo("Custody")
-      assertThat(currentAccommodation.address.buildingName).isEqualTo("HMP Test Prison")
-
-      val nextAccommodation = createdCase.nextAccommodation!!
-      assertThat(nextAccommodation.type?.code).isEqualTo("A02")
-      assertThat(nextAccommodation.type?.description).isEqualTo("Approved Premises")
-      assertThat(nextAccommodation.status?.code).isEqualTo("PR1")
-      assertThat(nextAccommodation.status?.description).isEqualTo("Proposed for Resettlement")
-      assertThat(nextAccommodation.address.postcode).isEqualTo("AP1 1AP")
-      assertThat(nextAccommodation.address.thoroughfareName).isEqualTo("AP House")
-      assertThat(nextAccommodation.address.dependentLocality).isEqualTo("AP Area")
-      assertThat(nextAccommodation.address.postTown).isEqualTo("AP Town")
-
-      assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
+      val refreshRequest = caseRefreshRequestRepository.findAll().single()
+      assertThat(refreshRequest.caseId).isEqualTo(createdCase.id)
+      assertThat(refreshRequest.priority).isEqualTo(CaseRefreshPriority.LIVE)
+      assertThat(refreshRequest.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
     }
   }
 
   @Test
-  fun `should source forename, surname, dateOfBirth, tierScore and accommodationSummaries from CaseEntity when caseListV2Enabled is true`() {
-    setCaseListV2Enabled(true)
-
+  fun `should source forename, surname, dateOfBirth, tierScore and accommodationSummaries from CaseEntity`() {
     val crn = "crnWithDivergentDbAndDeliusData"
     val staff = buildOfficer(username = deliusUser.username)
 
@@ -486,6 +427,7 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = listOf(case),
       pageSize = pageSize.toInt(),
     )
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(crn))
 
     // different data in DB to verify that the API returns the DB data when v2 is enabled
     val preSeededCaseEntity = buildCaseEntity(
@@ -509,7 +451,7 @@ class CaseControllerIT : IntegrationTestBase() {
     }
     caseRepository.saveAndFlush(preSeededCaseEntity)
 
-    restTestClient.get().uri { it.path("/case-list").build() }
+    webTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -527,11 +469,8 @@ class CaseControllerIT : IntegrationTestBase() {
       .jsonPath("$.data[0].accommodationSummaries.nextAccommodation.type.description").isEqualTo("Friends/Family (transient)")
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = [true, false])
-  fun `should only save cases that match the filtered response`(v2Enabled: Boolean) {
-    setCaseListV2Enabled(v2Enabled)
-
+  @Test
+  fun `should only save cases that match the filtered response`() {
     val team = buildCaseTeam("TestTeam")
     val staff = buildOfficer(username = deliusUser.username)
     val assignedCase = buildCase(crn = "crn1", staff = staff, team = team)
@@ -544,11 +483,12 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = listOf(assignedCase, teamCase),
       pageSize = pageSize.toInt(),
     )
+    ProbationAccessControlStubs.postUserAccessForCrns(deliusUser.username, accessibleCrns = listOf(assignedCase.crn, teamCase.crn))
 
     assertThat(caseRepository.findAll()).hasSize(0)
 
     // request with no parameters defaults to only the cases assigned to the user, so should only return `assignedCase`
-    restTestClient.get().uri { it.path("/case-list").build() }
+    webTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -564,7 +504,7 @@ class CaseControllerIT : IntegrationTestBase() {
       pageSize = pageSize.toInt(),
     )
 
-    restTestClient.get().uri { it.path("/case-list").queryParam("teamCode", team.code).build() }
+    webTestClient.get().uri { it.path("/case-list").queryParam("teamCode", team.code).build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -574,27 +514,22 @@ class CaseControllerIT : IntegrationTestBase() {
     assertThat(caseRepository.findAll()).hasSize(2)
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = [true, false])
-  fun `should filter cases based on provided search parameters`(v2Enabled: Boolean) {
-    setCaseListV2Enabled(v2Enabled)
-
-    stubCaseList()
-    seedCaseEntities()
+  @Test
+  fun `should filter cases based on provided search parameters`() {
+    val caseList = stubCaseList()
+    seedAllCaseEntities(caseList)
     stubAdditionalCorePersonRecords()
 
     val failures = mutableListOf<String>()
 
     caseListFilters().forEach { filter ->
-      val response = restTestClient.get().uri {
+      val response = webTestClient.get().uri {
         it.path("/case-list")
           .queryParam(filter.queryParameter, filter.value).build()
       }
         .withDeliusUserJwt()
         .exchangeSuccessfully()
-        .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<CaseDto>>>() {})
-        .returnResult()
-        .responseBody!!
+        .expectApiResponse<List<CaseDto>>()
         .data
       try {
         assertAll(
@@ -612,24 +547,86 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Nested
+  inner class LimitedAccess {
+    private val accessibleCrn = "X12345"
+    private val restrictedCrn = "X12346"
+
+    @BeforeEach
+    fun setup() {
+      val staff = buildOfficer(username = deliusUser.username)
+      SasAndDeliusStubs.stubCaseList(
+        deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        cases = listOf(
+          buildCase(crn = accessibleCrn, nomsNumber = "PRI1", staff = staff),
+          buildCase(crn = restrictedCrn, nomsNumber = "PRI2", staff = staff, name = buildName("RestrictedForename", "RestrictedSurname")),
+        ),
+        pageSize = pageSize.toInt(),
+      )
+    }
+
+    @Test
+    fun `should check access for every crn in the case list with probation access control`() {
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf(accessibleCrn),
+        restrictedCrns = listOf(restrictedCrn),
+      )
+
+      val response = getCaseListResponse().data
+
+      assertThat(response.single { it.crn == accessibleCrn }.userAccess).isEqualTo(UserAccess.FULL)
+      assertThat(response.single { it.crn == restrictedCrn }.userAccess).isEqualTo(UserAccess.LIMITED)
+      sasWiremock.verify(
+        1,
+        WireMock.postRequestedFor(WireMock.urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access"))
+          .withRequestBody(WireMock.equalToJson(jsonMapper.writeValueAsString(listOf(accessibleCrn, restrictedCrn)))),
+      )
+    }
+
+    @Test
+    fun `should not match a restricted case by name when searching`() {
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf(accessibleCrn),
+        restrictedCrns = listOf(restrictedCrn),
+      )
+
+      webTestClient.get().uri { it.path("/case-list").queryParam("searchTerm", "RestrictedForename RestrictedSurname").build() }
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(0)
+    }
+
+    @Test
+    fun `returns ServerError when probation access control returns ServerError`() {
+      ProbationAccessControlStubs.postUserAccessServerError(USERNAME_OF_LOGGED_IN_DELIUS_USER)
+
+      webTestClient.get().uri("/case-list")
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+    }
+  }
+
+  @Nested
   inner class SearchByCrn {
     @Test
     fun `should return a CaseDto for a case that exists`() {
-      setCaseListV2Enabled(true)
       val crn = "a123456"
       val normalisedCrn = crn.uppercase()
       val case = buildCase(crn = normalisedCrn, nomsNumber = nomsNumbers[5])
       SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
-      seedAllCaseEntitiesForV2(listOf(case), "A1")
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(normalisedCrn))
+      seedAllCaseEntities(listOf(case), "A1")
 
       assertThat(caseRepository.findAll().size).isEqualTo(1)
-      val result = restTestClient.get().uri { it.path("/search/$crn").build() }
+      webTestClient.get().uri { it.path("/search/$crn").build() }
         .withDeliusUserJwt()
         .exchangeSuccessfully()
-      result.expectBody(String::class.java)
-        .value {
-          assertThatJson(it!!).matchesExpectedJson(expectedGetCaseResponseSearch())
-        }
+        .expectBody()
+        .json(expectedGetCaseResponseSearch())
 
       assertThat(caseRepository.findAll().size).isEqualTo(1)
 
@@ -642,7 +639,7 @@ class CaseControllerIT : IntegrationTestBase() {
     @ParameterizedTest
     @ValueSource(strings = ["123456", "AB12345", "A12345", "A1234567", "A12B456"])
     fun `returns BadRequest when crn format is invalid`(crn: String) {
-      restTestClient.get().uri("/search/$crn")
+      webTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()
         .exchange()
         .expectStatus().isBadRequest
@@ -655,7 +652,7 @@ class CaseControllerIT : IntegrationTestBase() {
     fun `returns NotFound error when delius returns NotFound error`() {
       val crn = "B123456"
       SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-      restTestClient.get().uri("/search/$crn")
+      webTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()
         .exchange()
         .expectStatus()
@@ -666,7 +663,36 @@ class CaseControllerIT : IntegrationTestBase() {
     fun `returns ServerError when delius returns ServerError`() {
       val crn = "C123456"
       SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-      restTestClient.get().uri("/search/$crn")
+      webTestClient.get().uri("/search/$crn")
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+    }
+
+    @Test
+    fun `should return a limited case when probation access control excludes the user`() {
+      val crn = "D123456"
+      val case = buildCase(crn = crn)
+      SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = crn, response = case)
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, excludedCrns = listOf(crn))
+
+      val response = webTestClient.get().uri("/search/$crn")
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectApiResponse<CaseDto>()
+
+      assertThat(response.data).isEqualTo(CaseDto(crn = crn, userAccess = UserAccess.LIMITED, limitedAccess = true))
+    }
+
+    @Test
+    fun `returns ServerError when probation access control returns ServerError`() {
+      val crn = "E123456"
+      val case = buildCase(crn = crn)
+      SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = crn, response = case)
+      ProbationAccessControlStubs.postUserAccessServerError(USERNAME_OF_LOGGED_IN_DELIUS_USER)
+
+      webTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()
         .exchange()
         .expectStatus()
@@ -678,7 +704,7 @@ class CaseControllerIT : IntegrationTestBase() {
   fun `returns NotFound error when delius returns NotFound error`() {
     val crn = crns[0]
     SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
@@ -702,6 +728,8 @@ class CaseControllerIT : IntegrationTestBase() {
     CaseListFilter("teamCode", "", 20, listOf(containsAllCaseTypes())),
     CaseListFilter("teamCode", "ABC123", 20, listOf(containsAllCaseTypes())),
     CaseListFilter("teamCode", "OTHERTEAM", 0),
+    CaseListFilter("peopleType", "HOUSED", 18),
+    CaseListFilter("peopleType", "NFA_RISK", 2),
   )
 
   private fun containsNoLimitedCases(): (List<CaseDto>) -> Unit = { response ->
@@ -721,33 +749,88 @@ class CaseControllerIT : IntegrationTestBase() {
     val assertions: List<(List<CaseDto>) -> Unit> = emptyList(),
   )
 
-  private fun getCaseResponse(crn: String) = restTestClient.get().uri("/cases/$crn")
+  private fun getCaseResponse(crn: String) = webTestClient.get().uri("/cases/$crn")
     .withDeliusUserJwt()
     .exchangeSuccessfully()
-    .expectBody(String::class.java)
+    .expectBody<String>()
 
-  private fun getCaseListResponse() = restTestClient.get().uri { it.path("/case-list").build() }
+  private fun getCaseListResponse() = webTestClient.get().uri { it.path("/case-list").build() }
     .withDeliusUserJwt()
     .exchangeSuccessfully()
-    .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<CaseDto>>>() {})
-    .returnResult()
-    .responseBody!!
+    .expectApiResponse<List<CaseDto>>()
 
   @Test
   fun `should get case`() {
-    val case = buildCase(crn = crns[0], nomsNumber = nomsNumbers[0])
-    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
+    val case = stubGetCase()
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(case.crn))
 
     getCaseResponse(case.crn).value {
       assertThatJson(it!!).matchesExpectedJson(expectedGetCaseResponse())
     }
   }
 
+  @Nested
+  inner class GetCaseLimitedAccess {
+    @Test
+    fun `should return a limited case when probation access control restricts the user`() {
+      val case = stubGetCase()
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, restrictedCrns = listOf(case.crn))
+
+      val response = webTestClient.get().uri("/cases/${case.crn}")
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectApiResponse<CaseDto>()
+
+      assertThat(response.data).isEqualTo(CaseDto(crn = case.crn, userAccess = UserAccess.LIMITED, limitedAccess = true))
+      sasWiremock.verify(
+        1,
+        WireMock.postRequestedFor(WireMock.urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access"))
+          .withRequestBody(WireMock.equalToJson(jsonMapper.writeValueAsString(listOf(case.crn)))),
+      )
+    }
+
+    @Test
+    fun `should return a full case with limitedAccess when the user can see a case that has exclusions or restrictions`() {
+      val case = stubGetCase(limitedAccess = true)
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(case.crn))
+
+      val response = webTestClient.get().uri("/cases/${case.crn}")
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectApiResponse<CaseDto>()
+
+      assertThat(response.data.userAccess).isEqualTo(UserAccess.FULL)
+      assertThat(response.data.limitedAccess).isTrue()
+    }
+
+    @Test
+    fun `returns ServerError when probation access control returns ServerError`() {
+      val case = stubGetCase()
+      ProbationAccessControlStubs.postUserAccessServerError(USERNAME_OF_LOGGED_IN_DELIUS_USER)
+
+      webTestClient.get().uri("/cases/${case.crn}")
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+    }
+  }
+
+  private fun stubGetCase(limitedAccess: Boolean = false): Case {
+    val case = buildCase(crn = crns[0], nomsNumber = nomsNumbers[0], limitedAccess = limitedAccess)
+    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
+    SasAndDeliusStubs.stubGetSexualOffenceRegistrations(
+      case.crn,
+      buildSexualOffenceRegistrations(case.crn),
+    )
+    return case
+  }
+
   @Test
   fun `returns ServerError when delius returns ServerError`() {
     val crn = crns[0]
     SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
@@ -760,7 +843,7 @@ class CaseControllerIT : IntegrationTestBase() {
     val case = buildCase(crn = crn)
     SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
@@ -773,11 +856,66 @@ class CaseControllerIT : IntegrationTestBase() {
     val case = buildCase(crn = crn)
     SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
     CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crn)
-    restTestClient.get().uri("/cases/$crn")
+    webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
       .isNotFound
+  }
+
+  @Nested
+  inner class PostCas2Arrival {
+    private val crn = "A123456"
+    private val applicationId = "application-id"
+    private val arrival = Cas2Arrival(
+      markedAsArrivedDateTime = Instant.parse("2026-10-13T12:00:00Z"),
+      arrivedByUsername = "DELIUS_USER",
+    )
+
+    @Test
+    fun `returns 201 created if crn has applications with the application id`() {
+      ApprovedPremisesStubs.postCas2ArrivalOKResponse(crn, applicationId)
+
+      webTestClient.post().uri("/cases/$crn/applications/$applicationId/arrival")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(arrival)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .isCreated
+
+      sasWiremock.verify(
+        1,
+        WireMock.postRequestedFor(WireMock.urlPathEqualTo("/cas2/external/cases/$crn/applications/$applicationId/arrival"))
+          .withRequestBody(WireMock.equalToJson(jsonMapper.writeValueAsString(arrival))),
+      )
+    }
+
+    @Test
+    fun `returns ServerError when CAS API returns ServerError`() {
+      ApprovedPremisesStubs.postCas2ArrivalServerErrorResponse(crn, applicationId)
+
+      webTestClient.post().uri("/cases/$crn/applications/$applicationId/arrival")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(arrival)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+    }
+
+    @Test
+    fun `returns ServerError when CAS API returns NotFound`() {
+      ApprovedPremisesStubs.postCas2ArrivalNotFoundResponse(crn, applicationId)
+
+      webTestClient.post().uri("/cases/$crn/applications/$applicationId/arrival")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(arrival)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+    }
   }
 
   private fun stubInitialCorePersonRecords() {
@@ -814,14 +952,6 @@ class CaseControllerIT : IntegrationTestBase() {
         } else {
           buildRoshLevel()
         },
-        userRestricted = when (i) {
-          crns.size - 1 -> true
-          else -> false
-        },
-        userExcluded = when (i) {
-          crns.size - 2 -> true
-          else -> false
-        },
         limitedAccess = when (i) {
           crns.size - 1, crns.size - 2 -> true
           else -> false
@@ -833,6 +963,12 @@ class CaseControllerIT : IntegrationTestBase() {
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       cases = cases,
       pageSize = pageSize.toInt(),
+    )
+    ProbationAccessControlStubs.postUserAccessForCrns(
+      USERNAME_OF_LOGGED_IN_DELIUS_USER,
+      accessibleCrns = crns.dropLast(2),
+      excludedCrns = listOf(crns[crns.size - 2]),
+      restrictedCrns = listOf(crns.last()),
     )
 
     return cases
@@ -853,18 +989,10 @@ class CaseControllerIT : IntegrationTestBase() {
     crns[14] to "D3",
   )
 
-  private fun seedCaseEntities() {
-    val entities = tierScoresByCrn.map { (crn, tierScore) ->
-      buildCaseEntity(tierScore = tierScore) { withCrn(crn) }
-    }
-
-    caseRepository.saveAll(entities)
-  }
-
-  // Under caseListV2Enabled, forename/surname/dateOfBirth are rendered from the CaseEntity in
+  // forename/surname/dateOfBirth are rendered from the CaseEntity in
   // the DB rather than the Delius/SAS stub, so pre-seed every crn with matching data to avoid
   // depending on the async CaseRefreshWorker to backfill newly created cases.
-  private fun seedAllCaseEntitiesForV2(cases: List<Case>, tierScore: String? = null) {
+  private fun seedAllCaseEntities(cases: List<Case>, tierScore: String? = null) {
     val entities = cases.map { case ->
       buildCaseEntity(
         tierScore = tierScore ?: tierScoresByCrn[case.crn],
@@ -891,6 +1019,42 @@ class CaseControllerIT : IntegrationTestBase() {
         additionalCrns = listOf("ADDITIONAL$it"),
       )
     }
+  }
+
+  private fun stubNewCase(crn: String, nomsNumber: String, deliusName: Name): Case {
+    val staff = buildOfficer(username = deliusUser.username)
+    val dateOfBirth = LocalDate.of(1980, 3, 20)
+    val case = buildCase(crn = crn, nomsNumber = nomsNumber, staff = staff, name = deliusName, dateOfBirth = dateOfBirth)
+
+    stubCorePersonRecord(crn = crn, prisonNumber = nomsNumber, firstName = deliusName.forename, lastName = deliusName.surname)
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"))
+    PrisonerSearchStubs.getPrisonerOKResponse(
+      prisonNumber = nomsNumber,
+      response = buildPrisoner(
+        prisonNumber = nomsNumber,
+        inOutStatus = InOutStatus.IN,
+        prisonName = "HMP Test Prison",
+        releaseDate = LocalDate.of(2027, 1, 1),
+      ),
+    )
+    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
+      crn = crn,
+      response = buildCas1Application(
+        placement = buildCas1PlacementSummary(
+          status = Cas1PlacementStatus.UPCOMING,
+          premises = buildCas1PremisesSummary(
+            postcode = "AP1 1AP",
+            addressLine1 = "AP House",
+            addressLine2 = "AP Area",
+            town = "AP Town",
+            startDate = LocalDate.of(2026, 6, 1),
+            endDate = null,
+          ),
+        ),
+      ),
+    )
+
+    return case
   }
 
   private fun stubCorePersonRecord(

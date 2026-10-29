@@ -8,17 +8,19 @@ management.endpoint:
 wiremock:
   service-names:
     - sas-and-delius
+    - probation-access-control
     - approved-premises-and-delius
     - approved-premises-api
     - core-person-record
     - commissioned-rehabilitative-services-api
     - tier
-    - accommodation-data-domain
     - nomis-user-roles
     - prisoner-search
 
 service:
   sas-and-delius:
+    read-timeout: 300ms
+  probation-access-control:
     read-timeout: 300ms
   approved-premises-and-delius:
     read-timeout: 300ms
@@ -29,8 +31,6 @@ service:
   commissioned-rehabilitative-services-api:
     read-timeout: 300ms
   tier:
-    read-timeout: 300ms
-  accommodation-data-domain:
     read-timeout: 300ms
   nomis-user-roles:
     read-timeout: 300ms
@@ -50,25 +50,43 @@ spring:
       maximum-pool-size: 10
 
 scheduling:
+  enabled: true
+  fixed-delay: 10ms
+
+# Message processing (scheduled inbox/outbox/refresh jobs) is off by default; see @EnableMessageProcessing.
+test-message-processing:
   enabled: false
-  fixed-delay: 100ms
 
 shedlock:
-  default-lock-at-most-for: 10s
+  default-lock-at-most-for: 3s
   outbox-event-publisher:
-    lock-at-most-for: 10s
+    lock-at-most-for: 3s
     lock-at-least-for: 1ms
   inbox-event-dispatcher:
-    lock-at-most-for: 10s
+    lock-at-most-for: 3s
+    lock-at-least-for: 1ms
+  inbox-event-failure-monitor:
+    lock-at-most-for: 3s
+    lock-at-least-for: 1ms
+  inbox-event-cleanup:
+    lock-at-most-for: 3s
+    lock-at-least-for: 1ms
+  outbox-event-failure-monitor:
+    lock-at-most-for: 3s
+    lock-at-least-for: 1ms
+  case-refresh-failure-monitor:
+    lock-at-most-for: 3s
+    lock-at-least-for: 1ms
+  case-refresh-worker:
+    lock-at-most-for: 3s
     lock-at-least-for: 1ms
 
 event:
   details-url:
     proposed-accommodation-updated: http://api-host/proposed-accommodations/#id
-    duty-to-refer-updated: http://api-host/duty-to-refers/#id
+    duty-to-refer: http://api-host/duty-to-refers/#id
 
 case-refresh:
-  enabled: true
   worker:
     fixed-delay: 50ms
     max-requests-per-run: 10
@@ -101,6 +119,7 @@ hmpps:
               "core-person-record.probation.address.updated",
               "core-person-record.probation.address.deleted",
               "core-person-record.probation.record.updated",
+              "core-person-record.probation.record.merged",
               "prisoner-offender-search.prisoner.released",
               "prisoner-offender-search.prisoner.received",
               "prisoner-offender-search.prisoner.updated",
@@ -129,7 +148,7 @@ hmpps:
       enabled: true
     tests:
       attachments-expected: false
-      expected-flyway-schema-version: "0051"
+      expected-flyway-schema-version: "0064"
       expected-jpa-entity-schema:
         path: /sar/sas-entities-schema.json
       expected-render-result:
@@ -140,7 +159,8 @@ test-data-setup:
 
 case-list:
   page-size: 1
-  onboarded-teams: 12345
+  onboarded-prison-codes:
+    - SAS
 
 bulk-load:
   page-size: 1
@@ -149,3 +169,7 @@ logging:
     root: WARN
     uk.gov.justice.digital.hmpps.singleaccommodationserviceapi: INFO
     uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry: DEBUG
+
+frontend:
+  duty-to-refer:
+    view: https://single-accommodation-service-test.hmpps.service.justice.gov.uk/cases/#crn/dtr/#dtrId/details

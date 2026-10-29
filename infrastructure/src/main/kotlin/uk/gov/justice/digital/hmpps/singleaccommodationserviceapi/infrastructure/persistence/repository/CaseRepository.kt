@@ -9,6 +9,16 @@ import java.util.UUID
 
 interface CaseRepository : JpaRepository<CaseEntity, UUID> {
 
+  @Query(
+    """
+    select ci.identifier
+    from CaseEntity c
+    join c.caseIdentifiers ci
+    where ci.identifierType = 'CRN'
+  """,
+  )
+  fun findAllCrns(): List<String>
+
   @EntityGraph(attributePaths = ["caseIdentifiers"])
   @Query(
     """
@@ -58,6 +68,9 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
 
   @EntityGraph(attributePaths = ["caseIdentifiers"])
   fun findWithIdentifiersById(id: UUID): CaseEntity?
+
+  @EntityGraph(attributePaths = ["caseIdentifiers"])
+  fun findAllWithIdentifiersByIdIn(ids: Collection<UUID>): List<CaseEntity>
 
   @Query(
     """

@@ -14,6 +14,7 @@ class InboxAsserter(
   fun assertPendingCount(expectedCount: Int) = assertCount(expectedCount, ProcessedStatus.PENDING)
 
   fun assertProcessedCount(expectedCount: Int) = assertCount(expectedCount, ProcessedStatus.PROCESSED)
+  fun assertFailedCount(expectedCount: Int) = assertCount(expectedCount, ProcessedStatus.FAILED)
 
   private fun assertCount(expectedCount: Int, status: ProcessedStatus) {
     val processed = inboxEventRepository.findAllByProcessedStatus(status, PageRequest.ofSize(Int.MAX_VALUE))

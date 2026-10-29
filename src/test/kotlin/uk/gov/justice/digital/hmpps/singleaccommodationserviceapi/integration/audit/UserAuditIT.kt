@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.client.RestTestClient
+import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
@@ -134,13 +134,12 @@ class UserAuditIT : IntegrationTestBase() {
   @Disabled(value = "POM roles have been removed for MVP. Re-enable when re-added.")
   @Test
   fun `should audit data properly for Nomis User`() {
-    NomisUserRolesStubs.stubMe(
-      jwt = jwtAuthHelper.createJwtAccessToken(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        roles = listOf("ROLE_POM", "ROLE_PRISON"),
-        authSource = AuthSource.NOMIS.source,
-      ),
-      response = nomisUserDetail,
+    val nomisUser = buildNomisUserDetail(
+      username = USERNAME_OF_LOGGED_IN_NOMIS_USER,
+    )
+    NomisUserRolesStubs.stubNomisUserDetailsResponse(
+      username = nomisUser.username,
+      response = nomisUser,
     )
     createAndAssertAuditData(
       authSource = AuthSource.NOMIS,
@@ -204,12 +203,12 @@ class UserAuditIT : IntegrationTestBase() {
 
   private fun createAndAssertAuditData(
     authSource: AuthSource,
-    withJwt: RestTestClient.RequestHeadersSpec<*>.() -> RestTestClient.RequestHeadersSpec<*>,
+    withJwt: WebTestClient.RequestHeadersSpec<*>.() -> WebTestClient.RequestHeadersSpec<*>,
     expectedCreatedByUsername: String,
   ): ProposedAccommodationEntity {
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = VerificationStatus.PASSED.name,
@@ -231,7 +230,7 @@ class UserAuditIT : IntegrationTestBase() {
 
   private fun updateAndAssertAuditData(
     createdProposedAccommodationEntityId: UUID,
-    withJwt: RestTestClient.RequestHeadersSpec<*>.() -> RestTestClient.RequestHeadersSpec<*>,
+    withJwt: WebTestClient.RequestHeadersSpec<*>.() -> WebTestClient.RequestHeadersSpec<*>,
     expectedCreatedByUsername: String,
     expectedUpdatedByUsername: String?,
   ) {
@@ -240,9 +239,9 @@ class UserAuditIT : IntegrationTestBase() {
 
     val preUpdateProposedAccommodationEntity = proposedAccommodationRepository.findByIdOrNull(createdProposedAccommodationEntityId)
 
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/$createdProposedAccommodationEntityId")
+    webTestClient.put().uri("/cases/$crn/proposed-accommodations/$createdProposedAccommodationEntityId")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET.name,

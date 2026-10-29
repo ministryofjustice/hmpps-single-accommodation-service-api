@@ -1,18 +1,18 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain
 
 import org.slf4j.LoggerFactory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 
 /** All nodes are Decision Nodes **/
 sealed interface DecisionNode {
   /** Evaluates this node and returns the final ServiceResult. */
-  fun eval(context: EvaluationContext): ServiceResult
+  fun eval(context: EvaluationContext): ServiceResultNew
 }
 
 /** Terminal node that returns a ServiceResult based on the current context.**/
-class OutcomeNode(val name: String = "unnamed", private val outcome: (EvaluationContext) -> ServiceResult) : DecisionNode {
-  override fun eval(context: EvaluationContext): ServiceResult = outcome(context)
+class OutcomeNode(val name: String = "unnamed", private val outcome: (EvaluationContext) -> ServiceResultNew) : DecisionNode {
+  override fun eval(context: EvaluationContext): ServiceResultNew = outcome(context)
 }
 
 /**
@@ -23,15 +23,16 @@ class RuleSetNode(
   val ruleSet: RuleSet,
   private val engine: RulesEngine,
   val onPass: DecisionNode,
+  val onPassContextUpdater: ContextUpdater?,
   val onFail: DecisionNode,
-  val contextUpdater: ContextUpdater,
+  val onFailContextUpdater: ContextUpdater,
 ) : DecisionNode {
 
   companion object {
     private val log = LoggerFactory.getLogger(RuleSetNode::class.java)
   }
 
-  override fun eval(context: EvaluationContext): ServiceResult {
+  override fun eval(context: EvaluationContext): ServiceResultNew {
     log.debug("Executing RuleSet: $ruleSetName")
 
     val ruleSetResult = engine.execute(ruleSet, context.data).also {
@@ -40,8 +41,8 @@ class RuleSetNode(
 
     // Branch based on result: PASS returns current context unchanged, FAIL updates context
     return when (ruleSetResult.status) {
-      RuleSetStatus.PASS -> onPass.eval(context)
-      RuleSetStatus.FAIL -> onFail.eval(contextUpdater.update(context, ruleSetResult.failureReasons))
+      RuleSetStatus.PASS -> onPass.eval(onPassContextUpdater?.update(context, ruleSetResult.failureReasons) ?: context)
+      RuleSetStatus.FAIL -> onFail.eval(onFailContextUpdater.update(context, ruleSetResult.failureReasons))
     }
   }
 }

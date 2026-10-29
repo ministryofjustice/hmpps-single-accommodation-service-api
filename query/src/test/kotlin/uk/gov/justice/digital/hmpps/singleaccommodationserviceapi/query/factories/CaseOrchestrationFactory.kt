@@ -1,11 +1,14 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
 
@@ -14,9 +17,13 @@ fun buildCaseOrchestrationDto(
   cpr: CorePersonRecord? = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn))),
   tier: Tier? = buildTier(),
   case: Case? = buildCase(crn = crn),
+  sexualOffenceRegistrations: SexualOffenceRegistrations? = buildSexualOffenceRegistrations(crn, emptyList()),
+  caseAccess: List<CaseAccess> = listOf(CaseAccess(crn = crn, userExcluded = false, userRestricted = false)),
 ) = CaseOrchestrationDto(
   crn,
   cpr,
   tier,
   case,
+  sexualOffenceRegistrations,
+  caseAccess,
 )

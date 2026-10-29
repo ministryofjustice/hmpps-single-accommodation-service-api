@@ -15,7 +15,11 @@ class CaseAggregate private constructor(
   private var currentAccommodation: AccommodationSummaryDto? = null,
   private var nextAccommodation: AccommodationSummaryDto? = null,
   private var accommodationStatus: CaseAccommodationStatus? = null,
+  private var accommodationStatusDate: LocalDate? = null,
   private var roshLevelCode: String? = null,
+  private var assignedToForename: String? = null,
+  private var assignedToSurname: String? = null,
+  private var assignedToUsername: String? = null,
 ) {
 
   fun upsertCase(
@@ -26,7 +30,11 @@ class CaseAggregate private constructor(
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
     accommodationStatus: CaseAccommodationStatus?,
+    accommodationStatusDate: LocalDate?,
     roshLevelCode: String?,
+    assignedToForename: String?,
+    assignedToSurname: String?,
+    assignedToUsername: String?,
   ): CaseAggregate {
     updateTier(tierScore)
     this.firstName = firstName
@@ -35,7 +43,11 @@ class CaseAggregate private constructor(
     this.currentAccommodation = currentAccommodation
     this.nextAccommodation = nextAccommodation
     this.accommodationStatus = accommodationStatus
+    this.accommodationStatusDate = accommodationStatusDate
     this.roshLevelCode = roshLevelCode
+    this.assignedToForename = assignedToForename
+    this.assignedToSurname = assignedToSurname
+    this.assignedToUsername = assignedToUsername
     return this
   }
 
@@ -50,7 +62,11 @@ class CaseAggregate private constructor(
       currentAccommodation: AccommodationSummaryDto? = null,
       nextAccommodation: AccommodationSummaryDto? = null,
       accommodationStatus: CaseAccommodationStatus? = null,
+      accommodationStatusDate: LocalDate? = null,
       roshLevelCode: String? = null,
+      assignedToForename: String? = null,
+      assignedToSurname: String? = null,
+      assignedToUsername: String? = null,
     ) = CaseAggregate(
       id = id,
       tierScore = tierScore,
@@ -61,11 +77,22 @@ class CaseAggregate private constructor(
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       accommodationStatus = accommodationStatus,
+      accommodationStatusDate = accommodationStatusDate,
       roshLevelCode = roshLevelCode,
+      assignedToForename = assignedToForename,
+      assignedToSurname = assignedToSurname,
+      assignedToUsername = assignedToUsername,
     )
 
-    fun hydrateNew() = CaseAggregate(
+    fun hydrateNew(
+      firstName: String? = null,
+      lastName: String? = null,
+      dateOfBirth: LocalDate? = null,
+    ) = CaseAggregate(
       id = UUID.randomUUID(),
+      firstName = firstName,
+      lastName = lastName,
+      dateOfBirth = dateOfBirth,
     )
   }
 
@@ -89,7 +116,11 @@ class CaseAggregate private constructor(
     val currentAccommodation: AccommodationSummaryDto?,
     val nextAccommodation: AccommodationSummaryDto?,
     val accommodationStatus: CaseAccommodationStatus?,
+    val accommodationStatusDate: LocalDate?,
     val roshLevelCode: String?,
+    val assignedToForename: String?,
+    val assignedToSurname: String?,
+    val assignedToUsername: String?,
   )
 
   fun snapshot() = CaseSnapshot(
@@ -102,6 +133,10 @@ class CaseAggregate private constructor(
     currentAccommodation,
     nextAccommodation,
     accommodationStatus,
+    accommodationStatusDate,
     roshLevelCode,
+    assignedToForename,
+    assignedToSurname,
+    assignedToUsername,
   )
 }

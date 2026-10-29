@@ -6,11 +6,12 @@ object EligibilityRulesGraphGenerator {
 
   fun generate(
     providers: Collection<EligibilityTreeProvider>,
+    render: (List<RulesGraph>) -> String = RulesGraphMarkdownRenderer::render,
   ): GenerationResult {
     val graphs = providers
-      .map { RulesGraphWalker.walk(it) }
+      .map { RulesGraphWalker().walk(it) }
       .sortedBy { it.treeName }
-    val text = RulesGraphMarkdownRenderer.render(graphs)
+    val text = render(graphs)
     return GenerationResult(text)
   }
 }

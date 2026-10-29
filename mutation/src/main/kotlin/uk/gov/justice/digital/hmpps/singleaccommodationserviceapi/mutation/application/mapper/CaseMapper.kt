@@ -24,7 +24,11 @@ class CaseMapper {
     currentAccommodation = entity.currentAccommodation,
     nextAccommodation = entity.nextAccommodation,
     accommodationStatus = entity.accommodationStatus,
+    accommodationStatusDate = entity.accommodationStatusDate,
     roshLevelCode = entity.roshLevelCode,
+    assignedToForename = entity.assignedToForename,
+    assignedToSurname = entity.assignedToSurname,
+    assignedToUsername = entity.assignedToUsername,
   )
 
   fun create(snapshot: CaseAggregate.CaseSnapshot, crn: String, prisonNumber: String?): CaseEntity {
@@ -38,7 +42,11 @@ class CaseMapper {
       currentAccommodation = snapshot.currentAccommodation,
       nextAccommodation = snapshot.nextAccommodation,
       accommodationStatus = snapshot.accommodationStatus,
+      accommodationStatusDate = snapshot.accommodationStatusDate,
       roshLevelCode = snapshot.roshLevelCode,
+      assignedToForename = snapshot.assignedToForename,
+      assignedToSurname = snapshot.assignedToSurname,
+      assignedToUsername = snapshot.assignedToUsername,
     )
     entity.addIdentifiers(buildIdentifiers(crn = crn, prisonNumber = prisonNumber))
     return entity
@@ -57,7 +65,11 @@ class CaseMapper {
     entity.currentAccommodation = snapshot.currentAccommodation
     entity.nextAccommodation = snapshot.nextAccommodation
     entity.accommodationStatus = snapshot.accommodationStatus
+    entity.accommodationStatusDate = snapshot.accommodationStatusDate
     entity.roshLevelCode = snapshot.roshLevelCode
+    entity.assignedToForename = snapshot.assignedToForename
+    entity.assignedToSurname = snapshot.assignedToSurname
+    entity.assignedToUsername = snapshot.assignedToUsername
 
     identifiers?.let { entity.addIdentifiers(it) }
 

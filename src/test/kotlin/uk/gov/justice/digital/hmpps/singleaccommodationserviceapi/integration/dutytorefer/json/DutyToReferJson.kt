@@ -122,3 +122,10 @@ fun expectedDutyToReferUpdatedDomainEventJson(dutyToReferId: UUID) = """
   "type": "SAS_DUTY_TO_REFER_UPDATED"
 }
 """.trimIndent()
+
+fun expectedDutyToReferCreatedDomainEventJson(dutyToReferId: UUID) = """
+{
+  "aggregateId": "$dutyToReferId",
+  "type": "SAS_DUTY_TO_REFER_CREATED"
+}
+""".trimIndent()

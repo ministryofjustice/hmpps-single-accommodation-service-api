@@ -1,18 +1,25 @@
 generic-service:
   serviceAccountName: hmpps-community-accommodation-api-service-account
 
+  resources:
+    limits:
+      memory: 3Gi
+    requests:
+      memory: 2.5Gi
+
   ingress:
     host: single-accommodation-service-api.hmpps.service.justice.gov.uk
     tlsSecretName: hmpps-single-accommodation-service-api-prod-cert
 
   env:
     SENTRY_ENVIRONMENT: prod
-    JAVA_OPTS: "-Xmx2000m"
+    JAVA_TOOL_OPTIONS: "-Xmx2000m"
     SPRING_PROFILES_ACTIVE: prod
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.json"
     HMPPS_SQS_ENABLED: true
     HMPPS_AUTH_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
     SERVICE_SAS-AND-DELIUS_BASE-URL: https://single-accommodation-and-delius.hmpps.service.justice.gov.uk
+    SERVICE_PROBATION-ACCESS-CONTROL_BASE-URL: https://probation-access-control.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-AND-DELIUS_BASE-URL: https://approved-premises-and-delius.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api.hmpps.service.justice.gov.uk
     SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-UI_BASE-URL: https://find-and-refer-intervention.hmpps.service.justice.gov.uk
@@ -20,23 +27,20 @@ generic-service:
     SERVICE_PRISONER-SEARCH_BASE-URL: https://prisoner-search.prison.service.justice.gov.uk
     SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-API_BASE-URL: https://hmpps-interventions-service.apps.live-1.cloud-platform.service.justice.gov.uk
     SERVICE_TIER_BASE-URL: https://hmpps-tier.hmpps.service.justice.gov.uk
-    SERVICE_ACCOMMODATION-DATA-DOMAIN_BASE-URL: https://accommodation-data-domain-api.hmpps.service.justice.gov.uk
     SERVICE_NOMIS-USER-ROLES_BASE-URL: https://nomis-user-roles-api.prison.service.justice.gov.uk
     EVENT_DETAILS-URL_PROPOSED-ACCOMMODATION-UPDATED: https://single-accommodation-service-api.hmpps.service.justice.gov.uk/accommodations/#id
-    EVENT_DETAILS-URL_DUTY-TO-REFER-UPDATED: https://single-accommodation-service-api.hmpps.service.justice.gov.uk/duty-to-refers/#id
+    EVENT_DETAILS-URL_DUTY-TO-REFER: https://single-accommodation-service-api.hmpps.service.justice.gov.uk/event-details/duty-to-refers/#id
+
+    FRONTEND_DUTY-TO-REFER_VIEW: https://single-accommodation-service.hmpps.service.justice.gov.uk/cases/#crn/dtr/#dtrId/details
 
     SPRINGDOC_API_DOCS_ENABLED: false
     SPRINGDOC_SWAGGER_UI_ENABLED: false
 
     SCHEDULING_ENABLED: true
-    TIER_V3-ENABLED: false
-    CASE-REFRESH_ENABLED: false
-    CASE-LIST_V2-ENABLED: false
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
-  alertSeverity: hmpps-approved-premises
   elastiCacheAlertsClusterIds:
     cp-4f07c1a0333a5596: "SAS Redis - Prod"
   rdsAlertsDatabases:
@@ -49,4 +53,3 @@ generic-prometheus-alerts:
     - "hmpps-community-accommodation-live-prod-sas_domain_events_dlq"
   sqsAlertsOldestThreshold: 30
   sqsAlertsTotalMessagesThreshold: 10
-

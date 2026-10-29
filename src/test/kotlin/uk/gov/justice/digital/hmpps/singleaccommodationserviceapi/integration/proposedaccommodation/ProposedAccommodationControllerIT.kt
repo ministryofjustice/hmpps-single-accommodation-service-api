@@ -1,33 +1,26 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.mockk.every
-import io.mockk.spyk
 import org.assertj.core.api.Assertions.assertThat
 import org.javers.core.Javers
 import org.javers.repository.jql.QueryBuilder
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
-import org.springframework.test.context.TestPropertySource
-import org.springframework.test.web.servlet.client.expectBody
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller.ProposedAccommodationController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArrivalMethod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
@@ -35,29 +28,21 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProbationCreateAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -67,7 +52,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_NOMIS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationByIdResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationTimelineResponse
@@ -76,21 +60,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAccommodationArrivalRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAccommodationNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AccommodationSyncService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTimelineService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -100,38 +74,7 @@ import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
-@TestPropertySource(properties = ["scheduling.enabled=true"])
-@Import(ProposedAccommodationControllerIT.CaseListV2FeatureFlagTestConfig::class)
 class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
-
-  @TestConfiguration
-  class CaseListV2FeatureFlagTestConfig {
-    @Bean
-    @Primary
-    fun proposedAccommodationController(
-      caseQueryService: CaseQueryService,
-      caseCreationService: CaseCreationService,
-      accommodationQueryService: AccommodationQueryService,
-      proposedAccommodationApplicationService: ProposedAccommodationApplicationService,
-      proposedAccommodationQueryService: ProposedAccommodationQueryService,
-      proposedAccommodationTimelineService: ProposedAccommodationTimelineService,
-      accommodationSyncService: AccommodationSyncService,
-    ): ProposedAccommodationController = spyk(
-      ProposedAccommodationController(
-        caseQueryService = caseQueryService,
-        caseCreationService = caseCreationService,
-        accommodationQueryService = accommodationQueryService,
-        proposedAccommodationApplicationService = proposedAccommodationApplicationService,
-        proposedAccommodationQueryService = proposedAccommodationQueryService,
-        proposedAccommodationTimelineService = proposedAccommodationTimelineService,
-        accommodationSyncService = accommodationSyncService,
-        caseListV2Enabled = false,
-      ),
-    )
-  }
-
-  @Autowired
-  private lateinit var proposedAccommodationController: ProposedAccommodationController
 
   @Autowired
   private lateinit var clock: MutableTestClock
@@ -158,7 +101,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun setup() {
     clock.freezeAt(fixedInstant)
     beforeTest = Instant.now()
-    crn = UUID.randomUUID().toString()
+    crn = "X371199"
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
 
     HmppsAuthStubs.stubGrantToken()
@@ -172,11 +115,6 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   @AfterEach
   fun teardown() {
     clock.reset()
-    setCaseListV2Enabled(false)
-  }
-
-  private fun setCaseListV2Enabled(v2Enabled: Boolean) {
-    every { proposedAccommodationController.caseListV2Enabled } returns v2Enabled
   }
 
   private fun stubCurrentAccommodationIsCas1(crn: String) {
@@ -213,180 +151,809 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     )
   }
 
-  @Test
-  fun `should get proposed-accommodation by id and crn`() {
-    val entity = createAndSaveProposedAccommodation(
-      caseEntity = caseEntity,
-      accommodationSource = AccommodationSource.SAS,
-      cprAddressId = UUID.randomUUID(),
-      postcode = "W1 8XX",
-      buildingNumber = "11",
-      thoroughfareName = "Piccadilly Circus",
-      postTown = "London",
-      country = "England",
-      startDate = LocalDate.now(),
-      verificationStatus = EntityVerificationStatus.PASSED,
-      nextAccommodationStatus = EntityNextAccommodationStatus.YES,
-      accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
-    )
+  @Nested
+  inner class GetProposedAccommodation {
 
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}", crn, entity.id)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody<String>()
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(
-          expectedGetProposedAccommodationByIdResponse(
-            id = entity.id,
-            crn = crn,
-            createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-          ),
-        )
-      }
-  }
+    @Test
+    fun `should get proposed-accommodation by id and crn`() {
+      val entity = createAndSaveProposedAccommodation(
+        id = UUID.randomUUID(),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.randomUUID(),
+        postcode = "W1 8XX",
+        buildingNumber = "11",
+        thoroughfareName = "Piccadilly Circus",
+        postTown = "London",
+        country = "England",
+        startDate = LocalDate.now(),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
 
-  @Test
-  fun `should return empty list when no proposed-accommodations exist for crn`() {
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody<String>()
-      .value {
-        assertThatJson(it!!).matchesExpectedJson("""{"data":[]}""")
-      }
-  }
-
-  @ParameterizedTest
-  @ValueSource(booleans = [false, true])
-  fun `should create a case when it is missing, hydrating upstream data only when caseListV2Enabled is true`(caseListV2Enabled: Boolean) {
-    setCaseListV2Enabled(caseListV2Enabled)
-
-    val newCrn = UUID.randomUUID().toString()
-    val nomsNumber = "newlyDiscoveredNomsNumber"
-    stubCurrentAccommodationIsCas1(newCrn)
-    SasAndDeliusStubs.stubGetCase(
-      deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-      crn = newCrn,
-      response = buildCase(crn = newCrn, nomsNumber = nomsNumber),
-    )
-    SasAndDeliusStubs.stubGetCase(
-      crn = newCrn,
-      response = buildCase(crn = newCrn, nomsNumber = nomsNumber),
-    )
-    TierStubs.getTierOKResponse(newCrn, buildTier(tierScore = "A2"))
-    PrisonerSearchStubs.getPrisonerOKResponse(
-      prisonNumber = nomsNumber,
-      response = buildPrisoner(
-        prisonNumber = nomsNumber,
-        inOutStatus = InOutStatus.IN,
-        prisonName = "HMP Test Prison",
-        releaseDate = LocalDate.of(2027, 1, 1),
-      ),
-    )
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
-      crn = newCrn,
-      response = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = Cas1PlacementStatus.UPCOMING,
-          premises = buildCas1PremisesSummary(
-            postcode = "AP1 1AP",
-            addressLine1 = "AP House",
-            addressLine2 = "AP Area",
-            town = "AP Town",
-            startDate = LocalDate.of(2026, 6, 1),
-            endDate = null,
-          ),
-        ),
-      ),
-    )
-
-    assertThat(caseRepository.findByCrn(newCrn)).isNull()
-
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", newCrn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-
-    val createdCase = caseRepository.findByCrn(newCrn)!!
-    if (!caseListV2Enabled) {
-      assertThat(createdCase.tierScore).isNull()
-      assertThat(createdCase.firstName).isNull()
-      assertThat(createdCase.lastName).isNull()
-      assertThat(createdCase.roshLevelCode).isNull()
-      assertThat(createdCase.currentAccommodation).isNull()
-      assertThat(createdCase.nextAccommodation).isNull()
-      assertThat(createdCase.accommodationStatus).isNull()
-    } else {
-      assertThat(createdCase.tierScore).isEqualTo("A2")
-      assertThat(createdCase.firstName).isEqualTo("First")
-      assertThat(createdCase.lastName).isEqualTo("Last")
-      assertThat(createdCase.roshLevelCode).isEqualTo("RVHR")
-
-      val currentAccommodation = createdCase.currentAccommodation!!
-      assertThat(currentAccommodation.type?.code).isEqualTo("HMP")
-      assertThat(currentAccommodation.status?.code).isEqualTo("C")
-      assertThat(currentAccommodation.status?.description).isEqualTo("Custody")
-      assertThat(currentAccommodation.address.buildingName).isEqualTo("HMP Test Prison")
-
-      val nextAccommodation = createdCase.nextAccommodation!!
-      assertThat(nextAccommodation.type?.code).isEqualTo("A02")
-      assertThat(nextAccommodation.type?.description).isEqualTo("Approved Premises")
-      assertThat(nextAccommodation.status?.code).isEqualTo("PR1")
-      assertThat(nextAccommodation.status?.description).isEqualTo("Proposed for Resettlement")
-      assertThat(nextAccommodation.address.postcode).isEqualTo("AP1 1AP")
-      assertThat(nextAccommodation.address.thoroughfareName).isEqualTo("AP House")
-      assertThat(nextAccommodation.address.dependentLocality).isEqualTo("AP Area")
-      assertThat(nextAccommodation.address.postTown).isEqualTo("AP Town")
-
-      assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
+      webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}", crn, entity.id)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetProposedAccommodationByIdResponse(
+              id = entity.id,
+              crn = crn,
+              createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            ),
+          )
+        }
     }
-  }
 
-  @Test
-  fun `should create 'Confirmed' proposed-accommodation and POST to CPR and not publish sas-address-updated event and persist to database with cprAddressId`() {
-    cacheHelper.cacheValueByCrn(
-      crn,
-      cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      cacheValue = buildCorePersonRecord(),
-    )
-    val addressUsageCode = AddressUsageCode.A01A
-    val (expectedCprRequestBody, createProposedAccommodationResponseBody) = createConfirmedProposedAccommodation(
-      addressUsageCode,
-    )
-    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAll().first()
-    val expectedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(addressUsageCode.name)!!
-    val expectedAccommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR")!!
-    assertPersistedProposedAccommodationIncludingValidCprAddressIdAndAccommodationStatus(
-      proposedAccommodationPersistedResult,
-      expectedAccommodationTypeEntity,
-      expectedAccommodationStatusEntity,
-      expectedCprRequestBody,
-      createdByUserId = userIdOfLoggedInDeliusUser,
-      updatedByUserId = userIdOfLoggedInDeliusUser,
-    )
+    @Test
+    fun `should get proposed-accommodations sorted by createdAt descending`() {
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("39ff1627-9001-4517-bbba-efa7360c87cd"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("3d7a6f48-d79f-45e5-9caa-9a4443ea01fa"),
+        postcode = "V2 9FR",
+        buildingNumber = "123",
+        buildingName = null,
+        subBuildingName = "The Flat",
+        thoroughfareName = "Busy Road",
+        postTown = "Newcastle",
+        country = "England",
+        county = "Tyne and Wear",
+        dependentLocality = "Newcastle upon Tyne",
+        startDate = LocalDate.parse("2026-07-26"),
+        verificationStatus = null,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "903073336956",
+      )
 
-    assertThatJson(createProposedAccommodationResponseBody).matchesExpectedJson(
-      expectedJson = expectedProposedAddressesResponseBody(
-        crn = crn,
-        id = proposedAccommodationPersistedResult.id,
-        accommodationTypeCode = "A01A",
-        accommodationTypeDescription = "Owner of the property",
-        verificationStatus = VerificationStatus.PASSED.name,
-        nextAccommodationStatus = NextAccommodationStatus.YES.name,
-        subBuildingName = expectedCprRequestBody.subBuildingName!!,
-        buildingName = expectedCprRequestBody.buildingName!!,
-        buildingNumber = expectedCprRequestBody.buildingNumber!!,
-        thoroughfareName = expectedCprRequestBody.thoroughfareName!!,
-        dependentLocality = expectedCprRequestBody.dependentLocality!!,
-        postTown = expectedCprRequestBody.postTown!!,
-        county = expectedCprRequestBody.county!!,
-        postcode = expectedCprRequestBody.postcode!!,
-        uprn = expectedCprRequestBody.uprn!!,
-        createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
-        createdAt = proposedAccommodationPersistedResult.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-      ),
-    )
-    assertThat(outboxEventRepository.findAll()).isEmpty()
-    cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("3f86f7c2-6968-467a-ac0a-f83f6a78506e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("34a40354-f065-4c06-962f-f68cd23a5a5d"),
+        postcode = "A1 2BC",
+        buildingNumber = "11",
+        thoroughfareName = "Piccadilly Circus",
+        postTown = "London",
+        country = "England",
+        startDate = LocalDate.parse("2023-01-01"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("c34371c6-35e5-4a28-bf66-175803a623c7"),
+        postcode = "D3 4EF",
+        buildingNumber = "12",
+        subBuildingName = "The Building",
+        thoroughfareName = "Trafalgar Square",
+        postTown = "London",
+        country = "England",
+        county = "Lancashire",
+        dependentLocality = "East Renfrewshire",
+        startDate = LocalDate.parse("2022-09-11"),
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("0c7375b0-ca97-417c-bb8c-b47be5efce9e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("aafec91a-97cd-4948-98a7-f9db24237eab"),
+        postcode = "G5 6HI",
+        buildingNumber = "201",
+        buildingName = null,
+        subBuildingName = "The Office",
+        thoroughfareName = "Manchester Road",
+        postTown = "Glasgow",
+        country = "Scotland",
+        county = "Lanarkshire",
+        dependentLocality = "East Lothian",
+        startDate = LocalDate.parse("2025-12-12"),
+        verificationStatus = EntityVerificationStatus.FAILED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "100023336956",
+      )
+
+      val response = webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
+        .returnResult()
+        .responseBody!!
+
+      assertThat(response.data.size).isEqualTo(4)
+
+      val firstAccommodation = response.data[0]
+      assertThat(firstAccommodation.id.toString()).isEqualTo("0c7375b0-ca97-417c-bb8c-b47be5efce9e")
+      assertThat(firstAccommodation.crn).isEqualTo("X371199")
+      assertThat(firstAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(firstAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(firstAccommodation.verificationStatus).isEqualTo(VerificationStatus.FAILED)
+      assertThat(firstAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+      assertThat(firstAccommodation.address.postcode).isEqualTo("G5 6HI")
+      assertThat(firstAccommodation.address.postTown).isEqualTo("Glasgow")
+      assertThat(firstAccommodation.address.buildingNumber).isEqualTo("201")
+      assertThat(firstAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(firstAccommodation.address.thoroughfareName).isEqualTo("Manchester Road")
+      assertThat(firstAccommodation.address.country).isEqualTo("Scotland")
+      assertThat(firstAccommodation.address.county).isEqualTo("Lanarkshire")
+      assertThat(firstAccommodation.address.dependentLocality).isEqualTo("East Lothian")
+      assertThat(firstAccommodation.address.subBuildingName).isEqualTo("The Office")
+      assertThat(firstAccommodation.address.uprn).isEqualTo("100023336956")
+      assertThat(firstAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val secondAccommodation = response.data[1]
+      assertThat(secondAccommodation.id.toString()).isEqualTo("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d")
+      assertThat(secondAccommodation.crn).isEqualTo("X371199")
+      assertThat(secondAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(secondAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(secondAccommodation.verificationStatus).isEqualTo(VerificationStatus.NOT_CHECKED_YET)
+      assertThat(secondAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.TO_BE_DECIDED)
+      assertThat(secondAccommodation.address.postcode).isEqualTo("D3 4EF")
+      assertThat(secondAccommodation.address.postTown).isEqualTo("London")
+      assertThat(secondAccommodation.address.buildingNumber).isEqualTo("12")
+      assertThat(secondAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(secondAccommodation.address.thoroughfareName).isEqualTo("Trafalgar Square")
+      assertThat(secondAccommodation.address.country).isEqualTo("England")
+      assertThat(secondAccommodation.address.county).isEqualTo("Lancashire")
+      assertThat(secondAccommodation.address.dependentLocality).isEqualTo("East Renfrewshire")
+      assertThat(secondAccommodation.address.subBuildingName).isEqualTo("The Building")
+      assertThat(secondAccommodation.address.uprn).isEqualTo(null)
+      assertThat(secondAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val thirdAccommodation = response.data[2]
+      assertThat(thirdAccommodation.id.toString()).isEqualTo("3f86f7c2-6968-467a-ac0a-f83f6a78506e")
+      assertThat(thirdAccommodation.crn).isEqualTo("X371199")
+      assertThat(thirdAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(thirdAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(thirdAccommodation.verificationStatus).isEqualTo(VerificationStatus.PASSED)
+      assertThat(thirdAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
+      assertThat(thirdAccommodation.address.postcode).isEqualTo("A1 2BC")
+      assertThat(thirdAccommodation.address.postTown).isEqualTo("London")
+      assertThat(thirdAccommodation.address.buildingNumber).isEqualTo("11")
+      assertThat(thirdAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(thirdAccommodation.address.thoroughfareName).isEqualTo("Piccadilly Circus")
+      assertThat(thirdAccommodation.address.country).isEqualTo("England")
+      assertThat(thirdAccommodation.address.county).isEqualTo(null)
+      assertThat(thirdAccommodation.address.dependentLocality).isEqualTo(null)
+      assertThat(thirdAccommodation.address.subBuildingName).isEqualTo(null)
+      assertThat(thirdAccommodation.address.uprn).isEqualTo(null)
+      assertThat(thirdAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val fourthAccommodation = response.data[3]
+      assertThat(fourthAccommodation.id.toString()).isEqualTo("39ff1627-9001-4517-bbba-efa7360c87cd")
+      assertThat(fourthAccommodation.crn).isEqualTo("X371199")
+      assertThat(fourthAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(fourthAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(fourthAccommodation.verificationStatus).isEqualTo(null)
+      assertThat(fourthAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+      assertThat(fourthAccommodation.address.postcode).isEqualTo("V2 9FR")
+      assertThat(fourthAccommodation.address.postTown).isEqualTo("Newcastle")
+      assertThat(fourthAccommodation.address.buildingNumber).isEqualTo("123")
+      assertThat(fourthAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(fourthAccommodation.address.thoroughfareName).isEqualTo("Busy Road")
+      assertThat(fourthAccommodation.address.country).isEqualTo("England")
+      assertThat(fourthAccommodation.address.county).isEqualTo("Tyne and Wear")
+      assertThat(fourthAccommodation.address.dependentLocality).isEqualTo("Newcastle upon Tyne")
+      assertThat(fourthAccommodation.address.subBuildingName).isEqualTo("The Flat")
+      assertThat(fourthAccommodation.address.uprn).isEqualTo("903073336956")
+      assertThat(fourthAccommodation.createdBy).isEqualTo("Test Data Setup User")
+    }
+
+    @Test
+    fun `should exclude FAILED proposed-accommodations sorted by createdAt descending with excludeVerificationFailed=true`() {
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("39ff1627-9001-4517-bbba-efa7360c87cd"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("3d7a6f48-d79f-45e5-9caa-9a4443ea01fa"),
+        postcode = "V2 9FR",
+        buildingNumber = "123",
+        buildingName = null,
+        subBuildingName = "The Flat",
+        thoroughfareName = "Busy Road",
+        postTown = "Newcastle",
+        country = "England",
+        county = "Tyne and Wear",
+        dependentLocality = "Newcastle upon Tyne",
+        startDate = LocalDate.parse("2026-07-26"),
+        verificationStatus = null,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "903073336956",
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("3f86f7c2-6968-467a-ac0a-f83f6a78506e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("34a40354-f065-4c06-962f-f68cd23a5a5d"),
+        postcode = "A1 2BC",
+        buildingNumber = "11",
+        thoroughfareName = "Piccadilly Circus",
+        postTown = "London",
+        country = "England",
+        startDate = LocalDate.parse("2023-01-01"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("c34371c6-35e5-4a28-bf66-175803a623c7"),
+        postcode = "D3 4EF",
+        buildingNumber = "12",
+        subBuildingName = "The Building",
+        thoroughfareName = "Trafalgar Square",
+        postTown = "London",
+        country = "England",
+        county = "Lancashire",
+        dependentLocality = "East Renfrewshire",
+        startDate = LocalDate.parse("2022-09-11"),
+        verificationStatus = EntityVerificationStatus.FAILED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("0c7375b0-ca97-417c-bb8c-b47be5efce9e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("aafec91a-97cd-4948-98a7-f9db24237eab"),
+        postcode = "G5 6HI",
+        buildingNumber = "201",
+        buildingName = null,
+        subBuildingName = "The Office",
+        thoroughfareName = "Manchester Road",
+        postTown = "Glasgow",
+        country = "Scotland",
+        county = "Lanarkshire",
+        dependentLocality = "East Lothian",
+        startDate = LocalDate.parse("2025-12-12"),
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "100023336956",
+      )
+
+      val response =
+        webTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=true", crn)
+          .withDeliusUserJwt()
+          .exchangeSuccessfully()
+          .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
+          .returnResult()
+          .responseBody!!
+
+      assertThat(response.data.size).isEqualTo(3)
+
+      val firstAccommodation = response.data[0]
+      assertThat(firstAccommodation.id.toString()).isEqualTo("0c7375b0-ca97-417c-bb8c-b47be5efce9e")
+      assertThat(firstAccommodation.crn).isEqualTo("X371199")
+      assertThat(firstAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(firstAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(firstAccommodation.verificationStatus).isEqualTo(VerificationStatus.NOT_CHECKED_YET)
+      assertThat(firstAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+      assertThat(firstAccommodation.address.postcode).isEqualTo("G5 6HI")
+      assertThat(firstAccommodation.address.postTown).isEqualTo("Glasgow")
+      assertThat(firstAccommodation.address.buildingNumber).isEqualTo("201")
+      assertThat(firstAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(firstAccommodation.address.thoroughfareName).isEqualTo("Manchester Road")
+      assertThat(firstAccommodation.address.country).isEqualTo("Scotland")
+      assertThat(firstAccommodation.address.county).isEqualTo("Lanarkshire")
+      assertThat(firstAccommodation.address.dependentLocality).isEqualTo("East Lothian")
+      assertThat(firstAccommodation.address.subBuildingName).isEqualTo("The Office")
+      assertThat(firstAccommodation.address.uprn).isEqualTo("100023336956")
+      assertThat(firstAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val secondAccommodation = response.data[1]
+      assertThat(secondAccommodation.id.toString()).isEqualTo("3f86f7c2-6968-467a-ac0a-f83f6a78506e")
+      assertThat(secondAccommodation.crn).isEqualTo("X371199")
+      assertThat(secondAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(secondAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(secondAccommodation.verificationStatus).isEqualTo(VerificationStatus.PASSED)
+      assertThat(secondAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
+      assertThat(secondAccommodation.address.postcode).isEqualTo("A1 2BC")
+      assertThat(secondAccommodation.address.postTown).isEqualTo("London")
+      assertThat(secondAccommodation.address.buildingNumber).isEqualTo("11")
+      assertThat(secondAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(secondAccommodation.address.thoroughfareName).isEqualTo("Piccadilly Circus")
+      assertThat(secondAccommodation.address.country).isEqualTo("England")
+      assertThat(secondAccommodation.address.county).isEqualTo(null)
+      assertThat(secondAccommodation.address.dependentLocality).isEqualTo(null)
+      assertThat(secondAccommodation.address.subBuildingName).isEqualTo(null)
+      assertThat(secondAccommodation.address.uprn).isEqualTo(null)
+      assertThat(secondAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val thirdAccommodation = response.data[2]
+      assertThat(thirdAccommodation.id.toString()).isEqualTo("39ff1627-9001-4517-bbba-efa7360c87cd")
+      assertThat(thirdAccommodation.crn).isEqualTo("X371199")
+      assertThat(thirdAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(thirdAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(thirdAccommodation.verificationStatus).isEqualTo(null)
+      assertThat(thirdAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+      assertThat(thirdAccommodation.address.postcode).isEqualTo("V2 9FR")
+      assertThat(thirdAccommodation.address.postTown).isEqualTo("Newcastle")
+      assertThat(thirdAccommodation.address.buildingNumber).isEqualTo("123")
+      assertThat(thirdAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(thirdAccommodation.address.thoroughfareName).isEqualTo("Busy Road")
+      assertThat(thirdAccommodation.address.country).isEqualTo("England")
+      assertThat(thirdAccommodation.address.county).isEqualTo("Tyne and Wear")
+      assertThat(thirdAccommodation.address.dependentLocality).isEqualTo("Newcastle upon Tyne")
+      assertThat(thirdAccommodation.address.subBuildingName).isEqualTo("The Flat")
+      assertThat(thirdAccommodation.address.uprn).isEqualTo("903073336956")
+      assertThat(thirdAccommodation.createdBy).isEqualTo("Test Data Setup User")
+    }
+
+    @Test
+    fun `should get all proposed-accommodations sorted by createdAt descending with excludeVerificationFailed=false`() {
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("39ff1627-9001-4517-bbba-efa7360c87cd"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("3d7a6f48-d79f-45e5-9caa-9a4443ea01fa"),
+        postcode = "V2 9FR",
+        buildingNumber = "123",
+        buildingName = null,
+        subBuildingName = "The Flat",
+        thoroughfareName = "Busy Road",
+        postTown = "Newcastle",
+        country = "England",
+        county = "Tyne and Wear",
+        dependentLocality = "Newcastle upon Tyne",
+        startDate = LocalDate.parse("2026-07-26"),
+        verificationStatus = null,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "903073336956",
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("3f86f7c2-6968-467a-ac0a-f83f6a78506e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("34a40354-f065-4c06-962f-f68cd23a5a5d"),
+        postcode = "A1 2BC",
+        buildingNumber = "11",
+        thoroughfareName = "Piccadilly Circus",
+        postTown = "London",
+        country = "England",
+        startDate = LocalDate.parse("2023-01-01"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("c34371c6-35e5-4a28-bf66-175803a623c7"),
+        postcode = "D3 4EF",
+        buildingNumber = "12",
+        subBuildingName = "The Building",
+        thoroughfareName = "Trafalgar Square",
+        postTown = "London",
+        country = "England",
+        county = "Lancashire",
+        dependentLocality = "East Renfrewshire",
+        startDate = LocalDate.parse("2022-09-11"),
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("0c7375b0-ca97-417c-bb8c-b47be5efce9e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("aafec91a-97cd-4948-98a7-f9db24237eab"),
+        postcode = "G5 6HI",
+        buildingNumber = "201",
+        buildingName = null,
+        subBuildingName = "The Office",
+        thoroughfareName = "Manchester Road",
+        postTown = "Glasgow",
+        country = "Scotland",
+        county = "Lanarkshire",
+        dependentLocality = "East Lothian",
+        startDate = LocalDate.parse("2025-12-12"),
+        verificationStatus = EntityVerificationStatus.FAILED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "100023336956",
+      )
+
+      val response =
+        webTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=false", crn)
+          .withDeliusUserJwt()
+          .exchangeSuccessfully()
+          .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
+          .returnResult()
+          .responseBody!!
+
+      assertThat(response.data.size).isEqualTo(4)
+
+      val firstAccommodation = response.data[0]
+      assertThat(firstAccommodation.id.toString()).isEqualTo("0c7375b0-ca97-417c-bb8c-b47be5efce9e")
+      assertThat(firstAccommodation.crn).isEqualTo("X371199")
+      assertThat(firstAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(firstAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(firstAccommodation.verificationStatus).isEqualTo(VerificationStatus.FAILED)
+      assertThat(firstAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+      assertThat(firstAccommodation.address.postcode).isEqualTo("G5 6HI")
+      assertThat(firstAccommodation.address.postTown).isEqualTo("Glasgow")
+      assertThat(firstAccommodation.address.buildingNumber).isEqualTo("201")
+      assertThat(firstAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(firstAccommodation.address.thoroughfareName).isEqualTo("Manchester Road")
+      assertThat(firstAccommodation.address.country).isEqualTo("Scotland")
+      assertThat(firstAccommodation.address.county).isEqualTo("Lanarkshire")
+      assertThat(firstAccommodation.address.dependentLocality).isEqualTo("East Lothian")
+      assertThat(firstAccommodation.address.subBuildingName).isEqualTo("The Office")
+      assertThat(firstAccommodation.address.uprn).isEqualTo("100023336956")
+      assertThat(firstAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val secondAccommodation = response.data[1]
+      assertThat(secondAccommodation.id.toString()).isEqualTo("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d")
+      assertThat(secondAccommodation.crn).isEqualTo("X371199")
+      assertThat(secondAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(secondAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(secondAccommodation.verificationStatus).isEqualTo(VerificationStatus.NOT_CHECKED_YET)
+      assertThat(secondAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.TO_BE_DECIDED)
+      assertThat(secondAccommodation.address.postcode).isEqualTo("D3 4EF")
+      assertThat(secondAccommodation.address.postTown).isEqualTo("London")
+      assertThat(secondAccommodation.address.buildingNumber).isEqualTo("12")
+      assertThat(secondAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(secondAccommodation.address.thoroughfareName).isEqualTo("Trafalgar Square")
+      assertThat(secondAccommodation.address.country).isEqualTo("England")
+      assertThat(secondAccommodation.address.county).isEqualTo("Lancashire")
+      assertThat(secondAccommodation.address.dependentLocality).isEqualTo("East Renfrewshire")
+      assertThat(secondAccommodation.address.subBuildingName).isEqualTo("The Building")
+      assertThat(secondAccommodation.address.uprn).isEqualTo(null)
+      assertThat(secondAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val thirdAccommodation = response.data[2]
+      assertThat(thirdAccommodation.id.toString()).isEqualTo("3f86f7c2-6968-467a-ac0a-f83f6a78506e")
+      assertThat(thirdAccommodation.crn).isEqualTo("X371199")
+      assertThat(thirdAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(thirdAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(thirdAccommodation.verificationStatus).isEqualTo(VerificationStatus.PASSED)
+      assertThat(thirdAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
+      assertThat(thirdAccommodation.address.postcode).isEqualTo("A1 2BC")
+      assertThat(thirdAccommodation.address.postTown).isEqualTo("London")
+      assertThat(thirdAccommodation.address.buildingNumber).isEqualTo("11")
+      assertThat(thirdAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(thirdAccommodation.address.thoroughfareName).isEqualTo("Piccadilly Circus")
+      assertThat(thirdAccommodation.address.country).isEqualTo("England")
+      assertThat(thirdAccommodation.address.county).isEqualTo(null)
+      assertThat(thirdAccommodation.address.dependentLocality).isEqualTo(null)
+      assertThat(thirdAccommodation.address.subBuildingName).isEqualTo(null)
+      assertThat(thirdAccommodation.address.uprn).isEqualTo(null)
+      assertThat(thirdAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val fourthAccommodation = response.data[3]
+      assertThat(fourthAccommodation.id.toString()).isEqualTo("39ff1627-9001-4517-bbba-efa7360c87cd")
+      assertThat(fourthAccommodation.crn).isEqualTo("X371199")
+      assertThat(fourthAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(fourthAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(fourthAccommodation.verificationStatus).isEqualTo(null)
+      assertThat(fourthAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+      assertThat(fourthAccommodation.address.postcode).isEqualTo("V2 9FR")
+      assertThat(fourthAccommodation.address.postTown).isEqualTo("Newcastle")
+      assertThat(fourthAccommodation.address.buildingNumber).isEqualTo("123")
+      assertThat(fourthAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(fourthAccommodation.address.thoroughfareName).isEqualTo("Busy Road")
+      assertThat(fourthAccommodation.address.country).isEqualTo("England")
+      assertThat(fourthAccommodation.address.county).isEqualTo("Tyne and Wear")
+      assertThat(fourthAccommodation.address.dependentLocality).isEqualTo("Newcastle upon Tyne")
+      assertThat(fourthAccommodation.address.subBuildingName).isEqualTo("The Flat")
+      assertThat(fourthAccommodation.address.uprn).isEqualTo("903073336956")
+      assertThat(fourthAccommodation.createdBy).isEqualTo("Test Data Setup User")
+    }
+
+    @Test
+    fun `should exclude unconfirmed proposed-accommodations sorted by createdAt descending with confirmedOnly=true`() {
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("39ff1627-9001-4517-bbba-efa7360c87cd"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("3d7a6f48-d79f-45e5-9caa-9a4443ea01fa"),
+        postcode = "V2 9FR",
+        buildingNumber = "123",
+        buildingName = null,
+        subBuildingName = "The Flat",
+        thoroughfareName = "Busy Road",
+        postTown = "Newcastle",
+        country = "England",
+        county = "Tyne and Wear",
+        dependentLocality = "Newcastle upon Tyne",
+        startDate = LocalDate.parse("2026-07-26"),
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "903073336956",
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("3f86f7c2-6968-467a-ac0a-f83f6a78506e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("34a40354-f065-4c06-962f-f68cd23a5a5d"),
+        postcode = "A1 2BC",
+        buildingNumber = "11",
+        thoroughfareName = "Piccadilly Circus",
+        postTown = "London",
+        country = "England",
+        startDate = LocalDate.parse("2023-01-01"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("c34371c6-35e5-4a28-bf66-175803a623c7"),
+        postcode = "D3 4EF",
+        buildingNumber = "12",
+        subBuildingName = "The Building",
+        thoroughfareName = "Trafalgar Square",
+        postTown = "London",
+        country = "England",
+        county = "Lancashire",
+        dependentLocality = "East Renfrewshire",
+        startDate = LocalDate.parse("2022-09-11"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("0c7375b0-ca97-417c-bb8c-b47be5efce9e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("aafec91a-97cd-4948-98a7-f9db24237eab"),
+        postcode = "G5 6HI",
+        buildingNumber = "201",
+        buildingName = null,
+        subBuildingName = "The Office",
+        thoroughfareName = "Manchester Road",
+        postTown = "Glasgow",
+        country = "Scotland",
+        county = "Lanarkshire",
+        dependentLocality = "East Lothian",
+        startDate = LocalDate.parse("2025-12-12"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "100023336956",
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("59899f60-3e10-4fca-b192-add8218ec288"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("f1029631-66fa-44f9-ab8a-e7eac9e5674d"),
+        postcode = "N1 7HD",
+        buildingNumber = "1298",
+        buildingName = null,
+        subBuildingName = "The Loft",
+        thoroughfareName = "Birmingham Road",
+        postTown = "London",
+        country = "England",
+        county = null,
+        dependentLocality = null,
+        startDate = LocalDate.parse("2022-09-19"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = null,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "100927756956",
+      )
+
+      val response =
+        webTestClient.get().uri("/cases/{crn}/proposed-accommodations?confirmedOnly=true", crn)
+          .withDeliusUserJwt()
+          .exchangeSuccessfully()
+          .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
+          .returnResult()
+          .responseBody!!
+
+      assertThat(response.data.size).isEqualTo(1)
+
+      val firstAccommodation = response.data[0]
+      assertThat(firstAccommodation.id.toString()).isEqualTo("0c7375b0-ca97-417c-bb8c-b47be5efce9e")
+      assertThat(firstAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
+    }
+
+    @Test
+    fun `should get all proposed-accommodations sorted by createdAt descending with confirmedOnly=false`() {
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("39ff1627-9001-4517-bbba-efa7360c87cd"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("3d7a6f48-d79f-45e5-9caa-9a4443ea01fa"),
+        postcode = "V2 9FR",
+        buildingNumber = "123",
+        buildingName = null,
+        subBuildingName = "The Flat",
+        thoroughfareName = "Busy Road",
+        postTown = "Newcastle",
+        country = "England",
+        county = "Tyne and Wear",
+        dependentLocality = "Newcastle upon Tyne",
+        startDate = LocalDate.parse("2026-07-26"),
+        verificationStatus = null,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "903073336956",
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("3f86f7c2-6968-467a-ac0a-f83f6a78506e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("34a40354-f065-4c06-962f-f68cd23a5a5d"),
+        postcode = "A1 2BC",
+        buildingNumber = "11",
+        thoroughfareName = "Piccadilly Circus",
+        postTown = "London",
+        country = "England",
+        startDate = LocalDate.parse("2023-01-01"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("c34371c6-35e5-4a28-bf66-175803a623c7"),
+        postcode = "D3 4EF",
+        buildingNumber = "12",
+        subBuildingName = "The Building",
+        thoroughfareName = "Trafalgar Square",
+        postTown = "London",
+        country = "England",
+        county = "Lancashire",
+        dependentLocality = "East Renfrewshire",
+        startDate = LocalDate.parse("2022-09-11"),
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("0c7375b0-ca97-417c-bb8c-b47be5efce9e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("aafec91a-97cd-4948-98a7-f9db24237eab"),
+        postcode = "G5 6HI",
+        buildingNumber = "201",
+        buildingName = null,
+        subBuildingName = "The Office",
+        thoroughfareName = "Manchester Road",
+        postTown = "Glasgow",
+        country = "Scotland",
+        county = "Lanarkshire",
+        dependentLocality = "East Lothian",
+        startDate = LocalDate.parse("2025-12-12"),
+        verificationStatus = EntityVerificationStatus.FAILED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "100023336956",
+      )
+
+      val response =
+        webTestClient.get().uri("/cases/{crn}/proposed-accommodations?confirmedOnly=false", crn)
+          .withDeliusUserJwt()
+          .exchangeSuccessfully()
+          .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
+          .returnResult()
+          .responseBody!!
+
+      assertThat(response.data.size).isEqualTo(4)
+
+      val firstAccommodation = response.data[0]
+      assertThat(firstAccommodation.id.toString()).isEqualTo("0c7375b0-ca97-417c-bb8c-b47be5efce9e")
+      assertThat(firstAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+
+      val secondAccommodation = response.data[1]
+      assertThat(secondAccommodation.id.toString()).isEqualTo("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d")
+      assertThat(secondAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.TO_BE_DECIDED)
+
+      val thirdAccommodation = response.data[2]
+      assertThat(thirdAccommodation.id.toString()).isEqualTo("3f86f7c2-6968-467a-ac0a-f83f6a78506e")
+      assertThat(thirdAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
+
+      val fourthAccommodation = response.data[3]
+      assertThat(fourthAccommodation.id.toString()).isEqualTo("39ff1627-9001-4517-bbba-efa7360c87cd")
+      assertThat(fourthAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+    }
+
+    @Test
+    fun `should return 404 when requested case does not exist for proposed-accommodations`() {
+      val missingCrn = "X000000"
+      webTestClient.get().uri("/cases/{crn}/proposed-accommodations", missingCrn)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return empty list when no proposed-accommodations exist for crn`() {
+      webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson("""{"data":[]}""")
+        }
+    }
+
+    @Test
+    fun `should create 'Confirmed' proposed-accommodation and POST to CPR and not publish sas-address-updated event and persist to database with cprAddressId`() {
+      cacheHelper.cacheValueByCrn(
+        crn,
+        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
+        cacheValue = buildCorePersonRecord(),
+      )
+      val addressUsageCode = AddressUsageCode.A01A
+      val (expectedCprRequestBody, createProposedAccommodationResponseBody) = createConfirmedProposedAccommodation(
+        addressUsageCode,
+      )
+      val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAll().first()
+      val expectedAccommodationTypeEntity =
+        accommodationTypeRepository.findByCodeAndActiveIsTrue(addressUsageCode.name)!!
+      val expectedAccommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR")!!
+      assertPersistedProposedAccommodationIncludingValidCprAddressIdAndAccommodationStatus(
+        proposedAccommodationPersistedResult,
+        expectedAccommodationTypeEntity,
+        expectedAccommodationStatusEntity,
+        expectedCprRequestBody,
+        createdByUserId = userIdOfLoggedInDeliusUser,
+        updatedByUserId = userIdOfLoggedInDeliusUser,
+      )
+
+      assertThatJson(createProposedAccommodationResponseBody).matchesExpectedJson(
+        expectedJson = expectedProposedAddressesResponseBody(
+          crn = crn,
+          id = proposedAccommodationPersistedResult.id,
+          accommodationTypeCode = "A01A",
+          accommodationTypeDescription = "Owner of the property",
+          verificationStatus = VerificationStatus.PASSED.name,
+          nextAccommodationStatus = NextAccommodationStatus.YES.name,
+          subBuildingName = expectedCprRequestBody.subBuildingName!!,
+          buildingName = expectedCprRequestBody.buildingName!!,
+          buildingNumber = expectedCprRequestBody.buildingNumber!!,
+          thoroughfareName = expectedCprRequestBody.thoroughfareName!!,
+          dependentLocality = expectedCprRequestBody.dependentLocality!!,
+          postTown = expectedCprRequestBody.postTown!!,
+          county = expectedCprRequestBody.county!!,
+          postcode = expectedCprRequestBody.postcode!!,
+          uprn = expectedCprRequestBody.uprn!!,
+          createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
+          createdAt = proposedAccommodationPersistedResult.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        ),
+      )
+      assertThat(outboxEventRepository.findAll()).isEmpty()
+      cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
+    }
   }
 
   private fun createConfirmedProposedAccommodation(
@@ -415,9 +982,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       contacts = emptyList(),
     )
     CorePersonRecordStubs.postAddress(crn, request = expectedCprRequestBody, response = buildProbationCreateAddressResponse(crn, cprAddressId))
-    val createProposedAccommodationResponseBody = restTestClient.post().uri("/cases/$crn/proposed-accommodations")
+    val createProposedAccommodationResponseBody = webTestClient.post().uri("/cases/$crn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = addressUsageCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -450,10 +1017,10 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       cacheValue = buildCorePersonRecord(),
     )
     val addressUsageCode = AddressUsageCode.A01A
-    val createdProposedAccommodation = restTestClient.post()
+    val createdProposedAccommodation = webTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations", crn)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           subBuildingName = "test sub building name",
           buildingName = "test building name",
@@ -512,9 +1079,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should receive Bad Request when create proposed-accommodation with null accommodation-type`() {
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = null,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -541,9 +1108,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun `should receive 5xx Error for create proposed-accommodation when current accommodation has 5xx upstream failure`() {
     val currentAccommodation5xxWireMockedCrn = "X123"
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn = currentAccommodation5xxWireMockedCrn)
-    restTestClient.post().uri("/cases/$currentAccommodation5xxWireMockedCrn/proposed-accommodations")
+    webTestClient.post().uri("/cases/$currentAccommodation5xxWireMockedCrn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = VerificationStatus.PASSED.name,
@@ -569,9 +1136,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun `should receive NOT_FOUND Error for create proposed-accommodation when current accommodation has NOT_FOUND upstream failure`() {
     val currentAccommodation4xxWireMockedCrn = "X123"
     CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crn = currentAccommodation4xxWireMockedCrn)
-    restTestClient.post().uri("/cases/$currentAccommodation4xxWireMockedCrn/proposed-accommodations")
+    webTestClient.post().uri("/cases/$currentAccommodation4xxWireMockedCrn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = VerificationStatus.PASSED.name,
@@ -631,9 +1198,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     )
     CorePersonRecordStubs.postAddress(crn, request = expectedCprRequestBody, response = buildProbationCreateAddressResponse(crn, cprAddressId))
 
-    val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = addressUsageCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -692,6 +1259,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should update address details on 'Confirmed' proposed-accommodation and so should publish sas-address-updated event and should not POST to CPR`() {
     cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
@@ -711,6 +1279,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should update accommodation type on 'Confirmed' proposed-accommodation and so should publish sas-address-updated event and should not POST to CPR`() {
     cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     val proposedAccommodationPersistedResult = shouldUpdateConfirmedProposedAccommodation(
@@ -753,9 +1322,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         startDate = LocalDate.now(),
       ),
     )
-    val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = newAccommodationTypeCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -845,6 +1414,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should downgrade 'Confirmed' proposed-accommodation to 'Unconfirmed' and so should publish sas-address-deleted event and should not POST to CPR`() {
     cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     val confirmedStatus = EntityNextAccommodationStatus.YES
@@ -871,9 +1441,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
     val addressUsageCode = AddressUsageCode.A01A
-    val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           nextAccommodationStatus = unconfirmedStatus.name,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -948,9 +1518,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun `should receive 5xx Error for update proposed-accommodation when current accommodation has upstream failures`() {
     val noCurrentAccommodationWireMockedCrn = "X123"
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn = noCurrentAccommodationWireMockedCrn)
-    restTestClient.put().uri("/cases/$noCurrentAccommodationWireMockedCrn/proposed-accommodations/${UUID.randomUUID()}")
+    webTestClient.put().uri("/cases/$noCurrentAccommodationWireMockedCrn/proposed-accommodations/${UUID.randomUUID()}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.PASSED.name,
@@ -975,9 +1545,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET.name,
@@ -995,9 +1565,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun `should return 404 when updating nonexistent proposed-accommodation`() {
     val nonExistentId = UUID.randomUUID()
 
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/$nonExistentId")
+    webTestClient.put().uri("/cases/$crn/proposed-accommodations/$nonExistentId")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.PASSED.name,
@@ -1031,9 +1601,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/${otherEntity.id}")
+    webTestClient.put().uri("/cases/$crn/proposed-accommodations/${otherEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A07B",
           verificationStatus = EntityVerificationStatus.PASSED.name,
@@ -1048,10 +1618,10 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   @Test
   fun `should return proposed accommodation timeline when single 'Unconfirmed' proposed accommodation created`() {
     val accommodationTypeCode = "A01A"
-    val createdProposedAccommodation = restTestClient.post()
+    val createdProposedAccommodation = webTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations", crn)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           subBuildingName = null,
           accommodationTypeCode = accommodationTypeCode,
@@ -1072,7 +1642,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     assertThat(commitTimesAsc).hasSize(1)
 
     val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(accommodationTypeCode)
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -1100,10 +1670,10 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       .readTree(createProposedAccommodationResponseBody)
       .get("id").asText()
 
-    restTestClient.post()
+    webTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations/{id}/notes", crn, createdProposedAccommodationId)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = "Test note",
         ),
@@ -1111,16 +1681,13 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
 
-    NomisUserRolesStubs.stubMe(
-      jwt = jwtAuthHelper.createJwtAccessToken(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        roles = listOf("ROLE_POM", "ROLE_PRISON"),
-        authSource = AuthSource.NOMIS.source,
-      ),
-      response = buildNomisUserDetail(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        primaryEmail = USERNAME_OF_LOGGED_IN_NOMIS_USER,
-      ),
+    val nomisUser = buildNomisUserDetail(
+      USERNAME_OF_LOGGED_IN_NOMIS_USER,
+      primaryEmail = USERNAME_OF_LOGGED_IN_NOMIS_USER,
+    )
+    NomisUserRolesStubs.stubNomisUserDetailsResponse(
+      username = nomisUser.username,
+      response = nomisUser,
     )
 
     val usernameOfNewDeliusUser = "newDeliusUser@justice.gov.uk"
@@ -1136,9 +1703,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       deliusUsername = usernameOfNewDeliusUser,
       response = newDeliusUserStaffDetail,
     )
-    restTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
+    webTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           subBuildingName = "another sub building name",
           buildingName = expectedCprRequestBody.buildingName!!,
@@ -1157,9 +1724,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       .withDeliusUserJwt(username = usernameOfNewDeliusUser)
       .exchangeSuccessfully()
 
-    restTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
+    webTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           subBuildingName = null,
           buildingName = expectedCprRequestBody.buildingName!!,
@@ -1182,7 +1749,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     val createNoteCommitTime = proposedAccommodationRepository.findAllWithNotesByCrnOrderByCreatedAtDesc(crn).first()
       .notes.first().createdAt
 
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -1231,9 +1798,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     )
     val note1Value = "Test note 1"
     val note2Value = "Test note 2"
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = note1Value,
         ),
@@ -1244,9 +1811,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     var proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllWithNotesByCrnOrderByCreatedAtDesc(crn).first()
     assertThat(proposedAccommodationPersistedResult.notes.first().note).isEqualTo(note1Value)
 
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = note2Value,
         ),
@@ -1262,9 +1829,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should not create a note for proposed-accommodation when accommodation not found`() {
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${UUID.randomUUID()}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${UUID.randomUUID()}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = "Test note",
         ),
@@ -1288,9 +1855,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
       ),
     )
-    restTestClient.post().uri("/cases/$unknownCrn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$unknownCrn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = "Test note",
         ),
@@ -1313,9 +1880,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
     val note = ""
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(note),
       )
       .withDeliusUserJwt()
@@ -1336,9 +1903,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
     val note = "a".repeat(4001)
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(note),
       )
       .withDeliusUserJwt()
@@ -1346,145 +1913,311 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       .expectStatus().isBadRequest
   }
 
-  @Test
-  fun `should arrive a 'Confirmed' proposed-accommodation and publish a sas-address-person-arrived event and transition database record appropriately`() {
-    cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
-    val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
-    val address = buildCanonicalAddress(
-      subBuildingName = "test sub building name",
-      buildingName = "test building name",
-      buildingNumber = "4",
-      thoroughfareName = "test thoroughfare",
-      dependentLocality = "test dependent locality",
-      postTown = "test post town",
-      county = "test county",
-      country = null,
-      postcode = "test postcode",
-      uprn = "test uprn",
-    )
-    val existingEntity = proposedAccommodationRepository.save(
-      buildProposedAccommodationEntity(
-        cprAddressId = cprAddressId,
-        typeVerified = false,
-        startDate = LocalDate.now().minusDays(20),
-        endDate = LocalDate.now().minusDays(10),
-        verificationStatus = EntityVerificationStatus.PASSED,
-        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
-        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.PR.name)!!,
-        name = null,
-        subBuildingName = address.subBuildingName,
-        buildingName = address.buildingName,
-        buildingNumber = address.buildingNumber,
-        thoroughfareName = address.thoroughfareName,
-        dependentLocality = address.dependentLocality,
-        postTown = address.postTown,
-        county = address.county,
+  @Nested
+  inner class PostProposedAccommodationArrival {
+    @Test
+    @EnableMessageProcessing
+    fun `should arrive a 'Confirmed' proposed-accommodation and publish a sas-address-person-arrived event and transition database record appropriately`() {
+      cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
+      val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
+      val address = buildCanonicalAddress(
+        subBuildingName = "test sub building name",
+        buildingName = "test building name",
+        buildingNumber = "4",
+        thoroughfareName = "test thoroughfare",
+        dependentLocality = "test dependent locality",
+        postTown = "test post town",
+        county = "test county",
         country = null,
-        postcode = address.postcode,
-        uprn = address.uprn,
-        accommodationTypeEntity = accommodationTypeEntity,
-        caseId = caseEntity.id,
-      ),
-    )
-
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(
-        proposedAccommodationArrivalRequestBody(
-          arrivalDate = fixedInstant.toString(),
+        postcode = "test postcode",
+        uprn = "test uprn",
+      )
+      val existingEntity = proposedAccommodationRepository.save(
+        buildProposedAccommodationEntity(
+          cprAddressId = cprAddressId,
+          typeVerified = false,
+          startDate = LocalDate.now().minusDays(20),
+          endDate = LocalDate.now().minusDays(10),
+          verificationStatus = EntityVerificationStatus.PASSED,
+          nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+          accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.PR.name)!!,
+          name = null,
+          subBuildingName = address.subBuildingName,
+          buildingName = address.buildingName,
+          buildingNumber = address.buildingNumber,
+          thoroughfareName = address.thoroughfareName,
+          dependentLocality = address.dependentLocality,
+          postTown = address.postTown,
+          county = address.county,
+          country = null,
+          postcode = address.postcode,
+          uprn = address.uprn,
+          accommodationTypeEntity = accommodationTypeEntity,
+          caseId = caseEntity.id,
         ),
       )
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody<String>()
-      .returnResult()
 
-    val proposedAccommodationUpdatedResult = proposedAccommodationRepository.findAll().first()
+      webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(
+          proposedAccommodationArrivalRequestBody(
+            arrivalDate = fixedInstant.toString(),
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult()
 
-    // assert that all fields have been transitioned to reflect this is the "Main" current accommodation
-    assertThat(proposedAccommodationUpdatedResult.accommodationStatusId).isEqualTo(accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.M.name)!!.id)
-    assertThat(proposedAccommodationUpdatedResult.startDate).isEqualTo(LocalDate.ofInstant(fixedInstant, ZoneId.systemDefault()))
-    assertThat(proposedAccommodationUpdatedResult.endDate).isNull()
-    assertThat(proposedAccommodationUpdatedResult.typeVerified).isTrue()
+      val proposedAccommodationUpdatedResult = proposedAccommodationRepository.findAll().first()
 
-    // assert that we retain original values for all other fields
-    assertThat(proposedAccommodationUpdatedResult.cprAddressId).isEqualTo(cprAddressId)
-    assertThat(proposedAccommodationUpdatedResult.accommodationSource).isEqualTo(AccommodationSource.SAS)
-    assertThat(proposedAccommodationUpdatedResult.accommodationTypeId).isEqualTo(accommodationTypeEntity.id)
-    assertThat(proposedAccommodationUpdatedResult.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
-    assertThat(proposedAccommodationUpdatedResult.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.YES)
-    assertThat(proposedAccommodationUpdatedResult.noFixedAbode).isFalse()
-    assertThat(proposedAccommodationUpdatedResult.postcode).isEqualTo(address.postcode)
-    assertThat(proposedAccommodationUpdatedResult.subBuildingName).isEqualTo(address.subBuildingName)
-    assertThat(proposedAccommodationUpdatedResult.buildingName).isEqualTo(address.buildingName)
-    assertThat(proposedAccommodationUpdatedResult.buildingNumber).isEqualTo(address.buildingNumber)
-    assertThat(proposedAccommodationUpdatedResult.thoroughfareName).isEqualTo(address.thoroughfareName)
-    assertThat(proposedAccommodationUpdatedResult.dependentLocality).isEqualTo(address.dependentLocality)
-    assertThat(proposedAccommodationUpdatedResult.postTown).isEqualTo(address.postTown)
-    assertThat(proposedAccommodationUpdatedResult.county).isEqualTo(address.county)
-    assertThat(proposedAccommodationUpdatedResult.uprn).isEqualTo(address.uprn)
-
-    shouldPublishExpectedEvent(
-      proposedAccommodationId = proposedAccommodationUpdatedResult.id,
-      domainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_PERSON_ARRIVED,
-    )
-    cacheHelper.assertCacheEntryEvicted(crn, GET_CORE_PERSON_RECORD_BY_CRN)
-  }
-
-  @Test
-  fun `should NOT arrive an 'Unconfirmed' proposed-accommodation and NOT publish a sas-address-person-arrived event`() {
-    cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
-    val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
-    val address = buildCanonicalAddress(
-      subBuildingName = "test sub building name",
-      buildingName = "test building name",
-      buildingNumber = "4",
-      thoroughfareName = "test thoroughfare",
-      dependentLocality = "test dependent locality",
-      postTown = "test post town",
-      county = "test county",
-      country = null,
-      postcode = "test postcode",
-      uprn = "test uprn",
-    )
-    val existingEntity = proposedAccommodationRepository.save(
-      buildProposedAccommodationEntity(
-        cprAddressId = cprAddressId,
-        typeVerified = false,
-        startDate = LocalDate.now().minusDays(20),
-        endDate = LocalDate.now().minusDays(10),
-        verificationStatus = EntityVerificationStatus.PASSED,
-        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
-        accommodationStatusEntity = null,
-        name = null,
-        subBuildingName = address.subBuildingName,
-        buildingName = address.buildingName,
-        buildingNumber = address.buildingNumber,
-        thoroughfareName = address.thoroughfareName,
-        dependentLocality = address.dependentLocality,
-        postTown = address.postTown,
-        county = address.county,
-        country = null,
-        postcode = address.postcode,
-        uprn = address.uprn,
-        accommodationTypeEntity = accommodationTypeEntity,
-        caseId = caseEntity.id,
-      ),
-    )
-
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(
-        proposedAccommodationArrivalRequestBody(
-          arrivalDate = fixedInstant.toString(),
+      // assert that all fields have been transitioned to reflect this is the "Main" current accommodation
+      assertThat(proposedAccommodationUpdatedResult.accommodationStatusId).isEqualTo(
+        accommodationStatusRepository.findByCodeAndActiveIsTrue(
+          AddressStatusCode.M.name,
+        )!!.id,
+      )
+      assertThat(proposedAccommodationUpdatedResult.startDate).isEqualTo(
+        LocalDate.ofInstant(
+          fixedInstant,
+          ZoneId.systemDefault(),
         ),
       )
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus().isBadRequest
+      assertThat(proposedAccommodationUpdatedResult.endDate).isNull()
+      assertThat(proposedAccommodationUpdatedResult.typeVerified).isTrue()
 
-    assertThat(outboxEventRepository.findAll()).isEmpty()
-    cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
+      // assert that we retain original values for all other fields
+      assertThat(proposedAccommodationUpdatedResult.cprAddressId).isEqualTo(cprAddressId)
+      assertThat(proposedAccommodationUpdatedResult.accommodationSource).isEqualTo(AccommodationSource.SAS)
+      assertThat(proposedAccommodationUpdatedResult.accommodationTypeId).isEqualTo(accommodationTypeEntity.id)
+      assertThat(proposedAccommodationUpdatedResult.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
+      assertThat(proposedAccommodationUpdatedResult.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.YES)
+      assertThat(proposedAccommodationUpdatedResult.noFixedAbode).isFalse()
+      assertThat(proposedAccommodationUpdatedResult.postcode).isEqualTo(address.postcode)
+      assertThat(proposedAccommodationUpdatedResult.subBuildingName).isEqualTo(address.subBuildingName)
+      assertThat(proposedAccommodationUpdatedResult.buildingName).isEqualTo(address.buildingName)
+      assertThat(proposedAccommodationUpdatedResult.buildingNumber).isEqualTo(address.buildingNumber)
+      assertThat(proposedAccommodationUpdatedResult.thoroughfareName).isEqualTo(address.thoroughfareName)
+      assertThat(proposedAccommodationUpdatedResult.dependentLocality).isEqualTo(address.dependentLocality)
+      assertThat(proposedAccommodationUpdatedResult.postTown).isEqualTo(address.postTown)
+      assertThat(proposedAccommodationUpdatedResult.county).isEqualTo(address.county)
+      assertThat(proposedAccommodationUpdatedResult.uprn).isEqualTo(address.uprn)
+
+      shouldPublishExpectedEvent(
+        proposedAccommodationId = proposedAccommodationUpdatedResult.id,
+        domainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_PERSON_ARRIVED,
+      )
+      cacheHelper.assertCacheEntryEvicted(crn, GET_CORE_PERSON_RECORD_BY_CRN)
+    }
+
+    @Test
+    fun `should NOT arrive an 'Unconfirmed' proposed-accommodation and NOT publish a sas-address-person-arrived event`() {
+      cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
+      val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
+      val address = buildCanonicalAddress(
+        subBuildingName = "test sub building name",
+        buildingName = "test building name",
+        buildingNumber = "4",
+        thoroughfareName = "test thoroughfare",
+        dependentLocality = "test dependent locality",
+        postTown = "test post town",
+        county = "test county",
+        country = null,
+        postcode = "test postcode",
+        uprn = "test uprn",
+      )
+      val existingEntity = proposedAccommodationRepository.save(
+        buildProposedAccommodationEntity(
+          cprAddressId = cprAddressId,
+          typeVerified = false,
+          startDate = LocalDate.now().minusDays(20),
+          endDate = LocalDate.now().minusDays(10),
+          verificationStatus = EntityVerificationStatus.PASSED,
+          nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+          accommodationStatusEntity = null,
+          name = null,
+          subBuildingName = address.subBuildingName,
+          buildingName = address.buildingName,
+          buildingNumber = address.buildingNumber,
+          thoroughfareName = address.thoroughfareName,
+          dependentLocality = address.dependentLocality,
+          postTown = address.postTown,
+          county = address.county,
+          country = null,
+          postcode = address.postcode,
+          uprn = address.uprn,
+          accommodationTypeEntity = accommodationTypeEntity,
+          caseId = caseEntity.id,
+        ),
+      )
+
+      webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(
+          proposedAccommodationArrivalRequestBody(
+            arrivalDate = fixedInstant.toString(),
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isBadRequest
+
+      assertThat(outboxEventRepository.findAll()).isEmpty()
+      cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
+    }
+
+    @Test
+    @EnableMessageProcessing
+    fun `should arrive a 'Unconfirmed' proposed-accommodation and publish event and transition database record appropriately when WITHOUT_VERIFICATION`() {
+      cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
+      val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
+      val address = buildCanonicalAddress(
+        subBuildingName = "test sub building name",
+        buildingName = "test building name",
+        buildingNumber = "4",
+        thoroughfareName = "test thoroughfare",
+        dependentLocality = "test dependent locality",
+        postTown = "test post town",
+        county = "test county",
+        country = null,
+        postcode = "test postcode",
+        uprn = "test uprn",
+      )
+      val existingEntity = proposedAccommodationRepository.save(
+        buildProposedAccommodationEntity(
+          cprAddressId = cprAddressId,
+          typeVerified = false,
+          startDate = LocalDate.now().minusDays(20),
+          endDate = LocalDate.now().minusDays(10),
+          verificationStatus = EntityVerificationStatus.PASSED,
+          nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+          accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.PR.name)!!,
+          name = null,
+          subBuildingName = address.subBuildingName,
+          buildingName = address.buildingName,
+          buildingNumber = address.buildingNumber,
+          thoroughfareName = address.thoroughfareName,
+          dependentLocality = address.dependentLocality,
+          postTown = address.postTown,
+          county = address.county,
+          country = null,
+          postcode = address.postcode,
+          uprn = address.uprn,
+          accommodationTypeEntity = accommodationTypeEntity,
+          caseId = caseEntity.id,
+        ),
+      )
+
+      webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(
+          proposedAccommodationArrivalRequestBody(
+            arrivalDate = fixedInstant.toString(),
+            arrivalMethod = ArrivalMethod.WITHOUT_VERIFICATION,
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult()
+
+      val proposedAccommodationUpdatedResult = proposedAccommodationRepository.findAll().first()
+
+      // assert that all fields have been transitioned to reflect this is the "Main" current accommodation
+      assertThat(proposedAccommodationUpdatedResult.accommodationStatusId).isEqualTo(
+        accommodationStatusRepository.findByCodeAndActiveIsTrue(
+          AddressStatusCode.M.name,
+        )!!.id,
+      )
+      assertThat(proposedAccommodationUpdatedResult.startDate).isEqualTo(
+        LocalDate.ofInstant(
+          fixedInstant,
+          ZoneId.systemDefault(),
+        ),
+      )
+      assertThat(proposedAccommodationUpdatedResult.endDate).isNull()
+      assertThat(proposedAccommodationUpdatedResult.typeVerified).isTrue()
+
+      // assert that we retain original values for all other fields
+      assertThat(proposedAccommodationUpdatedResult.cprAddressId).isEqualTo(cprAddressId)
+      assertThat(proposedAccommodationUpdatedResult.accommodationSource).isEqualTo(AccommodationSource.SAS)
+      assertThat(proposedAccommodationUpdatedResult.accommodationTypeId).isEqualTo(accommodationTypeEntity.id)
+      assertThat(proposedAccommodationUpdatedResult.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
+      assertThat(proposedAccommodationUpdatedResult.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.NO)
+      assertThat(proposedAccommodationUpdatedResult.noFixedAbode).isFalse()
+      assertThat(proposedAccommodationUpdatedResult.postcode).isEqualTo(address.postcode)
+      assertThat(proposedAccommodationUpdatedResult.subBuildingName).isEqualTo(address.subBuildingName)
+      assertThat(proposedAccommodationUpdatedResult.buildingName).isEqualTo(address.buildingName)
+      assertThat(proposedAccommodationUpdatedResult.buildingNumber).isEqualTo(address.buildingNumber)
+      assertThat(proposedAccommodationUpdatedResult.thoroughfareName).isEqualTo(address.thoroughfareName)
+      assertThat(proposedAccommodationUpdatedResult.dependentLocality).isEqualTo(address.dependentLocality)
+      assertThat(proposedAccommodationUpdatedResult.postTown).isEqualTo(address.postTown)
+      assertThat(proposedAccommodationUpdatedResult.county).isEqualTo(address.county)
+      assertThat(proposedAccommodationUpdatedResult.uprn).isEqualTo(address.uprn)
+
+      shouldPublishExpectedEvent(
+        proposedAccommodationId = proposedAccommodationUpdatedResult.id,
+        domainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_PERSON_ARRIVED,
+      )
+      cacheHelper.assertCacheEntryEvicted(crn, GET_CORE_PERSON_RECORD_BY_CRN)
+    }
+
+    @Test
+    fun `should NOT arrive an 'Unconfirmed' proposed-accommodation with checks failed when WITHOUT_VERIFICATION`() {
+      cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
+      val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
+      val address = buildCanonicalAddress(
+        subBuildingName = "test sub building name",
+        buildingName = "test building name",
+        buildingNumber = "4",
+        thoroughfareName = "test thoroughfare",
+        dependentLocality = "test dependent locality",
+        postTown = "test post town",
+        county = "test county",
+        country = null,
+        postcode = "test postcode",
+        uprn = "test uprn",
+      )
+      val existingEntity = proposedAccommodationRepository.save(
+        buildProposedAccommodationEntity(
+          cprAddressId = cprAddressId,
+          typeVerified = false,
+          startDate = LocalDate.now().minusDays(20),
+          endDate = LocalDate.now().minusDays(10),
+          verificationStatus = EntityVerificationStatus.FAILED,
+          nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+          accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.PR.name)!!,
+          name = null,
+          subBuildingName = address.subBuildingName,
+          buildingName = address.buildingName,
+          buildingNumber = address.buildingNumber,
+          thoroughfareName = address.thoroughfareName,
+          dependentLocality = address.dependentLocality,
+          postTown = address.postTown,
+          county = address.county,
+          country = null,
+          postcode = address.postcode,
+          uprn = address.uprn,
+          accommodationTypeEntity = accommodationTypeEntity,
+          caseId = caseEntity.id,
+        ),
+      )
+
+      webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(
+          proposedAccommodationArrivalRequestBody(
+            arrivalDate = fixedInstant.toString(),
+            arrivalMethod = ArrivalMethod.WITHOUT_VERIFICATION,
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isBadRequest
+
+      assertThat(outboxEventRepository.findAll()).isEmpty()
+      cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
+    }
   }
 
   private fun getCommitTimesAsc(createdProposedAccommodationId: UUID): List<Instant> {
@@ -1500,6 +2233,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   }
 
   private fun createAndSaveProposedAccommodation(
+    id: UUID,
     caseEntity: CaseEntity,
     cprAddressId: UUID?,
     accommodationSource: AccommodationSource,
@@ -1513,8 +2247,14 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     verificationStatus: EntityVerificationStatus?,
     nextAccommodationStatus: EntityNextAccommodationStatus?,
     accommodationTypeEntity: AccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
+    county: String? = null,
+    dependentLocality: String? = null,
+    subBuildingName: String? = null,
+    buildingName: String? = null,
+    uprn: String? = null,
   ): ProposedAccommodationEntity {
     val entity = buildProposedAccommodationEntity(
+      id = id,
       caseId = caseEntity.id,
       cprAddressId = cprAddressId,
       accommodationSource = accommodationSource,
@@ -1529,6 +2269,11 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       postTown = postTown,
       country = country,
       startDate = startDate,
+      county = county,
+      dependentLocality = dependentLocality,
+      subBuildingName = subBuildingName,
+      buildingName = buildingName,
+      uprn = uprn,
     )
     return proposedAccommodationRepository.save(entity)
   }

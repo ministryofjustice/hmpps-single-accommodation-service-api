@@ -7,7 +7,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 object PersonTransformer {
   fun toPersonDto(
     case: Case,
-  ): PersonDto = if (case.limitedAccess == true) {
+    limited: Boolean,
+  ): PersonDto = if (limited) {
     LimitedPersonDto(
       crn = case.crn,
       nomsNumber = case.nomsNumber,
