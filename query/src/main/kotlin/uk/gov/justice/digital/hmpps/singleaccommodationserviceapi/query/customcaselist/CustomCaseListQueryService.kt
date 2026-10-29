@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -44,15 +44,19 @@ class CustomCaseListQueryService(
     val orchestrationResult = customCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, crns)
     limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
 
-    val limitedAccessCrns = limitedAccessService.getLimitedAccessCrns(crns, orchestrationResult.data.caseAccess)
+    val crnsToUserAccess = limitedAccessService.getCrnToUserAccess(orchestrationResult.data.caseAccess)
     val caseSummariesByCrn = orchestrationResult.data.caseSummaries.associateBy { it.crn }
     val caseDtos = caseEntities.map { entity ->
       val crn = entity.latestCrn()
-      val summary = caseSummariesByCrn[crn]
-      if (crn in limitedAccessCrns || summary == null) {
-        toLimitedCaseDto(crn, teamCode = summary?.manager?.team?.code, assignedTo = entity.toAssignedToDto())
-      } else {
-        entity.toCustomCaseListCaseDto(summary)
+      val caseTeamCode = caseSummariesByCrn[crn]?.manager?.team?.code
+      when (crnsToUserAccess[crn]) {
+        UserAccess.FULL -> entity.toCustomCaseListCaseDto(teamCode = caseTeamCode)
+
+        UserAccess.LIMITED, UserAccess.UNKNOWN, null -> toLimitedCaseDto(
+          crn,
+          teamCode = caseTeamCode,
+          assignedTo = entity.toAssignedToDto(),
+        )
       }
     }.filterCases(
       searchTerm = searchTerm,
@@ -74,14 +78,14 @@ class CustomCaseListQueryService(
     return toApiResponseDto(data = userCustomCaseListRepository.findLatestCrnsBySasUserId(user.id))
   }
 
-  private fun CaseEntity.toCustomCaseListCaseDto(caseSummary: CaseSummary?) = toCaseDto(
+  private fun CaseEntity.toCustomCaseListCaseDto(teamCode: String?) = toCaseDto(
     caseEntity = this,
     crn = latestCrn(),
     prisonNumber = latestPrisonNumber(),
     riskLevel = roshLevelCode?.let { RiskLevel.findByCode(it) },
     pncReference = null,
     assignedTo = toAssignedToDto(),
-    limitedAccess = caseSummary.currentExclusion || caseSummary.currentRestriction,
-    teamCode = caseSummary.manager.team.code,
+    limitedAccess = false,
+    teamCode = teamCode,
   )
 }

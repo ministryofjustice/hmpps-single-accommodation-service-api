@@ -152,20 +152,13 @@ class CustomCaseListQueryServiceTest {
   }
 
   @Test
-  fun `sets limited access flag from the case summary exclusion and restriction fields`() {
+  fun `sets limited access flag from the user access exclusion and restriction fields`() {
     stubCases(
       buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME) { withCrn("A111111") },
       buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME) { withCrn("B222222") },
       buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME) { withCrn("C333333") },
     )
-    stubAccess(
-      accessible = listOf("A111111", "B222222", "C333333"),
-      caseSummaries = listOf(
-        buildCaseSummary(crn = "A111111"),
-        buildCaseSummary(crn = "B222222", currentExclusion = true),
-        buildCaseSummary(crn = "C333333", currentRestriction = true),
-      ),
-    )
+    stubAccess(accessible = listOf("A111111"), excluded = listOf("B222222"), restricted = listOf("C333333"))
 
     val limitedAccessByCrn = customCaseListQueryService.getCustomCaseList().data.associate { it.crn to it.limitedAccess }
 
@@ -173,9 +166,9 @@ class CustomCaseListQueryServiceTest {
   }
 
   @Test
-  fun `returns a limited case dto for a case missing from the case summaries`() {
+  fun `returns a limited case dto for a case missing from user access`() {
     stubCases(buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME) { withCrn("A123456") })
-    stubAccess(accessible = listOf("A123456"), caseSummaries = emptyList())
+    stubAccess(accessible = emptyList(), caseSummaries = emptyList())
 
     assertThat(customCaseListQueryService.getCustomCaseList().data.single())
       .isEqualTo(CaseDto(crn = "A123456", userAccess = UserAccess.LIMITED, limitedAccess = true))
@@ -184,7 +177,7 @@ class CustomCaseListQueryServiceTest {
   @Test
   fun `returns the cases as limited cases with an upstream failure when the case summaries call fails`() {
     stubCases(buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME) { withCrn("A123456") })
-    stubAccess(accessible = listOf("A123456"), caseSummaries = emptyList(), upstreamFailures = listOf(buildUpstreamFailure(callKey = POST_CASE_SUMMARIES)))
+    stubAccess(accessible = emptyList(), caseSummaries = emptyList(), upstreamFailures = listOf(buildUpstreamFailure(callKey = POST_CASE_SUMMARIES)))
 
     val result = customCaseListQueryService.getCustomCaseList()
 
@@ -221,7 +214,7 @@ class CustomCaseListQueryServiceTest {
   }
 
   @Test
-  fun `returns cases the user is excluded or restricted from as limited cases with only the crn and team code`() {
+  fun `returns cases the user is excluded or restricted from as limited cases with only the crn`() {
     stubCases(
       buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME, firstName = "Joe", lastName = "Bloggs") { withCrn("A123456") },
       buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME, firstName = "Jane", lastName = "Doe") { withCrn("B654321") },
@@ -448,10 +441,11 @@ class CustomCaseListQueryServiceTest {
     val caseAccess = accessible.map { CaseAccess(crn = it, userExcluded = false, userRestricted = false) } +
       excluded.map { CaseAccess(crn = it, userExcluded = true, userRestricted = false) } +
       restricted.map { CaseAccess(crn = it, userExcluded = false, userRestricted = true) }
+
     every { customCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, any()) } returns OrchestrationResultDto(
       data = buildCustomCaseListOrchestrationDto(caseAccess = caseAccess, caseSummaries = caseSummaries),
       upstreamFailures = upstreamFailures,
     )
-    every { limitedAccessService.getLimitedAccessCrns(any(), caseAccess) } returns (excluded + restricted).toSet()
+    every { limitedAccessService.getCrnToUserAccess(caseAccess) } answers { callOriginal() }
   }
 }
