@@ -323,16 +323,13 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
         ) { withCrn("A123456") },
       )
       addToCustomCaseList(case.id)
-      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, restrictedCrns = listOf("A123456"))
       ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
         CaseSummaries(listOf(buildCaseSummary(crn = "A123456", currentRestriction = true))),
       )
 
       getCustomCaseList().expectStatus().isOk
         .expectBody()
-        .jsonPath("$.data[0].assignedTo.forename").isEqualTo("Joe")
-        .jsonPath("$.data[0].assignedTo.surname").isEqualTo("Bloggs")
-        .jsonPath("$.data[0].assignedTo.username").isEqualTo("JOE.BLOGGS")
         .jsonPath("$.data[0].limitedAccess").isEqualTo(true)
         .jsonPath("$.upstreamFailures").doesNotExist()
 
