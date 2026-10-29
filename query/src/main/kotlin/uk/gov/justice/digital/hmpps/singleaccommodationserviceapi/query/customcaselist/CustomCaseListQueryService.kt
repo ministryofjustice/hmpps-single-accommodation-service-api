@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCustomCaseListRepository
@@ -49,8 +48,21 @@ class CustomCaseListQueryService(
     val caseDtos = caseEntities.map { entity ->
       val crn = entity.latestCrn()
       val caseTeamCode = caseSummariesByCrn[crn]?.manager?.team?.code
+      val hasCurrentExclusionOrRestriction =
+        caseSummariesByCrn[crn]?.let { it.currentExclusion || it.currentRestriction } ?: false
       when (crnsToUserAccess[crn]) {
-        UserAccess.FULL -> entity.toCustomCaseListCaseDto(teamCode = caseTeamCode)
+        UserAccess.FULL -> {
+          toCaseDto(
+            caseEntity = entity,
+            crn = entity.latestCrn(),
+            prisonNumber = entity.latestPrisonNumber(),
+            riskLevel = entity.roshLevelCode?.let { RiskLevel.findByCode(it) },
+            pncReference = null,
+            assignedTo = entity.toAssignedToDto(),
+            limitedAccess = hasCurrentExclusionOrRestriction,
+            teamCode = caseTeamCode,
+          )
+        }
 
         UserAccess.LIMITED, UserAccess.UNKNOWN, null -> toLimitedCaseDto(
           crn,
@@ -77,15 +89,4 @@ class CustomCaseListQueryService(
     val user = userService.authorizeAndRetrieveUser()
     return toApiResponseDto(data = userCustomCaseListRepository.findLatestCrnsBySasUserId(user.id))
   }
-
-  private fun CaseEntity.toCustomCaseListCaseDto(teamCode: String?) = toCaseDto(
-    caseEntity = this,
-    crn = latestCrn(),
-    prisonNumber = latestPrisonNumber(),
-    riskLevel = roshLevelCode?.let { RiskLevel.findByCode(it) },
-    pncReference = null,
-    assignedTo = toAssignedToDto(),
-    limitedAccess = false,
-    teamCode = teamCode,
-  )
 }
