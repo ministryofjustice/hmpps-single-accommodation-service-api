@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import java.util.UUID
 
 class Cas3ApplicationNotSuitableRuleTest {
-  private val description = "FAIL if application is not submitted and active"
+  private val description = "FAIL if CAS3 application is not submitted and active"
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(

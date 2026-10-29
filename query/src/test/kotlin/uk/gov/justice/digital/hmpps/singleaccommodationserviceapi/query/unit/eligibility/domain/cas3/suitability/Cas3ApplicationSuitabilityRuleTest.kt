@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas3ApplicationSuitabilityRuleTest {
-  private val description = "FAIL if the CAS3 application is rejected or in progress and has neither a booking status nor an assessment status"
+  private val description = "FAIL if the application is rejected or in progress"
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(value = Cas3ApplicationStatus::class, names = ["REJECTED", "IN_PROGRESS"])

@@ -285,7 +285,7 @@ Cancelled,
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
   Upcoming("<div style='text-align:left'>FAIL if release is more than 15 days from today</div>")
-  Suitability("<div style='text-align:left'>FAIL if the CAS3 application is rejected or in progress and has neither a booking status nor an assessment status
+  Suitability("<div style='text-align:left'>FAIL if the application is rejected or in progress
 FAIL if CAS3 application is not present
 FAIL if booking is departed or closed
 FAIL if the assessment is not active</div>")
@@ -345,7 +345,7 @@ FAIL if person is not male and the CRS referral status is neither live nor compl
 
 
 **Suitability** (RuleSet) `Cas3SuitabilityRuleSet`
-- [`Cas3ApplicationSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3ApplicationSuitabilityRule.kt): FAIL if the CAS3 application is rejected or in progress and has neither a booking status nor an assessment status
+- [`Cas3ApplicationSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3ApplicationSuitabilityRule.kt): FAIL if the application is rejected or in progress
 - [`Cas3ApplicationPresentSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3ApplicationPresentSuitabilityRule.kt): FAIL if CAS3 application is not present
 - [`Cas3BookingSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3BookingSuitabilityRule.kt): FAIL if booking is departed or closed
 - [`Cas3AssessmentSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3AssessmentSuitabilityRule.kt): FAIL if the assessment is not active
@@ -566,8 +566,8 @@ FAIL if the DTR submission date is missing or more than 26 weeks ago</div>")
 flowchart TD
   Completion("<div style='text-align:left'>FAIL if person has no future accommodation</div>")
   PA_COMPLETED["<b>Completed</b>"]
-  Eligibility("<div style='text-align:left'>FAIL if application is not submitted and active
-FAIL if application is not submitted and active</div>")
+  Eligibility("<div style='text-align:left'>FAIL if CAS1 application is not submitted and active
+FAIL if CAS3 application is not submitted and active</div>")
   PA_NOT_STARTED["<b>Not Started</b>"]
   PA_NOT_ELIGIBLE["<b>Not Eligible</b>"]
   Completion -->|PASS| PA_COMPLETED
@@ -592,8 +592,8 @@ FAIL if application is not submitted and active</div>")
 **Completed** (Outcome)
 
 **Eligibility** (RuleSet) `PaEligibilityRuleSet`
-- [`Cas1ApplicationNotSuitableRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/pa/eligibility/Cas1ApplicationNotSuitableRule.kt): FAIL if application is not submitted and active
-- [`Cas3ApplicationNotSuitableRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/pa/eligibility/Cas3ApplicationNotSuitableRule.kt): FAIL if application is not submitted and active
+- [`Cas1ApplicationNotSuitableRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/pa/eligibility/Cas1ApplicationNotSuitableRule.kt): FAIL if CAS1 application is not submitted and active
+- [`Cas3ApplicationNotSuitableRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/pa/eligibility/Cas3ApplicationNotSuitableRule.kt): FAIL if CAS3 application is not submitted and active
 
 
 **Not Started** (Outcome)
@@ -604,15 +604,15 @@ FAIL if application is not submitted and active</div>")
 
 | Rule | Description | RuleSets | Trees |
 | --- | --- | --- | --- |
-| Cas1ApplicationNotSuitableRule | FAIL if application is not submitted and active | Eligibility | PA |
+| Cas1ApplicationNotSuitableRule | FAIL if CAS1 application is not submitted and active | Eligibility | PA |
 | Cas1ApplicationPresentRule | FAIL if person does not have an application | Suitability | CAS1 |
 | Cas1ApplicationRelevantExpiredRule | FAIL if the application is expired and its placement status is neither upcoming nor arrived | Suitability | CAS1 |
 | Cas1ApplicationSuitabilityRule | FAIL if the application is not submitted and active | Suitability | CAS1 |
 | Cas2ApplicationSubmittedRule | FAIL if the application is not submitted | Suitability | CAS2 |
 | Cas2SuitableStatusRule | FAIL if assessment is present and not active | Suitability | CAS2 |
-| Cas3ApplicationNotSuitableRule | FAIL if application is not submitted and active | Eligibility | PA |
+| Cas3ApplicationNotSuitableRule | FAIL if CAS3 application is not submitted and active | Eligibility | PA |
 | Cas3ApplicationPresentSuitabilityRule | FAIL if CAS3 application is not present | Suitability | CAS3 |
-| Cas3ApplicationSuitabilityRule | FAIL if the CAS3 application is rejected or in progress and has neither a booking status nor an assessment status | Suitability | CAS3 |
+| Cas3ApplicationSuitabilityRule | FAIL if the application is rejected or in progress | Suitability | CAS3 |
 | Cas3AssessmentSuitabilityRule | FAIL if the assessment is not active | Suitability | CAS3 |
 | Cas3BookingSuitabilityRule | FAIL if booking is departed or closed | Suitability | CAS3 |
 | CrsSubmittedRule | FAIL if no live CRS referral | Completion | CRS |
