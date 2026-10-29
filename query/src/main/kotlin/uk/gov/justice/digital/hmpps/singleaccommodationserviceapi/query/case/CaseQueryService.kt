@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
@@ -33,8 +34,13 @@ class CaseQueryService(
     limitedAccessService.throwIfUserAccessFailed(caseOrchestrationResult.upstreamFailures)
 
     val cases = caseOrchestrationResult.data.cases
-    val limitedAccessCrns = limitedAccessService.getLimitedAccessCrns(cases.map { it.crn }, caseOrchestrationResult.data.caseAccess)
-    val caseList = cases.map { toPersonDto(it, limited = it.crn in limitedAccessCrns) }
+    val crnsToUserAccess = limitedAccessService.getCrnToUserAccess(caseOrchestrationResult.data.caseAccess)
+    val caseList = cases.map {
+      when (crnsToUserAccess[it.crn]) {
+        UserAccess.FULL -> toPersonDto(it, limited = false)
+        UserAccess.LIMITED, UserAccess.UNKNOWN, null -> toPersonDto(it, limited = true)
+      }
+    }
     return toApiResponseDto(
       data = caseList,
       upstreamFailures = caseOrchestrationResult.upstreamFailures,
@@ -91,7 +97,7 @@ class CaseQueryService(
       caseOrchestrationDto.cpr,
       caseOrchestrationDto.tier,
       caseOrchestrationDto.sexualOffenceRegistrations,
-    )
+    ).obfuscateIfLimitedAccess()
     return toApiResponseDto(data = data, upstreamFailures = orchestrationResult.upstreamFailures)
   }
 
@@ -113,9 +119,6 @@ class CaseQueryService(
   }
 
   private fun CaseOrchestrationDto.getPersonDto() = case?.let {
-    toPersonDto(it, limited = crn in limitedAccessService.getLimitedAccessCrns(listOf(crn), caseAccess))
+    toPersonDto(it, limited = limitedAccessService.getCrnToUserAccess(caseAccess)[it.crn] == UserAccess.LIMITED)
   }
-
-
-  private fun Case.hasExclusionOrRestriction() = userExcluded == true || userRestricted == true
 }

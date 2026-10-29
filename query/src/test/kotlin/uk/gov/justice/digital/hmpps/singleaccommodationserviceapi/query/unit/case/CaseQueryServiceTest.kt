@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer.toUpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -171,7 +172,7 @@ class CaseQueryServiceTest {
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 
       every { caseOrchestrationService.getCaseList(username, "testTeam") } returns caseList
-      every { limitedAccessService.getLimitedAccessCrns(any(), any()) } returns emptySet()
+      every { limitedAccessService.getCrnToUserAccess(any()) } answers { callOriginal() }
 
       val result = caseQueryService.getCaseList("testTeam")
       assertThat(result.data).hasSize(2)
@@ -242,13 +243,14 @@ class CaseQueryServiceTest {
       limitedCrns: Set<String> = emptySet(),
       upstreamFailures: List<UpstreamFailure> = emptyList(),
     ) {
-      val caseListOrchestrationDto = buildCaseListOrchestrationDto(cases = cases)
+      val dto = buildCaseListOrchestrationDto(cases = cases)
+      val caseListOrchestrationDto = dto.copy(caseAccess = dto.caseAccess.excludingCrns(limitedCrns))
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
       every { caseOrchestrationService.getCaseList(username, null) } returns OrchestrationResultDto(
         data = caseListOrchestrationDto,
         upstreamFailures = upstreamFailures,
       )
-      every { limitedAccessService.getLimitedAccessCrns(cases.map { it.crn }, caseListOrchestrationDto.caseAccess) } returns limitedCrns
+      every { limitedAccessService.getCrnToUserAccess(any()) } answers { callOriginal() }
     }
   }
 
@@ -456,13 +458,14 @@ class CaseQueryServiceTest {
       limitedCrns: Set<String> = emptySet(),
       upstreamFailures: List<UpstreamFailure> = emptyList(),
     ): CaseOrchestrationDto {
+      val stubbedDto = caseOrchestrationDto.copy(caseAccess = caseOrchestrationDto.caseAccess.excludingCrns(limitedCrns))
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
       every { caseOrchestrationService.getCase(username, crnOne) } returns OrchestrationResultDto(
-        data = caseOrchestrationDto,
+        data = stubbedDto,
         upstreamFailures = upstreamFailures,
       )
-      every { limitedAccessService.getLimitedAccessCrns(listOf(crnOne), caseOrchestrationDto.caseAccess) } returns limitedCrns
-      return caseOrchestrationDto
+      every { limitedAccessService.getCrnToUserAccess(any()) } answers { callOriginal() }
+      return stubbedDto
     }
   }
 
@@ -519,13 +522,16 @@ class CaseQueryServiceTest {
       limitedCrns: Set<String> = emptySet(),
       upstreamFailures: List<UpstreamFailure> = emptyList(),
     ): CaseOrchestrationDto {
+      val stubbedDto = caseOrchestrationDto.copy(caseAccess = caseOrchestrationDto.caseAccess.excludingCrns(limitedCrns))
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
       every { caseOrchestrationService.getCaseFromDelius(username, crnOne) } returns OrchestrationResultDto(
-        data = caseOrchestrationDto,
+        data = stubbedDto,
         upstreamFailures = upstreamFailures,
       )
-      every { limitedAccessService.getLimitedAccessCrns(listOf(crnOne), caseOrchestrationDto.caseAccess) } returns limitedCrns
-      return caseOrchestrationDto
+      every { limitedAccessService.getCrnToUserAccess(any()) } answers { callOriginal() }
+      return stubbedDto
     }
   }
+
+  private fun List<CaseAccess>.excludingCrns(crns: Set<String>) = map { if (it.crn in crns) it.copy(userExcluded = true) else it }
 }
