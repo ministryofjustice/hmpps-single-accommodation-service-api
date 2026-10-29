@@ -39,7 +39,7 @@ class UpstreamFailureIT : IntegrationTestBase() {
     createTestDataSetupUserAndDeliusUser()
     HmppsAuthStubs.stubGrantToken()
 
-    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = crn, response = case)
+    SasAndDeliusStubs.stubGetCase(crn = crn, response = case)
     SasAndDeliusStubs.stubGetSexualOffenceRegistrations(crn, buildSexualOffenceRegistrations(crn, emptyList()))
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
     TierStubs.getTierOKResponse(crn = crn, tier)
