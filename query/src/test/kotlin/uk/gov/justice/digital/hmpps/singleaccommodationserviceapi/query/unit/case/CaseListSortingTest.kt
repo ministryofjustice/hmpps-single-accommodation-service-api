@@ -16,6 +16,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Us
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.filterCases
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.obfuscateIfLimitedAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.obfuscateLimitedAccessCases
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.sortCases
 import java.time.LocalDate
 
@@ -364,6 +366,47 @@ class CaseListSortingTest {
       )
 
       assertThat(cases.sortCases(today).crns()).containsExactly("CRN2", "CRN3", "CRN4", "CRN5")
+    }
+  }
+
+  @Nested
+  inner class Obfuscate {
+    private fun caseWithAccess(crn: String, userAccess: UserAccess) = buildCaseDto(
+      crn = crn,
+      userAccess = userAccess,
+      assignedTo = buildAssignedToDto(username = "user1"),
+      teamCode = "TeamA",
+    )
+
+    @Test
+    fun `removes assignee and team code from limited access cases only`() {
+      val full = caseWithAccess("FULL1", UserAccess.FULL)
+      val limited = caseWithAccess("LIMITED1", UserAccess.LIMITED)
+
+      val result = listOf(full, limited).obfuscateLimitedAccessCases()
+
+      assertThat(result[0]).isEqualTo(full)
+      assertThat(result[1].assignedTo).isNull()
+      assertThat(result[1].teamCode).isNull()
+      assertThat(result[1].crn).isEqualTo("LIMITED1")
+    }
+
+    @Test
+    fun `does not modify the original cases`() {
+      val limited = caseWithAccess("LIMITED1", UserAccess.LIMITED)
+
+      listOf(limited).obfuscateLimitedAccessCases()
+
+      assertThat(limited.assignedTo).isNotNull()
+      assertThat(limited.teamCode).isEqualTo("TeamA")
+    }
+
+    @Test
+    fun `obfuscates a single limited case and leaves a full access case untouched`() {
+      val full = caseWithAccess("FULL1", UserAccess.FULL)
+
+      assertThat(full.obfuscateIfLimitedAccess()).isEqualTo(full)
+      assertThat(caseWithAccess("LIMITED1", UserAccess.LIMITED).obfuscateIfLimitedAccess().assignedTo).isNull()
     }
   }
 }

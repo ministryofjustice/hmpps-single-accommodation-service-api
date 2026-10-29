@@ -83,9 +83,9 @@ fun List<CaseDto>.sortCases(today: LocalDate): List<CaseDto> = sortedWith(
 /*
 this has been added during a refactor to retain existing results. It's probably not needed.
  */
-fun List<CaseDto>.obfuscateLimitedAccessCases(): List<CaseDto> = map {
-  if (it.userAccess == UserAccess.LIMITED) it.copy(assignedTo = null, teamCode = null) else it
-}
+fun List<CaseDto>.obfuscateLimitedAccessCases(): List<CaseDto> = map { it.obfuscateIfLimitedAccess() }
+
+fun CaseDto.obfuscateIfLimitedAccess(): CaseDto = if (userAccess == UserAccess.LIMITED) copy(assignedTo = null, teamCode = null) else this
 
 private fun CaseDto.sortByStatusDate(today: LocalDate): Comparable<*>? {
   val statusDate = accommodationSummaries?.caseAccommodationStatusDate
