@@ -7,10 +7,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class CurrentAccommodationEligibleForCas1RuleSet(
-  currentAccommodation: CurrentAccommodationIsPrisonOrCas1Rule,
+  currentAccommodationIsPrisonOrCas1: CurrentAccommodationIsPrisonOrCas1Rule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(
-    PrioritisedRule(currentAccommodation, 1),
+    PrioritisedRule(currentAccommodationIsPrisonOrCas1, 1),
   )
 
   override val name: String = "Current Accommodation Eligible For CAS1"

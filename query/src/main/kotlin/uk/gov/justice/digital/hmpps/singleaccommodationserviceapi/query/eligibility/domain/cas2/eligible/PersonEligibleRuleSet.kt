@@ -10,13 +10,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class PersonEligibleRuleSet(
   under18: Under18Rule,
-  singleLetterTier: WrongTierRule,
-  sexualOffenceRegistrations: HasSexualOffenceRegistrationsRule,
+  wrongTier: WrongTierRule,
+  hasSexualOffenceRegistrations: HasSexualOffenceRegistrationsRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(
     PrioritisedRule(under18, 0),
-    PrioritisedRule(singleLetterTier, 0),
-    PrioritisedRule(sexualOffenceRegistrations, 0),
+    PrioritisedRule(wrongTier, 0),
+    PrioritisedRule(hasSexualOffenceRegistrations, 0),
   )
 
   override val name: String = "Person Eligible"

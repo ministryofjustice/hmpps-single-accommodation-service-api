@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.common
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,7 +31,7 @@ class ReleaseWithin15DaysRuleSetTest {
   fun `all rule components are included in rule set`() {
     val ruleSetRules = ruleSet.getRules().map { it.rule.javaClass.simpleName }
 
-    Assertions.assertThat(ruleSetRules)
+    assertThat(ruleSetRules)
       .hasSize(1)
       .containsExactlyInAnyOrderElementsOf(expectedRuleNames)
   }

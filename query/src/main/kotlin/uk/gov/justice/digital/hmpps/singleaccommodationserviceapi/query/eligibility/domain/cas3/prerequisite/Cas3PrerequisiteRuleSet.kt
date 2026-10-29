@@ -9,11 +9,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3PrerequisiteRuleSet(
-  dtrExpiredReferral: DtrExpiredRule,
+  dtrExpired: DtrExpiredRule,
   crsSubmittedRuleMale: CrsSubmittedRuleMale,
   crsSubmittedRuleNonMale: CrsSubmittedRuleNonMale,
 ) : RuleSet {
-  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(dtrExpiredReferral, 0), PrioritisedRule(crsSubmittedRuleMale, 0), PrioritisedRule(crsSubmittedRuleNonMale, 0))
+  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(dtrExpired, 0), PrioritisedRule(crsSubmittedRuleMale, 0), PrioritisedRule(crsSubmittedRuleNonMale, 0))
   override val name: String = "Prerequisite"
   override fun getRules(): List<PrioritisedRule> = rules
 }

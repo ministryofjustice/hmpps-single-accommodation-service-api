@@ -7,9 +7,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class LiveCrsRuleSet(
-  crsSubmitted: NoLiveCrsRule,
+  noLiveCrs: NoLiveCrsRule,
 ) : RuleSet {
-  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(crsSubmitted))
+  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(noLiveCrs))
   override val name: String = "Live CRS"
   override fun getRules(): List<PrioritisedRule> = rules
 }

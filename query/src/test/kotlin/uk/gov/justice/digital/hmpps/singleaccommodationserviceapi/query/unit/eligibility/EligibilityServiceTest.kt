@@ -85,8 +85,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.rules.Cas1NotActiveRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.rules.Cas1NotPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithinTwentyEightWeeksRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.rules.ReleaseOutsideTwentyEightWeeksRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithin28WeeksRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.rules.ReleaseOutside28WeeksRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligible.CurrentAccommodationEligibleForCas2RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligible.PersonEligibleRuleSet
@@ -141,8 +141,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.referral.rules.DtrNotPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.referral.rules.DtrWithdrawnRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.ReleaseWithinEightWeeksRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.rules.ReleaseOutsideEightWeeksRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.ReleaseWithin8WeeksRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.rules.ReleaseOutside8WeeksRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.PaEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligible.NoActiveCas1OrCas3ReferralsRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligible.rules.Cas1ActiveRule
@@ -194,12 +194,12 @@ class EligibilityServiceTest {
     CurrentAccommodationIsPrisonOrCas1Rule(),
   )
   val cas1UpcomingContextUpdater = Cas1UpcomingContextUpdater()
-  var cas1UpcomingRuleSet = ReleaseWithinTwentyEightWeeksRuleSet(ReleaseOutsideTwentyEightWeeksRule(clock))
-  val cas1SuitabilityContextUpdater = Cas1StartContextUpdater()
+  var releaseWithin28WeeksRuleSet = ReleaseWithin28WeeksRuleSet(ReleaseOutside28WeeksRule(clock))
+  val cas1StartContextUpdater = Cas1StartContextUpdater()
 
   // CAS2
   var cas2ApplicationStartUrl = "CAS2_APPLICATION_START_URL#crn"
-  var cas2CompletionContextUpdater = Cas2ActiveContextUpdater(sentryService)
+  var cas2ActiveContextUpdater = Cas2ActiveContextUpdater(sentryService)
   var cas2RuleSet = Cas2RuleSet(Cas2NotSubmittedRule(), Cas2NotActiveRule())
   var personEligibleRuleSet = PersonEligibleRuleSet(
     Under18Rule(clock),
@@ -219,7 +219,7 @@ class EligibilityServiceTest {
   )
   val cas2UpcomingContextUpdater = Cas2UpcomingContextUpdater()
   var releaseWithin15DaysRuleSet = ReleaseWithin15DaysRuleSet(ReleaseOutside15DaysRule(clock))
-  val cas2SuitabilityContextUpdater = Cas2StartContextUpdater(sentryService)
+  val cas2StartContextUpdater = Cas2StartContextUpdater(sentryService)
 
   // CAS3
   var cas3ReferralStartUrl = "CAS3_REFERRAL_START_URL"
@@ -244,7 +244,7 @@ class EligibilityServiceTest {
   var cas3CannotStartContextUpdater = Cas3CannotStartContextUpdater()
 
   // DTR
-  var releaseWithinEightWeeksRuleSet = ReleaseWithinEightWeeksRuleSet(ReleaseOutsideEightWeeksRule(clock))
+  var releaseWithin8WeeksRuleSet = ReleaseWithin8WeeksRuleSet(ReleaseOutside8WeeksRule(clock))
   var dtrUpcomingContextUpdater = DtrUpcomingContextUpdater()
   var dtrRuleSet = DtrRuleSet(
     DtrNotPresentRule(),
@@ -258,12 +258,11 @@ class EligibilityServiceTest {
   var notSettledRuleSet = NotSettledRuleSet(
     IsSettledRule(),
   )
-
   var liveCrsRuleSet = LiveCrsRuleSet(
     NoLiveCrsRule(),
   )
   var crsStartContextUpdater = CrsStartContextUpdater(crsUiUrl)
-  var releaseOutside12WeeksRuleSet = ReleaseWithin12WeeksRuleSet(ReleaseOutside12WeeksRule(clock))
+  var releaseWithin12WeeksRuleSet = ReleaseWithin12WeeksRuleSet(ReleaseOutside12WeeksRule(clock))
   var crsUpcomingContextUpdater = CrsUpcomingContextUpdater()
 
   // PA
@@ -279,10 +278,10 @@ class EligibilityServiceTest {
 
   private val cas1Tree = Cas1EligibilityTreeProvider(
     builder = builder,
-    releaseWithinTwentyEightWeeks = cas1UpcomingRuleSet,
+    releaseWithin28Weeks = releaseWithin28WeeksRuleSet,
     upcomingContextUpdater = cas1UpcomingContextUpdater,
     referral = cas1SuitabilityRuleSet,
-    startContextUpdater = cas1SuitabilityContextUpdater,
+    startContextUpdater = cas1StartContextUpdater,
     activeContextUpdater = cas1CompletionContextUpdater,
     tierEligibleForCas1 = tierEligibleForCas1RuleSet,
     currentAccommodationEligibleForCas1 = currentAccommodationEligibleForCas1RuleSet,
@@ -293,8 +292,8 @@ class EligibilityServiceTest {
     builder = builder,
     upcomingContextUpdater = cas2UpcomingContextUpdater,
     referral = cas2RuleSet,
-    startContextUpdater = cas2SuitabilityContextUpdater,
-    activeContextUpdater = cas2CompletionContextUpdater,
+    startContextUpdater = cas2StartContextUpdater,
+    activeContextUpdater = cas2ActiveContextUpdater,
     releaseWithin15Days = releaseWithin15DaysRuleSet,
     personEligible = personEligibleRuleSet,
     releaseDateEligible = releaseDateEligibleRuleSet,
@@ -320,7 +319,7 @@ class EligibilityServiceTest {
   private val dtrTree = DtrEligibilityTreeProvider(
     builder = builder,
     upcomingContextUpdater = dtrUpcomingContextUpdater,
-    releaseWithinEightWeeks = releaseWithinEightWeeksRuleSet,
+    releaseWithin8Weeks = releaseWithin8WeeksRuleSet,
     referral = dtrRuleSet,
     activeContextUpdater = dtrActiveContextUpdater,
     noNextAccommodation = noNextAccommodationRuleSet,
@@ -328,7 +327,7 @@ class EligibilityServiceTest {
 
   private val crsTree = CrsEligibilityTreeProvider(
     builder = builder,
-    upcoming = releaseOutside12WeeksRuleSet,
+    upcoming = releaseWithin12WeeksRuleSet,
     upcomingContextUpdater = crsUpcomingContextUpdater,
     notSettledRuleSet = notSettledRuleSet,
     noNextAccommodation = noNextAccommodationRuleSet,

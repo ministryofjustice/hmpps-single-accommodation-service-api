@@ -10,16 +10,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3RuleSet(
-  applicationSuitability: Cas3ReferralNotActiveRule,
-  applicationPresentSuitability: Cas3NotPresentRule,
-  bookingSuitability: Cas3BookingNotActiveRule,
-  assessmentSuitability: Cas3AssessmentNotActiveRule,
+  cas3ReferralNotActive: Cas3ReferralNotActiveRule,
+  cas3NotPresent: Cas3NotPresentRule,
+  cas3BookingNotActive: Cas3BookingNotActiveRule,
+  cas3AssessmentNotActive: Cas3AssessmentNotActiveRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(
-    PrioritisedRule(applicationSuitability),
-    PrioritisedRule(applicationPresentSuitability),
-    PrioritisedRule(bookingSuitability),
-    PrioritisedRule(assessmentSuitability),
+    PrioritisedRule(cas3ReferralNotActive),
+    PrioritisedRule(cas3NotPresent),
+    PrioritisedRule(cas3BookingNotActive),
+    PrioritisedRule(cas3AssessmentNotActive),
   )
 
   override val name: String = "CAS3 Referral"

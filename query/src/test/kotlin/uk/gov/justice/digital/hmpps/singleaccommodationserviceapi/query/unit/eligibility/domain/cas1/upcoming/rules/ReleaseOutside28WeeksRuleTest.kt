@@ -4,12 +4,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.rules.ReleaseOutsideTwentyEightWeeksRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.rules.ReleaseOutside28WeeksRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 
-class ReleaseOutsideTwentyEightWeeksRuleTest {
+class ReleaseOutside28WeeksRuleTest {
   private val clock = MutableClock()
 
   @Test
@@ -18,7 +18,7 @@ class ReleaseOutsideTwentyEightWeeksRuleTest {
       currentAccommodation = buildAccommodationSummaryDto(endDate = null),
     )
 
-    val result = ReleaseOutsideTwentyEightWeeksRule(clock).evaluate(data)
+    val result = ReleaseOutside28WeeksRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
@@ -32,7 +32,7 @@ class ReleaseOutsideTwentyEightWeeksRuleTest {
       currentAccommodation = buildAccommodationSummaryDto(endDate = now.minusDays(1)),
     )
 
-    val result = ReleaseOutsideTwentyEightWeeksRule(clock).evaluate(data)
+    val result = ReleaseOutside28WeeksRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
@@ -45,7 +45,7 @@ class ReleaseOutsideTwentyEightWeeksRuleTest {
       currentAccommodation = buildAccommodationSummaryDto(endDate = oneYearLater),
     )
 
-    val result = ReleaseOutsideTwentyEightWeeksRule(clock).evaluate(data)
+    val result = ReleaseOutside28WeeksRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
@@ -59,7 +59,7 @@ class ReleaseOutsideTwentyEightWeeksRuleTest {
       currentAccommodation = buildAccommodationSummaryDto(endDate = oneYearLater.plusDays(1)),
     )
 
-    val result = ReleaseOutsideTwentyEightWeeksRule(clock).evaluate(data)
+    val result = ReleaseOutside28WeeksRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
@@ -73,14 +73,14 @@ class ReleaseOutsideTwentyEightWeeksRuleTest {
       currentAccommodation = buildAccommodationSummaryDto(endDate = oneYearLater.minusDays(1)),
     )
 
-    val result = ReleaseOutsideTwentyEightWeeksRule(clock).evaluate(data)
+    val result = ReleaseOutside28WeeksRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
   fun `rule has correct description`() {
-    assertThat(ReleaseOutsideTwentyEightWeeksRule(clock).description)
+    assertThat(ReleaseOutside28WeeksRule(clock).description)
       .isEqualTo("FAIL if release is more than 28 weeks from today")
   }
 }

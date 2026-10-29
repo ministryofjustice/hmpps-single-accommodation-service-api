@@ -13,12 +13,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.referral.DtrActiveContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.referral.DtrRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.ReleaseWithinEightWeeksRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.ReleaseWithin8WeeksRuleSet
 
 @Component
 class DtrEligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
-  private val releaseWithinEightWeeks: ReleaseWithinEightWeeksRuleSet,
+  private val releaseWithin8Weeks: ReleaseWithin8WeeksRuleSet,
   private val upcomingContextUpdater: DtrUpcomingContextUpdater,
   private val referral: DtrRuleSet,
   private val activeContextUpdater: DtrActiveContextUpdater,
@@ -40,8 +40,8 @@ class DtrEligibilityTreeProvider(
     val notStarted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_STARTED))
 
     // runs when person is eligible (no next accommodation) and has no active referral
-    val releaseWithinEightWeeksNode = builder
-      .ruleSet(releaseWithinEightWeeks)
+    val releaseWithin8WeeksNode = builder
+      .ruleSet(releaseWithin8Weeks)
       .applyContextUpdaterOnFailure(upcomingContextUpdater)
       .onPass(notStarted)
       .onFail(confirmed)
@@ -50,7 +50,7 @@ class DtrEligibilityTreeProvider(
     //  has next accommodation to produce NOT_REQUIRED
     val noNextAccommodationNode = builder
       .ruleSet(noNextAccommodation)
-      .onPass(releaseWithinEightWeeksNode)
+      .onPass(releaseWithin8WeeksNode)
       .onFail(notRequired)
       .build()
 

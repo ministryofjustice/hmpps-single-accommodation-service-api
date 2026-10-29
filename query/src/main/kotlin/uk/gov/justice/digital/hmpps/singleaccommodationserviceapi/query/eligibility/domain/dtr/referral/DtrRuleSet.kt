@@ -9,11 +9,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class DtrRuleSet(
-  dtrPresent: DtrNotPresentRule,
-  dtrNotWithdrawn: DtrWithdrawnRule,
-  dtrExpiredReferral: DtrExpiredRule,
+  dtrNotPresent: DtrNotPresentRule,
+  dtrWithdrawn: DtrWithdrawnRule,
+  dtrExpired: DtrExpiredRule,
 ) : RuleSet {
-  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(dtrPresent), PrioritisedRule(dtrNotWithdrawn), PrioritisedRule(dtrExpiredReferral))
+  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(dtrNotPresent), PrioritisedRule(dtrWithdrawn), PrioritisedRule(dtrExpired))
   override val name: String = "DTR"
   override fun getRules(): List<PrioritisedRule> = rules
 }

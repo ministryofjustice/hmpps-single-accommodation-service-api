@@ -7,9 +7,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class ReleaseWithin12WeeksRuleSet(
-  releaseOutside12WeeksRule: ReleaseOutside12WeeksRule,
+  releaseOutside12Weeks: ReleaseOutside12WeeksRule,
 ) : RuleSet {
-  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(releaseOutside12WeeksRule))
+  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(releaseOutside12Weeks))
   override val name: String = "Release Within 12 Weeks"
   override fun getRules(): List<PrioritisedRule> = rules
 }

@@ -1,6 +1,7 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.rules
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.rules
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.CAS1_UPCOMING_WEEKS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
@@ -10,8 +11,8 @@ import java.time.Clock
 import java.time.LocalDate
 
 @Component
-class ReleaseOutsideEightWeeksRule(val clock: Clock) : Rule {
-  override val description = "FAIL if release is more than 8 weeks from today"
+class ReleaseOutside28WeeksRule(val clock: Clock) : Rule {
+  override val description = "FAIL if release is more than 28 weeks from today"
 
   override fun evaluate(data: DomainData): RuleResult {
     val today = LocalDate.now(clock)
@@ -21,7 +22,7 @@ class ReleaseOutsideEightWeeksRule(val clock: Clock) : Rule {
       ruleStatus = if (isLessThanXWeeksInTheFuture(
           endDate = data.currentAccommodation?.endDate,
           today = today,
-          numOfWeeks = 8L,
+          numOfWeeks = CAS1_UPCOMING_WEEKS,
         )
       ) {
         RuleStatus.PASS

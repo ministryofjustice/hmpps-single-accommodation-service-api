@@ -7,24 +7,24 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithinTwentyEightWeeksRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.rules.ReleaseOutsideTwentyEightWeeksRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithin28WeeksRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.rules.ReleaseOutside28WeeksRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
-    ReleaseOutsideTwentyEightWeeksRule::class,
-    ReleaseWithinTwentyEightWeeksRuleSet::class,
+    ReleaseOutside28WeeksRule::class,
+    ReleaseWithin28WeeksRuleSet::class,
     ClockConfig::class,
   ],
 )
-class ReleaseWithinTwentyEightWeeksRuleSetTest {
+class ReleaseWithin28WeeksRuleSetTest {
 
   @Autowired
-  lateinit var ruleSet: ReleaseWithinTwentyEightWeeksRuleSet
+  lateinit var ruleSet: ReleaseWithin28WeeksRuleSet
 
   private val expectedRuleNames = listOf(
-    ReleaseOutsideTwentyEightWeeksRule::class.java.simpleName,
+    ReleaseOutside28WeeksRule::class.java.simpleName,
   )
 
   @Test

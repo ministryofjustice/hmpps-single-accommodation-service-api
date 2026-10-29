@@ -13,13 +13,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.Cas1StartContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithinTwentyEightWeeksRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithin28WeeksRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RoshEligibleRuleSet
 
 @Component
 class Cas1EligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
-  private val releaseWithinTwentyEightWeeks: ReleaseWithinTwentyEightWeeksRuleSet,
+  private val releaseWithin28Weeks: ReleaseWithin28WeeksRuleSet,
   private val upcomingContextUpdater: Cas1UpcomingContextUpdater,
   private val referral: Cas1RuleSet,
   private val startContextUpdater: Cas1StartContextUpdater,
@@ -67,7 +67,7 @@ class Cas1EligibilityTreeProvider(
       .build()
 
     return builder
-      .ruleSet(releaseWithinTwentyEightWeeks)
+      .ruleSet(releaseWithin28Weeks)
       .onPass(referralNode)
       .onFail(tierEligibleForCas1Node).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()

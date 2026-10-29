@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.common.rules
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
@@ -20,7 +20,7 @@ class ReleaseOutside15DaysRuleTest {
 
     val result = ReleaseOutside15DaysRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -34,7 +34,7 @@ class ReleaseOutside15DaysRuleTest {
 
     val result = ReleaseOutside15DaysRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -47,7 +47,7 @@ class ReleaseOutside15DaysRuleTest {
 
     val result = ReleaseOutside15DaysRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -61,7 +61,7 @@ class ReleaseOutside15DaysRuleTest {
 
     val result = ReleaseOutside15DaysRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
@@ -75,12 +75,12 @@ class ReleaseOutside15DaysRuleTest {
 
     val result = ReleaseOutside15DaysRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
   fun `rule has correct description`() {
-    Assertions.assertThat(ReleaseOutside15DaysRule(clock).description)
+    assertThat(ReleaseOutside15DaysRule(clock).description)
       .isEqualTo("FAIL if release is more than 15 days from today")
   }
 }

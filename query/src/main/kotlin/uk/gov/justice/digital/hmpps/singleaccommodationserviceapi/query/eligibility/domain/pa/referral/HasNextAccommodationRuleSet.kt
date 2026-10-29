@@ -7,9 +7,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class HasNextAccommodationRuleSet(
-  noNextAccommodationRule: NoNextAccommodationRule,
+  noNextAccommodation: NoNextAccommodationRule,
 ) : RuleSet {
-  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(noNextAccommodationRule))
+  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(noNextAccommodation))
   override val name: String = "Has Next Accommodation"
   override fun getRules(): List<PrioritisedRule> = rules
 }

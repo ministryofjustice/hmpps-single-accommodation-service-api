@@ -7,10 +7,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class ReleaseDateEligibleRuleSet(
-  inPrisonNoReleaseDate: InPrisonNoReleaseRule,
+  inPrisonNoRelease: InPrisonNoReleaseRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(
-    PrioritisedRule(inPrisonNoReleaseDate, 1),
+    PrioritisedRule(inPrisonNoRelease, 1),
   )
 
   override val name: String = "Release Date Eligible"

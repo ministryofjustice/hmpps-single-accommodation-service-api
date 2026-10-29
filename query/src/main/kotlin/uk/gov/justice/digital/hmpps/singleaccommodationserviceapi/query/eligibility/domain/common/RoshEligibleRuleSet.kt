@@ -7,10 +7,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class RoshEligibleRuleSet(
-  roshLevel: NoRoshLevelRule,
+  noRoshLevel: NoRoshLevelRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(
-    PrioritisedRule(roshLevel, 2),
+    PrioritisedRule(noRoshLevel, 2),
   )
   override val name: String = "ROSH Eligible"
 

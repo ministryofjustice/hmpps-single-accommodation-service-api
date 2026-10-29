@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas2.referral
 
 import io.mockk.mockk
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
@@ -35,8 +35,8 @@ class Cas2ActiveContextUpdaterTest {
 
       val result = updater.update(context)
 
-      Assertions.assertThat(result.currentResult!!.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_SUBMITTED)
-      Assertions.assertThat(result.currentResult.url).isNull()
+      assertThat(result.currentResult!!.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_SUBMITTED)
+      assertThat(result.currentResult.url).isNull()
     }
   }
 }

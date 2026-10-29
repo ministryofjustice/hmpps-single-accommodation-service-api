@@ -58,8 +58,8 @@ FAIL if person is not Male and is not Tier A, B, C or D</div>")
 
 ### Nodes
 
-**Release Within 28 Weeks** (RuleSet) `ReleaseWithinTwentyEightWeeksRuleSet`
-- [`ReleaseOutsideTwentyEightWeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/rules/ReleaseOutsideTwentyEightWeeksRule.kt): FAIL if release is more than 28 weeks from today
+**Release Within 28 Weeks** (RuleSet) `ReleaseWithin28WeeksRuleSet`
+- [`ReleaseOutside28WeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/rules/ReleaseOutside28WeeksRule.kt): FAIL if release is more than 28 weeks from today
 - FAIL: [`Cas1UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/Cas1UpcomingContextUpdater.kt) - Set current status to Upcoming
 
 | Status | Action | Link type |
@@ -544,8 +544,8 @@ FAIL if the DTR submission date is missing or more than 26 weeks ago</div>")
 - [`HasNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/HasNextAccommodationRule.kt): FAIL if person has next accommodation
 
 
-**Release Within 8 Weeks** (RuleSet) `ReleaseWithinEightWeeksRuleSet`
-- [`ReleaseOutsideEightWeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/upcoming/rules/ReleaseOutsideEightWeeksRule.kt): FAIL if release is more than 8 weeks from today
+**Release Within 8 Weeks** (RuleSet) `ReleaseWithin8WeeksRuleSet`
+- [`ReleaseOutside8WeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/upcoming/rules/ReleaseOutside8WeeksRule.kt): FAIL if release is more than 8 weeks from today
 - FAIL: [`DtrUpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/upcoming/DtrUpcomingContextUpdater.kt) - Upcoming
 
 | Status | Action | Link type |
@@ -635,8 +635,8 @@ FAIL if CAS3 application is submitted and active</div>")
 | NonMaleRiskEligibilityRule | FAIL if person is not Male and is not Tier A, B, C or D | Tier Eligible For CAS1 | CAS1 |
 | ReleaseOutside12WeeksRule | FAIL if release is more than 12 weeks from today | Release Within 12 Weeks | CRS |
 | ReleaseOutside15DaysRule | FAIL if release is more than 15 days from today | Release Within 15 Days | CAS2, CAS3 |
-| ReleaseOutsideEightWeeksRule | FAIL if release is more than 8 weeks from today | Release Within 8 Weeks | DTR |
-| ReleaseOutsideTwentyEightWeeksRule | FAIL if release is more than 28 weeks from today | Release Within 28 Weeks | CAS1 |
+| ReleaseOutside28WeeksRule | FAIL if release is more than 28 weeks from today | Release Within 28 Weeks | CAS1 |
+| ReleaseOutside8WeeksRule | FAIL if release is more than 8 weeks from today | Release Within 8 Weeks | DTR |
 | Under18Rule | FAIL if person is under 18 years old | Person Eligible | CAS2 |
 | WrongCurrentAccommodationForCas3TypeRule | FAIL if person is not in CAS1, CAS2 or prison | Current Accommodation Eligible For CAS3 | CAS3 |
 | WrongTierRule | FAIL if person is not Tier A through G | Person Eligible | CAS2 |

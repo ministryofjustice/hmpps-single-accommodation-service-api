@@ -3,13 +3,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.rules.ReleaseOutsideEightWeeksRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.rules.ReleaseOutside8WeeksRule
 
 @Component
-class ReleaseWithinEightWeeksRuleSet(
-  releaseWithinEightWeeks: ReleaseOutsideEightWeeksRule,
+class ReleaseWithin8WeeksRuleSet(
+  releaseOutside8Weeks: ReleaseOutside8WeeksRule,
 ) : RuleSet {
-  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(releaseWithinEightWeeks))
+  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(releaseOutside8Weeks))
   override val name: String = "Release Within 8 Weeks"
   override fun getRules(): List<PrioritisedRule> = rules
 }

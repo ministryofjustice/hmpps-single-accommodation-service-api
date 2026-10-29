@@ -8,12 +8,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class TierEligibleForCas1RuleSet(
-  maleRisk: MaleRiskEligibilityRule,
-  nonMaleRisk: NonMaleRiskEligibilityRule,
+  maleRiskEligibility: MaleRiskEligibilityRule,
+  nonMaleRiskEligibility: NonMaleRiskEligibilityRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(
-    PrioritisedRule(maleRisk, 0),
-    PrioritisedRule(nonMaleRisk, 0),
+    PrioritisedRule(maleRiskEligibility, 0),
+    PrioritisedRule(nonMaleRiskEligibility, 0),
   )
 
   override val name: String = "Tier Eligible For CAS1"
