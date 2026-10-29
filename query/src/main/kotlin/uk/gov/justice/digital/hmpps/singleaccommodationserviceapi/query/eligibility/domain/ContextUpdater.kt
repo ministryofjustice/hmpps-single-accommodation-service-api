@@ -17,19 +17,19 @@ abstract class ContextUpdater {
   open val outcomes: Map<String, ServiceResultSpec> get() = emptyMap()
   open val terminalNode: Boolean get() = false
   open val description: String
-    get() = if (outcomes.keys.size == 1) {
-      val status = outcomes.entries.first().value.serviceStatus
-      if (terminalNode) {
-        "return status $status"
+    get() = if (terminalNode) {
+      val statuses = outcomes.values.map { it.serviceStatus.uiStatusName }.distinct().sorted()
+      if (statuses.size == 1) {
+        statuses.first()
       } else {
-        "Set current status to $status"
+        statuses.joinToString(separator = ",\n ")
       }
     } else {
-      val statuses = outcomes.entries.joinToString(separator = ", ") { "${it.value.serviceStatus}" }
-      if (terminalNode) {
-        "return status as one of $statuses"
+      val statuses = outcomes.values.map { it.serviceStatus.uiStatusName }.distinct().sorted()
+      if (statuses.size == 1) {
+        "Set current status to ${statuses.first()}"
       } else {
-        "Set current status to one of $statuses"
+        "Set current status to one of:\n" + statuses.joinToString(separator = ",\n ")
       }
     }
 
@@ -64,7 +64,7 @@ abstract class ContextUpdater {
 
     /** Always set the value of [EvaluationContext.currentResult] to the same given value */
     fun constant(result: ServiceResultNew): ContextUpdater = object : ContextUpdater() {
-      override val description = "Set ${result.serviceStatus.name}"
+      override val description = "Set current status to ${result.serviceStatus.uiStatusName}"
 
       override val outcomes = mapOf(
         "constant" to ServiceResultSpec(

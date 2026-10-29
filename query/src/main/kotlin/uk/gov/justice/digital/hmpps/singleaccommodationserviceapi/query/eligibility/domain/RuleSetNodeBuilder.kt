@@ -52,6 +52,6 @@ class RuleSetNodeBuilder(
     onPass = requireNotNull(onPassNode) { "onPass node not set for RuleSetNode $name" },
     onPassContextUpdater = onPassContextUpdater,
     onFail = requireNotNull(onFailNode) { "onFail node not set for RuleSetNode $name" },
-    onFailContextUpdater = requireNotNull(onFailContextUpdater) { "contextUpdater required for RuleSetNode $name (set a failure action)" },
+    onFailContextUpdater = onFailContextUpdater,
   )
 }
