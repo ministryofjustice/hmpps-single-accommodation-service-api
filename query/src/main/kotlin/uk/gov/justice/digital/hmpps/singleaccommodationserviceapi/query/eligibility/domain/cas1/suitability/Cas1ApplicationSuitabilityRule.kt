@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas1ApplicationSuitabilityRule : Rule {
-  override val description = "FAIL if the CAS1 application is started, rejected, expired, inapplicable or withdrawn, with neither a request-for-placement status nor a placement status"
+  override val description = "FAIL if the application is not submitted and active"
 
   override fun evaluate(data: DomainData): RuleResult {
     val unsuitableStatuses = listOf(

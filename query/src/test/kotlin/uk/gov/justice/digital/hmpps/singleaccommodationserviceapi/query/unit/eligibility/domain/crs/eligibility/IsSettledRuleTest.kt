@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class IsSettledRuleTest {
-  private val description = "FAIL if candidate is settled"
+  private val description = "FAIL if person is settled"
 
   @Test
   fun `current accommodation is SETTLED so rule fails`() {

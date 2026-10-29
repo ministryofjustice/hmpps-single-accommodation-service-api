@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class HasNextAccommodationRuleTest {
   @Test
-  fun `candidate passes when nextAccommodation is present`() {
+  fun `person passes when nextAccommodation is present`() {
     val data = buildDomainData(
       nextAccommodations = listOf(buildAccommodationSummaryDto()),
     )
@@ -20,7 +20,7 @@ class HasNextAccommodationRuleTest {
   }
 
   @Test
-  fun `candidate fails when nextAccommodation is missing`() {
+  fun `person fails when nextAccommodation is missing`() {
     val data = buildDomainData(
       nextAccommodations = emptyList(),
     )
@@ -33,6 +33,6 @@ class HasNextAccommodationRuleTest {
   @Test
   fun `rule has correct description`() {
     assertThat(HasNextAccommodationRule().description)
-      .isEqualTo("FAIL if candidate has no next accommodation")
+      .isEqualTo("FAIL if person has no next accommodation")
   }
 }

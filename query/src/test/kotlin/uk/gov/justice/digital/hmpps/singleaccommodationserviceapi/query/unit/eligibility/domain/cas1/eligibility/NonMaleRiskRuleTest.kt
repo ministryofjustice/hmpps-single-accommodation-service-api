@@ -14,11 +14,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import java.util.stream.Stream
 
 class NonMaleRiskRuleTest {
-  private val description = "FAIL if candidate is not Male and is not Tier A, B, C or D"
+  private val description = "FAIL if person is not Male and is not Tier A, B, C or D"
 
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.eligibility.NonMaleRiskRuleTest#provideSexAndTierToPass")
-  fun `candidate passes`(sex: SexCode, tierScore: String) {
+  fun `person passes`(sex: SexCode, tierScore: String) {
     val data = buildDomainData(
       tierScore = tierScore,
       sex = sex,
@@ -31,7 +31,7 @@ class NonMaleRiskRuleTest {
 
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.eligibility.NonMaleRiskRuleTest#provideSexAndTierToFail")
-  fun `candidate fails`(sex: SexCode, tierScore: String) {
+  fun `person fails`(sex: SexCode, tierScore: String) {
     val data = buildDomainData(
       tierScore = tierScore,
       sex = sex,
@@ -45,7 +45,7 @@ class NonMaleRiskRuleTest {
   @Test
   fun `rule has correct description`() {
     val result = NonMaleRiskEligibilityRule().description
-    assertThat(result).isEqualTo("FAIL if candidate is not Male and is not Tier A, B, C or D")
+    assertThat(result).isEqualTo("FAIL if person is not Male and is not Tier A, B, C or D")
   }
 
   private companion object {

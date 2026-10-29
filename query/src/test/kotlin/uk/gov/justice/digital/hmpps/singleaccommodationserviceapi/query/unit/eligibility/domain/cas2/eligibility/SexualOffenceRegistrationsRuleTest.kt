@@ -15,11 +15,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class SexualOffenceRegistrationsRuleTest {
   private val rule = SexualOffenceRegistrationsRule()
-  private val description = "FAIL if individual has sexual offence registrations."
+  private val description = "FAIL if person has sexual offence registrations."
 
   @ParameterizedTest
   @ValueSource(ints = [1, 2])
-  fun `candidate fails when there are sexual offence registrations`(count: Int) {
+  fun `person fails when there are sexual offence registrations`(count: Int) {
     val data = buildDomainData(
       sexualOffenceRegistrations = SexualOffenceRegistrations(
         crn = "X123456",
@@ -37,7 +37,7 @@ class SexualOffenceRegistrationsRuleTest {
   }
 
   @Test
-  fun `candidate passes when registrations are empty`() {
+  fun `person passes when registrations are empty`() {
     val data = buildDomainData(
       sexualOffenceRegistrations = SexualOffenceRegistrations("X123456", emptyList()),
     )
@@ -48,7 +48,7 @@ class SexualOffenceRegistrationsRuleTest {
   }
 
   @Test
-  fun `candidate passes when registration list is null`() {
+  fun `person passes when registration list is null`() {
     val data = buildDomainData(
       sexualOffenceRegistrations = SexualOffenceRegistrations("X123456", null),
     )
@@ -59,7 +59,7 @@ class SexualOffenceRegistrationsRuleTest {
   }
 
   @Test
-  fun `candidate passes when registrations response is absent`() {
+  fun `person passes when registrations response is absent`() {
     assertThat(rule.evaluate(buildDomainData(sexualOffenceRegistrations = null))).isEqualTo(
       RuleResult(description = description, ruleStatus = RuleStatus.PASS),
     )

@@ -10,10 +10,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class CurrentAccommodationTypeIsCas2RuleTest {
-  private val description = "FAIL if individual is in CAS2"
+  private val description = "FAIL if person is in CAS2"
 
   @Test
-  fun `individual is in CAS2 so rule fails`() {
+  fun `person is in CAS2 so rule fails`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
         isCas2 = true,
@@ -32,7 +32,7 @@ class CurrentAccommodationTypeIsCas2RuleTest {
   }
 
   @Test
-  fun `individual not in CAS2 so rule passes`() {
+  fun `person not in CAS2 so rule passes`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
         isCas2 = false,
@@ -50,7 +50,7 @@ class CurrentAccommodationTypeIsCas2RuleTest {
   }
 
   @Test
-  fun `individual has no current accommodation so rule passes`() {
+  fun `person has no current accommodation so rule passes`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = null,
     )

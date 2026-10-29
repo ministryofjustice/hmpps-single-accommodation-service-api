@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import java.util.UUID
 
 class Cas1ApplicationNotSuitableRuleTest {
-  private val description = "FAIL if candidate has a suitable CAS1 application"
+  private val description = "FAIL if person has a suitable CAS1 application"
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(

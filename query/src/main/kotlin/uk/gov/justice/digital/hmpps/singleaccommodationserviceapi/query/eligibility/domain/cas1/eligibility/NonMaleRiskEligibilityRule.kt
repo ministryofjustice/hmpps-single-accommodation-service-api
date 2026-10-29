@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class NonMaleRiskEligibilityRule : Rule {
-  override val description = "FAIL if candidate is not Male and is not Tier A, B, C or D"
+  override val description = "FAIL if person is not Male and is not Tier A, B, C or D"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.sex != SexCode.M && !TierRiskScores.isHighRiskForNonMale(data.tierScore)

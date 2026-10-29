@@ -10,10 +10,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class NoNextAccommodationRuleTest {
-  private val description = "FAIL if candidate has next accommodation"
+  private val description = "FAIL if person has next accommodation"
 
   @Test
-  fun `candidate passes when hasNextAccommodation is false`() {
+  fun `person passes when hasNextAccommodation is false`() {
     val data = buildDomainData(
       nextAccommodations = emptyList(),
     )
@@ -24,7 +24,7 @@ class NoNextAccommodationRuleTest {
   }
 
   @Test
-  fun `candidate fails when hasNextAccommodation is true`() {
+  fun `person fails when hasNextAccommodation is true`() {
     val data = buildDomainData(
       nextAccommodations = listOf(buildAccommodationSummaryDto()),
     )
@@ -37,6 +37,6 @@ class NoNextAccommodationRuleTest {
   @Test
   fun `rule has correct description`() {
     assertThat(NoNextAccommodationRule().description)
-      .isEqualTo("FAIL if candidate has next accommodation")
+      .isEqualTo("FAIL if person has next accommodation")
   }
 }

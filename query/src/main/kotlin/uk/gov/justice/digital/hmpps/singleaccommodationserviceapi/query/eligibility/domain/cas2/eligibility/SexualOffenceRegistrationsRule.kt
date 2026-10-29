@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class SexualOffenceRegistrationsRule : Rule {
-  override val description = "FAIL if individual has sexual offence registrations."
+  override val description = "FAIL if person has sexual offence registrations."
 
   override fun evaluate(data: DomainData): RuleResult {
     val hasRegistrations = !data.sexualOffenceRegistrations?.sexualOffenceRegistrations.isNullOrEmpty()

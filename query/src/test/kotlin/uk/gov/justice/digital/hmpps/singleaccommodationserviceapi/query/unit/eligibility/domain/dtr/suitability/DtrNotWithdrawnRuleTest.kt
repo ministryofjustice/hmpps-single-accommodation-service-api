@@ -14,7 +14,7 @@ class DtrNotWithdrawnRuleTest {
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(value = DtrStatus::class, names = ["WITHDRAWN"], mode = EnumSource.Mode.EXCLUDE)
-  fun `candidate passes when DTR has not been withdrawn`(dtrStatus: DtrStatus) {
+  fun `person passes when DTR has not been withdrawn`(dtrStatus: DtrStatus) {
     val data = buildDomainData(
       dutyToRefer = buildDutyToReferDto(status = dtrStatus),
     )
@@ -25,7 +25,7 @@ class DtrNotWithdrawnRuleTest {
   }
 
   @Test
-  fun `candidate passes when DTR status is not present`() {
+  fun `person passes when DTR status is not present`() {
     val data = buildDomainData(
       dutyToRefer = null,
     )
@@ -36,7 +36,7 @@ class DtrNotWithdrawnRuleTest {
   }
 
   @Test
-  fun `candidate fails when DTR has been withdrawn`() {
+  fun `person fails when DTR has been withdrawn`() {
     val data = buildDomainData(
       dutyToRefer = buildDutyToReferDto(status = DtrStatus.WITHDRAWN),
     )

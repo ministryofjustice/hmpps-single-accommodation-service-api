@@ -13,7 +13,7 @@ class ReleaseWithinTwentyEightWeeksRuleTest {
   private val clock = MutableClock()
 
   @Test
-  fun `candidate passes when currentAccommodationEndDate is missing`() {
+  fun `person passes when currentAccommodationEndDate is missing`() {
     val data = buildDomainData(
       currentAccommodation = buildAccommodationSummaryDto(endDate = null),
     )
@@ -24,7 +24,7 @@ class ReleaseWithinTwentyEightWeeksRuleTest {
   }
 
   @Test
-  fun `candidate passes currentAccommodationEndDate is in the past`() {
+  fun `person passes currentAccommodationEndDate is in the past`() {
     clock.setNow(LocalDate.parse("2025-01-01"))
     val now = LocalDate.now(clock)
 
@@ -38,7 +38,7 @@ class ReleaseWithinTwentyEightWeeksRuleTest {
   }
 
   @Test
-  fun `candidate passes currentAccommodationEndDate is exactly 28 weeks in the future`() {
+  fun `person passes currentAccommodationEndDate is exactly 28 weeks in the future`() {
     clock.setNow(LocalDate.parse("2025-01-01"))
     val oneYearLater = LocalDate.now(clock).plusWeeks(28)
     val data = buildDomainData(
@@ -51,7 +51,7 @@ class ReleaseWithinTwentyEightWeeksRuleTest {
   }
 
   @Test
-  fun `candidate fails currentAccommodationEndDate is more than 28 weeks in the future`() {
+  fun `person fails currentAccommodationEndDate is more than 28 weeks in the future`() {
     clock.setNow(LocalDate.parse("2025-01-01"))
     val oneYearLater = LocalDate.now(clock).plusWeeks(28)
 
@@ -65,7 +65,7 @@ class ReleaseWithinTwentyEightWeeksRuleTest {
   }
 
   @Test
-  fun `candidate passes currentAccommodationEndDate is less than 28 weeks in the future`() {
+  fun `person passes currentAccommodationEndDate is less than 28 weeks in the future`() {
     clock.setNow(LocalDate.parse("2025-01-01"))
     val oneYearLater = LocalDate.now(clock).plusWeeks(28)
 
@@ -81,6 +81,6 @@ class ReleaseWithinTwentyEightWeeksRuleTest {
   @Test
   fun `rule has correct description`() {
     assertThat(ReleaseWithinTwentyEightWeeksRule(clock).description)
-      .isEqualTo("FAIL if the current accommodation end date is more than 28 weeks from today")
+      .isEqualTo("FAIL if release is more than 28 weeks from today")
   }
 }

@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class CurrentAccommodationTypeIsCommunityRule : Rule {
-  override val description = "FAIL if the current accommodation type is missing or is neither prison, CAS1, CAS2 nor CAS3"
+  override val description = "FAIL if person is in the community"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.currentAccommodationTypeEntity?.isPrison != true &&

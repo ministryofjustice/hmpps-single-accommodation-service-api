@@ -39,7 +39,7 @@ class DtrEligibilityTreeProvider(
     val notRequired = builder.notRequired(ServiceType.DTR)
     val notStarted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_STARTED))
 
-    // runs when the person is eligible (no next accommodation) and has no active referral
+    // runs when person is eligible (no next accommodation) and has no active referral
     val upcomingNode = builder
       .ruleSet(upcoming)
       .applyContextUpdaterOnFailure(upcomingContextUpdater)

@@ -14,7 +14,7 @@ class DtrPresentRuleTest {
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(value = DtrStatus::class)
-  fun `candidate passes when DTR status is present`(dtrStaus: DtrStatus) {
+  fun `person passes when DTR status is present`(dtrStaus: DtrStatus) {
     val data = buildDomainData(
       dutyToRefer = buildDutyToReferDto(status = dtrStaus),
     )
@@ -25,7 +25,7 @@ class DtrPresentRuleTest {
   }
 
   @Test
-  fun `candidate fails when DTR status is not present`() {
+  fun `person fails when DTR status is not present`() {
     val data = buildDomainData(
       dutyToRefer = null,
     )

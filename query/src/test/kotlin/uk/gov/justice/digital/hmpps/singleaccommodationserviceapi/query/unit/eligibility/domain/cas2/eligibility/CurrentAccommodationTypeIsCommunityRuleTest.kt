@@ -12,11 +12,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class CurrentAccommodationTypeIsCommunityRuleTest {
-  private val description = "FAIL if the current accommodation type is missing or is neither prison, CAS1, CAS2 nor CAS3"
+  private val description = "FAIL if person is in the community"
 
   @ParameterizedTest
   @FieldSource("communityCodes")
-  fun `individual is in community so rule fails`(code: String) {
+  fun `person is in community so rule fails`(code: String) {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
         isPrison = false,
@@ -38,7 +38,7 @@ class CurrentAccommodationTypeIsCommunityRuleTest {
   }
 
   @Test
-  fun `individual has no current accommodation so rule fails`() {
+  fun `person has no current accommodation so rule fails`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = null,
     )
@@ -55,7 +55,7 @@ class CurrentAccommodationTypeIsCommunityRuleTest {
   }
 
   @Test
-  fun `individual is in prison so rule passes`() {
+  fun `person is in prison so rule passes`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
         isPrison = true,
@@ -76,7 +76,7 @@ class CurrentAccommodationTypeIsCommunityRuleTest {
   }
 
   @Test
-  fun `individual is in CAS1 so rule passes`() {
+  fun `person is in CAS1 so rule passes`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
         isPrison = false,
@@ -98,7 +98,7 @@ class CurrentAccommodationTypeIsCommunityRuleTest {
 
   @ParameterizedTest
   @FieldSource("cas2Codes")
-  fun `individual is in CAS2 so rule passes`(code: String) {
+  fun `person is in CAS2 so rule passes`(code: String) {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
         isPrison = false,
@@ -120,7 +120,7 @@ class CurrentAccommodationTypeIsCommunityRuleTest {
   }
 
   @Test
-  fun `individual is in CAS3 so rule passes`() {
+  fun `person is in CAS3 so rule passes`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
         code = "A17",

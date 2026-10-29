@@ -13,7 +13,7 @@ class CurrentAccommodationTypeRuleTest {
   private val description = "FAIL if current accommodation is not Approved Premise (CAS1), CAS2, or Prison"
 
   @Test
-  fun `candidate passes when current accommodation is prison type`() {
+  fun `person passes when current accommodation is prison type`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
         isPrison = true,
@@ -26,7 +26,7 @@ class CurrentAccommodationTypeRuleTest {
   }
 
   @Test
-  fun `candidate passes when current accommodation is cas1 type`() {
+  fun `person passes when current accommodation is cas1 type`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
         isCas1 = true,
@@ -39,7 +39,7 @@ class CurrentAccommodationTypeRuleTest {
   }
 
   @Test
-  fun `candidate passes when current accommodation is cas2 type`() {
+  fun `person passes when current accommodation is cas2 type`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
         isCas2 = true,
@@ -52,7 +52,7 @@ class CurrentAccommodationTypeRuleTest {
   }
 
   @Test
-  fun `candidate fails when current accommodation is ineligible type`() {
+  fun `person fails when current accommodation is ineligible type`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(
         isCas2 = false,
@@ -67,7 +67,7 @@ class CurrentAccommodationTypeRuleTest {
   }
 
   @Test
-  fun `candidate fails when current accommodation is null`() {
+  fun `person fails when current accommodation is null`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = null,
     )

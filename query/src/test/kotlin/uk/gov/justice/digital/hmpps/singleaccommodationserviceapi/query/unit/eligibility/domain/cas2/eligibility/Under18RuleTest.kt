@@ -11,11 +11,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.Mu
 import java.time.LocalDate
 
 class Under18RuleTest {
-  private val description = "FAIL if individual is under 18 years old"
+  private val description = "FAIL if person is under 18 years old"
   private val clock = MutableClock()
 
   @Test
-  fun `individual is under 18 years old so rule fails`() {
+  fun `person is under 18 years old so rule fails`() {
     val data = buildDomainData(
       dob = LocalDate.now(clock).minusYears(18).plusDays(1),
     )
@@ -32,7 +32,7 @@ class Under18RuleTest {
   }
 
   @Test
-  fun `individual is 18 years old so rule passes`() {
+  fun `person is 18 years old so rule passes`() {
     val data = buildDomainData(
       dob = LocalDate.now(clock).minusYears(18),
     )

@@ -11,11 +11,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class SingleLetterTierRuleTest {
-  private val description = "FAIL if candidate is not Tier A through G"
+  private val description = "FAIL if person is not Tier A through G"
 
   @ParameterizedTest
   @ValueSource(strings = ["A", "B", "C", "D", "E", "F", "G"])
-  fun `candidate passes when tier score is a valid A to G value`(tierScore: String) {
+  fun `person passes when tier score is a valid A to G value`(tierScore: String) {
     val data = buildDomainData(
       tierScore = tierScore,
     )
@@ -32,7 +32,7 @@ class SingleLetterTierRuleTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["MISSING", "NOT_SUPERVISED"])
-  fun `candidate fails when tier score is missing or unsupervised`(tierScore: String) {
+  fun `person fails when tier score is missing or unsupervised`(tierScore: String) {
     val data = buildDomainData(
       tierScore = tierScore,
     )
@@ -49,7 +49,7 @@ class SingleLetterTierRuleTest {
   }
 
   @Test
-  fun `candidate fails when tier score is null`() {
+  fun `person fails when tier score is null`() {
     val data = buildDomainData(
       tierScore = null,
     )

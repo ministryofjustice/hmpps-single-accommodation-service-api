@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class CurrentAccommodationTypeIsCas3Rule : Rule {
-  override val description = "FAIL if individual is in CAS3"
+  override val description = "FAIL if person is in CAS3"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.currentAccommodationTypeEntity?.isCas3 == true

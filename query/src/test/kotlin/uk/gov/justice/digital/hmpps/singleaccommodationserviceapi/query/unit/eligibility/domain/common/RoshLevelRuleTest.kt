@@ -11,10 +11,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class RoshLevelRuleTest {
   private val rule = RoshLevelRule()
-  private val description = "FAIL if candidate has no ROSH level"
+  private val description = "FAIL if person has no ROSH level"
 
   @Test
-  fun `candidate passes when they have a ROSH level`() {
+  fun `person passes when they have a ROSH level`() {
     val data = buildDomainData(roshLevel = buildRoshLevel())
 
     assertThat(rule.evaluate(data))
@@ -22,7 +22,7 @@ class RoshLevelRuleTest {
   }
 
   @Test
-  fun `candidate fails when they have no ROSH level`() {
+  fun `person fails when they have no ROSH level`() {
     val data = buildDomainData(roshLevel = null)
 
     assertThat(rule.evaluate(data)).isEqualTo(

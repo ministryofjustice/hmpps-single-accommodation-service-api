@@ -18,7 +18,7 @@ class DtrExpiredReferralRuleTest {
   private val clock = MutableClock()
 
   @Test
-  fun `candidate fails when DTR submission date is missing`() {
+  fun `person fails when DTR submission date is missing`() {
     val data = buildDomainData(
       dutyToRefer = null,
     )
@@ -35,7 +35,7 @@ class DtrExpiredReferralRuleTest {
   }
 
   @Test
-  fun `candidate fails when DTR is there but submission date is missing`() {
+  fun `person fails when DTR is there but submission date is missing`() {
     val data = buildDomainData(
       dutyToRefer = buildDutyToReferDto(submission = null),
     )
@@ -52,7 +52,7 @@ class DtrExpiredReferralRuleTest {
   }
 
   @Test
-  fun `candidate passes when DTR submission date is exactly 26 weeks ago`() {
+  fun `person passes when DTR submission date is exactly 26 weeks ago`() {
     val data = buildDomainData(
       dutyToRefer = buildDutyToReferDto(
         submission = buildDtrSubmission(
@@ -67,7 +67,7 @@ class DtrExpiredReferralRuleTest {
   }
 
   @Test
-  fun `candidate passes when DTR submission date is within 26 weeks ago`() {
+  fun `person passes when DTR submission date is within 26 weeks ago`() {
     val data = buildDomainData(
       dutyToRefer = buildDutyToReferDto(
         submission = buildDtrSubmission(
@@ -82,7 +82,7 @@ class DtrExpiredReferralRuleTest {
   }
 
   @Test
-  fun `candidate fails when DTR submission date is more than 26 weeks ago`() {
+  fun `person fails when DTR submission date is more than 26 weeks ago`() {
     val data = buildDomainData(
       dutyToRefer = buildDutyToReferDto(
         submission = buildDtrSubmission(

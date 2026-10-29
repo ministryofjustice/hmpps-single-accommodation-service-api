@@ -13,7 +13,7 @@ class ReleaseWithin15DaysRuleTest {
   private val clock = MutableClock()
 
   @Test
-  fun `candidate passes when currentAccommodationEndDate is missing`() {
+  fun `person passes when currentAccommodationEndDate is missing`() {
     val data = buildDomainData(
       currentAccommodation = buildAccommodationSummaryDto(endDate = null),
     )
@@ -24,7 +24,7 @@ class ReleaseWithin15DaysRuleTest {
   }
 
   @Test
-  fun `candidate passes currentAccommodationEndDate is in the past`() {
+  fun `person passes currentAccommodationEndDate is in the past`() {
     clock.setNow(LocalDate.parse("2025-01-01"))
     val now = LocalDate.now(clock)
 
@@ -38,7 +38,7 @@ class ReleaseWithin15DaysRuleTest {
   }
 
   @Test
-  fun `candidate passes currentAccommodationEndDate is exactly 15 days in the future`() {
+  fun `person passes currentAccommodationEndDate is exactly 15 days in the future`() {
     clock.setNow(LocalDate.parse("2025-01-01"))
     val fifteenDaysLater = LocalDate.now(clock).plusDays(15)
     val data = buildDomainData(
@@ -51,7 +51,7 @@ class ReleaseWithin15DaysRuleTest {
   }
 
   @Test
-  fun `candidate fails currentAccommodationEndDate is more than 15 days in the future`() {
+  fun `person fails currentAccommodationEndDate is more than 15 days in the future`() {
     clock.setNow(LocalDate.parse("2025-01-01"))
     val fifteenDaysLater = LocalDate.now(clock).plusDays(15)
 
@@ -65,7 +65,7 @@ class ReleaseWithin15DaysRuleTest {
   }
 
   @Test
-  fun `candidate passes currentAccommodationEndDate is less than 15 days in the future`() {
+  fun `person passes currentAccommodationEndDate is less than 15 days in the future`() {
     clock.setNow(LocalDate.parse("2025-01-01"))
     val fifteenDaysLater = LocalDate.now(clock).plusDays(15)
 

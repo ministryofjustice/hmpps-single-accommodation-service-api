@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2SuitableStatusRule : Rule {
-  override val description = "FAIL if candidate has an unsuitable status"
+  override val description = "FAIL if person has an unsuitable status"
 
   override fun evaluate(data: DomainData): RuleResult {
     val unsuitableStatuses = listOf(

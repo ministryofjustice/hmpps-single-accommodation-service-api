@@ -14,10 +14,10 @@ import java.time.LocalDate
 
 class InPrisonNoReleaseDateRuleTest {
   private val rule = InPrisonNoReleaseDateRule()
-  private val description = "FAIL if the individual is in Prison and has no currentAccommodationEndDate"
+  private val description = "FAIL if person is in Prison and has no currentAccommodationEndDate"
 
   @Test
-  fun `individual in prison without a release date fails`() {
+  fun `person in prison without a release date fails`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true),
       currentAccommodation = buildAccommodationSummaryDto(
@@ -36,7 +36,7 @@ class InPrisonNoReleaseDateRuleTest {
   }
 
   @Test
-  fun `individual in prison with a release date passes`() {
+  fun `person in prison with a release date passes`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true),
       currentAccommodation = buildAccommodationSummaryDto(
@@ -51,7 +51,7 @@ class InPrisonNoReleaseDateRuleTest {
   }
 
   @Test
-  fun `individual not in prison without an accommodation end date passes`() {
+  fun `person not in prison without an accommodation end date passes`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrison = false),
       currentAccommodation = buildAccommodationSummaryDto(endDate = null),
@@ -63,14 +63,14 @@ class InPrisonNoReleaseDateRuleTest {
   }
 
   @Test
-  fun `individual without current accommodation passes`() {
+  fun `person without current accommodation passes`() {
     assertThat(rule.evaluate(buildDomainData(currentAccommodation = null))).isEqualTo(
       RuleResult(description = description, ruleStatus = RuleStatus.PASS),
     )
   }
 
   @Test
-  fun `individual with missing accommodation type entity passes even with HMP code`() {
+  fun `person with missing accommodation type entity passes even with HMP code`() {
     val data = buildDomainData(
       currentAccommodationTypeEntity = null,
       currentAccommodation = buildAccommodationSummaryDto(
