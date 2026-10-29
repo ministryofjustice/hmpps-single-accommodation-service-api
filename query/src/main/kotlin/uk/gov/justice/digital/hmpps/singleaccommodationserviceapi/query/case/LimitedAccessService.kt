@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
@@ -27,16 +28,14 @@ class LimitedAccessService(
     .filter { it.startsWith(GET_USER_ACCESS) }
     .flatMap { results.getResult<UserCaseAccess>(it)?.access ?: emptyList() }
 
-  fun getLimitedAccessCrns(crns: List<String>, caseAccess: List<CaseAccess>): Set<String> {
-    val accessByCrn = caseAccess.associateBy { it.crn }
-    // probation access control always returns an entry for every crn
-    return crns.filter { crn -> accessByCrn.getValue(crn).let { it.userExcluded || it.userRestricted } }.toSet()
-  }
-
   fun throwIfUserAccessFailed(upstreamFailures: List<UpstreamFailure>) {
     upstreamFailures.firstOrNull { it.callKey.startsWith(GET_USER_ACCESS) }?.let {
       throw UpstreamFailureException(UpstreamFailureTransformer.toUpstreamFailureDto(it))
     }
+  }
+
+  fun getCrnToUserAccess(caseAccess: List<CaseAccess>) = caseAccess.associate {
+    it.crn to if (!it.userRestricted && !it.userExcluded) UserAccess.FULL else UserAccess.LIMITED
   }
 
   private fun getUserAccessCallKey(batchIndex: Int) = GET_USER_ACCESS + batchIndex

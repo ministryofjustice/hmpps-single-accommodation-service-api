@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorCallOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.ErrorDetail
@@ -81,8 +82,15 @@ class LimitedAccessServiceTest {
         CaseAccess(crn = "D444444", userExcluded = true, userRestricted = true),
       )
 
-      val result = limitedAccessService.getLimitedAccessCrns(listOf("A111111", "B222222", "C333333", "D444444"), caseAccess)
-      assertThat(result).containsExactlyInAnyOrder("B222222", "C333333", "D444444")
+      val result = limitedAccessService.getCrnToUserAccess(caseAccess)
+      assertThat(result).containsAllEntriesOf(
+        mapOf(
+          "A111111" to UserAccess.FULL,
+          "B222222" to UserAccess.LIMITED,
+          "C333333" to UserAccess.LIMITED,
+          "D444444" to UserAccess.LIMITED,
+        ),
+      )
     }
   }
 
