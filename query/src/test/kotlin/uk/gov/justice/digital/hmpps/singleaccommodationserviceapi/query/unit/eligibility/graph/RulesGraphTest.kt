@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphEdge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphNodeKind
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphHtmlRenderer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphMarkdownRenderer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphWalker
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.StubContextUpdater
@@ -302,6 +303,31 @@ class RulesGraphTest {
       assertThat(markdown).contains(
         "[`Cas1SuitabilityContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1SuitabilityContextUpdater.kt)",
       )
+    }
+
+    @Test
+    fun `HTML links rules and PASS and FAIL context updaters to GitHub source`() {
+      val root = builder
+        .ruleSet(StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(Cas1ApplicationPresentRule()))))
+        .onPass(builder.confirmed()).applyContextUpdaterOnPass(Cas1SuitabilityContextUpdater())
+        .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(StubContextUpdater())
+        .build()
+      val graph = RulesGraphWalker().walk("EXAMPLE", root)
+      val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
+      val sourcePaths = ruleSetNode.rules.map { it.sourcePath } + listOf(
+        ruleSetNode.onPassContextUpdater?.sourcePath,
+        ruleSetNode.onFailContextUpdater?.sourcePath,
+      )
+
+      val html = RulesGraphHtmlRenderer.render(listOf(graph))
+
+      assertThat(sourcePaths).doesNotContainNull()
+      sourcePaths.forEach { path ->
+        assertThat(html).contains(
+          "https://github.com/ministryofjustice/hmpps-single-accommodation-service-api/blob/main/${path?.removePrefix("../")}",
+        )
+      }
+      assertThat(html).doesNotContain("../query/src/")
     }
 
     @Test

@@ -31,7 +31,7 @@ object RulesGraphHtmlRenderer {
               mapOf(
                 "className" to rule.className,
                 "description" to rule.description,
-                "sourcePath" to rule.sourcePath,
+                "sourcePath" to githubSourceUrl(rule.sourcePath),
               )
             },
             "onPass" to node.onPassContextUpdater?.let(::updaterJson),
@@ -49,9 +49,13 @@ object RulesGraphHtmlRenderer {
     "name" to updater.name,
     "description" to updater.description,
     "kind" to updater.kind.name,
-    "sourcePath" to updater.sourcePath,
+    "sourcePath" to githubSourceUrl(updater.sourcePath),
     "outcomes" to updater.outcomes.values.map(::outcomeJson),
   )
+
+  private fun githubSourceUrl(sourcePath: String?): String? = sourcePath?.let {
+    "https://github.com/ministryofjustice/hmpps-single-accommodation-service-api/blob/main/${it.removePrefix("../")}"
+  }
 
   private fun outcomeJson(result: ServiceResultSpec): Map<String, Any?> = mapOf(
     "status" to result.serviceStatus.name,
