@@ -1,24 +1,22 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 @Component
-class Cas3ApplicationArrivedRule : Rule {
-  override val description = "FAIL if CAS3 application is not arrived"
+class RoshLevelRule : Rule {
+  override val description = "FAIL if candidate has no ROSH level"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isConfirmedBooking = data.cas3Application?.submittedApplication?.latestBooking?.status == Cas3BookingStatus.ARRIVED
-
-    val ruleStatus = if (isConfirmedBooking) RuleStatus.PASS else RuleStatus.FAIL
-
+    val isFail = data.roshLevel == null
     return RuleResult(
       description = description,
-      ruleStatus = ruleStatus,
+      ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
+      failureReason = if (isFail) FailureReason.HAS_NO_ROSH_LEVEL else null,
     )
   }
 }

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain
 
+import io.mockk.every
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
@@ -22,9 +23,10 @@ class DecisionTreeBuilderTest {
   @Test
   fun `ruleSet creates and returns RuleSetNodeBuilder`() {
     val ruleSet: RuleSet = mockk()
+    every { ruleSet.name } returns "TestRuleSet"
     val builder = DecisionTreeBuilder(engine)
 
-    val result = builder.ruleSet("TestRuleSet", ruleSet)
+    val result = builder.ruleSet(ruleSet)
 
     assertThat(result).isInstanceOf(RuleSetNodeBuilder::class.java)
   }
@@ -34,10 +36,10 @@ class DecisionTreeBuilderTest {
     val builder = DecisionTreeBuilder(engine)
     val expectedResult = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
 
-    assertThat(builder.confirmed().name).isEqualTo("return current status")
-    assertThat(builder.notEligible(ServiceType.CAS1).name).isEqualTo("return status CAS1_NOT_ELIGIBLE")
-    assertThat(builder.notRequired(ServiceType.DTR).name).isEqualTo("return status DTR_NOT_REQUIRED")
-    assertThat(builder.outcome("placementBooked", expectedResult).name).isEqualTo("return status CAS1_PLACEMENT_BOOKED")
+    assertThat(builder.confirmed().name).isEqualTo("current status")
+    assertThat(builder.notEligible(ServiceType.CAS1).name).isEqualTo("Not Eligible")
+    assertThat(builder.notRequired(ServiceType.DTR).name).isEqualTo("Not Required")
+    assertThat(builder.outcome(expectedResult).name).isEqualTo("Placement Booked")
   }
 
   @Test
@@ -48,7 +50,7 @@ class DecisionTreeBuilderTest {
       )
     val builder = DecisionTreeBuilder(engine)
 
-    val result = builder.outcome("placementBooked", expectedResult)
+    val result = builder.outcome(expectedResult)
 
     assertThat(result).isInstanceOf(OutcomeNode::class.java)
     // Verify it returns the fixed result

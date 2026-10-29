@@ -16,5 +16,7 @@ class Cas2EligibilityPersonRuleSet(
     PrioritisedRule(sexualOffenceRegistrations, 0),
   )
 
+  override val name: String = "Eligibility Person"
+
   override fun getRules(): List<PrioritisedRule> = rules
 }

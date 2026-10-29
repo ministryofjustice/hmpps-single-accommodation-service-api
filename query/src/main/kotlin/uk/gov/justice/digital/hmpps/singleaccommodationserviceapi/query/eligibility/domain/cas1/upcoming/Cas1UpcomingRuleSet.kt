@@ -9,5 +9,6 @@ class Cas1UpcomingRuleSet(
   releaseWithinTwentyEightWeeksRule: ReleaseWithinTwentyEightWeeksRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(releaseWithinTwentyEightWeeksRule))
+  override val name: String = "Upcoming"
   override fun getRules(): List<PrioritisedRule> = rules
 }

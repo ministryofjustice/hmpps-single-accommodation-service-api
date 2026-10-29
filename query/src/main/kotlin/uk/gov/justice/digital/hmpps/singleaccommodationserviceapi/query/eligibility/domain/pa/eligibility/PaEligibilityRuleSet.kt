@@ -10,5 +10,6 @@ class PaEligibilityRuleSet(
   cas3ApplicationNotSuitableRule: Cas3ApplicationNotSuitableRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(cas1ApplicationNotSuitableRule, 0), PrioritisedRule(cas3ApplicationNotSuitableRule, 0))
+  override val name: String = "Eligibility"
   override fun getRules(): List<PrioritisedRule> = rules
 }

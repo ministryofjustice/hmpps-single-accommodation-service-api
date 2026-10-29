@@ -44,30 +44,29 @@ class CrsEligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notRequired = builder.notRequired(ServiceType.CRS)
     val submitted = builder.outcome(
-      "submitted",
       ServiceResultNew(serviceStatus = ServiceStatusNew.CRS_SUBMITTED, url = url),
     )
 
     val eligibilityNextAccommodationNode = builder
-      .ruleSet("CrsEligibilityNextAccommodation", eligibilityNextAccommodation)
+      .ruleSet(eligibilityNextAccommodation)
       .onPass(confirmed)
-      .onFail(notRequired).propagateContextOnFailure()
+      .onFail(notRequired)
       .build()
 
     val eligibilitySettledNode = builder
-      .ruleSet("CrsEligibilitySettled", eligibilitySettled)
+      .ruleSet(eligibilitySettled)
       .onPass(eligibilityNextAccommodationNode)
-      .onFail(notRequired).propagateContextOnFailure()
+      .onFail(notRequired)
       .build()
 
     val completionNode = builder
-      .ruleSet("CrsCompletion", completion)
+      .ruleSet(completion)
       .onPass(submitted)
       .onFail(eligibilitySettledNode).applyContextUpdaterOnFailure(completionContextUpdater)
       .build()
 
     return builder
-      .ruleSet("CrsUpcoming", upcoming)
+      .ruleSet(upcoming)
       .onPass(completionNode)
       .onFail(eligibilitySettledNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()

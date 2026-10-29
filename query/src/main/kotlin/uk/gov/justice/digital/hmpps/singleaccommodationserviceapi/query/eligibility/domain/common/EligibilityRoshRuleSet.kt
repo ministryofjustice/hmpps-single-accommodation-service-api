@@ -1,17 +1,17 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 
 @Component
-class Cas2CompletionRuleSet(
-  applicationAwaitingArrival: Cas2ApplicationAwaitingArrivalRule,
-  arrivedRule: Cas2ApplicationArrivedRule,
+class EligibilityRoshRuleSet(
+  roshLevel: RoshLevelRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(
-    PrioritisedRule(applicationAwaitingArrival),
-    PrioritisedRule(arrivedRule),
+    PrioritisedRule(roshLevel, 2),
   )
+  override val name: String = "Eligibility Rosh"
+
   override fun getRules(): List<PrioritisedRule> = rules
 }

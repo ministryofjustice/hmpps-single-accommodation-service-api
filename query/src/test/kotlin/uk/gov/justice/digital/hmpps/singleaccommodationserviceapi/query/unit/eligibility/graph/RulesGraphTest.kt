@@ -1,13 +1,18 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.graph
+
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
@@ -19,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphEdge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphNodeKind
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphHtmlRenderer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphMarkdownRenderer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphWalker
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.StubContextUpdater
@@ -31,12 +37,54 @@ class RulesGraphTest {
 
   @Nested
   inner class WalkerTests {
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `terminal context updater ends its branch as an outcome`(onPass: Boolean) {
+      val updater = object : ContextUpdater() {
+        override val terminalNode = true
+        override val description = "Terminal updater"
+        override fun toServiceResult(context: EvaluationContext) = ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED)
+      }
+      val hidden = builder.notEligible(ServiceType.CAS1)
+      val confirmed = builder.confirmed()
+      val rootBuilder = builder
+        .ruleSet(StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(StubRule("example")))))
+      val root = if (onPass) {
+        rootBuilder
+          .onPass(hidden).applyContextUpdaterOnPass(updater)
+          .onFail(confirmed).propagateContextOnFailure()
+          .build()
+      } else {
+        rootBuilder
+          .onPass(confirmed)
+          .onFail(hidden).applyContextUpdaterOnFailure(updater)
+          .build()
+      }
+
+      val graph = RulesGraphWalker().walk("EXAMPLE", root)
+
+      val updaterNode = graph.nodes.single { it.title == updater.description }
+      assertThat(updaterNode.kind).isEqualTo(GraphNodeKind.OUTCOME)
+
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
+      assertThat(markdown).containsPattern("(?m)^ {2}class (.*,)?${updaterNode.id}(,.*)? outcomeNode$")
+      assertThat(graph.nodes.map { it.title }).containsExactlyInAnyOrder(
+        "ExampleEligibility",
+        "Terminal updater",
+        "current status",
+      )
+      assertThat(graph.edges).containsExactlyInAnyOrder(
+        GraphEdge("ExampleEligibility", updaterNode.id, if (onPass) "PASS" else "FAIL"),
+        GraphEdge("ExampleEligibility", "confirmed", if (onPass) "FAIL" else "PASS"),
+      )
+    }
+
     @Test
     fun `walk records PASS and FAIL edges and rules on RuleSet nodes`() {
       val pass = builder.confirmed()
       val fail = builder.notEligible(ServiceType.CAS1)
       val root = builder
-        .ruleSet("ExampleEligibility", StubRuleSet(listOf(PrioritisedRule(StubRule("FAIL if example")))))
+        .ruleSet(StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(StubRule("FAIL if example")))))
         .onPass(pass)
         .onFail(fail).propagateContextOnFailure()
         .build()
@@ -46,12 +94,12 @@ class RulesGraphTest {
       assertThat(graph.treeName).isEqualTo("EXAMPLE")
       assertThat(graph.nodes.map { it.title }).containsExactlyInAnyOrder(
         "ExampleEligibility",
-        "return current status",
-        "return status CAS1_NOT_ELIGIBLE",
+        "current status",
+        "Not Eligible",
       )
       assertThat(graph.edges.map { "${it.from}->${it.label}->${it.to}" }).containsExactlyInAnyOrder(
-        "ExampleEligibility->PASS->return_current_status",
-        "ExampleEligibility->FAIL->return_status_CAS1_NOT_ELIGIBLE",
+        "ExampleEligibility->PASS->confirmed",
+        "ExampleEligibility->FAIL->CAS1_NOT_ELIGIBLE",
       )
       val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
       assertThat(ruleSetNode.rules).extracting<String> { it.className }.containsExactly("StubRule")
@@ -62,8 +110,7 @@ class RulesGraphTest {
     fun `walk records source paths from each class package`() {
       val root = builder
         .ruleSet(
-          "ExampleEligibility",
-          StubRuleSet(listOf(PrioritisedRule(Cas1ApplicationPresentRule()), PrioritisedRule(CrsSubmittedRule()))),
+          StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(Cas1ApplicationPresentRule()), PrioritisedRule(CrsSubmittedRule()))),
         )
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1SuitabilityContextUpdater())
@@ -85,20 +132,20 @@ class RulesGraphTest {
     fun `shared outcome is a single node with two incoming edges`() {
       val confirmed = builder.confirmed()
       val eligibility = builder
-        .ruleSet("Eligibility", StubRuleSet(listOf(PrioritisedRule(StubRule("eligible")))))
+        .ruleSet(StubRuleSet(name = "Eligibility", rules = listOf(PrioritisedRule(StubRule("eligible")))))
         .onPass(confirmed)
         .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
       val upcoming = builder
-        .ruleSet("Upcoming", StubRuleSet(listOf(PrioritisedRule(StubRule("upcoming")))))
+        .ruleSet(StubRuleSet(name = "Upcoming", rules = listOf(PrioritisedRule(StubRule("upcoming")))))
         .onPass(confirmed)
         .onFail(eligibility).applyContextUpdaterOnFailure(StubContextUpdater())
         .build()
 
       val graph = RulesGraphWalker().walk("SHARED", upcoming)
 
-      assertThat(graph.nodes.filter { it.title == "return current status" }).hasSize(1)
-      val confirmedId = graph.nodes.single { it.title == "return current status" }.id
+      assertThat(graph.nodes.filter { it.title == "current status" }).hasSize(1)
+      val confirmedId = graph.nodes.single { it.title == "current status" }.id
       assertThat(graph.edges.filter { it.to == confirmedId && it.label == "PASS" }).hasSize(2)
     }
 
@@ -106,14 +153,14 @@ class RulesGraphTest {
     fun `continueWith emits PASS and FAIL to the same node`() {
       val confirmed = builder.confirmed()
       val upcoming = builder
-        .ruleSet("Upcoming", StubRuleSet(listOf(PrioritisedRule(StubRule("window")))))
+        .ruleSet(StubRuleSet(name = "Upcoming", rules = listOf(PrioritisedRule(StubRule("window")))))
         .onPassAndFail(confirmed).propagateContextOnFailure()
         .build()
 
       val graph = RulesGraphWalker().walk("DTR", upcoming)
 
       val upcomingId = graph.nodes.single { it.title == "Upcoming" }.id
-      val confirmedId = graph.nodes.single { it.title == "return current status" }.id
+      val confirmedId = graph.nodes.single { it.title == "current status" }.id
       assertThat(graph.edges).containsExactlyInAnyOrder(
         GraphEdge(
           upcomingId,
@@ -133,8 +180,9 @@ class RulesGraphTest {
       val confirmed = builder.confirmed()
       val upcoming = builder
         .ruleSet(
-          "Upcoming",
           StubRuleSet(
+            name = "Upcoming",
+            rules =
             listOf(PrioritisedRule(StubRule("window"))),
           ),
         )
@@ -145,8 +193,9 @@ class RulesGraphTest {
       val graph = RulesGraphWalker().walk("DTR", upcoming)
 
       val upcomingId = graph.nodes.single { it.title == "Upcoming" }.id
-      val contextUpdaterId = graph.nodes.single { it.title == "Set CAS1_NOT_STARTED" }.id
-      val confirmedId = graph.nodes.single { it.title == "return current status" }.id
+      val contextUpdaterId = graph.nodes.single { it.title == "Set current status to Not Started" }.id
+      assertThat(graph.nodes.single { it.id == contextUpdaterId }.kind).isEqualTo(GraphNodeKind.CONTEXT_UPDATER)
+      val confirmedId = graph.nodes.single { it.title == "current status" }.id
       assertThat(graph.edges).containsExactlyInAnyOrder(
         GraphEdge(
           upcomingId,
@@ -170,7 +219,7 @@ class RulesGraphTest {
     fun `add fail context updater if not identity`() {
       val confirmed = builder.confirmed()
       val upcoming = builder
-        .ruleSet("Upcoming", StubRuleSet(listOf(PrioritisedRule(StubRule("window")))))
+        .ruleSet(StubRuleSet(name = "Upcoming", rules = listOf(PrioritisedRule(StubRule("window")))))
         .onPassAndFail(confirmed)
         .setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED))
         .build()
@@ -178,8 +227,9 @@ class RulesGraphTest {
       val graph = RulesGraphWalker().walk("DTR", upcoming)
 
       val upcomingId = graph.nodes.single { it.title == "Upcoming" }.id
-      val contextUpdaterId = graph.nodes.single { it.title == "Set CAS1_NOT_STARTED" }.id
-      val confirmedId = graph.nodes.single { it.title == "return current status" }.id
+      val contextUpdaterId = graph.nodes.single { it.title == "Set current status to Not Started" }.id
+      assertThat(graph.nodes.single { it.id == contextUpdaterId }.kind).isEqualTo(GraphNodeKind.CONTEXT_UPDATER)
+      val confirmedId = graph.nodes.single { it.title == "current status" }.id
       assertThat(graph.edges).containsExactlyInAnyOrder(
         GraphEdge(
           upcomingId,
@@ -206,7 +256,7 @@ class RulesGraphTest {
     @Test
     fun `render includes mermaid nodes, edges and rule catalogue`() {
       val root = builder
-        .ruleSet("ExampleEligibility", StubRuleSet(listOf(PrioritisedRule(StubRule("FAIL if example")))))
+        .ruleSet(StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(StubRule("FAIL if example")))))
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
@@ -215,9 +265,17 @@ class RulesGraphTest {
 
       assertThat(markdown).contains("## EXAMPLE")
       assertThat(markdown).contains("flowchart TD")
-      assertThat(markdown).contains("ExampleEligibility(\"ExampleEligibility (1)")
-      assertThat(markdown).contains("ExampleEligibility -->|PASS| return_current_status")
-      assertThat(markdown).contains("ExampleEligibility -->|FAIL| return_status_CAS1_NOT_ELIGIBLE")
+      assertThat(markdown).contains("ExampleEligibility(\"<div style='text-align:left'>FAIL if example</div>\")")
+      assertThat(markdown).contains("ExampleEligibility -->|PASS| confirmed")
+      assertThat(markdown).contains("ExampleEligibility -->|FAIL| CAS1_NOT_ELIGIBLE")
+      assertThat(markdown).contains("linkStyle 0 stroke:green,stroke-width:2px")
+      assertThat(markdown).contains("linkStyle 1 stroke:red,stroke-width:2px")
+      assertThat(markdown).contains("CAS1_NOT_ELIGIBLE[\"<b>Not Eligible</b>\"]")
+      assertThat(markdown).contains("classDef ruleSetNode fill:#FFF8E1")
+      assertThat(markdown).contains("classDef outcomeNode fill:#DCEEFB")
+      assertThat(markdown).contains("classDef updaterNode fill:#EDE7F6")
+      assertThat(markdown).contains("class ExampleEligibility ruleSetNode")
+      assertThat(markdown).contains("class confirmed,CAS1_NOT_ELIGIBLE outcomeNode")
       assertThat(markdown).doesNotContain("_onFail")
       assertThat(markdown).doesNotContain("[ExampleEligibility](#EXAMPLE-ExampleEligibility)")
       assertThat(markdown).containsPattern("(?m)^.*`StubRule`.*: FAIL if example")
@@ -229,8 +287,7 @@ class RulesGraphTest {
     fun `render links to source files using each class package`() {
       val root = builder
         .ruleSet(
-          "ExampleEligibility",
-          StubRuleSet(listOf(PrioritisedRule(Cas1ApplicationPresentRule()), PrioritisedRule(CrsSubmittedRule()))),
+          StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(Cas1ApplicationPresentRule()), PrioritisedRule(CrsSubmittedRule()))),
         )
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1SuitabilityContextUpdater())
@@ -249,16 +306,42 @@ class RulesGraphTest {
     }
 
     @Test
+    fun `HTML links rules and PASS and FAIL context updaters to GitHub source`() {
+      val root = builder
+        .ruleSet(StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(Cas1ApplicationPresentRule()))))
+        .onPass(builder.confirmed()).applyContextUpdaterOnPass(Cas1SuitabilityContextUpdater())
+        .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(StubContextUpdater())
+        .build()
+      val graph = RulesGraphWalker().walk("EXAMPLE", root)
+      val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
+      val sourcePaths = ruleSetNode.rules.map { it.sourcePath } + listOf(
+        ruleSetNode.onPassContextUpdater?.sourcePath,
+        ruleSetNode.onFailContextUpdater?.sourcePath,
+      )
+
+      val html = RulesGraphHtmlRenderer.render(listOf(graph))
+
+      assertThat(sourcePaths).doesNotContainNull()
+      sourcePaths.forEach { path ->
+        assertThat(html).contains(
+          "https://github.com/ministryofjustice/hmpps-single-accommodation-service-api/blob/main/${path?.removePrefix("../")}",
+        )
+      }
+      assertThat(html).doesNotContain("../query/src/")
+    }
+
+    @Test
     fun `render lists named PASS context updater below the diagram and in the catalogue`() {
       val root = builder
-        .ruleSet("Upcoming", StubRuleSet(listOf(PrioritisedRule(StubRule("window")))))
+        .ruleSet(StubRuleSet(name = "Upcoming", rules = listOf(PrioritisedRule(StubRule("window")))))
         .onPass(builder.confirmed()).applyContextUpdaterOnPass(StubContextUpdater())
         .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
       val graph = RulesGraphWalker().walk("EXAMPLE", root)
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
 
-      assertThat(markdown).contains("Upcoming -->|PASS| Set_current_status_to_one_of_")
+      assertThat(markdown).contains("Upcoming -->|PASS| updater_StubContextUpdater")
+      assertThat(markdown).contains("class updater_StubContextUpdater updaterNode")
       assertThat(markdown).doesNotContain(")onPass")
       assertThat(markdown).doesNotContain("[`StubContextUpdater`](#stubcontextupdater)")
       assertThat(markdown).contains("Used by: Upcoming (EXAMPLE)")
@@ -267,14 +350,14 @@ class RulesGraphTest {
     @Test
     fun `render lists named FAIL context updater below the diagram and in the catalogue`() {
       val root = builder
-        .ruleSet("Upcoming", StubRuleSet(listOf(PrioritisedRule(StubRule("window")))))
+        .ruleSet(StubRuleSet(name = "Upcoming", rules = listOf(PrioritisedRule(StubRule("window")))))
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(StubContextUpdater())
         .build()
       val graph = RulesGraphWalker().walk("EXAMPLE", root)
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
 
-      assertThat(markdown).contains("Upcoming -->|FAIL| Set_current_status_to_one_of_")
+      assertThat(markdown).contains("Upcoming -->|FAIL| updater_StubContextUpdater")
       assertThat(markdown).doesNotContain("_onFail")
       assertThat(markdown).doesNotContain("[`StubContextUpdater`](#stubcontextupdater)")
       assertThat(markdown).contains("Used by: Upcoming (EXAMPLE)")
@@ -284,17 +367,16 @@ class RulesGraphTest {
     fun `render describes constant FAIL updater without a mermaid node`() {
       val root = builder
         .ruleSet(
-          "PaCompletion",
-          StubRuleSet(listOf(PrioritisedRule(StubRule("complete")))),
+          StubRuleSet(name = "PaCompletion", rules = listOf(PrioritisedRule(StubRule("complete")))),
         )
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED))
         .build()
       val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker().walk("PA", root)))
 
-      assertThat(markdown).contains("PaCompletion -->|FAIL| Set_CAS1_NOT_STARTED")
+      assertThat(markdown).contains("PaCompletion -->|FAIL| updater_constant_CAS1_NOT_STARTED")
       assertThat(markdown).doesNotContain("_onFail")
-      assertThat(markdown).contains("- FAIL: Set CAS1_NOT_STARTED")
+      assertThat(markdown).contains("- FAIL: Set current status to Not Started")
       assertThat(markdown).contains("Used by: PaCompletion (PA)")
       assertThat(markdown).contains("| CAS1_NOT_STARTED | START_APPROVED_PREMISE_APPLICATION (CAS1) | CAS1_START_APPLICATION |")
     }
@@ -306,7 +388,7 @@ class RulesGraphTest {
         override fun evaluate(data: DomainData) = RuleResult(description, RuleStatus.PASS)
       }
       val root = builder
-        .ruleSet("Named", StubRuleSet(listOf(PrioritisedRule(anonymous))))
+        .ruleSet(StubRuleSet(name = "Named", rules = listOf(PrioritisedRule(anonymous))))
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
@@ -317,13 +399,61 @@ class RulesGraphTest {
     }
 
     @Test
+    fun `distinct outcome statuses sharing a UI label get distinct node ids`() {
+      val notStarted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED))
+      val notStartedNew = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED_NEW))
+      val root = builder
+        .ruleSet(StubRuleSet(name = "Root", rules = listOf(PrioritisedRule(StubRule("root")))))
+        .onPass(notStarted)
+        .onFail(notStartedNew)
+        .build()
+
+      val graph = RulesGraphWalker().walk("SHARED_LABEL", root)
+
+      val outcomes = graph.nodes.filter { it.kind == GraphNodeKind.OUTCOME }
+      assertThat(outcomes.map { it.title }).containsExactly("Not Started", "Not Started")
+      assertThat(outcomes.map { it.id }).containsExactly("CAS3_NOT_STARTED", "CAS3_NOT_STARTED_NEW")
+      assertThat(graph.edges).containsExactlyInAnyOrder(
+        GraphEdge("Root", "CAS3_NOT_STARTED", "PASS"),
+        GraphEdge("Root", "CAS3_NOT_STARTED_NEW", "FAIL"),
+      )
+    }
+
+    @Test
+    fun `constant updaters for distinct statuses sharing a UI label get distinct node ids`() {
+      val confirmed = builder.confirmed()
+      val root = builder
+        .ruleSet(StubRuleSet(name = "Root", rules = listOf(PrioritisedRule(StubRule("root")))))
+        .onPassAndFail(confirmed)
+        .applyContextUpdaterOnPass(ContextUpdater.constant(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED)))
+        .setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED_NEW))
+        .build()
+
+      val graph = RulesGraphWalker().walk("SHARED_LABEL", root)
+
+      val updaters = graph.nodes.filter { it.kind == GraphNodeKind.CONTEXT_UPDATER }
+      assertThat(updaters.map { it.title }).containsOnly("Set current status to Not Started").hasSize(2)
+      assertThat(updaters.map { it.id }).containsExactly(
+        "updater_constant_CAS3_NOT_STARTED",
+        "updater_constant_CAS3_NOT_STARTED_NEW",
+      )
+      assertThat(graph.edges).containsExactlyInAnyOrder(
+        GraphEdge("Root", "updater_constant_CAS3_NOT_STARTED", "PASS"),
+        GraphEdge("updater_constant_CAS3_NOT_STARTED", "confirmed", "PASS"),
+        GraphEdge("Root", "updater_constant_CAS3_NOT_STARTED_NEW", "FAIL"),
+        GraphEdge("updater_constant_CAS3_NOT_STARTED_NEW", "confirmed", "FAIL"),
+      )
+    }
+
+    @Test
     fun `duplicate node names fail the walk`() {
       val confirmed = builder.confirmed()
       val notEligible = builder.notEligible(ServiceType.CAS1)
       val first = builder
         .ruleSet(
-          "Same",
           StubRuleSet(
+            name = "Same",
+            rules =
             listOf(
               PrioritisedRule(StubRule("first")),
             ),
@@ -333,7 +463,7 @@ class RulesGraphTest {
         .onFail(notEligible).propagateContextOnFailure()
         .build()
       val root = builder
-        .ruleSet("Same", StubRuleSet(listOf(PrioritisedRule(StubRule("second")))))
+        .ruleSet(StubRuleSet(name = "Same", rules = listOf(PrioritisedRule(StubRule("second")))))
         .onPass(first)
         .onFail(notEligible).propagateContextOnFailure()
         .build()

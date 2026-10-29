@@ -29,20 +29,20 @@ class PaEligibilityTreeProvider(
   )
 
   private fun build(): DecisionNode {
-    val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.PA)
-    val completed = builder.outcome("completed", ServiceResultNew(serviceStatus = ServiceStatusNew.PA_COMPLETED))
+    val completed = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.PA_COMPLETED))
+    val notStarted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.PA_NOT_STARTED))
 
     val eligibilityNode = builder
-      .ruleSet("PaEligibility", eligibility)
-      .onPass(confirmed)
-      .onFail(notEligible).propagateContextOnFailure()
+      .ruleSet(eligibility)
+      .onPass(notStarted)
+      .onFail(notEligible)
       .build()
 
     return builder
-      .ruleSet("PaCompletion", completion)
+      .ruleSet(completion)
       .onPass(completed)
-      .onFail(eligibilityNode).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.PA_NOT_STARTED))
+      .onFail(eligibilityNode)
       .build()
   }
 }

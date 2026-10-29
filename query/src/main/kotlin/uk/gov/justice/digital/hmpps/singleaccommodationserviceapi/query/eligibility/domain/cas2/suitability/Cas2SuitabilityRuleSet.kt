@@ -10,5 +10,6 @@ class Cas2SuitabilityRuleSet(
   suitableStatus: Cas2SuitableStatusRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(applicationSubmitted), PrioritisedRule(suitableStatus))
+  override val name: String = "Suitability"
   override fun getRules(): List<PrioritisedRule> = rules
 }

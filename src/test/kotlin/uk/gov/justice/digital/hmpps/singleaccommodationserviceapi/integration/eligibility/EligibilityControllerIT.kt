@@ -40,6 +40,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -64,6 +65,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
@@ -159,6 +161,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
   @Test
   fun `should get eligibility for crn`() {
     val tier = buildTier("A")
+    ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
     val premises = buildCas1PremisesSummary(
       startDate = LocalDate.now(),
       endDate = LocalDate.now(),
@@ -341,6 +344,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
   fun `should get eligibility for cas 3 blocking reason`() {
     // eligible for CAS2 but not CAS1
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "E"))
+    ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
 
     val entity = buildCaseEntity(
       id = dutyToReferCaseId,

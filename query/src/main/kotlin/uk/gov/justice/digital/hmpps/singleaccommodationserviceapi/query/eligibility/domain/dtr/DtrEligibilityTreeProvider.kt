@@ -9,9 +9,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
@@ -22,7 +21,6 @@ class DtrEligibilityTreeProvider(
   private val upcoming: DtrUpcomingRuleSet,
   private val upcomingContextUpdater: DtrUpcomingContextUpdater,
   private val suitability: DtrSuitabilityRuleSet,
-  private val completion: DtrCompletionRuleSet,
   private val completionContextUpdater: DtrCompletionContextUpdater,
   private val eligibility: DtrEligibilityRuleSet,
 ) : EligibilityTreeProvider {
@@ -39,34 +37,29 @@ class DtrEligibilityTreeProvider(
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
     val notRequired = builder.notRequired(ServiceType.DTR)
-    val accepted = builder.outcome("accepted", ServiceResultNew(ServiceStatusNew.DTR_ACCEPTED))
-
-    val completionNode = builder
-      .ruleSet("DtrCompletion", completion)
-      .onPass(accepted)
-      .onFail(confirmed).applyContextUpdaterOnFailure(completionContextUpdater)
-      .build()
+    val notStarted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_STARTED))
 
     // runs when the person is eligible (no next accommodation) and has no active referral
     val upcomingNode = builder
-      .ruleSet("DtrUpcoming", upcoming)
+      .ruleSet(upcoming)
       .applyContextUpdaterOnFailure(upcomingContextUpdater)
-      .onPassAndFail(confirmed)
+      .onPass(notStarted)
+      .onFail(confirmed)
       .build()
 
     //  has next accommodation to produce NOT_REQUIRED
     val eligibilityNode = builder
-      .ruleSet("DtrEligibility", eligibility)
+      .ruleSet(eligibility)
       .onPass(upcomingNode)
-      .onFail(notRequired).propagateContextOnFailure()
+      .onFail(notRequired)
       .build()
 
     // runs when there is an active referral
     // we dont care about the 8 week release window - surface the referral
     return builder
-      .ruleSet("DtrSuitability", suitability)
-      .onPass(completionNode)
-      .onFail(eligibilityNode).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_STARTED))
+      .ruleSet(suitability)
+      .onPass(confirmed).applyContextUpdaterOnPass(completionContextUpdater)
+      .onFail(eligibilityNode)
       .build()
   }
 }

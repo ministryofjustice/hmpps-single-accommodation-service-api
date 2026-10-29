@@ -12,5 +12,6 @@ class Cas3PrerequisiteRuleSet(
   crsSubmittedRuleNonMale: CrsSubmittedRuleNonMale,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(dtrExpiredReferral, 0), PrioritisedRule(crsSubmittedRuleMale, 0), PrioritisedRule(crsSubmittedRuleNonMale, 0))
+  override val name: String = "Prerequisite"
   override fun getRules(): List<PrioritisedRule> = rules
 }

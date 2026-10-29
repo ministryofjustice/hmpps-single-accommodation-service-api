@@ -127,16 +127,15 @@ class RuleSetNodeBuilderTest {
   }
 
   @Test
-  fun `build throws exception when no failure outcome (context updater) set`() {
+  fun `build allows no failure context updater`() {
     val nextNode: DecisionNode = OutcomeNode { _ ->
       buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
     }
 
-    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, engine)
+    val node = RuleSetNodeBuilder(ruleSetName, ruleSet, engine)
       .onPass(nextNode).onFail(nextNode)
+      .build()
 
-    assertThatThrownBy { builder.build() }
-      .isInstanceOf(IllegalArgumentException::class.java)
-      .hasMessage("contextUpdater required for RuleSetNode TestRuleSet (set a failure action)")
+    assertThat(node.onFailContextUpdater).isNull()
   }
 }

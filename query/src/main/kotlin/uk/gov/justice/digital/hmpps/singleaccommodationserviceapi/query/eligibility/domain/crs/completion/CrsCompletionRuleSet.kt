@@ -9,5 +9,6 @@ class CrsCompletionRuleSet(
   crsSubmitted: CrsSubmittedRule,
 ) : RuleSet {
   private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(crsSubmitted))
+  override val name: String = "Completion"
   override fun getRules(): List<PrioritisedRule> = rules
 }

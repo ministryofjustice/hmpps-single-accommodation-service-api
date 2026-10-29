@@ -27,8 +27,6 @@ class WebClientRetryIT : IntegrationTestBase() {
   @Autowired
   private lateinit var approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService
 
-  private val username = "TEST_USER"
-
   @BeforeEach
   fun setup() {
     HmppsAuthStubs.stubGrantToken()
@@ -43,7 +41,7 @@ class WebClientRetryIT : IntegrationTestBase() {
       val expectedCase = buildCase(crn = crn)
 
       sasWiremock.stubFor(
-        WireMock.get(WireMock.urlPathEqualTo("/case/$username/$crn"))
+        WireMock.get(WireMock.urlPathEqualTo("/case/$crn"))
           .inScenario(scenario)
           .whenScenarioStateIs(STARTED)
           .willReturn(WireMock.serverError())
@@ -51,29 +49,29 @@ class WebClientRetryIT : IntegrationTestBase() {
       )
 
       sasWiremock.stubFor(
-        WireMock.get(WireMock.urlPathEqualTo("/case/$username/$crn"))
+        WireMock.get(WireMock.urlPathEqualTo("/case/$crn"))
           .inScenario(scenario)
           .whenScenarioStateIs("success")
           .willReturn(WireMock.okJson(jsonMapper.writeValueAsString(expectedCase))),
       )
 
-      val result = sasAndDeliusCachingService.getCase(username, crn)
+      val result = sasAndDeliusCachingService.getCase(crn)
 
       assertThat(result.crn).isEqualTo(crn)
       sasWiremock.verify(
         2,
         WireMock.getRequestedFor(
-          WireMock.urlPathEqualTo("/case/$username/$crn"),
+          WireMock.urlPathEqualTo("/case/$crn"),
         ),
       )
     }
 
     @Test
     fun `should fail after 3 attempts when getCase fails all times`() {
-      SasAndDeliusStubs.stubGetCaseFailure(username, "crn")
+      SasAndDeliusStubs.stubGetCaseFailure("crn")
 
       val error = assertThrows<WebClientResponseException> {
-        sasAndDeliusCachingService.getCase(username, "crn")
+        sasAndDeliusCachingService.getCase("crn")
       }
 
       assertThat(error.statusCode.value()).isEqualTo(500)
@@ -81,7 +79,7 @@ class WebClientRetryIT : IntegrationTestBase() {
       sasWiremock.verify(
         3,
         WireMock.getRequestedFor(
-          WireMock.urlPathEqualTo("/case/$username/crn"),
+          WireMock.urlPathEqualTo("/case/crn"),
         ),
       )
     }

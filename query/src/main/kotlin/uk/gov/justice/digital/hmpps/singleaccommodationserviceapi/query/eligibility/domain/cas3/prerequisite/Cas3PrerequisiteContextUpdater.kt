@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3PrerequisiteContextUpdater : ContextUpdater() {
+  override val terminalNode = true
 
   val dtrAndCrsAccommodation = "dtrAndCrsAccommodation"
   val dtrAndCrs = "dtrAndCrs"

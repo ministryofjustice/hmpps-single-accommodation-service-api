@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
@@ -52,10 +53,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
@@ -85,10 +88,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithinTwentyEightWeeksRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2EligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationArrivedRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationAwaitingArrivalRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityCurrentAccommodationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityNextAccommodationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityPersonRuleSet
@@ -101,15 +100,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.SingleLetterTierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Under18Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2ApplicationSubmittedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitableStatusRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationArrivedRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityCurrentAccommodationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityNextAccommodationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
@@ -121,13 +118,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3AssessmentSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3BookingSuitabilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.EligibilityRoshRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.ReleaseWithin15DaysRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RoshLevelRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
@@ -139,10 +139,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrEligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrApplicationCompleteRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrNotWithdrawnRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
@@ -193,6 +191,9 @@ class EligibilityServiceTest {
     MaleRiskEligibilityRule(),
     NonMaleRiskEligibilityRule(),
   )
+  val eligibilityRoshRuleSet = EligibilityRoshRuleSet(
+    RoshLevelRule(),
+  )
   var cas1EligibilityCurrentAccommodationRuleSet = Cas1EligibilityCurrentAccommodationRuleSet(
     CurrentAccommodationIsPrisonOrCas1Rule(),
   )
@@ -203,11 +204,6 @@ class EligibilityServiceTest {
   // CAS2
   var cas2ApplicationStartUrl = "CAS2_APPLICATION_START_URL#crn"
   var cas2CompletionContextUpdater = Cas2CompletionContextUpdater(sentryService)
-
-  var cas2CompletionRuleSet = Cas2CompletionRuleSet(
-    Cas2ApplicationAwaitingArrivalRule(),
-    Cas2ApplicationArrivedRule(),
-  )
   var cas2SuitabilityRuleSet = Cas2SuitabilityRuleSet(Cas2ApplicationSubmittedRule(), Cas2SuitableStatusRule())
   var cas2EligibilityPersonRuleSet = Cas2EligibilityPersonRuleSet(
     Under18Rule(clock),
@@ -241,7 +237,6 @@ class EligibilityServiceTest {
     Cas3BookingSuitabilityRule(),
     Cas3AssessmentSuitabilityRule(),
   )
-  var cas3CompletionRuleSet = Cas3CompletionRuleSet(Cas3ApplicationArrivedRule())
   var cas3EligibilityCurrentAccommodationRuleSet = Cas3EligibilityCurrentAccommodationRuleSet(
     CurrentAccommodationTypeRule(),
   )
@@ -264,7 +259,6 @@ class EligibilityServiceTest {
     DtrExpiredReferralRule(clock),
   )
   var dtrCompletionContextUpdater = DtrCompletionContextUpdater()
-  var dtrCompletionRuleSet = DtrCompletionRuleSet(DtrApplicationCompleteRule())
   var dtrEligibilityRuleSet = DtrEligibilityRuleSet(
     NoNextAccommodationRule(),
   )
@@ -304,6 +298,7 @@ class EligibilityServiceTest {
     completionContextUpdater = cas1CompletionContextUpdater,
     eligibilityTier = cas1EligibilityTierRuleSet,
     eligibilityCurrentAccommodation = cas1EligibilityCurrentAccommodationRuleSet,
+    eligibilityRosh = eligibilityRoshRuleSet,
   )
 
   private val cas2Tree = Cas2EligibilityTreeProvider(
@@ -312,12 +307,12 @@ class EligibilityServiceTest {
     upcomingContextUpdater = cas2UpcomingContextUpdater,
     suitability = cas2SuitabilityRuleSet,
     suitabilityContextUpdater = cas2SuitabilityContextUpdater,
-    completion = cas2CompletionRuleSet,
     completionContextUpdater = cas2CompletionContextUpdater,
     eligibilityPerson = cas2EligibilityPersonRuleSet,
     eligibilityReleaseDate = cas2EligibilityReleaseDateRuleSet,
     eligibilityCurrentAccommodation = cas2EligibilityCurrentAccommodationRuleSet,
     eligibilityNextAccommodation = cas2EligibilityNextAccommodationRuleSet,
+    eligibilityRosh = eligibilityRoshRuleSet,
   )
 
   private val cas3Tree = Cas3EligibilityTreeProvider(
@@ -326,12 +321,12 @@ class EligibilityServiceTest {
     upcomingContextUpdater = cas3UpcomingContextUpdater,
     suitability = cas3SuitabilityRuleSet,
     suitabilityContextUpdater = cas3SuitabilityContextUpdater,
-    completion = cas3CompletionRuleSet,
     completionContextUpdater = cas3CompletionContextUpdater,
     eligibilityCurrentAccommodation = cas3EligibilityCurrentAccommodationRuleSet,
     eligibilityNextAccommodation = cas3EligibilityNextAccommodationRuleSet,
     prerequisite = cas3PrerequisiteRuleSet,
     cas3PrerequisiteContextUpdater = cas3PrerequisiteContextUpdater,
+    eligibilityRosh = eligibilityRoshRuleSet,
   )
 
   private val dtrTree = DtrEligibilityTreeProvider(
@@ -339,7 +334,6 @@ class EligibilityServiceTest {
     upcoming = dtrUpcomingRuleSet,
     upcomingContextUpdater = dtrUpcomingContextUpdater,
     suitability = dtrSuitabilityRuleSet,
-    completion = dtrCompletionRuleSet,
     completionContextUpdater = dtrCompletionContextUpdater,
     eligibility = dtrEligibilityRuleSet,
   )
@@ -422,6 +416,7 @@ class EligibilityServiceTest {
         ),
       )
       val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
+      val roshLevel = buildRoshLevel()
       val dutyToRefer = buildDutyToReferDto(crn, UUID.randomUUID(), DtrStatus.SUBMITTED, submission = null)
       val crs = buildCommissionedRehabilitativeServices(status = CrsReferralStatus.LIVE)
       val prisoner = buildPrisoner()
@@ -439,6 +434,7 @@ class EligibilityServiceTest {
           cas1CurrentPremises = cas1CurrentPremises,
           cas3CurrentPremises = cas3CurrentPremises,
           sexualOffenceRegistrations = registrations,
+          case = buildCase(crn = crn, roshLevel = roshLevel),
         ),
       )
       val caseEntity = buildCaseEntity(id = caseId)
@@ -464,6 +460,7 @@ class EligibilityServiceTest {
         cas3Application = cas3Application,
         commissionedRehabilitativeServices = crs,
         dutyToRefer = dutyToRefer,
+        roshLevel = roshLevel,
         sexualOffenceRegistrations = registrations,
       )
 
@@ -495,6 +492,7 @@ class EligibilityServiceTest {
         cas3CurrentPremises = null,
         prisoner = null,
         sexualOffenceRegistrations = null,
+        case = null,
       )
 
       every { accommodationTypeRepository.findAll() } returns emptyList()
@@ -528,6 +526,7 @@ class EligibilityServiceTest {
           cas1CurrentPremises = null,
           cas3CurrentPremises = null,
           sexualOffenceRegistrations = null,
+          case = null,
         ),
         upstreamFailures = listOf(
           upstreamFailure,
@@ -564,6 +563,7 @@ class EligibilityServiceTest {
               testCaseId = row["testCaseId"]!!,
               description = row["description"],
               referenceDate = row["referenceDate"]!!.toLocalDate(),
+              riskLevel = row["RiskLevel"]?.let { RiskLevel.valueOf(it) },
               sex = row["sex"]?.let { SexCode.valueOf(it) },
               tierScore = row["tierScore"],
               currentAccommodationType = accommodationType,
@@ -634,6 +634,7 @@ class EligibilityServiceTest {
           currentAccommodation = currentAccommodation,
           currentAccommodationTypeEntity = currentAccommodationTypeEntity,
           cas1Application = null,
+          roshLevel = s.riskLevel?.let { buildRoshLevel(code = it.code) },
         )
 
         val result = eligibilityService.evaluate(cas1Tree, data)
@@ -688,6 +689,7 @@ class EligibilityServiceTest {
           ),
           currentAccommodationTypeEntity = buildAccommodationTypeEntity(code = "A02", isCas1 = true),
           cas1Application = cas1Application,
+          roshLevel = buildRoshLevel(code = RiskLevel.LOW.code),
         )
 
         val result = eligibilityService.evaluate(cas1Tree, data)
@@ -732,6 +734,7 @@ class EligibilityServiceTest {
                 testCaseId = row["testCaseId"]!!,
                 description = row["description"],
                 referenceDate = row["referenceDate"]!!.toLocalDate(),
+                riskLevel = row["RiskLevel"]?.let { RiskLevel.valueOf(it) },
                 hasNextAccommodation = row["hasNextAccommodation"]!!,
                 currentAccommodationType = accommodationType,
                 currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
@@ -847,6 +850,7 @@ class EligibilityServiceTest {
           } else {
             null
           },
+          roshLevel = s.riskLevel?.let { buildRoshLevel(code = it.code) },
         )
 
         val result = eligibilityService.evaluate(cas2Tree, data)
@@ -928,6 +932,7 @@ class EligibilityServiceTest {
           dob = LocalDate.now(clock).minusYears(18),
           tierScore = "A",
           sexualOffenceRegistrations = null,
+          roshLevel = buildRoshLevel(code = RiskLevel.LOW.code),
         )
 
         val result = eligibilityService.evaluate(cas2Tree, data)
@@ -1092,6 +1097,7 @@ class EligibilityServiceTest {
                 testCaseId = row["testCaseId"]!!,
                 description = row["description"],
                 referenceDate = row["referenceDate"]!!.toLocalDate(),
+                riskLevel = row["RiskLevel"]?.let { RiskLevel.valueOf(it) },
                 hasNextAccommodation = row["hasNextAccommodation"]!!,
                 currentAccommodationType = accommodationType,
                 currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
@@ -1173,6 +1179,7 @@ class EligibilityServiceTest {
           dutyToRefer = dutyToRefer,
           commissionedRehabilitativeServices = commissionedRehabilitativeServices,
           currentAccommodationTypeEntity = currentAccommodationTypeEntity,
+          roshLevel = buildRoshLevel(code = RiskLevel.LOW.code),
         )
 
         val result = eligibilityService.evaluate(cas3Tree, data)
@@ -1254,6 +1261,7 @@ class EligibilityServiceTest {
           dutyToRefer = dutyToRefer,
           commissionedRehabilitativeServices = commissionedRehabilitativeServices,
           currentAccommodationTypeEntity = currentAccommodationTypeEntity,
+          roshLevel = s.riskLevel?.let { buildRoshLevel(code = it.code) },
         )
 
         val result = eligibilityService.evaluate(cas3Tree, data)
@@ -1504,6 +1512,7 @@ data class Cas1EligibilityScenario(
   val testCaseId: String,
   val description: String?,
   val referenceDate: LocalDate,
+  val riskLevel: RiskLevel?,
   val sex: SexCode?,
   val tierScore: String?,
   val currentAccommodationType: String?,
@@ -1532,6 +1541,7 @@ data class Cas2EligibilityScenario(
   val hasNextAccommodation: String,
   val tierScore: String?,
   val referenceDate: LocalDate,
+  val riskLevel: RiskLevel?,
   val currentAccommodationType: String?,
   val currentAccommodationEndDate: LocalDate?,
   val expectedCas2Status: ServiceStatusNew?,
@@ -1570,6 +1580,7 @@ data class Cas3EligibilityScenario(
   val testCaseId: String,
   val description: String?,
   val referenceDate: LocalDate,
+  val riskLevel: RiskLevel?,
   val hasNextAccommodation: String,
   val currentAccommodationType: String?,
   val currentAccommodationEndDate: LocalDate?,

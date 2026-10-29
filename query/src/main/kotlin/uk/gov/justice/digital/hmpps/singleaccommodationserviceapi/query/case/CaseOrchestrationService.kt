@@ -111,11 +111,11 @@ class CaseOrchestrationService(
 
   fun getCase(username: String, crn: String): OrchestrationResultDto<CaseOrchestrationDto> {
     val calls = mapOf(
-      ApiCallKeys.GET_CASE to { sasAndDeliusCachingService.getCase(username, crn) },
+      ApiCallKeys.GET_CASE to { sasAndDeliusCachingService.getCase(crn) },
       ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },
       ApiCallKeys.GET_TIER_V3 to { tierCachingService.getTier(crn) },
       ApiCallKeys.GET_SEXUAL_OFFENCE_REGISTRATIONS to { sasAndDeliusCachingService.getSexualOffenceRegistrations(crn) },
-    )
+    ) + limitedAccessService.userAccessCalls(username, listOf(crn))
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = calls,
     )
@@ -132,6 +132,7 @@ class CaseOrchestrationService(
         tier = tier,
         case = case,
         sexualOffenceRegistrations = sexualOffenceRegistrations,
+        caseAccess = limitedAccessService.getCaseAccess(results.standardCallsNoIterationResults!!),
       ),
       upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
     )
@@ -139,8 +140,8 @@ class CaseOrchestrationService(
 
   fun getCaseFromDelius(username: String, crn: String): OrchestrationResultDto<CaseOrchestrationDto> {
     val calls = mapOf(
-      ApiCallKeys.GET_CASE to { sasAndDeliusCachingService.getCase(username, crn) },
-    )
+      ApiCallKeys.GET_CASE to { sasAndDeliusCachingService.getCase(crn) },
+    ) + limitedAccessService.userAccessCalls(username, listOf(crn))
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = calls,
     )
@@ -154,6 +155,7 @@ class CaseOrchestrationService(
         tier = null,
         case = case,
         sexualOffenceRegistrations = null,
+        caseAccess = limitedAccessService.getCaseAccess(results.standardCallsNoIterationResults!!),
       ),
       upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
     )

@@ -4,8 +4,7 @@ interface RuleSet {
   /**
    * Human-readable label
    */
-  val name: String?
-    get() = null
+  val name: String
 
   fun getRules(): List<PrioritisedRule>
 }

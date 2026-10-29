@@ -121,6 +121,34 @@ class DecisionNodeTest {
     }
 
     @Test
+    fun `RuleSetNode on FAIL without context updater passes context through with failure reasons`() {
+      val ruleSet: RuleSet = mockk()
+      val engine: RulesEngine = mockk()
+      val onFailNode: DecisionNode = mockk()
+      val failureReasons = listOf(FailureReason.SUITABLE_CAS1_APPLICATION)
+      val initialContext = EvaluationContext(data = buildDomainData(), currentResult = null)
+      val expectedResult = buildServiceResultNew(ServiceStatusNew.PA_NOT_ELIGIBLE)
+      val contextSlot = slot<EvaluationContext>()
+
+      every { engine.execute(ruleSet, initialContext.data) } returns RuleSetResult(RuleSetStatus.FAIL, failureReasons)
+      every { onFailNode.eval(capture(contextSlot)) } returns expectedResult
+
+      val result = RuleSetNode(
+        ruleSetName = "Test RuleSet",
+        ruleSet = ruleSet,
+        engine = engine,
+        onPass = mockk(),
+        onPassContextUpdater = null,
+        onFail = onFailNode,
+        onFailContextUpdater = null,
+      ).eval(initialContext)
+
+      assertThat(result).isEqualTo(expectedResult)
+      assertThat(contextSlot.captured.currentResult).isNull()
+      assertThat(contextSlot.captured.failureReasons).isEqualTo(failureReasons)
+    }
+
+    @Test
     fun `RuleSetNode on FAIL executes ruleset, updates context, and evaluates onFail node`() {
       val ruleSet: RuleSet = mockk()
       val engine: RulesEngine = mockk()

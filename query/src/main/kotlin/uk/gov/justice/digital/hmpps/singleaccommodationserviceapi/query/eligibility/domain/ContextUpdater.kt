@@ -15,11 +15,23 @@ import java.time.LocalDate
 abstract class ContextUpdater {
   open val propagatesFailureReasons: Boolean = false
   open val outcomes: Map<String, ServiceResultSpec> get() = emptyMap()
-  open val description: String get() = if (outcomes.keys.size == 1) {
-    "Set current status to ${outcomes.entries.first().value.serviceStatus}"
-  } else {
-    "Set current status to one of " + outcomes.entries.joinToString(separator = ", ") { "${it.value.serviceStatus}" }
-  }
+  open val terminalNode: Boolean get() = false
+  open val description: String
+    get() = if (terminalNode) {
+      val statuses = outcomes.values.map { it.serviceStatus.uiStatusName }.distinct().sorted()
+      if (statuses.size == 1) {
+        statuses.first()
+      } else {
+        statuses.joinToString(separator = ",\n ")
+      }
+    } else {
+      val statuses = outcomes.values.map { it.serviceStatus.uiStatusName }.distinct().sorted()
+      if (statuses.size == 1) {
+        "Set current status to ${statuses.first()}"
+      } else {
+        "Set current status to one of:\n" + statuses.joinToString(separator = ",\n ")
+      }
+    }
 
   fun update(context: EvaluationContext, failureReasons: List<FailureReason> = emptyList()): EvaluationContext {
     // expose the failing RuleSet failure reasons on the context so updaters can branch on which rules failed
@@ -52,7 +64,7 @@ abstract class ContextUpdater {
 
     /** Always set the value of [EvaluationContext.currentResult] to the same given value */
     fun constant(result: ServiceResultNew): ContextUpdater = object : ContextUpdater() {
-      override val description = "Set ${result.serviceStatus.name}"
+      override val description = "Set current status to ${result.serviceStatus.uiStatusName}"
 
       override val outcomes = mapOf(
         "constant" to ServiceResultSpec(

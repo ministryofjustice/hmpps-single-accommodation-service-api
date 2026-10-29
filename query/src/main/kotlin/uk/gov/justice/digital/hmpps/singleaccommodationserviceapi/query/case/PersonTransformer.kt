@@ -29,7 +29,6 @@ object PersonTransformer {
       riskLevel = case.getRiskLevel(),
       teamCode = case.team.code,
       assignedTo = case.getAssignedTo(),
-      // TODO - we should no longer rely on driving this flag via case summary - we should read it from postCaseSummaries or alternative
       limitedAccess = case.limitedAccess ?: false,
     )
   }

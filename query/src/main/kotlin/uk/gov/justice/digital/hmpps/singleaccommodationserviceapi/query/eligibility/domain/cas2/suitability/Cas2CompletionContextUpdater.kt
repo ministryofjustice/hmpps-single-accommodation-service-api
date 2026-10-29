@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class Cas2CompletionContextUpdater(
   private val sentryService: SentryService,
 ) : ContextUpdater() {
+  override val terminalNode = true
 
   val submitted = "submitted"
   val moreInfoRequested = "moreInfoRequested"
@@ -21,6 +22,7 @@ class Cas2CompletionContextUpdater(
   val offerAccepted = "offerAccepted"
   val unknown = "unknown"
   val arrived = "arrived"
+  val awaitingArrival = "awaitingArrival"
 
   override val outcomes = mapOf(
     submitted to ServiceResultSpec(
@@ -47,6 +49,9 @@ class Cas2CompletionContextUpdater(
     arrived to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_ARRIVED,
     ),
+    awaitingArrival to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS2_AWAITING_ARRIVAL,
+    ),
   )
 
   override fun toServiceResult(context: EvaluationContext) = when (context.data.cas2Application?.submittedApplication?.latestAssessmentStatus) {
@@ -56,7 +61,7 @@ class Cas2CompletionContextUpdater(
     Cas2AssessmentStatus.ON_WAITING_LIST -> outcome(onWaitingList)
     Cas2AssessmentStatus.PLACE_OFFERED -> outcome(placeOffered)
     Cas2AssessmentStatus.OFFER_ACCEPTED -> outcome(offerAccepted)
-    Cas2AssessmentStatus.AWAITING_ARRIVAL -> outcome(arrived)
+    Cas2AssessmentStatus.AWAITING_ARRIVAL -> if (context.data.cas2Application.submittedApplication?.markedAsArrivedDateTime != null) outcome(arrived) else outcome(awaitingArrival)
     else -> outcome(unknown).also {
       val latestAssessmentStatus = context.data.cas2Application.submittedApplication?.latestAssessmentStatus
       sentryService.captureErrorMessage(

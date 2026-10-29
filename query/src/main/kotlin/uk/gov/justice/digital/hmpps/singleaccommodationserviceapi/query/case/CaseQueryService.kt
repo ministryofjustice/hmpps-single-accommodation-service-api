@@ -7,12 +7,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pe
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
@@ -33,7 +30,7 @@ class CaseQueryService(
   fun getCaseList(teamCode: String?): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
     val caseOrchestrationResult = caseOrchestrationService.getCaseList(user.username, teamCode)
-    hasUserAccessData(caseOrchestrationResult.upstreamFailures)
+    limitedAccessService.throwIfUserAccessFailed(caseOrchestrationResult.upstreamFailures)
 
     val cases = caseOrchestrationResult.data.cases
     val limitedAccessCrns = limitedAccessService.getLimitedAccessCrns(cases.map { it.crn }, caseOrchestrationResult.data.caseAccess)
@@ -84,7 +81,8 @@ class CaseQueryService(
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCase(user.username, crn)
     hasMandatoryCaseData(orchestrationResult)
-    val case = orchestrationResult.data.case?.let { toPersonDto(it, limited = it.hasExclusionOrRestriction()) }
+    limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
+    val case = orchestrationResult.data.getPersonDto()
 
     val caseOrchestrationDto = orchestrationResult.data
     val data = toCaseDto(
@@ -105,19 +103,19 @@ class CaseQueryService(
     }
   }
 
-  private fun hasUserAccessData(upstreamFailures: List<UpstreamFailure>) {
-    upstreamFailures.firstOrNull { it.callKey.startsWith(GET_USER_ACCESS) }?.let {
-      throw UpstreamFailureException(UpstreamFailureTransformer.toUpstreamFailureDto(it))
-    }
-  }
-
   fun getCaseFromDelius(crn: String): ApiResponseDto<PersonDto?> {
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCaseFromDelius(user.username, crn)
     hasMandatoryCaseData(orchestrationResult)
-    val case = orchestrationResult.data.case?.let { toPersonDto(it, limited = it.hasExclusionOrRestriction()) }
+    limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
+    val case = orchestrationResult.data.getPersonDto()
     return toApiResponseDto(data = case, upstreamFailures = orchestrationResult.upstreamFailures)
   }
+
+  private fun CaseOrchestrationDto.getPersonDto() = case?.let {
+    toPersonDto(it, limited = crn in limitedAccessService.getLimitedAccessCrns(listOf(crn), caseAccess))
+  }
+
 
   private fun Case.hasExclusionOrRestriction() = userExcluded == true || userRestricted == true
 }
