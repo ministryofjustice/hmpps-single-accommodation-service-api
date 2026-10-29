@@ -34,7 +34,7 @@ class CaseQueryService(
 
     val cases = caseOrchestrationResult.data.cases
     val crnsToUserAccess = limitedAccessService.getCrnToUserAccess(caseOrchestrationResult.data.caseAccess)
-    val caseList = cases.map { toPersonDto(it, crnsToUserAccess[it.crn]) }
+    val caseList = cases.map { toPersonDto(it, userAccess = crnsToUserAccess[it.crn]) }
 
     return toApiResponseDto(
       data = caseList,

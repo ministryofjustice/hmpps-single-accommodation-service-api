@@ -24,12 +24,6 @@ fun List<CaseDto>.filterCases(
       it.matchesRiskLevel(riskLevel) &&
       it.matchesPeopleType(peopleType)
   }
-  // TODO: This is copied over from main, but looks like we're double sorting with sortCases(), which is called after this.
-  .sortedWith(
-    compareBy<CaseDto>({ it.userAccess != UserAccess.FULL })
-      .thenBy { it.surname?.lowercase() }
-      .thenBy { it.forename?.lowercase() },
-  )
   .obfuscateLimitedAccessCases()
 
 private fun CaseDto.matchesPeopleType(peopleType: PeopleType?) = when (peopleType) {

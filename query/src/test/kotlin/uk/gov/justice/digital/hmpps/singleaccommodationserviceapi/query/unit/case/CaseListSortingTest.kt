@@ -108,18 +108,6 @@ class CaseListSortingTest {
       assertThat(emptyList<CaseDto>().applyFilters()).isEmpty()
     }
 
-    @Test
-    fun `orders full access cases by surname then forename ignoring case, followed by limited access cases`() {
-      val cases = listOf(
-        full("CRN1", forename = "CHARLIE", surname = "BROWN"),
-        full("CRN2", forename = "Zoe", surname = "Adams"),
-        limited("CRN3"),
-        full("CRN4", forename = "alice", surname = "brown"),
-      )
-
-      assertThat(cases.applyFilters()).containsExactly("CRN2", "CRN4", "CRN1", "CRN3")
-    }
-
     @Nested
     inner class ByTeam {
       private val cases = listOf(
