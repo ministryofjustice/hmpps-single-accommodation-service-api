@@ -11,7 +11,7 @@ import java.time.LocalDate
 
 @Component
 class CrsUpcomingRule(val clock: Clock) : Rule {
-  override val description = "FAIL if the current accommodation end date is more than 12 weeks from today"
+  override val description = "FAIL if release is more than 12 weeks from today"
 
   override fun evaluate(data: DomainData): RuleResult {
     val today = LocalDate.now(clock)

@@ -81,6 +81,6 @@ class ReleaseWithin15DaysRuleTest {
   @Test
   fun `rule has correct description`() {
     Assertions.assertThat(ReleaseWithin15DaysRule(clock).description)
-      .isEqualTo("FAIL if the current accommodation end date is more than 15 days from today")
+      .isEqualTo("FAIL if release is more than 15 days from today")
   }
 }
