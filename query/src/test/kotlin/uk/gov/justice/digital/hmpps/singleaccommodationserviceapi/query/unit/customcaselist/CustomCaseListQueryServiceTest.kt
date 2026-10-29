@@ -227,8 +227,8 @@ class CustomCaseListQueryServiceTest {
 
     val limitedCases = result.data.filter { it.crn in listOf("B654321", "C111111") }
     assertThat(limitedCases).containsExactlyInAnyOrder(
-      CaseDto(crn = "B654321", userAccess = UserAccess.LIMITED, limitedAccess = true, teamCode = DEFAULT_TEAM_CODE),
-      CaseDto(crn = "C111111", userAccess = UserAccess.LIMITED, limitedAccess = true, teamCode = DEFAULT_TEAM_CODE),
+      CaseDto(crn = "B654321", userAccess = UserAccess.LIMITED, limitedAccess = true, teamCode = null),
+      CaseDto(crn = "C111111", userAccess = UserAccess.LIMITED, limitedAccess = true, teamCode = null),
     )
     assertThat(result.data.single { it.crn == "A123456" }.userAccess).isEqualTo(UserAccess.FULL)
   }

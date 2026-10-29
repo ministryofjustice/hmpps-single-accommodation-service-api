@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
@@ -18,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.time.Clock
+import java.time.LocalDate
 
 @Service
 class CaseQueryService(
@@ -41,8 +44,13 @@ class CaseQueryService(
     )
   }
 
-  fun applyCaseListFilters(
+  fun getCaseDtos(
     personDtos: List<PersonDto>,
+    searchTerm: String?,
+    riskLevel: RiskLevel?,
+    teamCode: String?,
+    peopleType: PeopleType?,
+    username: String?,
   ): List<CaseDto> {
     val caseEntitiesByCrn = caseRepository.mapByCrns(personDtos.map { it.crn })
     return personDtos.map { personDto ->
@@ -60,10 +68,16 @@ class CaseQueryService(
           )
         }
       }
-    }
-      .filtered(peopleType)
+    }.filterCases(
+      searchTerm = searchTerm,
+      riskLevel = riskLevel,
+      teamCode = teamCode,
+      username = username,
+      peopleType = peopleType,
+    )
       .sortCases(LocalDate.now(clock))
   }
+
   fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)
 
   fun getCase(crn: String): ApiResponseDto<CaseDto> {

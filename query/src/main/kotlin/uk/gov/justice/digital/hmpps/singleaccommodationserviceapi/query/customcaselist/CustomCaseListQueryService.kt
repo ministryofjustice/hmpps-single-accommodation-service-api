@@ -54,7 +54,7 @@ class CustomCaseListQueryService(
       val crn = entity.latestCrn()
       val summary = caseSummariesByCrn[crn]
       if (crn in limitedAccessCrns || summary == null) {
-        toLimitedCaseDto(crn, summary?.manager?.team?.code)
+        toLimitedCaseDto(crn, teamCode = summary?.manager?.team?.code, assignedTo = entity.toAssignedToDto())
       } else {
         entity.toCustomCaseListCaseDto(summary)
       }

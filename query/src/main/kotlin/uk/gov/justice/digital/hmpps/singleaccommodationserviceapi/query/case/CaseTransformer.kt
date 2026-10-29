@@ -122,12 +122,13 @@ object CaseTransformer {
     nextAccommodation = nextAccommodation,
   )
 
-  fun PersonDto.toLimitedCaseDto() = toLimitedCaseDto(crn, teamCode)
+  fun PersonDto.toLimitedCaseDto() = toLimitedCaseDto(crn, teamCode, assignedTo)
 
-  fun toLimitedCaseDto(crn: String, teamCode: String?) = CaseDto(
+  fun toLimitedCaseDto(crn: String, teamCode: String?, assignedTo: AssignedToDto?) = CaseDto(
     crn = crn,
     userAccess = UserAccess.LIMITED,
     limitedAccess = true,
     teamCode = teamCode,
+    assignedTo = assignedTo,
   )
 }

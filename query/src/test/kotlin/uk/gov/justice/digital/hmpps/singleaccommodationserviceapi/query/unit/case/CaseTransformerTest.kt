@@ -266,7 +266,18 @@ class CaseTransformerTest {
 
   @Test
   fun `should transform a crn to a limited case dto`() {
-    assertThat(toLimitedCaseDto(crn, "TeamX")).isEqualTo(CaseDto(crn = crn, userAccess = UserAccess.LIMITED, limitedAccess = true, teamCode = "TeamX"))
+    val assignedTo = AssignedToDto(forename = "Staff", surname = "Member")
+    assertThat(
+      toLimitedCaseDto(crn, teamCode = "TeamX", assignedTo = assignedTo),
+    ).isEqualTo(
+      CaseDto(
+        crn = crn,
+        userAccess = UserAccess.LIMITED,
+        limitedAccess = true,
+        teamCode = "TeamX",
+        assignedTo = assignedTo,
+      ),
+    )
   }
 
   private fun assertUserAccess(caseDto: CaseDto, expectedAccess: UserAccess, limitedAccess: Boolean? = null) {

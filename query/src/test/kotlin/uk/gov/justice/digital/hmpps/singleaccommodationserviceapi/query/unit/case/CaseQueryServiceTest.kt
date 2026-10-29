@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
@@ -30,12 +31,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.FullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedAccessService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseListOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
@@ -260,11 +264,32 @@ class CaseQueryServiceTest {
       limitedAccess = true,
     )
 
+    private fun getCaseDtos(
+      personDtos: List<PersonDto>,
+      searchTerm: String? = null,
+      riskLevel: RiskLevel? = null,
+      teamCode: String? = null,
+      peopleType: PeopleType? = null,
+      username: String? = null,
+    ) = caseQueryService.getCaseDtos(
+      personDtos = personDtos,
+      searchTerm = searchTerm,
+      riskLevel = riskLevel,
+      teamCode = teamCode,
+      peopleType = peopleType,
+      username = username,
+    )
+
+    @BeforeEach
+    fun stubUsername() {
+      every { userService.getUsername() } returns Username(username)
+    }
+
     @Test
     fun `CaseDto is redacted when UserAccess is Limited`() {
       every { caseRepository.mapByCrns(any()) } returns emptyMap()
 
-      val result = caseQueryService.getCaseDtos(personDtos = personDtos)
+      val result = getCaseDtos(personDtos = personDtos)
       assertThat(result).hasSize(personDtos.size)
 
       val limitedCases = result.filter { it.userAccess == UserAccess.LIMITED }
@@ -288,13 +313,13 @@ class CaseQueryServiceTest {
         personDto2,
         personDto3,
       )
-      val caseEntity1 = buildCaseEntity {
+      val caseEntity1 = buildCaseEntity(firstName = "One") {
         withCrn(crnOne)
         currentAccommodation = buildAccommodationSummaryDto(crn = crnOne)
         accommodationStatus = CaseAccommodationStatus.SETTLED
       }
-      val caseEntity2 = buildCaseEntity { withCrn(crnTwo) }
-      val caseEntity3 = buildCaseEntity { withCrn(limitedCrn) }
+      val caseEntity2 = buildCaseEntity(firstName = "Two") { withCrn(crnTwo) }
+      val caseEntity3 = buildCaseEntity(firstName = "Three") { withCrn(limitedCrn) }
       val caseEntities = mapOf(crnOne to caseEntity1, crnTwo to caseEntity2, limitedCrn to caseEntity3)
       val caseDto1 = personDto1.toCaseDto(
         caseEntity = caseEntity1,
@@ -303,10 +328,10 @@ class CaseQueryServiceTest {
         teamCode = "TEAM1",
       )
       val caseDto2 = personDto2.toCaseDto(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null, teamCode = "TEAM1")
-      val caseDto3 = personDto3.toCaseDto(caseEntity = caseEntity3, currentAccommodation = null, nextAccommodation = null, teamCode = "TEAM1")
+      val caseDto3 = personDto3.toLimitedCaseDto().copy(assignedTo = null, teamCode = null)
       every { caseRepository.mapByCrns(crnList) } returns caseEntities
 
-      val result = caseQueryService.getCaseDtos(personDtos = personDtos)
+      val result = getCaseDtos(personDtos = personDtos)
 
       assertThat(result).hasSize(3)
       assertThat(result.map { it to it.limitedAccess to it.userAccess })
@@ -322,7 +347,7 @@ class CaseQueryServiceTest {
       val personDto = buildFullPersonDto(crn = crnOne, teamCode = "TeamX")
       every { caseRepository.mapByCrns(listOf(crnOne)) } returns emptyMap()
 
-      val result = caseQueryService.getCaseDtos(personDtos = listOf(personDto))
+      val result = getCaseDtos(personDtos = listOf(personDto))
 
       assertThat(result.single().teamCode).isEqualTo("TeamX")
     }
@@ -331,7 +356,7 @@ class CaseQueryServiceTest {
     fun `should not populate team code for limited access cases`() {
       every { caseRepository.mapByCrns(listOf(crnOne)) } returns emptyMap()
 
-      val result = caseQueryService.getCaseDtos(personDtos = listOf(buildLimitedPersonDto(crn = crnOne, teamCode = "TeamX")))
+      val result = getCaseDtos(personDtos = listOf(buildLimitedPersonDto(crn = crnOne, teamCode = "TeamX")))
 
       assertThat(result.single().teamCode).isNull()
     }

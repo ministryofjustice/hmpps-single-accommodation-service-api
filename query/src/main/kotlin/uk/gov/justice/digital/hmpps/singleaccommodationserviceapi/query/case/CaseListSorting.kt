@@ -30,6 +30,7 @@ fun List<CaseDto>.filterCases(
       .thenBy { it.surname?.lowercase() }
       .thenBy { it.forename?.lowercase() },
   )
+  .obfuscateLimitedAccessCases()
 
 private fun CaseDto.matchesPeopleType(peopleType: PeopleType?) = when (peopleType) {
   null -> true
