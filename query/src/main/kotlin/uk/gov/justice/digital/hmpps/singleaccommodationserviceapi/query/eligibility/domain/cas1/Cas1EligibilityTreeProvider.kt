@@ -7,26 +7,26 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityCurrentAccommodationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityTierRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1CompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligible.CurrentAccommodationEligibleForCas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligible.TierEligibleForCas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.Cas1ActiveContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.Cas1StartContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.EligibilityRoshRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithin28WeeksRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RoshEligibleRuleSet
 
 @Component
 class Cas1EligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
-  private val upcoming: Cas1UpcomingRuleSet,
+  private val releaseWithin28Weeks: ReleaseWithin28WeeksRuleSet,
   private val upcomingContextUpdater: Cas1UpcomingContextUpdater,
-  private val suitability: Cas1SuitabilityRuleSet,
-  private val suitabilityContextUpdater: Cas1SuitabilityContextUpdater,
-  private val completionContextUpdater: Cas1CompletionContextUpdater,
-  private val eligibilityTier: Cas1EligibilityTierRuleSet,
-  private val eligibilityCurrentAccommodation: Cas1EligibilityCurrentAccommodationRuleSet,
-  private val eligibilityRosh: EligibilityRoshRuleSet,
+  private val referral: Cas1RuleSet,
+  private val startContextUpdater: Cas1StartContextUpdater,
+  private val activeContextUpdater: Cas1ActiveContextUpdater,
+  private val tierEligibleForCas1: TierEligibleForCas1RuleSet,
+  private val currentAccommodationEligibleForCas1: CurrentAccommodationEligibleForCas1RuleSet,
+  private val roshEligible: RoshEligibleRuleSet,
 ) : EligibilityTreeProvider {
 
   private val tree: DecisionNode by lazy { build() }
@@ -42,34 +42,34 @@ class Cas1EligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS1)
 
-    val eligibilityRoshNode = builder
-      .ruleSet(eligibilityRosh)
+    val roshEligibleNode = builder
+      .ruleSet(roshEligible)
       .onPass(confirmed)
       .onFail(notEligible)
       .build()
 
-    val eligibilityCurrentAccommodationNode = builder
-      .ruleSet(eligibilityCurrentAccommodation)
-      .onPass(eligibilityRoshNode)
+    val currentAccommodationEligibleForCas1Node = builder
+      .ruleSet(currentAccommodationEligibleForCas1)
+      .onPass(roshEligibleNode)
       .onFail(notEligible)
       .build()
 
-    val eligibilityTierNode = builder
-      .ruleSet(eligibilityTier)
-      .onPass(eligibilityCurrentAccommodationNode)
+    val tierEligibleForCas1Node = builder
+      .ruleSet(tierEligibleForCas1)
+      .onPass(currentAccommodationEligibleForCas1Node)
       .onFail(notEligible)
       .build()
 
-    val suitabilityNode = builder
-      .ruleSet(suitability)
-      .onPass(confirmed).applyContextUpdaterOnPass(completionContextUpdater)
-      .onFail(eligibilityTierNode).applyContextUpdaterOnFailure(suitabilityContextUpdater)
+    val referralNode = builder
+      .ruleSet(referral)
+      .onPass(confirmed).applyContextUpdaterOnPass(activeContextUpdater)
+      .onFail(tierEligibleForCas1Node).applyContextUpdaterOnFailure(startContextUpdater)
       .build()
 
     return builder
-      .ruleSet(upcoming)
-      .onPass(suitabilityNode)
-      .onFail(eligibilityTierNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
+      .ruleSet(releaseWithin28Weeks)
+      .onPass(referralNode)
+      .onFail(tierEligibleForCas1Node).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
   }
 }
