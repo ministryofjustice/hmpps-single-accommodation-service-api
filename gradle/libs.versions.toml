@@ -17,7 +17,7 @@ guava = "33.7.2-jre"
 postgres = "42.7.14"
 sentry = "8.61.1"
 pact = "4.7.5"
-sar-test-support = "2.8.5"
+sar-test-support = "2.8.6"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
