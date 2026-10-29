@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.Mu
 import java.time.LocalDate
 
 class DtrExpiredReferralRuleTest {
-  private val description = "FAIL if DTR is submitted more than 26 weeks ago."
+  private val description = "FAIL if the DTR submission date is missing or more than 26 weeks ago"
 
   private val clock = MutableClock()
 
@@ -105,6 +105,6 @@ class DtrExpiredReferralRuleTest {
   @Test
   fun `rule has correct description`() {
     assertThat(DtrExpiredReferralRule(clock).description)
-      .isEqualTo("FAIL if DTR is submitted more than 26 weeks ago.")
+      .isEqualTo("FAIL if the DTR submission date is missing or more than 26 weeks ago")
   }
 }

@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import java.util.UUID
 
 class Cas1ApplicationSuitabilityRuleTest {
-  private val description = "FAIL if candidate does not have a suitable application"
+  private val description = "FAIL if the CAS1 application is started, rejected, expired, inapplicable or withdrawn, with neither a request-for-placement status nor a placement status"
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(

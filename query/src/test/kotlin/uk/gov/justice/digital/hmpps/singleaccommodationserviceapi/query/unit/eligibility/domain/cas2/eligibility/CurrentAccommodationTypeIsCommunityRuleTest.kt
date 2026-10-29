@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class CurrentAccommodationTypeIsCommunityRuleTest {
-  private val description = "FAIL if individual is in the community"
+  private val description = "FAIL if the current accommodation type is missing or is neither prison, CAS1, CAS2 nor CAS3"
 
   @ParameterizedTest
   @FieldSource("communityCodes")

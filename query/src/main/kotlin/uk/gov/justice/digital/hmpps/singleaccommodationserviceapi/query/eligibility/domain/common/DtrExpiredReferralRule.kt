@@ -11,7 +11,7 @@ import java.time.Clock
 
 @Component
 class DtrExpiredReferralRule(val clock: Clock) : Rule {
-  override val description = "FAIL if DTR is submitted more than 26 weeks ago."
+  override val description = "FAIL if the DTR submission date is missing or more than 26 weeks ago"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = isDtrExpired(data.dutyToRefer?.submission?.submissionDate, clock)

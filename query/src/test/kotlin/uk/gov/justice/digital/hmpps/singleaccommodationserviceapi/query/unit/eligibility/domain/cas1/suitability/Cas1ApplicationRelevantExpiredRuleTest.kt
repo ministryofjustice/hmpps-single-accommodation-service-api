@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import java.util.UUID
 
 class Cas1ApplicationRelevantExpiredRuleTest {
-  private val description = "FAIL if expired application is not upcoming or arrived"
+  private val description = "FAIL if the CAS1 application is expired and its placement status is neither upcoming nor arrived"
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(

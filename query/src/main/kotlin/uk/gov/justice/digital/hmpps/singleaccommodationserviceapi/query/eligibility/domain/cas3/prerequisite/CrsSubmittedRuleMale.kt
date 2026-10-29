@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class CrsSubmittedRuleMale : Rule {
-  override val description = "FAIL if CRS not submitted and male"
+  override val description = "FAIL if the individual is male and the CRS referral status is neither live nor completed"
 
   override fun evaluate(data: DomainData): RuleResult {
     val status = data.commissionedRehabilitativeServices?.status

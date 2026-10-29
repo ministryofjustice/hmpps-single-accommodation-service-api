@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas1ApplicationRelevantExpiredRule : Rule {
-  override val description = "FAIL if expired application is not upcoming or arrived"
+  override val description = "FAIL if the application is expired and its placement status is neither upcoming nor arrived"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.cas1Application?.application?.status == Cas1ApplicationStatus.EXPIRED &&

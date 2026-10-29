@@ -11,7 +11,7 @@ import java.time.LocalDate
 
 @Component
 class ReleaseWithin15DaysRule(val clock: Clock) : Rule {
-  override val description = "FAIL if not within 15 days of release from current accommodation"
+  override val description = "FAIL if the current accommodation end date is more than 15 days from today"
 
   override fun evaluate(data: DomainData): RuleResult {
     val today = LocalDate.now(clock)
