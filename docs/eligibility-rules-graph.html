@@ -735,12 +735,12 @@
         {
           "id": "Eligibility_Release_Date",
           "title": "Eligibility Release Date",
-          "label": "FAIL if person is in Prison and has no currentAccommodationEndDate",
+          "label": "FAIL if person is in Prison and has no release date",
           "kind": "RULE_SET",
           "rules": [
             {
               "className": "InPrisonNoReleaseDateRule",
-              "description": "FAIL if person is in Prison and has no currentAccommodationEndDate",
+              "description": "FAIL if person is in Prison and has no release date",
               "sourcePath": "https://github.com/ministryofjustice/hmpps-single-accommodation-service-api/blob/main/query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/InPrisonNoReleaseDateRule.kt"
             }
           ],

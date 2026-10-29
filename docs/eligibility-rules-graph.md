@@ -177,7 +177,7 @@ FAIL if person has an unsuitable status</div>")
   Eligibility_Person("<div style='text-align:left'>FAIL if person is under 18 years old
 FAIL if person is not Tier A through G
 FAIL if person has sexual offence registrations.</div>")
-  Eligibility_Release_Date("<div style='text-align:left'>FAIL if person is in Prison and has no currentAccommodationEndDate</div>")
+  Eligibility_Release_Date("<div style='text-align:left'>FAIL if person is in Prison and has no release date</div>")
   Eligibility_Current_Accommodation("<div style='text-align:left'>FAIL if person is in CAS3
 FAIL if person is in CAS2
 FAIL if person is in the community</div>")
@@ -297,7 +297,7 @@ Submitted, Unknown** (Outcome)
 
 - [
   `InPrisonNoReleaseDateRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/eligibility/InPrisonNoReleaseDateRule.kt):
-  FAIL if person is in Prison and has no currentAccommodationEndDate
+  FAIL if person is in Prison and has no release date
 
 **Eligibility Current Accommodation** (RuleSet) `Cas2EligibilityCurrentAccommodationRuleSet`
 
@@ -731,7 +731,7 @@ FAIL if person has suitable CAS3 application</div>")
 | DtrNotWithdrawnRule                     | FAIL if DTR referral has been withdrawn                                                                           | Suitability                                 | DTR                  |
 | DtrPresentRule                          | FAIL if DTR status is not present                                                                                 | Suitability                                 | DTR                  |
 | HasNextAccommodationRule                | FAIL if person has no next accommodation                                                                          | Completion                                  | PA                   |
-| InPrisonNoReleaseDateRule               | FAIL if person is in Prison and has no currentAccommodationEndDate                                                | Eligibility Release Date                    | CAS2                 |
+| InPrisonNoReleaseDateRule               | FAIL if person is in Prison and has no release date                                                               | Eligibility Release Date                    | CAS2                 |
 | IsSettledRule                           | FAIL if person is settled                                                                                         | Eligibility Settled                         | CRS                  |
 | MaleRiskEligibilityRule                 | FAIL if person is Male and is not Tier A, B or C                                                                  | Eligibility Tier                            | CAS1                 |
 | NoNextAccommodationRule                 | FAIL if person has next accommodation                                                                             | Eligibility, Eligibility Next Accommodation | CAS2, CAS3, CRS, DTR |
