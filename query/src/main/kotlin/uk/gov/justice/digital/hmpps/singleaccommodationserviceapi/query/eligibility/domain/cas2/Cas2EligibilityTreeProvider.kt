@@ -44,36 +44,35 @@ class Cas2EligibilityTreeProvider(
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notEligible = builder.notEligible(ServiceType.CAS2)
 
     val eligibilityRoshNode = builder
       .ruleSet(eligibilityRosh)
       .onPass(confirmed)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(builder.notEligible(ServiceType.CAS2, eligibilityRosh.failureReasons())).propagateContextOnFailure()
       .build()
 
     val eligibilityNextAccommodationNode = builder
       .ruleSet(eligibilityNextAccommodation)
       .onPass(eligibilityRoshNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(builder.notEligible(ServiceType.CAS2, eligibilityNextAccommodation.failureReasons())).propagateContextOnFailure()
       .build()
 
     val eligibilityCurrentAccommodationNode = builder
       .ruleSet(eligibilityCurrentAccommodation)
       .onPass(eligibilityNextAccommodationNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(builder.notEligible(ServiceType.CAS2, eligibilityCurrentAccommodation.failureReasons())).propagateContextOnFailure()
       .build()
 
     val eligibilityReleaseDateNode = builder
       .ruleSet(eligibilityReleaseDate)
       .onPass(eligibilityCurrentAccommodationNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(builder.notEligible(ServiceType.CAS2, eligibilityReleaseDate.failureReasons())).propagateContextOnFailure()
       .build()
 
     val eligibilityPersonNode = builder
       .ruleSet(eligibilityPerson)
       .onPass(eligibilityReleaseDateNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(builder.notEligible(ServiceType.CAS2, eligibilityPerson.failureReasons())).propagateContextOnFailure()
       .build()
 
     val suitabilityNode = builder

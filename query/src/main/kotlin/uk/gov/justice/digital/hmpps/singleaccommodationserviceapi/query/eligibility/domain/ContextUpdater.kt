@@ -17,19 +17,19 @@ abstract class ContextUpdater {
   open val outcomes: Map<String, ServiceResultSpec> get() = emptyMap()
   open val terminalNode: Boolean get() = false
   open val description: String
-    get() = if (outcomes.keys.size == 1) {
-      val status = outcomes.entries.first().value.serviceStatus
-      if (terminalNode) {
-        "return status $status"
+    get() = if (terminalNode) {
+      val statuses = outcomes.values.map { it.serviceStatus.uiStatusName }.distinct()
+      if (statuses.size == 1) {
+        "return status ${statuses.first()}"
       } else {
-        "Set current status to $status"
+        "return status as one of:\n" + statuses.joinToString(separator = ",\n ")
       }
     } else {
-      val statuses = outcomes.entries.joinToString(separator = ", ") { "${it.value.serviceStatus}" }
-      if (terminalNode) {
-        "return status as one of $statuses"
+      val statuses = outcomes.values.map { it.serviceStatus.uiStatusName }.distinct()
+      if (statuses.size == 1) {
+        "Set current status to ${statuses.first()}"
       } else {
-        "Set current status to one of $statuses"
+        "Set current status to one of:\n" + statuses.joinToString(separator = ",\n ")
       }
     }
 

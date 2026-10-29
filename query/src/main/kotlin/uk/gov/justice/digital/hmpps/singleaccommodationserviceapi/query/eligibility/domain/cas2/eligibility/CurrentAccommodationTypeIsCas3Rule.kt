@@ -11,12 +11,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class CurrentAccommodationTypeIsCas3Rule : Rule {
   override val description = "FAIL if individual is in CAS3"
 
+  override val failureReason: FailureReason? = FailureReason.IN_CAS3_ACCOMMODATION
+
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.currentAccommodationTypeEntity?.isCas3 == true
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
-      failureReason = if (isFail) FailureReason.IN_CAS3_ACCOMMODATION else null,
+      failureReason = if (isFail) failureReason else null,
     )
   }
 }

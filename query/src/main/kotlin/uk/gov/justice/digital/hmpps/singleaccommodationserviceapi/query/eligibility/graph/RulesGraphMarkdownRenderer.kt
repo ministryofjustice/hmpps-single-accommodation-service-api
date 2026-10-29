@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 
 /**
  * # Eligibility rules graph
@@ -76,6 +77,7 @@ object RulesGraphMarkdownRenderer {
       appendLine("## ${graph.treeName}")
       appendLine()
       appendLine("```mermaid")
+      appendLine("%%{init: {\"flowchart\": {\"wrappingWidth\": 800}}}%%")
       appendLine("flowchart TD")
       /*
        RulesetName1["RulesetName1"]
@@ -94,6 +96,12 @@ object RulesGraphMarkdownRenderer {
        */
       graph.edges.forEach { edge ->
         appendLine("  ${edge.from} -->|${edge.label}| ${edge.to}")
+      }
+      edgeStyles.forEach { (edgeLabel, colour) ->
+        val indexes = graph.edges.withIndex().filter { it.value.label == edgeLabel }.map { it.index }
+        if (indexes.isNotEmpty()) {
+          appendLine("  linkStyle ${indexes.joinToString(",")} stroke:$colour,stroke-width:2px")
+        }
       }
       appendLine("```")
       // mermaid drawing closed
@@ -139,9 +147,21 @@ object RulesGraphMarkdownRenderer {
 
   private fun label(node: GraphNode): String = when (node.kind) {
     GraphNodeKind.RULE_SET -> ruleSetLabel(node)
-    GraphNodeKind.OUTCOME -> node.title
-    GraphNodeKind.CONTEXT_UPDATER -> node.title
+    GraphNodeKind.OUTCOME -> boldUiStatuses(node.title)
+    GraphNodeKind.CONTEXT_UPDATER -> boldUiStatuses(node.title)
   }
+
+  private val edgeStyles = mapOf("PASS" to "green", "FAIL" to "red")
+
+  // Longest names first so e.g. "Placement Request Not Started" wins over "Not Started"
+  private val uiStatusRegex = ServiceStatusNew.entries
+    .map { it.uiStatusName }
+    .distinct()
+    .sortedByDescending { it.length }
+    .joinToString("|", prefix = "\\b(", postfix = ")\\b") { Regex.escape(it) }
+    .toRegex()
+
+  private fun boldUiStatuses(text: String): String = uiStatusRegex.replace(text) { "<b>${it.value}</b>" }
 
   private fun mermaidShape(node: GraphNode): String {
     val text = escape(label(node))
@@ -169,7 +189,9 @@ object RulesGraphMarkdownRenderer {
       GraphNodeKind.OUTCOME -> "Outcome"
     }
     val ruleSetClassName = node.ruleSet?.javaClass?.simpleName?.let { " `$it`" } ?: ""
-    append("**${node.title}** ($kind)$ruleSetClassName")
+    val titleLines = node.title.split("\n\n", limit = 2)
+    append("**${titleLines.first()}** ($kind)$ruleSetClassName")
+    titleLines.getOrNull(1)?.let { append("<br>$it") }
     if (node.kind == GraphNodeKind.RULE_SET) {
       appendLine()
       if (node.rules.isEmpty()) {

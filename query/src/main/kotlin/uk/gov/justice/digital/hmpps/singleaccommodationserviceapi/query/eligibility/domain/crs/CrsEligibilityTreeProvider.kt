@@ -42,22 +42,20 @@ class CrsEligibilityTreeProvider(
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notRequired = builder.notRequired(ServiceType.CRS)
     val submitted = builder.outcome(
-      "submitted",
       ServiceResultNew(serviceStatus = ServiceStatusNew.CRS_SUBMITTED, url = url),
     )
 
     val eligibilityNextAccommodationNode = builder
       .ruleSet(eligibilityNextAccommodation)
       .onPass(confirmed)
-      .onFail(notRequired).propagateContextOnFailure()
+      .onFail(builder.notRequired(ServiceType.CRS, eligibilityNextAccommodation.failureReasons())).propagateContextOnFailure()
       .build()
 
     val eligibilitySettledNode = builder
       .ruleSet(eligibilitySettled)
       .onPass(eligibilityNextAccommodationNode)
-      .onFail(notRequired).propagateContextOnFailure()
+      .onFail(builder.notRequired(ServiceType.CRS, eligibilitySettled.failureReasons())).propagateContextOnFailure()
       .build()
 
     val completionNode = builder

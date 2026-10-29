@@ -7,6 +7,7 @@ Diamond RuleSet nodes have a FAIL context updater.
 ## CAS1
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
   Upcoming("Upcoming (1)
 
@@ -16,8 +17,21 @@ flowchart TD
 - FAIL if candidate does not have an application
 - FAIL if expired application is not upcoming or arrived
 - FAIL if candidate does not have a suitable application")
-  return_status_as_one_of_CAS1_ARRIVED__CAS1_NOT_ARRIVED__CAS1_PLACEMENT_BOOKED__CAS1_PLACEMENT_CANCELLED__CAS1_PLACEMENT_REQUEST_NOT_STARTED__CAS1_PLACEMENT_REQUEST_WITHDRAWN__CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED__CAS1_PLACEMENT_REQUEST_REJECTED__CAS1_PLACEMENT_REQUEST_SUBMITTED__CAS1_INFO_REQUESTED__CAS1_SUBMITTED["return status as one of CAS1_ARRIVED, CAS1_NOT_ARRIVED, CAS1_PLACEMENT_BOOKED, CAS1_PLACEMENT_CANCELLED, CAS1_PLACEMENT_REQUEST_NOT_STARTED, CAS1_PLACEMENT_REQUEST_WITHDRAWN, CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED, CAS1_PLACEMENT_REQUEST_REJECTED, CAS1_PLACEMENT_REQUEST_SUBMITTED, CAS1_INFO_REQUESTED, CAS1_SUBMITTED"]
-  Set_current_status_to_one_of_CAS1_NOT_SUBMITTED__CAS1_APPLICATION_REJECTED__CAS1_NOT_STARTED["Set current status to one of CAS1_NOT_SUBMITTED, CAS1_APPLICATION_REJECTED, CAS1_NOT_STARTED"]
+  return_status_as_one_of__Arrived___Not_Arrived___Placement_Booked___Placement_Cancelled___Placement_Request_Not_Started___Placement_Request_Withdrawn___Placement_Request_Rejected___Placement_Request_Submitted___Information_Requested___Submitted["return status as one of:
+<b>Arrived</b>,
+ <b>Not Arrived</b>,
+ <b>Placement Booked</b>,
+ <b>Placement Cancelled</b>,
+ <b>Placement Request Not Started</b>,
+ <b>Placement Request Withdrawn</b>,
+ <b>Placement Request Rejected</b>,
+ <b>Placement Request Submitted</b>,
+ <b>Information Requested</b>,
+ <b>Submitted</b>"]
+  Set_current_status_to_one_of__Not_Submitted___Application_Rejected___Not_Started["Set current status to one of:
+<b>Not Submitted</b>,
+ <b>Application Rejected</b>,
+ <b>Not Started</b>"]
   Eligibility_Tier("Eligibility Tier (2)
 
 - FAIL if candidate is Male and is not Tier A, B or C
@@ -29,27 +43,37 @@ flowchart TD
 
 - FAIL if candidate has no ROSH level")
   return_current_status["return current status"]
-  return_status_CAS1_NOT_ELIGIBLE["return status CAS1_NOT_ELIGIBLE"]
-  Set_current_status_to_CAS1_UPCOMING["Set current status to CAS1_UPCOMING"]
-  Suitability -->|PASS| return_status_as_one_of_CAS1_ARRIVED__CAS1_NOT_ARRIVED__CAS1_PLACEMENT_BOOKED__CAS1_PLACEMENT_CANCELLED__CAS1_PLACEMENT_REQUEST_NOT_STARTED__CAS1_PLACEMENT_REQUEST_WITHDRAWN__CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED__CAS1_PLACEMENT_REQUEST_REJECTED__CAS1_PLACEMENT_REQUEST_SUBMITTED__CAS1_INFO_REQUESTED__CAS1_SUBMITTED
-  Suitability -->|FAIL| Set_current_status_to_one_of_CAS1_NOT_SUBMITTED__CAS1_APPLICATION_REJECTED__CAS1_NOT_STARTED
+  return_status_Not_Eligible__Failed_because___HAS_NO_ROSH_LEVEL_["return status <b>Not Eligible</b>
+
+Failed because: [HAS_NO_ROSH_LEVEL]"]
+  return_status_Not_Eligible__Failed_because___NOT_IN_PRISON_OR_CAS1_ACCOMMODATION_["return status <b>Not Eligible</b>
+
+Failed because: [NOT_IN_PRISON_OR_CAS1_ACCOMMODATION]"]
+  return_status_Not_Eligible__Failed_because___MALE_NOT_HIGH_RISK_TIER__NON_MALE_NOT_HIGH_RISK_TIER_["return status <b>Not Eligible</b>
+
+Failed because: [MALE_NOT_HIGH_RISK_TIER, NON_MALE_NOT_HIGH_RISK_TIER]"]
+  Set_current_status_to_Upcoming["Set current status to <b>Upcoming</b>"]
+  Suitability -->|PASS| return_status_as_one_of__Arrived___Not_Arrived___Placement_Booked___Placement_Cancelled___Placement_Request_Not_Started___Placement_Request_Withdrawn___Placement_Request_Rejected___Placement_Request_Submitted___Information_Requested___Submitted
+  Suitability -->|FAIL| Set_current_status_to_one_of__Not_Submitted___Application_Rejected___Not_Started
   Eligibility_Rosh -->|PASS| return_current_status
-  Eligibility_Rosh -->|FAIL| return_status_CAS1_NOT_ELIGIBLE
+  Eligibility_Rosh -->|FAIL| return_status_Not_Eligible__Failed_because___HAS_NO_ROSH_LEVEL_
   Eligibility_Current_Accommodation -->|PASS| Eligibility_Rosh
-  Eligibility_Current_Accommodation -->|FAIL| return_status_CAS1_NOT_ELIGIBLE
+  Eligibility_Current_Accommodation -->|FAIL| return_status_Not_Eligible__Failed_because___NOT_IN_PRISON_OR_CAS1_ACCOMMODATION_
   Eligibility_Tier -->|PASS| Eligibility_Current_Accommodation
-  Eligibility_Tier -->|FAIL| return_status_CAS1_NOT_ELIGIBLE
-  Set_current_status_to_one_of_CAS1_NOT_SUBMITTED__CAS1_APPLICATION_REJECTED__CAS1_NOT_STARTED -->|FAIL| Eligibility_Tier
+  Eligibility_Tier -->|FAIL| return_status_Not_Eligible__Failed_because___MALE_NOT_HIGH_RISK_TIER__NON_MALE_NOT_HIGH_RISK_TIER_
+  Set_current_status_to_one_of__Not_Submitted___Application_Rejected___Not_Started -->|FAIL| Eligibility_Tier
   Upcoming -->|PASS| Suitability
-  Upcoming -->|FAIL| Set_current_status_to_CAS1_UPCOMING
-  Set_current_status_to_CAS1_UPCOMING -->|FAIL| Eligibility_Tier
+  Upcoming -->|FAIL| Set_current_status_to_Upcoming
+  Set_current_status_to_Upcoming -->|FAIL| Eligibility_Tier
+  linkStyle 0,2,4,6,9 stroke:green,stroke-width:2px
+  linkStyle 1,3,5,7,8,10,11 stroke:red,stroke-width:2px
 ```
 
 ### Nodes
 
 **Upcoming** (RuleSet) `Cas1UpcomingRuleSet`
 - [`ReleaseWithinTwentyEightWeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/ReleaseWithinTwentyEightWeeksRule.kt): FAIL if not within 1 year of release from current accommodation
-- FAIL: [`Cas1UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/Cas1UpcomingContextUpdater.kt) - Set current status to CAS1_UPCOMING
+- FAIL: [`Cas1UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/Cas1UpcomingContextUpdater.kt) - Set current status to Upcoming
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -60,7 +84,17 @@ flowchart TD
 - [`Cas1ApplicationPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1ApplicationPresentRule.kt): FAIL if candidate does not have an application
 - [`Cas1ApplicationRelevantExpiredRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1ApplicationRelevantExpiredRule.kt): FAIL if expired application is not upcoming or arrived
 - [`Cas1ApplicationSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1ApplicationSuitabilityRule.kt): FAIL if candidate does not have a suitable application
-- PASS: [`Cas1CompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1CompletionContextUpdater.kt) - return status as one of CAS1_ARRIVED, CAS1_NOT_ARRIVED, CAS1_PLACEMENT_BOOKED, CAS1_PLACEMENT_CANCELLED, CAS1_PLACEMENT_REQUEST_NOT_STARTED, CAS1_PLACEMENT_REQUEST_WITHDRAWN, CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED, CAS1_PLACEMENT_REQUEST_REJECTED, CAS1_PLACEMENT_REQUEST_SUBMITTED, CAS1_INFO_REQUESTED, CAS1_SUBMITTED
+- PASS: [`Cas1CompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1CompletionContextUpdater.kt) - return status as one of:
+Arrived,
+ Not Arrived,
+ Placement Booked,
+ Placement Cancelled,
+ Placement Request Not Started,
+ Placement Request Withdrawn,
+ Placement Request Rejected,
+ Placement Request Submitted,
+ Information Requested,
+ Submitted
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -75,7 +109,10 @@ flowchart TD
 | CAS1_PLACEMENT_REQUEST_SUBMITTED | - | CAS1_VIEW_APPLICATION |
 | CAS1_INFO_REQUESTED | PROVIDE_INFORMATION (CAS1) | CAS1_VIEW_APPLICATION |
 | CAS1_SUBMITTED | - | CAS1_VIEW_APPLICATION |
-- FAIL: [`Cas1SuitabilityContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1SuitabilityContextUpdater.kt) - Set current status to one of CAS1_NOT_SUBMITTED, CAS1_APPLICATION_REJECTED, CAS1_NOT_STARTED
+- FAIL: [`Cas1SuitabilityContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1SuitabilityContextUpdater.kt) - Set current status to one of:
+Not Submitted,
+ Application Rejected,
+ Not Started
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -103,13 +140,18 @@ flowchart TD
 
 **return current status** (Outcome)
 
-**return status CAS1_NOT_ELIGIBLE** (Outcome)
+**return status Not Eligible** (Outcome)<br>Failed because: [HAS_NO_ROSH_LEVEL]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [NOT_IN_PRISON_OR_CAS1_ACCOMMODATION]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [MALE_NOT_HIGH_RISK_TIER, NON_MALE_NOT_HIGH_RISK_TIER]
 
 
 
 ## CAS2
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
   Upcoming("Upcoming (1)
 
@@ -118,8 +160,23 @@ flowchart TD
 
 - FAIL if candidate does not have a submitted application
 - FAIL if candidate has an unsuitable status")
-  return_status_as_one_of_CAS2_SUBMITTED__CAS2_MORE_INFORMATION_NEEDED__CAS2_AWAITING_DECISION__CAS2_ON_WAITING_LIST__CAS2_PLACE_OFFERED__CAS2_OFFER_ACCEPTED__CAS2_UNKNOWN__CAS2_ARRIVED__CAS2_AWAITING_ARRIVAL["return status as one of CAS2_SUBMITTED, CAS2_MORE_INFORMATION_NEEDED, CAS2_AWAITING_DECISION, CAS2_ON_WAITING_LIST, CAS2_PLACE_OFFERED, CAS2_OFFER_ACCEPTED, CAS2_UNKNOWN, CAS2_ARRIVED, CAS2_AWAITING_ARRIVAL"]
-  Set_current_status_to_one_of_CAS2_NOT_STARTED__CAS2_NOT_SUBMITTED__CAS2_OFFER_DECLINED_OR_WITHDRAWN__CAS2_CANCELLED__CAS2_WITHDRAWN__CAS2_UNKNOWN["Set current status to one of CAS2_NOT_STARTED, CAS2_NOT_SUBMITTED, CAS2_OFFER_DECLINED_OR_WITHDRAWN, CAS2_CANCELLED, CAS2_WITHDRAWN, CAS2_UNKNOWN"]
+  return_status_as_one_of__Submitted___More_Information_Needed___Awaiting_Decision___On_Waiting_List___Place_Offered___Offer_Accepted___Unknown___Arrived___Awaiting_Arrival["return status as one of:
+<b>Submitted</b>,
+ <b>More Information Needed</b>,
+ <b>Awaiting Decision</b>,
+ <b>On Waiting List</b>,
+ <b>Place Offered</b>,
+ <b>Offer Accepted</b>,
+ <b>Unknown</b>,
+ <b>Arrived</b>,
+ <b>Awaiting Arrival</b>"]
+  Set_current_status_to_one_of__Not_Started___Not_Submitted___Offer_Declined_or_Withdrawn___Cancelled___Withdrawn___Unknown["Set current status to one of:
+<b>Not Started</b>,
+ <b>Not Submitted</b>,
+ <b>Offer Declined or Withdrawn</b>,
+ <b>Cancelled</b>,
+ <b>Withdrawn</b>,
+ <b>Unknown</b>"]
   Eligibility_Person("Eligibility Person (3)
 
 - FAIL if individual is under 18 years old
@@ -140,31 +197,47 @@ flowchart TD
 
 - FAIL if candidate has no ROSH level")
   return_current_status["return current status"]
-  return_status_CAS2_NOT_ELIGIBLE["return status CAS2_NOT_ELIGIBLE"]
-  Set_current_status_to_CAS2_UPCOMING["Set current status to CAS2_UPCOMING"]
-  Suitability -->|PASS| return_status_as_one_of_CAS2_SUBMITTED__CAS2_MORE_INFORMATION_NEEDED__CAS2_AWAITING_DECISION__CAS2_ON_WAITING_LIST__CAS2_PLACE_OFFERED__CAS2_OFFER_ACCEPTED__CAS2_UNKNOWN__CAS2_ARRIVED__CAS2_AWAITING_ARRIVAL
-  Suitability -->|FAIL| Set_current_status_to_one_of_CAS2_NOT_STARTED__CAS2_NOT_SUBMITTED__CAS2_OFFER_DECLINED_OR_WITHDRAWN__CAS2_CANCELLED__CAS2_WITHDRAWN__CAS2_UNKNOWN
+  return_status_Not_Eligible__Failed_because___HAS_NO_ROSH_LEVEL_["return status <b>Not Eligible</b>
+
+Failed because: [HAS_NO_ROSH_LEVEL]"]
+  return_status_Not_Eligible__Failed_because___HAS_NEXT_ACCOMMODATION_["return status <b>Not Eligible</b>
+
+Failed because: [HAS_NEXT_ACCOMMODATION]"]
+  return_status_Not_Eligible__Failed_because___IN_CAS3_ACCOMMODATION__IN_CAS2_ACCOMMODATION__IN_COMMUNITY_["return status <b>Not Eligible</b>
+
+Failed because: [IN_CAS3_ACCOMMODATION, IN_CAS2_ACCOMMODATION, IN_COMMUNITY]"]
+  return_status_Not_Eligible__Failed_because___IN_PRISON_NO_RELEASE_DATE_["return status <b>Not Eligible</b>
+
+Failed because: [IN_PRISON_NO_RELEASE_DATE]"]
+  return_status_Not_Eligible__Failed_because___UNDER_18__INVALID_TIER__SEXUAL_OFFENCE_REGISTRATIONS_PRESENT_["return status <b>Not Eligible</b>
+
+Failed because: [UNDER_18, INVALID_TIER, SEXUAL_OFFENCE_REGISTRATIONS_PRESENT]"]
+  Set_current_status_to_Upcoming["Set current status to <b>Upcoming</b>"]
+  Suitability -->|PASS| return_status_as_one_of__Submitted___More_Information_Needed___Awaiting_Decision___On_Waiting_List___Place_Offered___Offer_Accepted___Unknown___Arrived___Awaiting_Arrival
+  Suitability -->|FAIL| Set_current_status_to_one_of__Not_Started___Not_Submitted___Offer_Declined_or_Withdrawn___Cancelled___Withdrawn___Unknown
   Eligibility_Rosh -->|PASS| return_current_status
-  Eligibility_Rosh -->|FAIL| return_status_CAS2_NOT_ELIGIBLE
+  Eligibility_Rosh -->|FAIL| return_status_Not_Eligible__Failed_because___HAS_NO_ROSH_LEVEL_
   Eligibility_Next_Accommodation -->|PASS| Eligibility_Rosh
-  Eligibility_Next_Accommodation -->|FAIL| return_status_CAS2_NOT_ELIGIBLE
+  Eligibility_Next_Accommodation -->|FAIL| return_status_Not_Eligible__Failed_because___HAS_NEXT_ACCOMMODATION_
   Eligibility_Current_Accommodation -->|PASS| Eligibility_Next_Accommodation
-  Eligibility_Current_Accommodation -->|FAIL| return_status_CAS2_NOT_ELIGIBLE
+  Eligibility_Current_Accommodation -->|FAIL| return_status_Not_Eligible__Failed_because___IN_CAS3_ACCOMMODATION__IN_CAS2_ACCOMMODATION__IN_COMMUNITY_
   Eligibility_Release_Date -->|PASS| Eligibility_Current_Accommodation
-  Eligibility_Release_Date -->|FAIL| return_status_CAS2_NOT_ELIGIBLE
+  Eligibility_Release_Date -->|FAIL| return_status_Not_Eligible__Failed_because___IN_PRISON_NO_RELEASE_DATE_
   Eligibility_Person -->|PASS| Eligibility_Release_Date
-  Eligibility_Person -->|FAIL| return_status_CAS2_NOT_ELIGIBLE
-  Set_current_status_to_one_of_CAS2_NOT_STARTED__CAS2_NOT_SUBMITTED__CAS2_OFFER_DECLINED_OR_WITHDRAWN__CAS2_CANCELLED__CAS2_WITHDRAWN__CAS2_UNKNOWN -->|FAIL| Eligibility_Person
+  Eligibility_Person -->|FAIL| return_status_Not_Eligible__Failed_because___UNDER_18__INVALID_TIER__SEXUAL_OFFENCE_REGISTRATIONS_PRESENT_
+  Set_current_status_to_one_of__Not_Started___Not_Submitted___Offer_Declined_or_Withdrawn___Cancelled___Withdrawn___Unknown -->|FAIL| Eligibility_Person
   Upcoming -->|PASS| Suitability
-  Upcoming -->|FAIL| Set_current_status_to_CAS2_UPCOMING
-  Set_current_status_to_CAS2_UPCOMING -->|FAIL| Eligibility_Person
+  Upcoming -->|FAIL| Set_current_status_to_Upcoming
+  Set_current_status_to_Upcoming -->|FAIL| Eligibility_Person
+  linkStyle 0,2,4,6,8,10,13 stroke:green,stroke-width:2px
+  linkStyle 1,3,5,7,9,11,12,14,15 stroke:red,stroke-width:2px
 ```
 
 ### Nodes
 
 **Upcoming** (RuleSet) `Cas2UpcomingRuleSet`
 - [`ReleaseWithin15DaysRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/ReleaseWithin15DaysRule.kt): FAIL if not within 15 days of release from current accommodation
-- FAIL: [`Cas2UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/upcoming/Cas2UpcomingContextUpdater.kt) - Set current status to CAS2_UPCOMING
+- FAIL: [`Cas2UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/upcoming/Cas2UpcomingContextUpdater.kt) - Set current status to Upcoming
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -174,7 +247,16 @@ flowchart TD
 **Suitability** (RuleSet) `Cas2SuitabilityRuleSet`
 - [`Cas2ApplicationSubmittedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/suitability/Cas2ApplicationSubmittedRule.kt): FAIL if candidate does not have a submitted application
 - [`Cas2SuitableStatusRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/suitability/Cas2SuitableStatusRule.kt): FAIL if candidate has an unsuitable status
-- PASS: [`Cas2CompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/suitability/Cas2CompletionContextUpdater.kt) - return status as one of CAS2_SUBMITTED, CAS2_MORE_INFORMATION_NEEDED, CAS2_AWAITING_DECISION, CAS2_ON_WAITING_LIST, CAS2_PLACE_OFFERED, CAS2_OFFER_ACCEPTED, CAS2_UNKNOWN, CAS2_ARRIVED, CAS2_AWAITING_ARRIVAL
+- PASS: [`Cas2CompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/suitability/Cas2CompletionContextUpdater.kt) - return status as one of:
+Submitted,
+ More Information Needed,
+ Awaiting Decision,
+ On Waiting List,
+ Place Offered,
+ Offer Accepted,
+ Unknown,
+ Arrived,
+ Awaiting Arrival
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -187,7 +269,13 @@ flowchart TD
 | CAS2_UNKNOWN | - | - |
 | CAS2_ARRIVED | - | CAS2_VIEW_APPLICATION |
 | CAS2_AWAITING_ARRIVAL | - | CAS2_VIEW_APPLICATION |
-- FAIL: [`Cas2SuitabilityContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/suitability/Cas2SuitabilityContextUpdater.kt) - Set current status to one of CAS2_NOT_STARTED, CAS2_NOT_SUBMITTED, CAS2_OFFER_DECLINED_OR_WITHDRAWN, CAS2_CANCELLED, CAS2_WITHDRAWN, CAS2_UNKNOWN
+- FAIL: [`Cas2SuitabilityContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/suitability/Cas2SuitabilityContextUpdater.kt) - Set current status to one of:
+Not Started,
+ Not Submitted,
+ Offer Declined or Withdrawn,
+ Cancelled,
+ Withdrawn,
+ Unknown
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -229,13 +317,22 @@ flowchart TD
 
 **return current status** (Outcome)
 
-**return status CAS2_NOT_ELIGIBLE** (Outcome)
+**return status Not Eligible** (Outcome)<br>Failed because: [HAS_NO_ROSH_LEVEL]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [HAS_NEXT_ACCOMMODATION]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [IN_CAS3_ACCOMMODATION, IN_CAS2_ACCOMMODATION, IN_COMMUNITY]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [IN_PRISON_NO_RELEASE_DATE]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [UNDER_18, INVALID_TIER, SEXUAL_OFFENCE_REGISTRATIONS_PRESENT]
 
 
 
 ## CAS3
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
   Upcoming("Upcoming (1)
 
@@ -246,8 +343,17 @@ flowchart TD
 - FAIL if CAS3 application is not present
 - FAIL if booking is departed or closed
 - FAIL if CAS3 assessment is rejected or closed")
-  return_status_as_one_of_CAS3_BEDSPACE_OFFERED__CAS3_BOOKING_CONFIRMED__CAS3_NOT_ARRIVED__CAS3_BOOKING_CANCELLED__CAS3_SUBMITTED__CAS3_ARRIVED["return status as one of CAS3_BEDSPACE_OFFERED, CAS3_BOOKING_CONFIRMED, CAS3_NOT_ARRIVED, CAS3_BOOKING_CANCELLED, CAS3_SUBMITTED, CAS3_ARRIVED"]
-  Set_current_status_to_one_of_CAS3_NOT_STARTED_NEW__CAS3_REJECTED__CAS3_NOT_SUBMITTED__CAS3_NOT_STARTED["Set current status to one of CAS3_NOT_STARTED_NEW, CAS3_REJECTED, CAS3_NOT_SUBMITTED, CAS3_NOT_STARTED"]
+  return_status_as_one_of__Bedspace_Offered___Booking_Confirmed___Not_Arrived___Booking_Cancelled___Submitted___Arrived["return status as one of:
+<b>Bedspace Offered</b>,
+ <b>Booking Confirmed</b>,
+ <b>Not Arrived</b>,
+ <b>Booking Cancelled</b>,
+ <b>Submitted</b>,
+ <b>Arrived</b>"]
+  Set_current_status_to_one_of__Not_Started___Rejected___Not_Submitted["Set current status to one of:
+<b>Not Started</b>,
+ <b>Rejected</b>,
+ <b>Not Submitted</b>"]
   Eligibility_Current_Accommodation("Eligibility Current Accommodation (1)
 
 - FAIL if current accommodation is not Approved Premise (CAS1), CAS2, or Prison")
@@ -263,30 +369,40 @@ flowchart TD
 - FAIL if CRS not submitted and male
 - FAIL if CRS not submitted and not male")
   return_current_status["return current status"]
-  return_status_as_one_of_CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION__CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS__CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION__CAS3_CANNOT_START_YET_SUBMIT_CRS__CAS3_CANNOT_START_YET_SUBMIT_DTR["return status as one of CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION, CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS, CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION, CAS3_CANNOT_START_YET_SUBMIT_CRS, CAS3_CANNOT_START_YET_SUBMIT_DTR"]
-  return_status_CAS3_NOT_ELIGIBLE["return status CAS3_NOT_ELIGIBLE"]
-  Set_current_status_to_CAS3_UPCOMING["Set current status to CAS3_UPCOMING"]
-  Suitability -->|PASS| return_status_as_one_of_CAS3_BEDSPACE_OFFERED__CAS3_BOOKING_CONFIRMED__CAS3_NOT_ARRIVED__CAS3_BOOKING_CANCELLED__CAS3_SUBMITTED__CAS3_ARRIVED
-  Suitability -->|FAIL| Set_current_status_to_one_of_CAS3_NOT_STARTED_NEW__CAS3_REJECTED__CAS3_NOT_SUBMITTED__CAS3_NOT_STARTED
+  return_status_Cannot_Start_Yet["return status <b>Cannot Start Yet</b>"]
+  return_status_Not_Eligible__Failed_because___HAS_NO_ROSH_LEVEL_["return status <b>Not Eligible</b>
+
+Failed because: [HAS_NO_ROSH_LEVEL]"]
+  return_status_Not_Eligible__Failed_because___HAS_NEXT_ACCOMMODATION_["return status <b>Not Eligible</b>
+
+Failed because: [HAS_NEXT_ACCOMMODATION]"]
+  return_status_Not_Eligible__Failed_because___INVALID_CURRENT_ACCOMMODATION_TYPE_["return status <b>Not Eligible</b>
+
+Failed because: [INVALID_CURRENT_ACCOMMODATION_TYPE]"]
+  Set_current_status_to_Upcoming["Set current status to <b>Upcoming</b>"]
+  Suitability -->|PASS| return_status_as_one_of__Bedspace_Offered___Booking_Confirmed___Not_Arrived___Booking_Cancelled___Submitted___Arrived
+  Suitability -->|FAIL| Set_current_status_to_one_of__Not_Started___Rejected___Not_Submitted
   Prerequisite -->|PASS| return_current_status
-  Prerequisite -->|FAIL| return_status_as_one_of_CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION__CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS__CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION__CAS3_CANNOT_START_YET_SUBMIT_CRS__CAS3_CANNOT_START_YET_SUBMIT_DTR
+  Prerequisite -->|FAIL| return_status_Cannot_Start_Yet
   Eligibility_Rosh -->|PASS| Prerequisite
-  Eligibility_Rosh -->|FAIL| return_status_CAS3_NOT_ELIGIBLE
+  Eligibility_Rosh -->|FAIL| return_status_Not_Eligible__Failed_because___HAS_NO_ROSH_LEVEL_
   Eligibility_Next_Accommodation -->|PASS| Eligibility_Rosh
-  Eligibility_Next_Accommodation -->|FAIL| return_status_CAS3_NOT_ELIGIBLE
+  Eligibility_Next_Accommodation -->|FAIL| return_status_Not_Eligible__Failed_because___HAS_NEXT_ACCOMMODATION_
   Eligibility_Current_Accommodation -->|PASS| Eligibility_Next_Accommodation
-  Eligibility_Current_Accommodation -->|FAIL| return_status_CAS3_NOT_ELIGIBLE
-  Set_current_status_to_one_of_CAS3_NOT_STARTED_NEW__CAS3_REJECTED__CAS3_NOT_SUBMITTED__CAS3_NOT_STARTED -->|FAIL| Eligibility_Current_Accommodation
+  Eligibility_Current_Accommodation -->|FAIL| return_status_Not_Eligible__Failed_because___INVALID_CURRENT_ACCOMMODATION_TYPE_
+  Set_current_status_to_one_of__Not_Started___Rejected___Not_Submitted -->|FAIL| Eligibility_Current_Accommodation
   Upcoming -->|PASS| Suitability
-  Upcoming -->|FAIL| Set_current_status_to_CAS3_UPCOMING
-  Set_current_status_to_CAS3_UPCOMING -->|FAIL| Eligibility_Current_Accommodation
+  Upcoming -->|FAIL| Set_current_status_to_Upcoming
+  Set_current_status_to_Upcoming -->|FAIL| Eligibility_Current_Accommodation
+  linkStyle 0,2,4,6,8,11 stroke:green,stroke-width:2px
+  linkStyle 1,3,5,7,9,10,12,13 stroke:red,stroke-width:2px
 ```
 
 ### Nodes
 
 **Upcoming** (RuleSet) `Cas3UpcomingRuleSet`
 - [`ReleaseWithin15DaysRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/ReleaseWithin15DaysRule.kt): FAIL if not within 15 days of release from current accommodation
-- FAIL: [`Cas3UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/upcoming/Cas3UpcomingContextUpdater.kt) - Set current status to CAS3_UPCOMING
+- FAIL: [`Cas3UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/upcoming/Cas3UpcomingContextUpdater.kt) - Set current status to Upcoming
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -298,7 +414,13 @@ flowchart TD
 - [`Cas3ApplicationPresentSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3ApplicationPresentSuitabilityRule.kt): FAIL if CAS3 application is not present
 - [`Cas3BookingSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3BookingSuitabilityRule.kt): FAIL if booking is departed or closed
 - [`Cas3AssessmentSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3AssessmentSuitabilityRule.kt): FAIL if CAS3 assessment is rejected or closed
-- PASS: [`Cas3CompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3CompletionContextUpdater.kt) - return status as one of CAS3_BEDSPACE_OFFERED, CAS3_BOOKING_CONFIRMED, CAS3_NOT_ARRIVED, CAS3_BOOKING_CANCELLED, CAS3_SUBMITTED, CAS3_ARRIVED
+- PASS: [`Cas3CompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3CompletionContextUpdater.kt) - return status as one of:
+Bedspace Offered,
+ Booking Confirmed,
+ Not Arrived,
+ Booking Cancelled,
+ Submitted,
+ Arrived
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -308,7 +430,10 @@ flowchart TD
 | CAS3_BOOKING_CANCELLED | - | CAS3_VIEW_REFERRAL |
 | CAS3_SUBMITTED | - | CAS3_VIEW_REFERRAL |
 | CAS3_ARRIVED | - | CAS3_VIEW_REFERRAL |
-- FAIL: [`Cas3SuitabilityContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3SuitabilityContextUpdater.kt) - Set current status to one of CAS3_NOT_STARTED_NEW, CAS3_REJECTED, CAS3_NOT_SUBMITTED, CAS3_NOT_STARTED
+- FAIL: [`Cas3SuitabilityContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3SuitabilityContextUpdater.kt) - Set current status to one of:
+Not Started,
+ Rejected,
+ Not Submitted
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -338,7 +463,7 @@ flowchart TD
 - [`DtrExpiredReferralRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/DtrExpiredReferralRule.kt): FAIL if DTR is submitted more than 26 weeks ago.
 - [`CrsSubmittedRuleMale`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/prerequisite/CrsSubmittedRuleMale.kt): FAIL if CRS not submitted and male
 - [`CrsSubmittedRuleNonMale`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/prerequisite/CrsSubmittedRuleNonMale.kt): FAIL if CRS not submitted and not male
-- FAIL: [`Cas3PrerequisiteContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/prerequisite/Cas3PrerequisiteContextUpdater.kt) - return status as one of CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION, CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS, CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION, CAS3_CANNOT_START_YET_SUBMIT_CRS, CAS3_CANNOT_START_YET_SUBMIT_DTR
+- FAIL: [`Cas3PrerequisiteContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/prerequisite/Cas3PrerequisiteContextUpdater.kt) - return status Cannot Start Yet
 
 | Status | Action | Link type | Blocking reason |
 | --- | --- | --- | --- |
@@ -353,13 +478,18 @@ flowchart TD
 
 
 
-**return status CAS3_NOT_ELIGIBLE** (Outcome)
+**return status Not Eligible** (Outcome)<br>Failed because: [HAS_NO_ROSH_LEVEL]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [HAS_NEXT_ACCOMMODATION]
+
+**return status Not Eligible** (Outcome)<br>Failed because: [INVALID_CURRENT_ACCOMMODATION_TYPE]
 
 
 
 ## CRS
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
   Upcoming("Upcoming (1)
 
@@ -367,8 +497,8 @@ flowchart TD
   Completion("Completion (1)
 
 - FAIL if no live CRS referral")
-  return_status_CRS_SUBMITTED["return status CRS_SUBMITTED"]
-  Set_current_status_to_one_of_CRS_NOT_STARTED_ACCOMMODATION_REFERRAL__CRS_NOT_STARTED_REFERRAL["Set current status to one of CRS_NOT_STARTED_ACCOMMODATION_REFERRAL, CRS_NOT_STARTED_REFERRAL"]
+  return_status_Submitted["return status <b>Submitted</b>"]
+  Set_current_status_to_Not_Started["Set current status to <b>Not Started</b>"]
   Eligibility_Settled("Eligibility Settled (1)
 
 - FAIL if candidate is settled")
@@ -376,25 +506,32 @@ flowchart TD
 
 - FAIL if candidate has next accommodation")
   return_current_status["return current status"]
-  return_status_CRS_NOT_REQUIRED["return status CRS_NOT_REQUIRED"]
-  Set_current_status_to_one_of_CRS_UPCOMING_ACCOMMODATION_REFERRAL__CRS_UPCOMING_REFERRAL["Set current status to one of CRS_UPCOMING_ACCOMMODATION_REFERRAL, CRS_UPCOMING_REFERRAL"]
-  Completion -->|PASS| return_status_CRS_SUBMITTED
-  Completion -->|FAIL| Set_current_status_to_one_of_CRS_NOT_STARTED_ACCOMMODATION_REFERRAL__CRS_NOT_STARTED_REFERRAL
+  return_status_Not_Required__Failed_because___HAS_NEXT_ACCOMMODATION_["return status <b>Not Required</b>
+
+Failed because: [HAS_NEXT_ACCOMMODATION]"]
+  return_status_Not_Required__Failed_because___IS_SETTLED_["return status <b>Not Required</b>
+
+Failed because: [IS_SETTLED]"]
+  Set_current_status_to_Upcoming["Set current status to <b>Upcoming</b>"]
+  Completion -->|PASS| return_status_Submitted
+  Completion -->|FAIL| Set_current_status_to_Not_Started
   Eligibility_Next_Accommodation -->|PASS| return_current_status
-  Eligibility_Next_Accommodation -->|FAIL| return_status_CRS_NOT_REQUIRED
+  Eligibility_Next_Accommodation -->|FAIL| return_status_Not_Required__Failed_because___HAS_NEXT_ACCOMMODATION_
   Eligibility_Settled -->|PASS| Eligibility_Next_Accommodation
-  Eligibility_Settled -->|FAIL| return_status_CRS_NOT_REQUIRED
-  Set_current_status_to_one_of_CRS_NOT_STARTED_ACCOMMODATION_REFERRAL__CRS_NOT_STARTED_REFERRAL -->|FAIL| Eligibility_Settled
+  Eligibility_Settled -->|FAIL| return_status_Not_Required__Failed_because___IS_SETTLED_
+  Set_current_status_to_Not_Started -->|FAIL| Eligibility_Settled
   Upcoming -->|PASS| Completion
-  Upcoming -->|FAIL| Set_current_status_to_one_of_CRS_UPCOMING_ACCOMMODATION_REFERRAL__CRS_UPCOMING_REFERRAL
-  Set_current_status_to_one_of_CRS_UPCOMING_ACCOMMODATION_REFERRAL__CRS_UPCOMING_REFERRAL -->|FAIL| Eligibility_Settled
+  Upcoming -->|FAIL| Set_current_status_to_Upcoming
+  Set_current_status_to_Upcoming -->|FAIL| Eligibility_Settled
+  linkStyle 0,2,4,7 stroke:green,stroke-width:2px
+  linkStyle 1,3,5,6,8,9 stroke:red,stroke-width:2px
 ```
 
 ### Nodes
 
 **Upcoming** (RuleSet) `CrsUpcomingRuleSet`
 - [`CrsUpcomingRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/upcoming/CrsUpcomingRule.kt): FAIL if not within 12 weeks of release from current accommodation
-- FAIL: [`CrsUpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/upcoming/CrsUpcomingContextUpdater.kt) - Set current status to one of CRS_UPCOMING_ACCOMMODATION_REFERRAL, CRS_UPCOMING_REFERRAL
+- FAIL: [`CrsUpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/upcoming/CrsUpcomingContextUpdater.kt) - Set current status to Upcoming
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -404,7 +541,7 @@ flowchart TD
 
 **Completion** (RuleSet) `CrsCompletionRuleSet`
 - [`CrsSubmittedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/completion/CrsSubmittedRule.kt): FAIL if no live CRS referral
-- FAIL: [`CrsCompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/completion/CrsCompletionContextUpdater.kt) - Set current status to one of CRS_NOT_STARTED_ACCOMMODATION_REFERRAL, CRS_NOT_STARTED_REFERRAL
+- FAIL: [`CrsCompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/completion/CrsCompletionContextUpdater.kt) - Set current status to Not Started
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -412,7 +549,7 @@ flowchart TD
 | CRS_NOT_STARTED_REFERRAL | SUBMIT_CRS_REFERRAL (CRS) | - |
 
 
-**return status CRS_SUBMITTED** (Outcome)
+**return status Submitted** (Outcome)
 
 
 
@@ -426,20 +563,26 @@ flowchart TD
 
 **return current status** (Outcome)
 
-**return status CRS_NOT_REQUIRED** (Outcome)
+**return status Not Required** (Outcome)<br>Failed because: [HAS_NEXT_ACCOMMODATION]
+
+**return status Not Required** (Outcome)<br>Failed because: [IS_SETTLED]
 
 
 
 ## DTR
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
   Suitability("Suitability (3)
 
 - FAIL if DTR status is not present
 - FAIL if DTR referral has been withdrawn
 - FAIL if DTR is submitted more than 26 weeks ago.")
-  return_status_as_one_of_DTR_ACCEPTED__DTR_NOT_ACCEPTED__DTR_SUBMITTED["return status as one of DTR_ACCEPTED, DTR_NOT_ACCEPTED, DTR_SUBMITTED"]
+  return_status_as_one_of__Accepted___Not_Accepted___Submitted["return status as one of:
+<b>Accepted</b>,
+ <b>Not Accepted</b>,
+ <b>Submitted</b>"]
   Set_DTR_NOT_STARTED["Set DTR_NOT_STARTED"]
   Eligibility("Eligibility (1)
 
@@ -448,15 +591,19 @@ flowchart TD
 
 - FAIL if not within 8 weeks of release from current accommodation")
   return_current_status["return current status"]
-  return_status_DTR_UPCOMING["return status DTR_UPCOMING"]
-  return_status_DTR_NOT_REQUIRED["return status DTR_NOT_REQUIRED"]
-  Suitability -->|PASS| return_status_as_one_of_DTR_ACCEPTED__DTR_NOT_ACCEPTED__DTR_SUBMITTED
+  return_status_Upcoming["return status <b>Upcoming</b>"]
+  return_status_Not_Required__Failed_because___HAS_NEXT_ACCOMMODATION_["return status <b>Not Required</b>
+
+Failed because: [HAS_NEXT_ACCOMMODATION]"]
+  Suitability -->|PASS| return_status_as_one_of__Accepted___Not_Accepted___Submitted
   Suitability -->|FAIL| Set_DTR_NOT_STARTED
   Upcoming -->|PASS| return_current_status
-  Upcoming -->|FAIL| return_status_DTR_UPCOMING
+  Upcoming -->|FAIL| return_status_Upcoming
   Eligibility -->|PASS| Upcoming
-  Eligibility -->|FAIL| return_status_DTR_NOT_REQUIRED
+  Eligibility -->|FAIL| return_status_Not_Required__Failed_because___HAS_NEXT_ACCOMMODATION_
   Set_DTR_NOT_STARTED -->|FAIL| Eligibility
+  linkStyle 0,2,4 stroke:green,stroke-width:2px
+  linkStyle 1,3,5,6 stroke:red,stroke-width:2px
 ```
 
 ### Nodes
@@ -465,7 +612,10 @@ flowchart TD
 - [`DtrPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/suitability/DtrPresentRule.kt): FAIL if DTR status is not present
 - [`DtrNotWithdrawnRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/suitability/DtrNotWithdrawnRule.kt): FAIL if DTR referral has been withdrawn
 - [`DtrExpiredReferralRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/DtrExpiredReferralRule.kt): FAIL if DTR is submitted more than 26 weeks ago.
-- PASS: [`DtrCompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/suitability/DtrCompletionContextUpdater.kt) - return status as one of DTR_ACCEPTED, DTR_NOT_ACCEPTED, DTR_SUBMITTED
+- PASS: [`DtrCompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/suitability/DtrCompletionContextUpdater.kt) - return status as one of:
+Accepted,
+ Not Accepted,
+ Submitted
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -489,7 +639,7 @@ flowchart TD
 
 **Upcoming** (RuleSet) `DtrUpcomingRuleSet`
 - [`ReleaseWithinEightWeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/upcoming/ReleaseWithinEightWeeksRule.kt): FAIL if not within 8 weeks of release from current accommodation
-- FAIL: [`DtrUpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/upcoming/DtrUpcomingContextUpdater.kt) - return status DTR_UPCOMING
+- FAIL: [`DtrUpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/upcoming/DtrUpcomingContextUpdater.kt) - return status Upcoming
 
 | Status | Action | Link type |
 | --- | --- | --- |
@@ -500,28 +650,33 @@ flowchart TD
 
 
 
-**return status DTR_NOT_REQUIRED** (Outcome)
+**return status Not Required** (Outcome)<br>Failed because: [HAS_NEXT_ACCOMMODATION]
 
 ## PA
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
   Completion("Completion (1)
 
 - FAIL if candidate has no next accommodation")
-  return_status_PA_COMPLETED["return status PA_COMPLETED"]
+  return_status_Completed["return status <b>Completed</b>"]
   Set_PA_NOT_STARTED["Set PA_NOT_STARTED"]
   Eligibility("Eligibility (2)
 
 - FAIL if candidate has a suitable CAS1 application
 - FAIL if candidate has suitable CAS3 application")
   return_current_status["return current status"]
-  return_status_PA_NOT_ELIGIBLE["return status PA_NOT_ELIGIBLE"]
-  Completion -->|PASS| return_status_PA_COMPLETED
+  return_status_Not_Eligible__Failed_because___SUITABLE_CAS1_APPLICATION__SUITABLE_CAS3_APPLICATION_["return status <b>Not Eligible</b>
+
+Failed because: [SUITABLE_CAS1_APPLICATION, SUITABLE_CAS3_APPLICATION]"]
+  Completion -->|PASS| return_status_Completed
   Completion -->|FAIL| Set_PA_NOT_STARTED
   Eligibility -->|PASS| return_current_status
-  Eligibility -->|FAIL| return_status_PA_NOT_ELIGIBLE
+  Eligibility -->|FAIL| return_status_Not_Eligible__Failed_because___SUITABLE_CAS1_APPLICATION__SUITABLE_CAS3_APPLICATION_
   Set_PA_NOT_STARTED -->|FAIL| Eligibility
+  linkStyle 0,2 stroke:green,stroke-width:2px
+  linkStyle 1,3,4 stroke:red,stroke-width:2px
 ```
 
 ### Nodes
@@ -535,7 +690,7 @@ flowchart TD
 | PA_NOT_STARTED | ADD_AND_CONFIRM_PROPOSED_ADDRESS (PA) | - |
 
 
-**return status PA_COMPLETED** (Outcome)
+**return status Completed** (Outcome)
 
 
 
@@ -546,7 +701,7 @@ flowchart TD
 
 **return current status** (Outcome)
 
-**return status PA_NOT_ELIGIBLE** (Outcome)
+**return status Not Eligible** (Outcome)<br>Failed because: [SUITABLE_CAS1_APPLICATION, SUITABLE_CAS3_APPLICATION]
 
 ## Rule catalogue
 
@@ -592,7 +747,17 @@ flowchart TD
 ## Context updater catalogue
 
 
-return status as one of CAS1_ARRIVED, CAS1_NOT_ARRIVED, CAS1_PLACEMENT_BOOKED, CAS1_PLACEMENT_CANCELLED, CAS1_PLACEMENT_REQUEST_NOT_STARTED, CAS1_PLACEMENT_REQUEST_WITHDRAWN, CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED, CAS1_PLACEMENT_REQUEST_REJECTED, CAS1_PLACEMENT_REQUEST_SUBMITTED, CAS1_INFO_REQUESTED, CAS1_SUBMITTED
+return status as one of:
+Arrived,
+ Not Arrived,
+ Placement Booked,
+ Placement Cancelled,
+ Placement Request Not Started,
+ Placement Request Withdrawn,
+ Placement Request Rejected,
+ Placement Request Submitted,
+ Information Requested,
+ Submitted
 
 Used by: Suitability (CAS1) on pass
 
@@ -611,7 +776,10 @@ Used by: Suitability (CAS1) on pass
 | CAS1_SUBMITTED | - | CAS1_VIEW_APPLICATION |
 
 
-Set current status to one of CAS1_NOT_SUBMITTED, CAS1_APPLICATION_REJECTED, CAS1_NOT_STARTED
+Set current status to one of:
+Not Submitted,
+ Application Rejected,
+ Not Started
 
 Used by: Suitability (CAS1) on fail
 
@@ -622,7 +790,7 @@ Used by: Suitability (CAS1) on fail
 | CAS1_NOT_STARTED | START_APPROVED_PREMISE_APPLICATION (CAS1) | CAS1_START_APPLICATION |
 
 
-Set current status to CAS1_UPCOMING
+Set current status to Upcoming
 
 Used by: Upcoming (CAS1) on fail
 
@@ -631,7 +799,16 @@ Used by: Upcoming (CAS1) on fail
 | CAS1_UPCOMING | START_APPROVED_PREMISE_APPLICATION (CAS1) | - |
 
 
-return status as one of CAS2_SUBMITTED, CAS2_MORE_INFORMATION_NEEDED, CAS2_AWAITING_DECISION, CAS2_ON_WAITING_LIST, CAS2_PLACE_OFFERED, CAS2_OFFER_ACCEPTED, CAS2_UNKNOWN, CAS2_ARRIVED, CAS2_AWAITING_ARRIVAL
+return status as one of:
+Submitted,
+ More Information Needed,
+ Awaiting Decision,
+ On Waiting List,
+ Place Offered,
+ Offer Accepted,
+ Unknown,
+ Arrived,
+ Awaiting Arrival
 
 Used by: Suitability (CAS2) on pass
 
@@ -648,7 +825,13 @@ Used by: Suitability (CAS2) on pass
 | CAS2_AWAITING_ARRIVAL | - | CAS2_VIEW_APPLICATION |
 
 
-Set current status to one of CAS2_NOT_STARTED, CAS2_NOT_SUBMITTED, CAS2_OFFER_DECLINED_OR_WITHDRAWN, CAS2_CANCELLED, CAS2_WITHDRAWN, CAS2_UNKNOWN
+Set current status to one of:
+Not Started,
+ Not Submitted,
+ Offer Declined or Withdrawn,
+ Cancelled,
+ Withdrawn,
+ Unknown
 
 Used by: Suitability (CAS2) on fail
 
@@ -662,7 +845,7 @@ Used by: Suitability (CAS2) on fail
 | CAS2_UNKNOWN | - | - |
 
 
-Set current status to CAS2_UPCOMING
+Set current status to Upcoming
 
 Used by: Upcoming (CAS2) on fail
 
@@ -671,7 +854,13 @@ Used by: Upcoming (CAS2) on fail
 | CAS2_UPCOMING | START_CAS2_REFERRAL (CAS2) | - |
 
 
-return status as one of CAS3_BEDSPACE_OFFERED, CAS3_BOOKING_CONFIRMED, CAS3_NOT_ARRIVED, CAS3_BOOKING_CANCELLED, CAS3_SUBMITTED, CAS3_ARRIVED
+return status as one of:
+Bedspace Offered,
+ Booking Confirmed,
+ Not Arrived,
+ Booking Cancelled,
+ Submitted,
+ Arrived
 
 Used by: Suitability (CAS3) on pass
 
@@ -685,7 +874,7 @@ Used by: Suitability (CAS3) on pass
 | CAS3_ARRIVED | - | CAS3_VIEW_REFERRAL |
 
 
-return status as one of CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION, CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS, CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION, CAS3_CANNOT_START_YET_SUBMIT_CRS, CAS3_CANNOT_START_YET_SUBMIT_DTR
+return status Cannot Start Yet
 
 Used by: Prerequisite (CAS3) on fail
 
@@ -698,7 +887,10 @@ Used by: Prerequisite (CAS3) on fail
 | CAS3_CANNOT_START_YET_SUBMIT_DTR | - | - | SUBMIT_DTR_BEFORE_CAS3 |
 
 
-Set current status to one of CAS3_NOT_STARTED_NEW, CAS3_REJECTED, CAS3_NOT_SUBMITTED, CAS3_NOT_STARTED
+Set current status to one of:
+Not Started,
+ Rejected,
+ Not Submitted
 
 Used by: Suitability (CAS3) on fail
 
@@ -710,7 +902,7 @@ Used by: Suitability (CAS3) on fail
 | CAS3_NOT_STARTED | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
 
 
-Set current status to CAS3_UPCOMING
+Set current status to Upcoming
 
 Used by: Upcoming (CAS3) on fail
 
@@ -719,7 +911,7 @@ Used by: Upcoming (CAS3) on fail
 | CAS3_UPCOMING | START_CAS3_REFERRAL (CAS3) | - |
 
 
-Set current status to one of CRS_NOT_STARTED_ACCOMMODATION_REFERRAL, CRS_NOT_STARTED_REFERRAL
+Set current status to Not Started
 
 Used by: Completion (CRS) on fail
 
@@ -729,7 +921,7 @@ Used by: Completion (CRS) on fail
 | CRS_NOT_STARTED_REFERRAL | SUBMIT_CRS_REFERRAL (CRS) | - |
 
 
-Set current status to one of CRS_UPCOMING_ACCOMMODATION_REFERRAL, CRS_UPCOMING_REFERRAL
+Set current status to Upcoming
 
 Used by: Upcoming (CRS) on fail
 
@@ -739,7 +931,10 @@ Used by: Upcoming (CRS) on fail
 | CRS_UPCOMING_REFERRAL | SUBMIT_CRS_REFERRAL (CRS) | - |
 
 
-return status as one of DTR_ACCEPTED, DTR_NOT_ACCEPTED, DTR_SUBMITTED
+return status as one of:
+Accepted,
+ Not Accepted,
+ Submitted
 
 Used by: Suitability (DTR) on pass
 
@@ -750,7 +945,7 @@ Used by: Suitability (DTR) on pass
 | DTR_SUBMITTED | ADD_DTR_OUTCOME (DTR) | - |
 
 
-return status DTR_UPCOMING
+return status Upcoming
 
 Used by: Upcoming (DTR) on fail
 

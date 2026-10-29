@@ -44,7 +44,6 @@ class Cas3EligibilityTreeProvider(
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notEligible = builder.notEligible(ServiceType.CAS3)
 
     val prerequisiteNode = builder
       .ruleSet(prerequisite)
@@ -55,19 +54,19 @@ class Cas3EligibilityTreeProvider(
     val eligibilityRoshNode = builder
       .ruleSet(eligibilityRosh)
       .onPass(prerequisiteNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(builder.notEligible(ServiceType.CAS3, eligibilityRosh.failureReasons())).propagateContextOnFailure()
       .build()
 
     val eligibilityNextAccommodationNode = builder
       .ruleSet(eligibilityNextAccommodation)
       .onPass(eligibilityRoshNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(builder.notEligible(ServiceType.CAS3, eligibilityNextAccommodation.failureReasons())).propagateContextOnFailure()
       .build()
 
     val eligibilityCurrentAccommodationNode = builder
       .ruleSet(eligibilityCurrentAccommodation)
       .onPass(eligibilityNextAccommodationNode)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(builder.notEligible(ServiceType.CAS3, eligibilityCurrentAccommodation.failureReasons())).propagateContextOnFailure()
       .build()
 
     val suitabilityNode = builder

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
@@ -12,6 +13,8 @@ import java.time.LocalDate
 @Component
 class ReleaseWithin15DaysRule(val clock: Clock) : Rule {
   override val description = "FAIL if not within 15 days of release from current accommodation"
+
+  override val failureReason: FailureReason? = null
 
   override fun evaluate(data: DomainData): RuleResult {
     val today = LocalDate.now(clock)

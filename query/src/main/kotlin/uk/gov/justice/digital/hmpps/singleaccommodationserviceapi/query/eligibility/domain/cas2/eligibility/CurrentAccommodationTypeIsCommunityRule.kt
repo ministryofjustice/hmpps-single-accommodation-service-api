@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class CurrentAccommodationTypeIsCommunityRule : Rule {
   override val description = "FAIL if individual is in the community"
 
+  override val failureReason: FailureReason? = FailureReason.IN_COMMUNITY
+
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.currentAccommodationTypeEntity?.isPrison != true &&
       data.currentAccommodationTypeEntity?.isCas1 != true &&
@@ -19,7 +21,7 @@ class CurrentAccommodationTypeIsCommunityRule : Rule {
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
-      failureReason = if (isFail) FailureReason.IN_COMMUNITY else null,
+      failureReason = if (isFail) failureReason else null,
     )
   }
 }

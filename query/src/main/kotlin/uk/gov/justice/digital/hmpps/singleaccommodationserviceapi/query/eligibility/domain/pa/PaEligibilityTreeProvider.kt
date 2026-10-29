@@ -30,13 +30,12 @@ class PaEligibilityTreeProvider(
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notEligible = builder.notEligible(ServiceType.PA)
-    val completed = builder.outcome("completed", ServiceResultNew(serviceStatus = ServiceStatusNew.PA_COMPLETED))
+    val completed = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.PA_COMPLETED))
 
     val eligibilityNode = builder
       .ruleSet(eligibility)
       .onPass(confirmed)
-      .onFail(notEligible).propagateContextOnFailure()
+      .onFail(builder.notEligible(ServiceType.PA, eligibility.failureReasons())).propagateContextOnFailure()
       .build()
 
     return builder

@@ -12,6 +12,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class Cas3ApplicationNotSuitableRule : Rule {
   override val description = "FAIL if candidate has suitable CAS3 application"
 
+  override val failureReason: FailureReason? = FailureReason.SUITABLE_CAS3_APPLICATION
+
   override fun evaluate(data: DomainData): RuleResult {
     val suitableStatuses = listOf(
       Cas3ApplicationStatus.SUBMITTED,
@@ -23,7 +25,7 @@ class Cas3ApplicationNotSuitableRule : Rule {
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
-      failureReason = if (isFail) FailureReason.SUITABLE_CAS3_APPLICATION else null,
+      failureReason = if (isFail) failureReason else null,
     )
   }
 }

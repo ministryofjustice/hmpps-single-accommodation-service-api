@@ -12,12 +12,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class NonMaleRiskEligibilityRule : Rule {
   override val description = "FAIL if candidate is not Male and is not Tier A, B, C or D"
 
+  override val failureReason: FailureReason? = FailureReason.NON_MALE_NOT_HIGH_RISK_TIER
+
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.sex != SexCode.M && !TierRiskScores.isHighRiskForNonMale(data.tierScore)
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
-      failureReason = if (isFail) FailureReason.NON_MALE_NOT_HIGH_RISK_TIER else null,
+      failureReason = if (isFail) failureReason else null,
     )
   }
 }

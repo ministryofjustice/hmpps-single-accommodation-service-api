@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
@@ -28,7 +29,7 @@ class DecisionTreeBuilder(
   )
 
   /** Creates a terminal outcome node that returns a fixed ServiceResult. */
-  fun outcome(name: String, result: ServiceResultNew) = OutcomeNode(name = "return status ${result.serviceStatus.name}") { _ -> result }
+  fun outcome(result: ServiceResultNew) = OutcomeNode(name = "return status ${result.serviceStatus.uiStatusName}") { _ -> result }
 
   /** Creates a terminal outcome node that returns the current context's ServiceResult. */
   fun confirmed() = OutcomeNode("return current status") { ctx ->
@@ -56,6 +57,8 @@ class DecisionTreeBuilder(
   }
 
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
-  fun notEligible(service: ServiceType) = OutcomeNode("return status ${toNotEligibleServiceStatus(service)}") { ctx -> toNotEligibleServiceResult(service, ctx.currentResult?.failureReasons ?: emptyList()) }
-  fun notRequired(service: ServiceType) = OutcomeNode("return status ${toNotRequiredServiceStatus(service)}") { ctx -> toNotRequiredServiceResult(service, ctx.currentResult?.failureReasons ?: emptyList()) }
+  fun notEligible(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = OutcomeNode(outcomeName(toNotEligibleServiceStatus(service), failureReasons)) { ctx -> toNotEligibleServiceResult(service, ctx.currentResult?.failureReasons ?: emptyList()) }
+  fun notRequired(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = OutcomeNode(outcomeName(toNotRequiredServiceStatus(service), failureReasons)) { ctx -> toNotRequiredServiceResult(service, ctx.currentResult?.failureReasons ?: emptyList()) }
+
+  private fun outcomeName(status: ServiceStatusNew, failureReasons: List<FailureReason>) = "return status ${status.uiStatusName}" + if (failureReasons.isEmpty()) "" else "\n\nFailed because: $failureReasons"
 }
