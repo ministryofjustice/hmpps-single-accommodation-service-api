@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_WITHOUT_LAO
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_IF_EXISTS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
@@ -112,7 +112,7 @@ class CaseMutationOrchestrationService(
       put(GET_CAS_3_CURRENT_PREMISES, loadCas3CurrentPremises)
       put(GET_CAS_1_APPLICATION, loadCas1Application)
       put(GET_CAS_3_APPLICATION, loadCas3Application)
-      put(GET_CASE_WITHOUT_LAO, loadCase)
+      put(GET_CASE_IF_EXISTS, loadCase)
       loadPrisoner?.let { put(GET_PRISONER, it) }
     }
 
@@ -130,7 +130,7 @@ class CaseMutationOrchestrationService(
         cas1Application = results.getResult<Cas1Application>(GET_CAS_1_APPLICATION),
         cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION),
         prisoner = results.getResult<Prisoner>(GET_PRISONER),
-        case = results.getResult<Case>(GET_CASE_WITHOUT_LAO),
+        case = results.getResult<Case>(GET_CASE_IF_EXISTS),
       ),
       upstreamFailures = results.getFailures(),
     )

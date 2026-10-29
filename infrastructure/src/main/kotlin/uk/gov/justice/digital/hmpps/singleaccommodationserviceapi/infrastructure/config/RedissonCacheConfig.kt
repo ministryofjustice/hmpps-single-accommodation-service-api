@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_WITHOUT_LAO
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_URL_TEMPLATES
@@ -108,7 +107,6 @@ class RedissonCacheConfig {
       GET_STAFF_DETAIL to CacheConfig(600_000, 300_000),
       GET_SEXUAL_OFFENCE_REGISTRATIONS to CacheConfig(600_000, 300_000),
       GET_CASE to CacheConfig(60_000, 30_000),
-      GET_CASE_WITHOUT_LAO to CacheConfig(60_000, 30_000),
       GET_CORE_PERSON_RECORD_BY_CRN to CacheConfig(500, 250),
       GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER to CacheConfig(60_000, 30_000),
       GET_TIER_V3 to CacheConfig(60_000, 30_000),

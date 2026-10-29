@@ -2,16 +2,16 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 object ApiCallKeys {
   // probation-integration AP and Delius service
-  const val GET_CASE = "getCaseByCrn"
   const val GET_STAFF_DETAIL = "getStaffDetailByUsername"
   const val POST_CASE_SUMMARIES = "postCaseSummaries"
-  const val GET_SEXUAL_OFFENCE_REGISTRATIONS = "getSexualOffenceRegistrations"
 
   // probation-integration SAS and Delius service
+  const val GET_CASE = "getCaseByCrn"
+  const val GET_CASE_IF_EXISTS = "getCaseByCrnIfExists"
   const val GET_CASE_LIST = "getCaseListByUsername"
   const val FULL_CASE_LIST = "fullCaseListByUsername"
   const val GET_CASES_BY_TEAM = "getCasesByTeamCode"
-  const val GET_CASE_WITHOUT_LAO = "getCaseByCrnWithoutLAO"
+  const val GET_SEXUAL_OFFENCE_REGISTRATIONS = "getSexualOffenceRegistrations"
 
   // core-person-record service
   const val GET_CORE_PERSON_RECORD_BY_CRN = "getCorePersonRecordByCrn"
@@ -57,6 +57,6 @@ object ApiCallKeys {
     GET_CAS_2_APPLICATION,
     GET_CAS_3_APPLICATION,
     GET_PRISONER,
-    GET_CASE_WITHOUT_LAO,
+    GET_CASE_IF_EXISTS,
   )
 }

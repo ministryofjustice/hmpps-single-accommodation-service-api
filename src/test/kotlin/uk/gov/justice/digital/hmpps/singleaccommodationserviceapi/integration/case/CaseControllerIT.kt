@@ -349,7 +349,7 @@ class CaseControllerIT : IntegrationTestBase() {
         pageSize = pageSize.toInt(),
       )
       ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(crn))
-      SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = crn, response = case)
+      SasAndDeliusStubs.stubGetCase(crn = crn, response = case)
     }
 
     @Test
@@ -617,7 +617,7 @@ class CaseControllerIT : IntegrationTestBase() {
       val crn = "a123456"
       val normalisedCrn = crn.uppercase()
       val case = buildCase(crn = normalisedCrn, nomsNumber = nomsNumbers[5])
-      SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
+      SasAndDeliusStubs.stubGetCase(crn = case.crn, response = case)
       ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(normalisedCrn))
       seedAllCaseEntities(listOf(case), "A1")
 
@@ -632,7 +632,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
       sasWiremock.verify(
         1,
-        getRequestedFor(WireMock.urlPathMatching("/case/$USERNAME_OF_LOGGED_IN_DELIUS_USER/$normalisedCrn")),
+        getRequestedFor(WireMock.urlPathMatching("/case/$normalisedCrn")),
       )
     }
 
@@ -651,7 +651,7 @@ class CaseControllerIT : IntegrationTestBase() {
     @Test
     fun `returns NotFound error when delius returns NotFound error`() {
       val crn = "B123456"
-      SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
+      SasAndDeliusStubs.stubGetCaseNotFoundFailure(crn)
       webTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()
         .exchange()
@@ -662,7 +662,7 @@ class CaseControllerIT : IntegrationTestBase() {
     @Test
     fun `returns ServerError when delius returns ServerError`() {
       val crn = "C123456"
-      SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
+      SasAndDeliusStubs.stubGetCaseFailure(crn)
       webTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()
         .exchange()
@@ -674,7 +674,7 @@ class CaseControllerIT : IntegrationTestBase() {
     fun `should return a limited case when probation access control excludes the user`() {
       val crn = "D123456"
       val case = buildCase(crn = crn)
-      SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = crn, response = case)
+      SasAndDeliusStubs.stubGetCase(crn = crn, response = case)
       ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, excludedCrns = listOf(crn))
 
       val response = webTestClient.get().uri("/search/$crn")
@@ -689,7 +689,7 @@ class CaseControllerIT : IntegrationTestBase() {
     fun `returns ServerError when probation access control returns ServerError`() {
       val crn = "E123456"
       val case = buildCase(crn = crn)
-      SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = crn, response = case)
+      SasAndDeliusStubs.stubGetCase(crn = crn, response = case)
       ProbationAccessControlStubs.postUserAccessServerError(USERNAME_OF_LOGGED_IN_DELIUS_USER)
 
       webTestClient.get().uri("/search/$crn")
@@ -703,7 +703,7 @@ class CaseControllerIT : IntegrationTestBase() {
   @Test
   fun `returns NotFound error when delius returns NotFound error`() {
     val crn = crns[0]
-    SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
+    SasAndDeliusStubs.stubGetCaseNotFoundFailure(crn)
     webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
@@ -818,7 +818,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
   private fun stubGetCase(limitedAccess: Boolean = false): Case {
     val case = buildCase(crn = crns[0], nomsNumber = nomsNumbers[0], limitedAccess = limitedAccess)
-    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
+    SasAndDeliusStubs.stubGetCase(crn = case.crn, response = case)
     SasAndDeliusStubs.stubGetSexualOffenceRegistrations(
       case.crn,
       buildSexualOffenceRegistrations(case.crn),
@@ -829,7 +829,7 @@ class CaseControllerIT : IntegrationTestBase() {
   @Test
   fun `returns ServerError when delius returns ServerError`() {
     val crn = crns[0]
-    SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
+    SasAndDeliusStubs.stubGetCaseFailure(crn)
     webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchange()
@@ -841,7 +841,7 @@ class CaseControllerIT : IntegrationTestBase() {
   fun `returns ServerError when CPR returns ServerError`() {
     val crn = "12345"
     val case = buildCase(crn = crn)
-    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
+    SasAndDeliusStubs.stubGetCase(crn, response = case)
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
     webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
@@ -854,7 +854,7 @@ class CaseControllerIT : IntegrationTestBase() {
   fun `returns NotFound error when CPR returns NotFound error`() {
     val crn = "12345"
     val case = buildCase(crn = crn)
-    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
+    SasAndDeliusStubs.stubGetCase(crn, response = case)
     CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crn)
     webTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()

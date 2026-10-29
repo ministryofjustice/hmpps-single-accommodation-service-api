@@ -60,17 +60,6 @@ object SasAndDeliusStubs {
   }
 
   fun stubGetCase(
-    deliusUsername: String,
-    crn: String,
-    response: Case,
-  ) {
-    sasWiremock.stubFor(
-      get(WireMock.urlPathEqualTo("/case/$deliusUsername/$crn"))
-        .willReturn(okJson(jsonMapper.writeValueAsString(response))),
-    )
-  }
-
-  fun stubGetCase(
     crn: String,
     response: Case,
   ) {
@@ -81,21 +70,19 @@ object SasAndDeliusStubs {
   }
 
   fun stubGetCaseFailure(
-    deliusUsername: String,
     crn: String,
   ) {
     sasWiremock.stubFor(
-      get(WireMock.urlPathEqualTo("/case/$deliusUsername/$crn"))
+      get(WireMock.urlPathEqualTo("/case/$crn"))
         .willReturn(serverError()),
     )
   }
 
   fun stubGetCaseNotFoundFailure(
-    deliusUsername: String,
     crn: String,
   ) {
     sasWiremock.stubFor(
-      get(WireMock.urlPathEqualTo("/case/$deliusUsername/$crn"))
+      get(WireMock.urlPathEqualTo("/case/$crn"))
         .willReturn(notFound()),
     )
   }
