@@ -8,15 +8,15 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleMale
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleNonMale
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.rules.CrsSubmittedRuleMale
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.rules.CrsSubmittedRuleNonMale
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.rules.DtrExpiredRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     Cas3PrerequisiteRuleSet::class,
-    DtrExpiredReferralRule::class,
+    DtrExpiredRule::class,
     CrsSubmittedRuleMale::class,
     CrsSubmittedRuleNonMale::class,
     ClockConfig::class,
@@ -25,20 +25,20 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class Cas3PrerequisiteRuleSetTest {
 
   @Autowired
-  lateinit var cas3PrerequisiteRuleSet: Cas3PrerequisiteRuleSet
+  lateinit var ruleSet: Cas3PrerequisiteRuleSet
 
-  private val expectedCas3PrerequisiteRuleNames = listOf(
-    DtrExpiredReferralRule::class.java.simpleName,
+  private val expectedRuleNames = listOf(
+    DtrExpiredRule::class.java.simpleName,
     CrsSubmittedRuleMale::class.java.simpleName,
     CrsSubmittedRuleNonMale::class.java.simpleName,
   )
 
   @Test
-  fun `all Cas3PrerequisiteRule components are included in Cas3PrerequisiteRuleSet`() {
-    val ruleSetRules = cas3PrerequisiteRuleSet.getRules().map { it.rule.javaClass.simpleName }
+  fun `all rule components are included in rule set`() {
+    val ruleSetRules = ruleSet.getRules().map { it.rule.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(3)
-      .containsExactlyInAnyOrderElementsOf(expectedCas3PrerequisiteRuleNames)
+      .containsExactlyInAnyOrderElementsOf(expectedRuleNames)
   }
 }

@@ -3,11 +3,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.rules.CrsSubmittedRuleMale
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.rules.CrsSubmittedRuleNonMale
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.rules.DtrExpiredRule
 
 @Component
 class Cas3PrerequisiteRuleSet(
-  dtrExpiredReferral: DtrExpiredReferralRule,
+  dtrExpiredReferral: DtrExpiredRule,
   crsSubmittedRuleMale: CrsSubmittedRuleMale,
   crsSubmittedRuleNonMale: CrsSubmittedRuleNonMale,
 ) : RuleSet {

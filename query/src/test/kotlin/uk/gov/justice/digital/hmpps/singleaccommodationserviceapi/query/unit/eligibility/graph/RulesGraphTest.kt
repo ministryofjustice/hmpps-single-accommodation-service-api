@@ -17,9 +17,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationPresentRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsSubmittedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.Cas1StartContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.rules.Cas1NotPresentRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.referral.rules.NoLiveCrsRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphEdge
@@ -110,21 +110,21 @@ class RulesGraphTest {
     fun `walk records source paths from each class package`() {
       val root = builder
         .ruleSet(
-          StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(Cas1ApplicationPresentRule()), PrioritisedRule(CrsSubmittedRule()))),
+          StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(Cas1NotPresentRule()), PrioritisedRule(NoLiveCrsRule()))),
         )
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1SuitabilityContextUpdater())
+        .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1StartContextUpdater())
         .build()
 
       val graph = RulesGraphWalker().walk("EXAMPLE", root)
       val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
 
       assertThat(ruleSetNode.rules.map { it.sourcePath }).containsExactly(
-        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1ApplicationPresentRule.kt",
-        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/completion/CrsSubmittedRule.kt",
+        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/rules/Cas1NotPresentRule.kt",
+        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/referral/rules/NoLiveCrsRule.kt",
       )
       assertThat(ruleSetNode.onFailContextUpdater?.sourcePath).isEqualTo(
-        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1SuitabilityContextUpdater.kt",
+        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/Cas1StartContextUpdater.kt",
       )
     }
 
@@ -287,29 +287,29 @@ class RulesGraphTest {
     fun `render links to source files using each class package`() {
       val root = builder
         .ruleSet(
-          StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(Cas1ApplicationPresentRule()), PrioritisedRule(CrsSubmittedRule()))),
+          StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(Cas1NotPresentRule()), PrioritisedRule(NoLiveCrsRule()))),
         )
         .onPass(builder.confirmed())
-        .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1SuitabilityContextUpdater())
+        .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1StartContextUpdater())
         .build()
       val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker().walk("EXAMPLE", root)))
 
       assertThat(markdown).contains(
-        "[`Cas1ApplicationPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1ApplicationPresentRule.kt)",
+        "[`Cas1NotPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/rules/Cas1NotPresentRule.kt)",
       )
       assertThat(markdown).contains(
-        "[`CrsSubmittedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/completion/CrsSubmittedRule.kt)",
+        "[`NoLiveCrsRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/referral/rules/NoLiveCrsRule.kt)",
       )
       assertThat(markdown).contains(
-        "[`Cas1SuitabilityContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1SuitabilityContextUpdater.kt)",
+        "[`Cas1StartContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/Cas1StartContextUpdater.kt)",
       )
     }
 
     @Test
     fun `HTML links rules and PASS and FAIL context updaters to GitHub source`() {
       val root = builder
-        .ruleSet(StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(Cas1ApplicationPresentRule()))))
-        .onPass(builder.confirmed()).applyContextUpdaterOnPass(Cas1SuitabilityContextUpdater())
+        .ruleSet(StubRuleSet(name = "ExampleEligibility", rules = listOf(PrioritisedRule(Cas1NotPresentRule()))))
+        .onPass(builder.confirmed()).applyContextUpdaterOnPass(Cas1StartContextUpdater())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(StubContextUpdater())
         .build()
       val graph = RulesGraphWalker().walk("EXAMPLE", root)
