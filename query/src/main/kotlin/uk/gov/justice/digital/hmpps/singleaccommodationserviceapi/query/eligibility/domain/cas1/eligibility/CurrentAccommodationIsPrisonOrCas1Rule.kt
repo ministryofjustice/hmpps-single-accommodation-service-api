@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class CurrentAccommodationIsPrisonOrCas1Rule : Rule {
-  override val description = "FAIL if person is not currently in prison or CAS1 accommodation"
+  override val description = "FAIL if person is not in prison or CAS1 accommodation"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.currentAccommodationTypeEntity?.isPrison != true &&
