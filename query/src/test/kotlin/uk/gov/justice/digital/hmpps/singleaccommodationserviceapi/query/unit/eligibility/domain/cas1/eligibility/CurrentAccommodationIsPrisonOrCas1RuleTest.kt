@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class CurrentAccommodationIsPrisonOrCas1RuleTest {
   private val rule = CurrentAccommodationIsPrisonOrCas1Rule()
-  private val description = "FAIL if person is not in prison or CAS1 accommodation"
+  private val description = "FAIL if person is not in prison or CAS1"
 
   @ParameterizedTest
   @CsvSource(
@@ -23,7 +23,7 @@ class CurrentAccommodationIsPrisonOrCas1RuleTest {
     "true, true, PASS",
     "false, false, FAIL",
   )
-  fun `eligibility uses the prison and CAS1 accommodation flags`(
+  fun `eligibility uses the prison and CAS1 flags`(
     isPrison: Boolean,
     isCas1: Boolean,
     expectedStatus: RuleStatus,
