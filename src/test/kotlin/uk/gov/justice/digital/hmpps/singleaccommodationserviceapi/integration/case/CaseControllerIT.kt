@@ -470,7 +470,7 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should only save cases that match the filtered response`() {
+  fun `should save all cases in the case list response`() {
     val team = buildCaseTeam("TestTeam")
     val staff = buildOfficer(username = deliusUser.username)
     val assignedCase = buildCase(crn = "crn1", staff = staff, team = team)
@@ -495,7 +495,7 @@ class CaseControllerIT : IntegrationTestBase() {
       .jsonPath("$.data.length()").isEqualTo(1)
       .jsonPath("$.data[0].assignedTo.username").isEqualTo("DELIUS_USER")
 
-    assertThat(caseRepository.findAll()).hasSize(1)
+    assertThat(caseRepository.findAll()).hasSize(2)
 
     SasAndDeliusStubs.stubCaseList(
       deliusUsername = deliusUser.username,
@@ -716,8 +716,8 @@ class CaseControllerIT : IntegrationTestBase() {
     CaseListFilter("searchTerm", "FAKECRN1", 1, listOf(containsNoLimitedCases())),
     CaseListFilter("searchTerm", "FIR", 17, listOf(containsNoLimitedCases())),
     CaseListFilter("searchTerm", "first", 17, listOf(containsNoLimitedCases())),
-    CaseListFilter("searchTerm", "FiRsT M", 17, listOf(containsNoLimitedCases())),
-    CaseListFilter("searchTerm", "FiRsT M Last", 17, listOf(containsNoLimitedCases())),
+    CaseListFilter("searchTerm", "FiRsT M", 0, listOf(containsNoLimitedCases())),
+    CaseListFilter("searchTerm", "FiRsT M Last", 0, listOf(containsNoLimitedCases())),
     CaseListFilter("searchTerm", "fOrst Last", 0),
     CaseListFilter("searchTerm", "last first", 17, listOf(containsNoLimitedCases())),
     CaseListFilter("searchTerm", "Zack", 1, listOf(containsNoLimitedCases())),
