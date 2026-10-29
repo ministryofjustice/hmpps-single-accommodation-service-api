@@ -84,7 +84,7 @@ object CaseTransformer {
     limitedAccess: Boolean?,
     currentAccommodation: AccommodationSummaryDto? = caseEntity?.currentAccommodation,
     nextAccommodation: AccommodationSummaryDto? = caseEntity?.nextAccommodation,
-    teamCode: String,
+    teamCode: String?,
   ) = CaseDto(
     forename = caseEntity?.firstName,
     middleNames = null,
