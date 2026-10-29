@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock
 
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.noContent
 import com.github.tomakehurst.wiremock.client.WireMock.notFound
 import com.github.tomakehurst.wiremock.client.WireMock.ok
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
@@ -52,6 +53,20 @@ object ApprovedPremisesStubs {
     )
   }
 
+  fun getCas1CurrentPremisesNoContentResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas1/external/cases/$crn/premises/current"))
+        .willReturn(noContent()),
+    )
+  }
+
+  fun getCas3CurrentPremisesNoContentResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas3/external/cases/$crn/premises/current"))
+        .willReturn(noContent()),
+    )
+  }
+
   fun getCas1CurrentPremisesServerErrorResponse(crn: String): String {
     val path = "/cas1/external/cases/$crn/premises/current"
     sasWiremock.stubFor(
@@ -91,10 +106,38 @@ object ApprovedPremisesStubs {
     )
   }
 
+  fun getCas2SuitableApplicationNotFoundResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas2/external/cases/$crn/applications/suitable"))
+        .willReturn(notFound()),
+    )
+  }
+
   fun getCas3SuitableApplicationNotFoundResponse(crn: String) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas3/external/cases/$crn/applications/suitable"))
         .willReturn(notFound()),
+    )
+  }
+
+  fun getCas1SuitableApplicationNoContentResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas1/external/cases/$crn/applications/suitable"))
+        .willReturn(noContent()),
+    )
+  }
+
+  fun getCas2SuitableApplicationNoContentResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas2/external/cases/$crn/applications/suitable"))
+        .willReturn(noContent()),
+    )
+  }
+
+  fun getCas3SuitableApplicationNoContentResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas3/external/cases/$crn/applications/suitable"))
+        .willReturn(noContent()),
     )
   }
 

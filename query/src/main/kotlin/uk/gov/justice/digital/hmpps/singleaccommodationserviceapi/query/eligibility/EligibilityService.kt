@@ -8,6 +8,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDtoNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationSummaryCalculator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
@@ -51,8 +56,16 @@ class EligibilityService(
 
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn, prisonNumber)
 
+    val casCallKeysWith404Failures = setOf(
+      GET_CAS_1_APPLICATION,
+      GET_CAS_2_APPLICATION,
+      GET_CAS_3_APPLICATION,
+      GET_CAS_1_CURRENT_PREMISES,
+      GET_CAS_3_CURRENT_PREMISES,
+    )
+
     val failuresRelevantToRulesEngine = eligibilityOrchestrationDto.upstreamFailures
-      .filter { it.errorDetail.httpStatus != HttpStatus.NOT_FOUND }
+      .filter { it.errorDetail.httpStatus != HttpStatus.NOT_FOUND || it.callKey in casCallKeysWith404Failures }
     if (failuresRelevantToRulesEngine.isNotEmpty()) {
       log.error("Eligibility upstream failures for CRN {}: {}", crn, failuresRelevantToRulesEngine)
 
