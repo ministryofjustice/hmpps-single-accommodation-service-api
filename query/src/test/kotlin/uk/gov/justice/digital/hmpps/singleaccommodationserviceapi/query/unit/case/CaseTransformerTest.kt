@@ -293,7 +293,7 @@ class CaseTransformerTest {
       crn = crn,
       cpr = caseOrchestrationDto.cpr,
       tier = caseOrchestrationDto.tier,
-      person = toPersonDto(caseOrchestrationDto.case!!, limited = false),
+      person = toPersonDto(caseOrchestrationDto.case!!, UserAccess.FULL),
       sexualOffenceRegistrations = caseOrchestrationDto.sexualOffenceRegistrations,
     )
 

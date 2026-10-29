@@ -2,21 +2,15 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 
 object PersonTransformer {
   fun toPersonDto(
     case: Case,
-    limited: Boolean,
-  ): PersonDto = if (limited) {
-    LimitedPersonDto(
-      crn = case.crn,
-      nomsNumber = case.nomsNumber,
-      teamCode = case.team.code,
-      assignedTo = case.getAssignedTo(),
-    )
-  } else {
-    FullPersonDto(
+    userAccess: UserAccess?,
+  ) = when (userAccess) {
+    UserAccess.FULL -> FullPersonDto(
       crn = case.crn,
       name = case.name.fullName,
       forename = case.name.forename,
@@ -30,6 +24,13 @@ object PersonTransformer {
       teamCode = case.team.code,
       assignedTo = case.getAssignedTo(),
       limitedAccess = case.limitedAccess ?: false,
+    )
+
+    else -> LimitedPersonDto(
+      crn = case.crn,
+      nomsNumber = case.nomsNumber,
+      teamCode = case.team.code,
+      assignedTo = case.getAssignedTo(),
     )
   }
 

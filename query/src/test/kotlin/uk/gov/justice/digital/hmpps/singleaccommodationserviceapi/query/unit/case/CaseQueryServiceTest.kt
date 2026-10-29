@@ -397,7 +397,7 @@ class CaseQueryServiceTest {
     fun `should return case with no upstream failures when all calls succeed`() {
       val caseOrchestrationDto = stubGetCase(buildCaseOrchestrationDto(crn = crnOne))
 
-      val person = toPersonDto(caseOrchestrationDto.case!!, limited = false)
+      val person = toPersonDto(caseOrchestrationDto.case!!, UserAccess.FULL)
 
       val result = caseQueryService.getCase(crnOne)
       assertThat(result.data).isEqualTo(
@@ -478,7 +478,7 @@ class CaseQueryServiceTest {
 
       val result = caseQueryService.getCaseFromDelius(crnOne)
 
-      assertThat(result.data).isEqualTo(toPersonDto(caseOrchestrationDto.case!!, limited = false))
+      assertThat(result.data).isEqualTo(toPersonDto(caseOrchestrationDto.case!!, UserAccess.FULL))
       assertThat(result.upstreamFailures).isEmpty()
     }
 

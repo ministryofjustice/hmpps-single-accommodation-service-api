@@ -5,7 +5,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
@@ -35,12 +34,8 @@ class CaseQueryService(
 
     val cases = caseOrchestrationResult.data.cases
     val crnsToUserAccess = limitedAccessService.getCrnToUserAccess(caseOrchestrationResult.data.caseAccess)
-    val caseList = cases.map {
-      when (crnsToUserAccess[it.crn]) {
-        UserAccess.FULL -> toPersonDto(it, limited = false)
-        UserAccess.LIMITED, UserAccess.UNKNOWN, null -> toPersonDto(it, limited = true)
-      }
-    }
+    val caseList = cases.map { toPersonDto(it, crnsToUserAccess[it.crn]) }
+
     return toApiResponseDto(
       data = caseList,
       upstreamFailures = caseOrchestrationResult.upstreamFailures,
@@ -119,6 +114,7 @@ class CaseQueryService(
   }
 
   private fun CaseOrchestrationDto.getPersonDto() = case?.let {
-    toPersonDto(it, limited = limitedAccessService.getCrnToUserAccess(caseAccess)[it.crn] == UserAccess.LIMITED)
+    val userAccess = limitedAccessService.getCrnToUserAccess(caseAccess)[it.crn]
+    toPersonDto(it, userAccess = userAccess)
   }
 }

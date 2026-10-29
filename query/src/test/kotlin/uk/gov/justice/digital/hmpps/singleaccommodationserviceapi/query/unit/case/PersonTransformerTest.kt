@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseTeam
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
@@ -38,7 +39,7 @@ class PersonTransformerTest {
         limitedAccess = true,
       )
 
-      val result = toPersonDto(case, limited = false)
+      val result = toPersonDto(case, UserAccess.FULL)
 
       assertThat(result).isInstanceOf(FullPersonDto::class.java)
       val fullResult = result as FullPersonDto
@@ -69,7 +70,7 @@ class PersonTransformerTest {
     fun `should default limitedAccess to false when null`() {
       val case = buildCase().copy(limitedAccess = null)
 
-      val result = toPersonDto(case, limited = false)
+      val result = toPersonDto(case, UserAccess.FULL)
 
       assertThat(result).isInstanceOf(FullPersonDto::class.java)
       assertThat((result as FullPersonDto).limitedAccess).isFalse()
@@ -79,7 +80,7 @@ class PersonTransformerTest {
     fun `should return null riskLevel when rosh level code is unknown`() {
       val case = buildCase(roshLevel = buildRoshLevel(code = "UNKNOWN"))
 
-      val result = toPersonDto(case, limited = false)
+      val result = toPersonDto(case, UserAccess.FULL)
 
       assertThat(result).isInstanceOf(FullPersonDto::class.java)
       assertThat((result as FullPersonDto).riskLevel).isNull()
@@ -89,7 +90,7 @@ class PersonTransformerTest {
     fun `should return null riskLevel when rosh level is missing`() {
       val case = buildCase().copy(roshLevel = null)
 
-      val result = toPersonDto(case, limited = false)
+      val result = toPersonDto(case, UserAccess.FULL)
 
       assertThat(result).isInstanceOf(FullPersonDto::class.java)
       assertThat((result as FullPersonDto).riskLevel).isNull()
@@ -107,7 +108,7 @@ class PersonTransformerTest {
         team = buildCaseTeam(code = "TEAM2"),
       )
 
-      val result = toPersonDto(case, limited = true)
+      val result = toPersonDto(case, UserAccess.LIMITED)
 
       assertThat(result).isEqualTo(
         LimitedPersonDto(
