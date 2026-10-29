@@ -60,7 +60,7 @@ private fun CaseDto.matchesSearch(searchTerm: String?): Boolean = when {
     searchTerm
       .split(" ")
       .filter { it.isNotBlank() }
-      .all { "$forename ${middleNames ?: ""} $surname".contains(it, ignoreCase = true) } -> true
+      .all { "$forename $surname".contains(it, ignoreCase = true) } -> true
 
   else -> false
 }
@@ -79,7 +79,7 @@ this has been added during a refactor to retain existing results. It's probably 
  */
 fun List<CaseDto>.obfuscateLimitedAccessCases(): List<CaseDto> = map { it.obfuscateIfLimitedAccess() }
 
-fun CaseDto.obfuscateIfLimitedAccess(): CaseDto = if (userAccess == UserAccess.LIMITED) copy(assignedTo = null, teamCode = null) else this
+fun CaseDto.obfuscateIfLimitedAccess(): CaseDto = if (userAccess != UserAccess.FULL) copy(assignedTo = null, teamCode = null) else this
 
 private fun CaseDto.sortByStatusDate(today: LocalDate): Comparable<*>? {
   val statusDate = accommodationSummaries?.caseAccommodationStatusDate

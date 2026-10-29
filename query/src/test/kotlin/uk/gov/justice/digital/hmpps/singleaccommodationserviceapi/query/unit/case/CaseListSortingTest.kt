@@ -50,7 +50,6 @@ class CaseListSortingTest {
     private fun full(
       crn: String,
       forename: String = "First",
-      middleNames: String? = "Middle",
       surname: String = "Last",
       prisonNumber: String? = null,
       riskLevel: RiskLevel? = null,
@@ -60,7 +59,7 @@ class CaseListSortingTest {
     ): CaseDto = buildCaseDto(
       crn = crn,
       forename = forename,
-      middleNames = middleNames,
+      middleNames = null,
       surname = surname,
       prisonNumber = prisonNumber,
       riskLevel = riskLevel,
@@ -142,9 +141,9 @@ class CaseListSortingTest {
     @Nested
     inner class BySearchTerm {
       private val cases = listOf(
-        full("X100001", forename = "First", middleNames = "Middle", surname = "MultiCaseSurname", prisonNumber = "PRI_1"),
-        full("X100002", forename = "QQQQQ", middleNames = null, surname = "Last", prisonNumber = "PRI_2"),
-        full("X100003", forename = "First", middleNames = "Middle", surname = "Last", prisonNumber = null),
+        full("X100001", forename = "First", surname = "MultiCaseSurname", prisonNumber = "PRI_1"),
+        full("X100002", forename = "QQQQQ", surname = "Last", prisonNumber = "PRI_2"),
+        full("X100003", forename = "First", surname = "Last", prisonNumber = null),
         limited("X100004"),
       )
 
@@ -166,10 +165,10 @@ class CaseListSortingTest {
       }
 
       @Test
-      fun `matches partial names across forename, middle names and surname ignoring case`() {
+      fun `matches partial names across forename and surname ignoring case`() {
         assertThat(cases.applyFilters(searchTerm = "qqqqq")).containsExactly("X100002")
         assertThat(cases.applyFilters(searchTerm = "multi")).containsExactly("X100001")
-        assertThat(cases.applyFilters(searchTerm = "rSt Mid")).containsExactlyInAnyOrder("X100001", "X100003")
+        assertThat(cases.applyFilters(searchTerm = "rSt la")).containsExactly("X100003")
         assertThat(cases.applyFilters(searchTerm = "lAsT fIrSt")).containsExactly("X100003")
         assertThat(cases.applyFilters(searchTerm = " Last   First ")).containsExactly("X100003")
       }
