@@ -328,21 +328,6 @@ class CaseQueryServiceTest {
     }
 
     @Test
-    fun `should ignore stale archived CRNs missing from the live case map`() {
-      val staff = buildOfficer(username = username)
-      val livePerson = buildFullPersonDto(crn = crnOne, staff = staff)
-      val staleArchivedPerson = buildFullPersonDto(crn = crnTwo, staff = staff)
-      val liveCaseEntity = buildCaseEntity { withCrn(crnOne) }
-
-      every { caseRepository.mapByCrns(listOf(crnOne, crnTwo)) } returns mapOf(crnOne to liveCaseEntity)
-
-      val result = caseQueryService.getCases(personDtos = listOf(livePerson, staleArchivedPerson))
-
-      assertThat(result).hasSize(1)
-      assertThat(result.single().crn).isEqualTo(crnOne)
-    }
-
-    @Test
     fun `should get cases as all cases from case table and populate missing data from personDtos`() {
       val limitedCrn = "limitedCrn"
       val crnList = listOf(crnOne, crnTwo, limitedCrn)

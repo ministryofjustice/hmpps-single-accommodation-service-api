@@ -1,3 +1,5 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
+
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import org.assertj.core.api.Assertions.assertThat
