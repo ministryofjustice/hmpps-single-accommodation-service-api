@@ -17,7 +17,11 @@ class CaseRefreshProcessor(
   fun process(claim: CaseRefreshRequestService.Claim): Result = when (val loadOutcome = loadProjection(claim)) {
     is LoadOutcome.Loaded -> complete(claim, loadOutcome.projection)
     is LoadOutcome.Failed -> recordFailure(claim, loadOutcome.failure)
-    LoadOutcome.CaseNotFound -> Result.CaseNotFound
+    LoadOutcome.CaseNotFound -> {
+      // the case was archived/deleted before processing; drop the request so it isn't reclaimed repeatedly
+      caseRefreshRequestService.deleteOwnedRequest(claim)
+      Result.CaseNotFound
+    }
   }
 
   private fun loadProjection(claim: CaseRefreshRequestService.Claim): LoadOutcome = try {
