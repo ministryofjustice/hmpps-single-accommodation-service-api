@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
@@ -18,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshCompletionService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.CprProbationRecordDeletedHandler
 import java.time.Duration
@@ -48,39 +50,71 @@ class CprProbationRecordDeletedHandlerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
-  fun `refresh completion does not undo archival committed by an overlapping deletion`() {
+  fun `stale case writer cannot undo archival committed by deletion`() {
     val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
-    caseRefreshRequestService.requestLiveRefresh(case.id)
-    val claim = caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
-    val inboxEvent = InboxEventHandler.InboxEvent(
-      id = UUID.randomUUID(),
-      eventDetailUrl = "localhost",
-      payload = """
-        {
-          "eventType": "${IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_DELETED.typeName}",
-          "version": 1,
-          "description": "A probation record has been deleted",
-          "detailUrl": "localhost",
-          "occurredAt": "${OffsetDateTime.parse("2026-07-23T10:00:00Z")}",
-          "personReference": {
-            "identifiers": [
-              { "type": "CRN", "value": "$crn" }
-            ]
-          }
-        }
-      """.trimIndent(),
-    )
 
+    // A case writer that holds no refresh-request lock: it loads the case, the deletion commits, then it flushes.
     assertThatThrownBy {
       TransactionTemplate(transactionManager).executeWithoutResult {
-        caseRefreshCompletionService.completeRefresh(claim, projection())
-        CompletableFuture.runAsync { cprProbationRecordDeletedHandler.handle(inboxEvent) }.get(10, TimeUnit.SECONDS)
+        caseRepository.findByIdOrNull(case.id)!!.tierScore = "B"
+        val result = CompletableFuture.supplyAsync { cprProbationRecordDeletedHandler.handle(deletedEvent()) }
+          .get(10, TimeUnit.SECONDS)
+        assertThat(result).isEqualTo(InboxEventHandler.Result.PROCESSED)
       }
     }.isInstanceOf(ObjectOptimisticLockingFailureException::class.java)
 
     assertThat(caseRepository.findByCrn(crn)).isNull()
     assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)!!.archived).isTrue()
   }
+
+  @Test
+  fun `refresh completion after deletion is ignored and leaves the case archived`() {
+    val claim = saveCaseWithClaimedRefresh()
+
+    cprProbationRecordDeletedHandler.handle(deletedEvent())
+
+    assertThat(caseRefreshCompletionService.completeRefresh(claim, projection()))
+      .isEqualTo(CaseRefreshCompletionService.Result.IGNORED_STALE_CLAIM)
+    assertThat(caseRepository.findByCrn(crn)).isNull()
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)!!.archived).isTrue()
+  }
+
+  @Test
+  fun `deletion after refresh completion archives the case`() {
+    val claim = saveCaseWithClaimedRefresh()
+
+    assertThat(caseRefreshCompletionService.completeRefresh(claim, projection()))
+      .isEqualTo(CaseRefreshCompletionService.Result.APPLIED)
+    assertThat(cprProbationRecordDeletedHandler.handle(deletedEvent())).isEqualTo(InboxEventHandler.Result.PROCESSED)
+
+    assertThat(caseRepository.findByCrn(crn)).isNull()
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)!!.archived).isTrue()
+  }
+
+  private fun saveCaseWithClaimedRefresh(): CaseRefreshRequestService.Claim {
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
+    return caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
+  }
+
+  private fun deletedEvent() = InboxEventHandler.InboxEvent(
+    id = UUID.randomUUID(),
+    eventDetailUrl = "localhost",
+    payload = """
+      {
+        "eventType": "${IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_DELETED.typeName}",
+        "version": 1,
+        "description": "A probation record has been deleted",
+        "detailUrl": "localhost",
+        "occurredAt": "${OffsetDateTime.parse("2026-07-23T10:00:00Z")}",
+        "personReference": {
+          "identifiers": [
+            { "type": "CRN", "value": "$crn" }
+          ]
+        }
+      }
+    """.trimIndent(),
+  )
 
   private fun projection() = CaseMutationOrchestrationDto(
     crn = crn,
