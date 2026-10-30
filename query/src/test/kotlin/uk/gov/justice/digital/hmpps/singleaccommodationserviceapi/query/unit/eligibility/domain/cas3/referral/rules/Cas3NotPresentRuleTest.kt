@@ -1,0 +1,63 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas3.referral.rules
+
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.referral.rules.Cas3NotPresentRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+
+class Cas3NotPresentRuleTest {
+  private val description = "FAIL if person does not have an application"
+
+  @Test
+  fun `application is present so rule passes`() {
+    val data = buildDomainData(
+      cas3Application = buildCas3Application(
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        submittedApplication = buildCas3SubmittedApplication(
+          assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+          latestBooking = buildCas3LatestBooking(
+            status = Cas3BookingStatus.CONFIRMED,
+          ),
+        ),
+      ),
+    )
+
+    val result = Cas3NotPresentRule().evaluate(data)
+
+    assertThat(result).isEqualTo(
+      RuleResult(
+        description = description,
+        ruleStatus = RuleStatus.PASS,
+      ),
+    )
+  }
+
+  @Test
+  fun `application is missing so rule fails`() {
+    val data = buildDomainData(
+      cas3Application = null,
+    )
+
+    val result = Cas3NotPresentRule().evaluate(data)
+
+    assertThat(result).isEqualTo(
+      RuleResult(
+        description = description,
+        ruleStatus = RuleStatus.FAIL,
+      ),
+    )
+  }
+
+  @Test
+  fun `rule has correct description`() {
+    assertThat(Cas3NotPresentRule().description).isEqualTo(description)
+  }
+}

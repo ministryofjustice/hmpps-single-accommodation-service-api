@@ -36,7 +36,7 @@ class DeeplinkResolverTest {
   @Nested
   inner class Cas1 {
     @Test
-    fun `CAS1_START_APPLICATION resolves to the CAS1 application start url template`() {
+    fun `CAS1_START_APPLICATION resolves to the application start url template`() {
       val result = resolver.resolve(
         buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,

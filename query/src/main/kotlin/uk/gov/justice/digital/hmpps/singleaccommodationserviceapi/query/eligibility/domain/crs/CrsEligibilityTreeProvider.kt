@@ -10,21 +10,21 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityNextAccommodationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilitySettledRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligible.NotSettledRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.referral.CrsStartContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.referral.LiveCrsRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.ReleaseWithin12WeeksRuleSet
 
 @Component
 class CrsEligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
-  private val eligibilitySettled: CrsEligibilitySettledRuleSet,
-  private val eligibilityNextAccommodation: CrsEligibilityNextAccommodationRuleSet,
-  private val completion: CrsCompletionRuleSet,
-  private val completionContextUpdater: CrsCompletionContextUpdater,
-  private val upcoming: CrsUpcomingRuleSet,
+  private val notSettledRuleSet: NotSettledRuleSet,
+  private val noNextAccommodation: NoNextAccommodationRuleSet,
+  private val liveCrs: LiveCrsRuleSet,
+  private val startContextUpdater: CrsStartContextUpdater,
+  private val upcoming: ReleaseWithin12WeeksRuleSet,
   private val upcomingContextUpdater: CrsUpcomingContextUpdater,
   @Value($$"${service.commissioned-rehabilitative-services-ui.base-url}") crsUiBaseUrl: String,
 ) : EligibilityTreeProvider {
@@ -47,28 +47,28 @@ class CrsEligibilityTreeProvider(
       ServiceResultNew(serviceStatus = ServiceStatusNew.CRS_SUBMITTED, url = url),
     )
 
-    val eligibilityNextAccommodationNode = builder
-      .ruleSet(eligibilityNextAccommodation)
+    val noNextAccommodationNode = builder
+      .ruleSet(noNextAccommodation)
       .onPass(confirmed)
       .onFail(notRequired)
       .build()
 
-    val eligibilitySettledNode = builder
-      .ruleSet(eligibilitySettled)
-      .onPass(eligibilityNextAccommodationNode)
+    val notSettledNode = builder
+      .ruleSet(notSettledRuleSet)
+      .onPass(noNextAccommodationNode)
       .onFail(notRequired)
       .build()
 
-    val completionNode = builder
-      .ruleSet(completion)
+    val liveCrsNode = builder
+      .ruleSet(liveCrs)
       .onPass(submitted)
-      .onFail(eligibilitySettledNode).applyContextUpdaterOnFailure(completionContextUpdater)
+      .onFail(notSettledNode).applyContextUpdaterOnFailure(startContextUpdater)
       .build()
 
     return builder
       .ruleSet(upcoming)
-      .onPass(completionNode)
-      .onFail(eligibilitySettledNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
+      .onPass(liveCrsNode)
+      .onFail(notSettledNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
       .build()
   }
 }

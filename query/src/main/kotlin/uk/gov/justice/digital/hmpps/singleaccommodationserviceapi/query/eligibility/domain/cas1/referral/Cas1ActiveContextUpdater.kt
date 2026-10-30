@@ -1,0 +1,102 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral
+
+import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
+
+@Component
+class Cas1ActiveContextUpdater : ContextUpdater() {
+
+  val arrived = "arrived"
+  val notArrived = "notArrived"
+  val placementBooked = "placementBooked"
+  val placementCancelled = "placementCancelled"
+  val placementRequestNotStarted = "placementRequestNotStarted"
+  val placementRequestWithdrawn = "placementRequestWithdrawn"
+  val placementRequestUnsubmitted = "placementRequestUnsubmitted"
+  val placementRequestRejected = "placementRequestRejected"
+  val placementRequestSubmitted = "placementRequestSubmitted"
+  val infoRequested = "infoRequested"
+  val submitted = "submitted"
+
+  override val outcomes = mapOf(
+    arrived to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_ARRIVED,
+    ),
+    notArrived to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_NOT_ARRIVED,
+    ),
+    placementBooked to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
+    ),
+    placementCancelled to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_CANCELLED,
+    ),
+    placementRequestNotStarted to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_STARTED,
+    ),
+    placementRequestWithdrawn to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_WITHDRAWN,
+    ),
+    placementRequestUnsubmitted to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED,
+    ),
+    placementRequestRejected to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_REJECTED,
+    ),
+    placementRequestSubmitted to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED,
+    ),
+    infoRequested to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_INFO_REQUESTED,
+    ),
+    submitted to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS1_SUBMITTED,
+    ),
+  )
+  override val terminalNode = true
+
+  override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
+    val applicationStatus = context.data.cas1Application?.application?.status
+    val requestForPlacementStatus = context.data.cas1Application?.requestForPlacement?.status
+    val placementStatus = context.data.cas1Application?.placement?.status
+
+    return when {
+      placementStatus != null ->
+        toServiceResultAfterPlacement(placementStatus)
+
+      requestForPlacementStatus != null ->
+        toServiceResultBeforePlacement(requestForPlacementStatus)
+
+      else ->
+        toServiceResultPriorToPlacementRequest(applicationStatus)
+    }
+  }
+
+  private fun toServiceResultAfterPlacement(placementStatus: Cas1PlacementStatus) = when (placementStatus) {
+    Cas1PlacementStatus.ARRIVED -> outcome(arrived)
+    Cas1PlacementStatus.NOT_ARRIVED -> outcome(notArrived)
+    Cas1PlacementStatus.CANCELLED -> outcome(placementCancelled)
+    Cas1PlacementStatus.UPCOMING -> outcome(placementBooked)
+    else -> outcome(placementRequestNotStarted)
+  }
+
+  private fun toServiceResultBeforePlacement(requestForPlacementStatus: Cas1RequestForPlacementStatus) = when (requestForPlacementStatus) {
+    Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> outcome(placementRequestWithdrawn)
+    Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED -> outcome(placementRequestUnsubmitted)
+    Cas1RequestForPlacementStatus.REQUEST_REJECTED -> outcome(placementRequestRejected)
+    else -> outcome(placementRequestSubmitted)
+  }
+
+  private fun toServiceResultPriorToPlacementRequest(applicationStatus: Cas1ApplicationStatus?) = when (applicationStatus) {
+    Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION -> outcome(infoRequested)
+    Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST -> outcome(placementRequestUnsubmitted)
+    else -> outcome(submitted)
+  }
+}
