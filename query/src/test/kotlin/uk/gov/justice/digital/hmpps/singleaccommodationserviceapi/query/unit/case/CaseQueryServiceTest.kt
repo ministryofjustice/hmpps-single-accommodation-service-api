@@ -53,6 +53,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneOffset
 
 @ExtendWith(MockKExtension::class)
@@ -238,6 +239,26 @@ class CaseQueryServiceTest {
       assertThat(result.upstreamFailures).hasSize(1)
     }
 
+    @Test
+    fun `should return a LimitedPersonDto for a case with no entry in the access response`() {
+      val case = buildCase(crn = crnOne)
+      val dto = buildCaseListOrchestrationDto(cases = listOf(case), caseAccess = emptyList())
+      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
+      every { caseOrchestrationService.getCaseList(username, null) } returns OrchestrationResultDto(data = dto)
+      every { limitedAccessService.getCrnToUserAccess(any()) } answers { callOriginal() }
+
+      val result = caseQueryService.getCaseList(null)
+
+      assertThat(result.data.single()).isInstanceOf(LimitedPersonDto::class.java)
+    }
+
+    @Test
+    fun `should return an empty list when there are no cases`() {
+      stubCaseList(cases = emptyList())
+
+      assertThat(caseQueryService.getCaseList(null).data).isEmpty()
+    }
+
     private fun stubCaseList(
       cases: List<Case>,
       limitedCrns: Set<String> = emptySet(),
@@ -366,6 +387,72 @@ class CaseQueryServiceTest {
 
       assertThat(result.single().teamCode).isNull()
     }
+
+    @Test
+    fun `should sort cases using today from the clock`() {
+      val staff = buildOfficer(username = username)
+      val persons = listOf(crnOne, crnTwo).map { buildFullPersonDto(crn = it, staff = staff) }
+      every { caseRepository.mapByCrns(listOf(crnOne, crnTwo)) } returns mapOf(
+        crnOne to buildCaseEntity {
+          withCrn(crnOne)
+          accommodationStatus = CaseAccommodationStatus.TRANSIENT
+          accommodationStatusDate = LocalDate.of(2026, 9, 1)
+        },
+        crnTwo to buildCaseEntity {
+          withCrn(crnTwo)
+          accommodationStatus = CaseAccommodationStatus.TRANSIENT
+          accommodationStatusDate = LocalDate.of(2026, 10, 5)
+        },
+      )
+
+      val result = getCaseDtos(personDtos = persons)
+
+      // clock is fixed at 2026-10-01 so the future status date sorts before the past one
+      assertThat(result.map { it.crn }).containsExactly(crnTwo, crnOne)
+    }
+
+    @Test
+    fun `should only return cases assigned to the given username`() {
+      val mine = buildFullPersonDto(crn = crnOne, assignedTo = assignedTo)
+      val theirs = buildFullPersonDto(crn = crnTwo, assignedTo = assignedToOther)
+      every { caseRepository.mapByCrns(any()) } returns emptyMap()
+
+      assertThat(getCaseDtos(personDtos = listOf(mine, theirs), username = username).map { it.crn }).containsExactly(crnOne)
+      assertThat(getCaseDtos(personDtos = listOf(mine, theirs), username = null).map { it.crn })
+        .containsExactlyInAnyOrder(crnOne, crnTwo)
+    }
+
+    @Test
+    fun `should apply the search, risk level, team code and people type filters`() {
+      val match = buildFullPersonDto(crn = crnOne, roshLevel = RiskLevel.HIGH, teamCode = "TeamX", assignedTo = assignedToOther)
+      val wrongRisk = buildFullPersonDto(crn = crnTwo, roshLevel = RiskLevel.LOW, teamCode = "TeamX", assignedTo = assignedToOther)
+      val wrongTeam = buildFullPersonDto(crn = crnThree, roshLevel = RiskLevel.HIGH, teamCode = "TeamY", assignedTo = assignedToOther)
+      val wrongType = buildFullPersonDto(crn = crnFour, roshLevel = RiskLevel.HIGH, teamCode = "TeamX", assignedTo = assignedToOther)
+      every { caseRepository.mapByCrns(any()) } returns listOf(match, wrongRisk, wrongTeam, wrongType).associate {
+        it.crn to buildCaseEntity {
+          withCrn(it.crn)
+          accommodationStatus = if (it.crn == crnFour) CaseAccommodationStatus.TRANSIENT else CaseAccommodationStatus.SETTLED
+        }
+      }
+
+      val result = caseQueryService.getCaseDtos(
+        personDtos = listOf(match, wrongRisk, wrongTeam, wrongType),
+        searchTerm = null,
+        riskLevel = RiskLevel.HIGH,
+        teamCode = "TeamX",
+        peopleType = PeopleType.HOUSED,
+        username = username,
+      )
+
+      assertThat(result.map { it.crn }).containsExactly(crnOne)
+    }
+
+    @Test
+    fun `should return an empty list when there are no person dtos`() {
+      every { caseRepository.mapByCrns(emptyList()) } returns emptyMap()
+
+      assertThat(getCaseDtos(personDtos = emptyList())).isEmpty()
+    }
   }
 
   @Nested
@@ -453,6 +540,15 @@ class CaseQueryServiceTest {
         .isInstanceOf(UpstreamFailureException::class.java)
     }
 
+    @Test
+    fun `should return a redacted limited case when the crn has no entry in the access response`() {
+      stubGetCase(buildCaseOrchestrationDto(crn = crnOne, caseAccess = emptyList()))
+
+      val result = caseQueryService.getCase(crnOne)
+
+      assertThat(result.data).isEqualTo(CaseDto(crn = crnOne, userAccess = UserAccess.LIMITED, limitedAccess = true))
+    }
+
     private fun stubGetCase(
       caseOrchestrationDto: CaseOrchestrationDto,
       limitedCrns: Set<String> = emptySet(),
@@ -515,6 +611,13 @@ class CaseQueryServiceTest {
 
       assertThatThrownBy { caseQueryService.getCaseFromDelius(crnOne) }
         .isInstanceOf(UpstreamFailureException::class.java)
+    }
+
+    @Test
+    fun `should return a LimitedPersonDto when the crn has no entry in the access response`() {
+      stubGetCaseFromDelius(buildCaseOrchestrationDto(crn = crnOne, cpr = null, tier = null, caseAccess = emptyList()))
+
+      assertThat(caseQueryService.getCaseFromDelius(crnOne).data).isInstanceOf(LimitedPersonDto::class.java)
     }
 
     private fun stubGetCaseFromDelius(

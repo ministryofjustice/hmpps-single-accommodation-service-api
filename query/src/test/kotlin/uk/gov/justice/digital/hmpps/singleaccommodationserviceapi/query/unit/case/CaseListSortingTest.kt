@@ -107,6 +107,24 @@ class CaseListSortingTest {
       assertThat(emptyList<CaseDto>().applyFilters()).isEmpty()
     }
 
+    @Test
+    fun `does not filter by assignee when no username is provided`() {
+      val cases = listOf(
+        full("MINE"),
+        full("OTHER", assignedToUsername = otherUser),
+        full("UNASSIGNED", assignedToUsername = null),
+      )
+
+      assertThat(cases.applyFilters(username = null)).containsExactlyInAnyOrder("MINE", "OTHER", "UNASSIGNED")
+    }
+
+    @Test
+    fun `matches the username ignoring case`() {
+      val cases = listOf(full("MINE", assignedToUsername = "User1"), full("OTHER", assignedToUsername = otherUser))
+
+      assertThat(cases.applyFilters(username = "USER1")).containsExactly("MINE")
+    }
+
     @Nested
     inner class ByTeam {
       private val cases = listOf(
@@ -386,6 +404,14 @@ class CaseListSortingTest {
 
       assertThat(limited.assignedTo).isNotNull()
       assertThat(limited.teamCode).isEqualTo("TeamA")
+    }
+
+    @Test
+    fun `also removes assignee and team code when access is unknown`() {
+      val result = listOf(caseWithAccess("UNKNOWN1", UserAccess.UNKNOWN)).obfuscateLimitedAccessCases().single()
+
+      assertThat(result.assignedTo).isNull()
+      assertThat(result.teamCode).isNull()
     }
 
     @Test

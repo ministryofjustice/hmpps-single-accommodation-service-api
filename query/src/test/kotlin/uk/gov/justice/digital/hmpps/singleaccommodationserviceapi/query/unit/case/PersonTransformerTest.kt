@@ -3,6 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ca
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.NullSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
@@ -122,6 +125,19 @@ class PersonTransformerTest {
           ),
         ),
       )
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @EnumSource(UserAccess::class, names = ["LIMITED", "UNKNOWN"])
+    fun `should transform to LimitedPersonDto when access is missing, unknown or limited`(userAccess: UserAccess?) {
+      val case = buildCase(crn = "X77777", nomsNumber = "C1234DE", team = buildCaseTeam(code = "TEAM3"))
+
+      val result = toPersonDto(case, userAccess)
+
+      assertThat(result).isInstanceOf(LimitedPersonDto::class.java)
+      assertThat(result.crn).isEqualTo("X77777")
+      assertThat(result.teamCode).isEqualTo("TEAM3")
     }
   }
 }
