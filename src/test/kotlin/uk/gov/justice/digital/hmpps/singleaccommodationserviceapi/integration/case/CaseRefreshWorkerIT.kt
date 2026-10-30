@@ -405,6 +405,23 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)!!.version).isEqualTo(case.version + 1)
   }
 
+  @Test
+  fun `removes a refresh request enqueued after the case was archived`() {
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+    caseRepository.archiveById(case.id)
+
+    // e.g. a concurrent bulk refresh that read the case id before archival
+    caseRefreshRequestService.requestBulkRefresh(listOf(case.id))
+    assertThat(caseRefreshRequestRepository.findAll()).hasSize(1)
+
+    val result = caseRefreshWorker.process()
+
+    assertThat(result.refreshedCount).isZero()
+    assertThat(result.failedCount).isZero()
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)!!.tierScore).isEqualTo("A")
+  }
+
   private fun projection() = CaseMutationOrchestrationDto(
     crn = crn,
     cpr = null,
