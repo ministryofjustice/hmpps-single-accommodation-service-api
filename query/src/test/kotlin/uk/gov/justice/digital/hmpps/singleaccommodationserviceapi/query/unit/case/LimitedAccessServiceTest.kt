@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorCallOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.ErrorDetail
@@ -19,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.ProbationAccessControlService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.UserCaseAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedAccessService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 
@@ -81,8 +83,15 @@ class LimitedAccessServiceTest {
         CaseAccess(crn = "D444444", userExcluded = true, userRestricted = true),
       )
 
-      val result = limitedAccessService.getLimitedAccessCrns(listOf("A111111", "B222222", "C333333", "D444444"), caseAccess)
-      assertThat(result).containsExactlyInAnyOrder("B222222", "C333333", "D444444")
+      val result = limitedAccessService.getCrnToUserAccess(caseAccess)
+      assertThat(result).containsAllEntriesOf(
+        mapOf(
+          "A111111" to UserAccess.FULL,
+          "B222222" to UserAccess.LIMITED,
+          "C333333" to UserAccess.LIMITED,
+          "D444444" to UserAccess.LIMITED,
+        ),
+      )
     }
   }
 
@@ -101,6 +110,29 @@ class LimitedAccessServiceTest {
       val failures = listOf(buildUpstreamFailure(callKey = POST_CASE_SUMMARIES))
 
       limitedAccessService.throwIfUserAccessFailed(failures)
+    }
+  }
+
+  @Nested
+  inner class IsLao {
+    @Test
+    fun `should be a LAO when the case summary has a current exclusion`() {
+      assertThat(limitedAccessService.isLao(buildCaseSummary(currentExclusion = true))).isTrue()
+    }
+
+    @Test
+    fun `should be a LAO when the case summary has a current restriction`() {
+      assertThat(limitedAccessService.isLao(buildCaseSummary(currentRestriction = true))).isTrue()
+    }
+
+    @Test
+    fun `should not be a LAO when the case summary has neither an exclusion nor a restriction`() {
+      assertThat(limitedAccessService.isLao(buildCaseSummary())).isFalse()
+    }
+
+    @Test
+    fun `should not be a LAO when there is no case summary`() {
+      assertThat(limitedAccessService.isLao(null)).isFalse()
     }
   }
 }
