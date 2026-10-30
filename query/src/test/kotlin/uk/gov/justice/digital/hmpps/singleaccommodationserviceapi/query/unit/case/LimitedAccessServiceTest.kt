@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.ProbationAccessControlService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.UserCaseAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedAccessService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 
@@ -109,6 +110,29 @@ class LimitedAccessServiceTest {
       val failures = listOf(buildUpstreamFailure(callKey = POST_CASE_SUMMARIES))
 
       limitedAccessService.throwIfUserAccessFailed(failures)
+    }
+  }
+
+  @Nested
+  inner class IsLao {
+    @Test
+    fun `should be a LAO when the case summary has a current exclusion`() {
+      assertThat(limitedAccessService.isLao(buildCaseSummary(currentExclusion = true))).isTrue()
+    }
+
+    @Test
+    fun `should be a LAO when the case summary has a current restriction`() {
+      assertThat(limitedAccessService.isLao(buildCaseSummary(currentRestriction = true))).isTrue()
+    }
+
+    @Test
+    fun `should not be a LAO when the case summary has neither an exclusion nor a restriction`() {
+      assertThat(limitedAccessService.isLao(buildCaseSummary())).isFalse()
+    }
+
+    @Test
+    fun `should not be a LAO when there is no case summary`() {
+      assertThat(limitedAccessService.isLao(null)).isFalse()
     }
   }
 }

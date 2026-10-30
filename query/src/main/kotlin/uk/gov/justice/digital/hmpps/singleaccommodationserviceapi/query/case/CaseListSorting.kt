@@ -15,6 +15,9 @@ fun List<CaseDto>.filterCases(
   peopleType: PeopleType?,
 ) = this
   .filter {
+    // this matches on either team or name. If team is provided, when return the cases on the team, otherwise
+    // we return only the cases that match with the username, if proved. Matches on all when no team or username is
+    // provided (required for users with a custom case list)
     if (!teamCode.isNullOrBlank()) {
       it.matchesTeam(teamCode)
     } else {

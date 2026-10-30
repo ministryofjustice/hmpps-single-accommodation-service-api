@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_USER_ACCESS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.ProbationAccessControlService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.UserCaseAccess
@@ -37,6 +38,7 @@ class LimitedAccessService(
   fun getCrnToUserAccess(caseAccess: List<CaseAccess>) = caseAccess.associate {
     it.crn to if (!it.userRestricted && !it.userExcluded) UserAccess.FULL else UserAccess.LIMITED
   }
+  fun isLao(caseSummary: CaseSummary?) = caseSummary?.let { it.currentExclusion || it.currentRestriction } ?: false
 
   private fun getUserAccessCallKey(batchIndex: Int) = GET_USER_ACCESS + batchIndex
 }

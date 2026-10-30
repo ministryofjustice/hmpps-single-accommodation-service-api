@@ -47,10 +47,11 @@ class CustomCaseListQueryService(
     val caseSummariesByCrn = orchestrationResult.data.caseSummaries.associateBy { it.crn }
     val caseDtos = caseEntities.map { entity ->
       val crn = entity.latestCrn()
-      val caseTeamCode = caseSummariesByCrn[crn]?.manager?.team?.code
-      val hasCurrentExclusionOrRestriction =
-        caseSummariesByCrn[crn]?.let { it.currentExclusion || it.currentRestriction } ?: false
-      when (crnsToUserAccess[crn]) {
+      val caseSummary = caseSummariesByCrn[crn]
+      val caseTeamCode = caseSummary?.manager?.team?.code
+      val isLao = limitedAccessService.isLao(caseSummary)
+      val userAccess = crnsToUserAccess[crn]
+      when (userAccess) {
         UserAccess.FULL -> {
           toCaseDto(
             caseEntity = entity,
@@ -59,7 +60,7 @@ class CustomCaseListQueryService(
             riskLevel = entity.roshLevelCode?.let { RiskLevel.findByCode(it) },
             pncReference = null,
             assignedTo = entity.toAssignedToDto(),
-            limitedAccess = hasCurrentExclusionOrRestriction,
+            limitedAccess = isLao,
             teamCode = caseTeamCode,
           )
         }

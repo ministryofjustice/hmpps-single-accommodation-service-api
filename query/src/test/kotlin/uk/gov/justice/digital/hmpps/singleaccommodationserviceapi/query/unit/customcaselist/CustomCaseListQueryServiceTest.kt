@@ -447,5 +447,6 @@ class CustomCaseListQueryServiceTest {
       upstreamFailures = upstreamFailures,
     )
     every { limitedAccessService.getCrnToUserAccess(caseAccess) } answers { callOriginal() }
+    every { limitedAccessService.isLao(any()) } answers { callOriginal() }
   }
 }
