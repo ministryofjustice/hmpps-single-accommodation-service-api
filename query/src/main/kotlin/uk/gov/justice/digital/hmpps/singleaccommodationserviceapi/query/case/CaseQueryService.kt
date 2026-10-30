@@ -5,16 +5,18 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.time.Clock
 import java.time.LocalDate
@@ -27,44 +29,56 @@ class CaseQueryService(
   private val caseRepository: CaseRepository,
   private val clock: Clock,
 ) {
-  fun getCaseList(teamCode: String?): ApiResponseDto<List<PersonDto>> {
+
+  fun getCaseList(teamCode: String?): ApiResponseDto<Map<Case, UserAccess?>> {
     val user = userService.authorizeAndRetrieveUser()
     val caseOrchestrationResult = caseOrchestrationService.getCaseList(user.username, teamCode)
     limitedAccessService.throwIfUserAccessFailed(caseOrchestrationResult.upstreamFailures)
 
-    val cases = caseOrchestrationResult.data.cases
     val crnsToUserAccess = limitedAccessService.getCrnToUserAccess(caseOrchestrationResult.data.caseAccess)
-    val caseList = cases.map { toPersonDto(it, userAccess = crnsToUserAccess[it.crn]) }
+    val cases = caseOrchestrationResult.data.cases.associateWith { case -> crnsToUserAccess[case.crn] }
 
     return toApiResponseDto(
-      data = caseList,
+      data = cases,
       upstreamFailures = caseOrchestrationResult.upstreamFailures,
     )
   }
 
   fun getCaseDtos(
-    personDtos: List<PersonDto>,
+    caseToUserAccess: Map<Case, UserAccess?>,
     searchTerm: String?,
     riskLevel: RiskLevel?,
     teamCode: String?,
     peopleType: PeopleType?,
     username: String?,
   ): List<CaseDto> {
-    val caseEntitiesByCrn = caseRepository.mapByCrns(personDtos.map { it.crn })
-    return personDtos.map { personDto ->
+    val crns = caseToUserAccess.keys.map { it.crn }
+    val caseEntitiesByCrn = caseRepository.mapByCrns(crns)
 
-      when (personDto) {
-        is LimitedPersonDto -> personDto.toLimitedCaseDto()
+    return caseToUserAccess.map { (case, userAccess) ->
 
-        is FullPersonDto -> {
-          val caseEntity = caseEntitiesByCrn[personDto.crn]
-          personDto.toCaseDto(
-            caseEntity = caseEntity,
-            currentAccommodation = caseEntity?.currentAccommodation,
-            nextAccommodation = caseEntity?.nextAccommodation,
-            teamCode = personDto.teamCode,
+      // entities are persisted in the previous step.
+      val entity = caseEntitiesByCrn[case.crn]!!
+
+      when (userAccess) {
+        UserAccess.FULL -> {
+          toCaseDto(
+            caseEntity = entity,
+            crn = entity.latestCrn(),
+            prisonNumber = entity.latestPrisonNumber(),
+            riskLevel = entity.roshLevelCode?.let { RiskLevel.findByCode(it) },
+            pncReference = null,
+            assignedTo = entity.toAssignedToDto(),
+            limitedAccess = case.limitedAccess,
+            teamCode = case.team.code,
           )
         }
+
+        else -> toLimitedCaseDto(
+          case.crn,
+          teamCode = case.team.code,
+          assignedTo = entity.toAssignedToDto(),
+        )
       }
     }.filterCases(
       searchTerm = searchTerm,
@@ -83,7 +97,8 @@ class CaseQueryService(
     val orchestrationResult = caseOrchestrationService.getCase(user.username, crn)
     hasMandatoryCaseData(orchestrationResult)
     limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
-    val case = orchestrationResult.data.getPersonDto()
+    val crnToCaseAccess = limitedAccessService.getCrnToUserAccess(orchestrationResult.data.caseAccess)
+    val case = orchestrationResult.data.case ?: throw IllegalStateException("CRN $crn not found")
 
     val caseOrchestrationDto = orchestrationResult.data
     val data = toCaseDto(
@@ -92,6 +107,7 @@ class CaseQueryService(
       caseOrchestrationDto.cpr,
       caseOrchestrationDto.tier,
       caseOrchestrationDto.sexualOffenceRegistrations,
+      crnToUserAccess = crnToCaseAccess,
     ).obfuscateIfLimitedAccess()
     return toApiResponseDto(data = data, upstreamFailures = orchestrationResult.upstreamFailures)
   }
@@ -104,17 +120,18 @@ class CaseQueryService(
     }
   }
 
-  fun getCaseFromDelius(crn: String): ApiResponseDto<PersonDto?> {
+  fun getCaseFromDelius(crn: String): ApiResponseDto<Map<Case, UserAccess>> {
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCaseFromDelius(user.username, crn)
     hasMandatoryCaseData(orchestrationResult)
     limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
-    val case = orchestrationResult.data.getPersonDto()
-    return toApiResponseDto(data = case, upstreamFailures = orchestrationResult.upstreamFailures)
-  }
+    val case = orchestrationResult.data.case ?: throw IllegalArgumentException("CRN $crn not found in delius")
 
-  private fun CaseOrchestrationDto.getPersonDto() = case?.let {
-    val userAccess = limitedAccessService.getCrnToUserAccess(caseAccess)[it.crn]
-    toPersonDto(it, userAccess = userAccess)
+    val userAccess =
+      limitedAccessService.getCrnToUserAccess(orchestrationResult.data.caseAccess)[crn] ?: UserAccess.UNKNOWN
+    return toApiResponseDto(
+      data = mapOf(case to userAccess),
+      upstreamFailures = orchestrationResult.upstreamFailures,
+    )
   }
 }
