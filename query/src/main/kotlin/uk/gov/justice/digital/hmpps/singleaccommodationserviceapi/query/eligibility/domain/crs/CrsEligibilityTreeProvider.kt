@@ -26,10 +26,8 @@ class CrsEligibilityTreeProvider(
   private val completionContextUpdater: CrsCompletionContextUpdater,
   private val upcoming: CrsUpcomingRuleSet,
   private val upcomingContextUpdater: CrsUpcomingContextUpdater,
-  @Value($$"${service.commissioned-rehabilitative-services-ui.base-url}") crsUiBaseUrl: String,
+  @Value($$"${frontend.commissioned-rehabilitative-services.probation-practitioner-dashboard}") private val probationPractitionerDashboardUrl: String,
 ) : EligibilityTreeProvider {
-
-  val url = crsUiBaseUrl
 
   private val tree: DecisionNode by lazy { build() }
 
@@ -44,7 +42,7 @@ class CrsEligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notRequired = builder.notRequired(ServiceType.CRS)
     val submitted = builder.outcome(
-      ServiceResultNew(serviceStatus = ServiceStatusNew.CRS_SUBMITTED, url = url),
+      ServiceResultNew(serviceStatus = ServiceStatusNew.CRS_SUBMITTED, url = probationPractitionerDashboardUrl),
     )
 
     val eligibilityNextAccommodationNode = builder

@@ -274,7 +274,9 @@ class EligibilityServiceTest {
   var crsCompletionRuleSet = CrsCompletionRuleSet(
     CrsSubmittedRule(),
   )
-  var crsCompletionContextUpdater = CrsCompletionContextUpdater(crsUiUrl)
+  var crsFindInterventionsUrl = "$crsUiUrl/find-interventions"
+  var crsProbationPractitionerDashboardUrl = "$crsUiUrl/probation-practitioner/dashboard"
+  var crsCompletionContextUpdater = CrsCompletionContextUpdater(crsFindInterventionsUrl)
   var crsUpcomingRuleSet = CrsUpcomingRuleSet(CrsUpcomingRule(clock))
   var crsUpcomingContextUpdater = CrsUpcomingContextUpdater()
 
@@ -346,7 +348,7 @@ class EligibilityServiceTest {
     completionContextUpdater = crsCompletionContextUpdater,
     upcoming = crsUpcomingRuleSet,
     upcomingContextUpdater = crsUpcomingContextUpdater,
-    crsUiBaseUrl = crsUiUrl,
+    probationPractitionerDashboardUrl = crsProbationPractitionerDashboardUrl,
   )
 
   private val paTree = PaEligibilityTreeProvider(
@@ -1362,6 +1364,12 @@ class EligibilityServiceTest {
           currentAccommodationTypeEntity = currentAccommodationTypeEntity,
         )
 
+        val expectedUrl = when (s.expectedCrsUrl) {
+          "CRS_UI_URL_DASHBOARD" -> crsProbationPractitionerDashboardUrl
+          "CRS_UI_URL_FIND_INTERVENTIONS" -> crsFindInterventionsUrl
+          else -> null
+        }
+
         val result = eligibilityService.evaluate(crsTree, data)
 
         assertThat(result.serviceStatus)
@@ -1376,7 +1384,6 @@ class EligibilityServiceTest {
           },
         )
         assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CRS)
-        val expectedUrl = if (s.expectedCrsUrl == "CRS_UI_URL") crsUiUrl else null
         assertThat(result.url).isEqualTo(expectedUrl)
         assertThat(result.failureReasons)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")

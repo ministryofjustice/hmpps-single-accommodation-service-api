@@ -23,7 +23,6 @@ generic-service:
     SERVICE_PROBATION-ACCESS-CONTROL_BASE-URL: https://probation-access-control-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-AND-DELIUS_BASE-URL: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api-dev.hmpps.service.justice.gov.uk
-    SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-UI_BASE-URL: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk
     SERVICE_CORE-PERSON-RECORD_BASE-URL: https://hmpps-person-record-dev.hmpps.service.justice.gov.uk
     SERVICE_PRISONER-SEARCH_BASE-URL: https://prisoner-search-dev.prison.service.justice.gov.uk
     SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-API_BASE-URL: https://hmpps-interventions-service-dev.apps.live-1.cloud-platform.service.justice.gov.uk
@@ -33,6 +32,8 @@ generic-service:
     EVENT_DETAILS-URL_DUTY-TO-REFER: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk/event-details/duty-to-refers/#id
 
     FRONTEND_DUTY-TO-REFER_VIEW: https://single-accommodation-service-dev.hmpps.service.justice.gov.uk/cases/#crn/dtr/#dtrId/details
+    FRONTEND_COMMISSIONED-REHABILITATIVE-SERVICES_FIND-INTERVENTIONS: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk/find-interventions
+    FRONTEND_COMMISSIONED-REHABILITATIVE-SERVICES_PROBATION-PRACTITIONER-DASHBOARD: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk/probation-practitioner/dashboard
 
     SCHEDULING_ENABLED: true
 
