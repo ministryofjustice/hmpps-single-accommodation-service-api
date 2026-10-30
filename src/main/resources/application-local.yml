@@ -6,10 +6,6 @@ event:
     proposed-accommodation-updated: http://localhost:8080/proposed-accommodations/#id
     duty-to-refer: http://localhost:8080/duty-to-refers/#id
 
-service:
-  commissioned-rehabilitative-services-ui:
-    base-url: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk
-
 hmpps.sqs:
   enabled: false
   useWebToken: false
@@ -80,3 +76,6 @@ case-list:
 frontend:
   duty-to-refer:
     view: https://single-accommodation-service-dev.hmpps.service.justice.gov.uk/cases/#crn/dtr/#dtrId/details
+  commissioned-rehabilitative-services:
+    find-interventions: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk/find-interventions
+    probation-practitioner-dashboard: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk/probation-practitioner/dashboard

@@ -11,8 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 
 class CrsCompletionContextUpdaterTest {
-  val crsUiUrl = "CRS_UI_URL"
-  private val updater = CrsCompletionContextUpdater(crsUiUrl)
+  val findInterventionsUrl = "CRS_UI_URL/find-interventions"
+  private val updater = CrsCompletionContextUpdater(findInterventionsUrl)
 
   @Nested
   inner class UpdateTests {
@@ -28,7 +28,7 @@ class CrsCompletionContextUpdaterTest {
         data = data,
         currentResult = buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL,
-          url = crsUiUrl,
+          url = findInterventionsUrl,
         ),
       )
 
@@ -49,7 +49,7 @@ class CrsCompletionContextUpdaterTest {
         data = data,
         currentResult = buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_REFERRAL,
-          url = crsUiUrl,
+          url = findInterventionsUrl,
         ),
       )
 

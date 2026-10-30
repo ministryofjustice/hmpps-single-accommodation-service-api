@@ -2,10 +2,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.e
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
@@ -14,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
@@ -47,6 +51,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
@@ -90,8 +95,11 @@ class EligibilityControllerIT : IntegrationTestBase() {
   private val cas2ApplicationUiUrl = "https://cas2-ui/applications/$cas2ApplicationId"
   private val cas3ReferralUiUrl = "https://cas3-ui/referrals/$cas3ApplicationId/full"
 
-  @Value($$"${service.commissioned-rehabilitative-services-ui.base-url}")
-  private lateinit var crsUrl: String
+  @Value($$"${frontend.commissioned-rehabilitative-services.probation-practitioner-dashboard}")
+  private lateinit var crsProbationPractitionerDashboardUrl: String
+
+  @Value($$"${frontend.commissioned-rehabilitative-services.find-interventions}")
+  private lateinit var crsFindInterventionsUrl: String
 
   @Autowired
   private lateinit var localAuthorityAreaRepository: LocalAuthorityAreaRepository
@@ -106,28 +114,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
     databaseUtils.truncate(DUTY_TO_REFER)
-
-    val corePersonRecord = buildCorePersonRecord(
-      identifiers = buildIdentifiers(
-        crns = listOf(crn),
-      ),
-      addresses = listOf(
-        buildCanonicalAddress(
-          status = CanonicalAddressStatus(
-            code = AddressStatusCode.M.name,
-          ),
-          endDate = LocalDate.now().plusDays(1),
-          usages = listOf(
-            CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A02.name,
-              ),
-              isActive = true,
-            ),
-          ),
-        ),
-      ),
-    )
 
     val cas3Application = buildCas3Application(
       id = cas3ApplicationId,
@@ -144,7 +130,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
 
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+    createCorePersonRecord(SexCode.M)
     SasAndDeliusStubs.stubGetSexualOffenceRegistrations(crn, SexualOffenceRegistrations(crn, emptyList()))
     PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber))
     CommissionedRehabilitativeServicesStubs.getCrsOkResponse(
@@ -325,7 +311,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
             cas1ApplicationUrl = cas1ApplicationUiUrl,
-            crsUrl = crsUrl,
+            crsUrl = crsProbationPractitionerDashboardUrl,
             cas3ReferralUrl = cas3ReferralUiUrl,
             cas1ApplicationStartedAt = cas1Application.application.createdAt.asJsonValue(),
             submittedAt = cas1Application.application.submittedAt?.asJsonValue().toString(),
@@ -378,7 +364,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             cas3ApplicationId = cas3ApplicationId,
             cas3Url = cas3ReferralUiUrl,
             crsSubmissionDate = crsSubmissionDate.toString(),
-            crsUrl = crsUrl,
+            crsUrl = crsProbationPractitionerDashboardUrl,
           ),
         )
       }
@@ -431,7 +417,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
             cas1ApplicationUrl = cas1ApplicationUiUrl,
-            crsUrl = crsUrl,
+            crsUrl = crsProbationPractitionerDashboardUrl,
             cas3ReferralUrl = cas3ReferralUiUrl,
             cas1ApplicationStartedAt = cas1Application.application.createdAt.asJsonValue(),
           ),
@@ -518,5 +504,53 @@ class EligibilityControllerIT : IntegrationTestBase() {
     webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = SexCode::class, names = ["M", "F"])
+  fun `should return find interventions url for crs when referral has not been started`(sex: SexCode) {
+    createCorePersonRecord(sex)
+    CommissionedRehabilitativeServicesStubs.getCrsOkResponse(crn = crn, response = emptyList())
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
+
+    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+      withCrn(crn)
+      withPrisonNumber(prisonNumber)
+    }
+    caseRepository.save(entity)
+
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data.crs.serviceResult.serviceStatus").isEqualTo(ServiceStatus.NOT_STARTED.name)
+      .jsonPath("$.data.crs.serviceResult.url").isEqualTo(crsFindInterventionsUrl)
+  }
+
+  private fun createCorePersonRecord(sex: SexCode) {
+    val corePersonRecord = buildCorePersonRecord(
+      sex = buildSex(code = sex),
+      identifiers = buildIdentifiers(
+        crns = listOf(crn),
+      ),
+      addresses = listOf(
+        buildCanonicalAddress(
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+          ),
+          endDate = LocalDate.now().plusDays(1),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A02.name,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+      ),
+    )
+
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
   }
 }
