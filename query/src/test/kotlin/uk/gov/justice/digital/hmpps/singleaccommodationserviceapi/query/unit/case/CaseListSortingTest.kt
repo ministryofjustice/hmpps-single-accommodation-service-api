@@ -192,6 +192,17 @@ class CaseListSortingTest {
       }
 
       @Test
+      fun `does not match the text null when name fields are missing`() {
+        val noNames = CaseDto(crn = "X100005", userAccess = UserAccess.FULL, limitedAccess = false, assignedTo = buildAssignedToDto(username = currentUser))
+        val forenameOnly = CaseDto(crn = "X100006", forename = "Zed", userAccess = UserAccess.FULL, limitedAccess = false, assignedTo = buildAssignedToDto(username = currentUser))
+        val cases = listOf(noNames, forenameOnly)
+
+        assertThat(cases.applyFilters(searchTerm = "n")).isEmpty()
+        assertThat(cases.applyFilters(searchTerm = "null")).isEmpty()
+        assertThat(cases.applyFilters(searchTerm = "zed")).containsExactly("X100006")
+      }
+
+      @Test
       fun `does not return limited access cases for a name search`() {
         assertThat(cases.applyFilters(searchTerm = "First")).doesNotContain("X100004")
       }

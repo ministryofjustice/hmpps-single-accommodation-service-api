@@ -60,7 +60,11 @@ private fun CaseDto.matchesSearch(searchTerm: String?): Boolean = when {
     searchTerm
       .split(" ")
       .filter { it.isNotBlank() }
-      .all { "$forename $surname".contains(it, ignoreCase = true) } -> true
+      .all {
+        listOfNotNull(forename, surname)
+          .joinToString(" ")
+          .contains(it, ignoreCase = true)
+      } -> true
 
   else -> false
 }
