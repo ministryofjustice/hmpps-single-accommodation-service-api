@@ -75,6 +75,11 @@ class CaseRefreshRequestService(
   }
 
   @Transactional
+  fun deleteOwnedRequest(claim: Claim) {
+    findOwnedRequest(claim)?.let { caseRefreshRequestRepository.delete(it) }
+  }
+
+  @Transactional
   fun recordFailure(
     claim: Claim,
     failure: CaseRefreshFailure,

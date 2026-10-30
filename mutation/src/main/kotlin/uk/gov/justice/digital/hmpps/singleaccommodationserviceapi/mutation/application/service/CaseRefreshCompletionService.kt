@@ -49,26 +49,32 @@ class CaseRefreshCompletionService(
   ): Result = when (val request = caseRefreshRequestService.findOwnedRequest(claim)) {
     null -> Result.IGNORED_STALE_CLAIM
 
-    else -> {
-      val caseEntity = requireNotNull(caseRepository.findByIdOrNull(claim.caseId)) {
-        "Case not found while completing refresh [caseId=${claim.caseId}]"
-      }
-      val aggregate = caseMapper.toAggregate(entity = caseEntity)
-      val snapshot = caseSnapshotAssembler.upsertCase(aggregate, projection).snapshot()
-      caseRepository.save(caseMapper.merge(caseEntity, snapshot))
-
-      if (request.generation == claim.generation) {
+    else -> when (val caseEntity = caseRepository.findByIdOrNull(claim.caseId)) {
+      // archived cases are hidden from this lookup, so a concurrent deletion lands here
+      null -> {
         caseRefreshRequestRepository.delete(request)
-      } else {
-        lifecycle.releaseAfterSuccess(request)
+        Result.IGNORED_CASE_NOT_FOUND
       }
-      Result.APPLIED
+
+      else -> {
+        val aggregate = caseMapper.toAggregate(entity = caseEntity)
+        val snapshot = caseSnapshotAssembler.upsertCase(aggregate, projection).snapshot()
+        caseRepository.save(caseMapper.merge(caseEntity, snapshot))
+
+        if (request.generation == claim.generation) {
+          caseRefreshRequestRepository.delete(request)
+        } else {
+          lifecycle.releaseAfterSuccess(request)
+        }
+        Result.APPLIED
+      }
     }
   }
 
   enum class Result {
     APPLIED,
     IGNORED_STALE_CLAIM,
+    IGNORED_CASE_NOT_FOUND,
   }
 }
 

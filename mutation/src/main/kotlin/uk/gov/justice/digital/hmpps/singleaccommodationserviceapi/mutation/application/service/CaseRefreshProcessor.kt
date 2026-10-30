@@ -17,7 +17,11 @@ class CaseRefreshProcessor(
   fun process(claim: CaseRefreshRequestService.Claim): Result = when (val loadOutcome = loadProjection(claim)) {
     is LoadOutcome.Loaded -> complete(claim, loadOutcome.projection)
     is LoadOutcome.Failed -> recordFailure(claim, loadOutcome.failure)
-    LoadOutcome.CaseNotFound -> Result.CaseNotFound
+    LoadOutcome.CaseNotFound -> {
+      // the case was archived/deleted before processing; drop the request so it isn't reclaimed repeatedly
+      caseRefreshRequestService.deleteOwnedRequest(claim)
+      Result.CaseNotFound
+    }
   }
 
   private fun loadProjection(claim: CaseRefreshRequestService.Claim): LoadOutcome = try {
@@ -52,6 +56,7 @@ class CaseRefreshProcessor(
     when (caseRefreshCompletionService.completeRefresh(claim, projection)) {
       CaseRefreshCompletionService.Result.APPLIED -> Result.Refreshed
       CaseRefreshCompletionService.Result.IGNORED_STALE_CLAIM -> Result.IgnoredStaleClaim
+      CaseRefreshCompletionService.Result.IGNORED_CASE_NOT_FOUND -> Result.CaseNotFound
     }
   } catch (exception: Exception) {
     log.error("Unexpected error completing Case projection refresh [caseId={}]", claim.caseId, exception)

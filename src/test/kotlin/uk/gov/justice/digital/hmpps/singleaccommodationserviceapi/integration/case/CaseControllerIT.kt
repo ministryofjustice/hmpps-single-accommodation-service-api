@@ -138,11 +138,11 @@ class CaseControllerIT : IntegrationTestBase() {
 
     // the case list returned should not match any persisted CRNs
     assertThat(
-      caseRepository.findAllByIdentifiers(
+      caseRepository.findByIdentifiers(
         crns = cases.map { it.crn },
         prisonNumbers = cases.map { it.nomsNumber!! },
       ),
-    ).hasSize(0)
+    ).isNull()
 
     SasAndDeliusStubs.stubCaseList(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
