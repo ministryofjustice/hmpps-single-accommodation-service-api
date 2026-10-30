@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ri
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.SexualOffenceRegistrationCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
@@ -17,18 +18,34 @@ import java.time.LocalDate
 object CaseTransformer {
   fun toCaseDto(
     crn: String,
-    person: PersonDto?,
+    case: Case,
     cpr: CorePersonRecord?,
     tier: Tier?,
     sexualOffenceRegistrations: SexualOffenceRegistrations?,
-  ) = when (person) {
-    is LimitedPersonDto -> person.toLimitedCaseDto()
-    is FullPersonDto -> person.toOrchestratedCaseDto(person, cpr, tier, sexualOffenceRegistrations)
-    null -> CaseDto(crn = crn, userAccess = UserAccess.UNKNOWN, limitedAccess = null)
+    crnToUserAccess: Map<String, UserAccess?>,
+  ) = when (crnToUserAccess[crn]) {
+    UserAccess.FULL -> case.toOrchestratedCaseDto(
+      cpr = cpr,
+      tier = tier,
+      sexualOffenceRegistrations = sexualOffenceRegistrations,
+    )
+
+    UserAccess.LIMITED -> toLimitedCaseDto(
+      crn = crn,
+      teamCode = case.team.code,
+      assignedTo = case.assignedToDto(),
+    )
+
+    else -> CaseDto(crn = crn, userAccess = UserAccess.UNKNOWN, limitedAccess = null)
   }
 
-  private fun FullPersonDto.toOrchestratedCaseDto(
-    person: FullPersonDto,
+  private fun Case.assignedToDto() = AssignedToDto(
+    forename = this.staff.name.forename,
+    surname = this.staff.name.surname,
+    username = this.staff.username,
+  )
+
+  private fun Case.toOrchestratedCaseDto(
     cpr: CorePersonRecord?,
     tier: Tier?,
     sexualOffenceRegistrations: SexualOffenceRegistrations?,
@@ -40,9 +57,9 @@ object CaseTransformer {
     crn = this.crn,
     prisonNumber = this.nomsNumber,
     tierScore = tier?.tierScore,
-    riskLevel = person.riskLevel,
+    riskLevel = this.roshLevel?.let { RiskLevel.findByCode(it.code) },
     pncReference = cpr?.identifiers?.pncs?.firstOrNull(),
-    assignedTo = person.assignedTo,
+    assignedTo = this.assignedToDto(),
     photoUrl = null,
     userAccess = UserAccess.FULL,
     limitedAccess = this.limitedAccess,
@@ -51,28 +68,6 @@ object CaseTransformer {
       ?.map { SexualOffenceRegistrationCode.valueOf(it.type.code.name) }
       .orEmpty(),
   )
-
-  fun PersonDto.toCaseDto(
-    caseEntity: CaseEntity?,
-    currentAccommodation: AccommodationSummaryDto?,
-    nextAccommodation: AccommodationSummaryDto?,
-    teamCode: String,
-  ): CaseDto = when (this) {
-    is FullPersonDto -> toCaseDto(
-      caseEntity = caseEntity,
-      crn = crn,
-      prisonNumber = nomsNumber,
-      riskLevel = riskLevel,
-      pncReference = pncNumber,
-      assignedTo = assignedTo,
-      limitedAccess = limitedAccess,
-      currentAccommodation = currentAccommodation,
-      nextAccommodation = nextAccommodation,
-      teamCode = teamCode,
-    )
-
-    is LimitedPersonDto -> toLimitedCaseDto()
-  }
 
   fun toCaseDto(
     caseEntity: CaseEntity?,
@@ -121,8 +116,6 @@ object CaseTransformer {
     currentAccommodation = currentAccommodation,
     nextAccommodation = nextAccommodation,
   )
-
-  fun PersonDto.toLimitedCaseDto() = toLimitedCaseDto(crn, teamCode, assignedTo)
 
   fun toLimitedCaseDto(crn: String, teamCode: String?, assignedTo: AssignedToDto?) = CaseDto(
     crn = crn,
