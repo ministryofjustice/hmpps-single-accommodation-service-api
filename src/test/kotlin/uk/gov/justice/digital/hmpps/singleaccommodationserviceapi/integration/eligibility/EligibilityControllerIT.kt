@@ -2,9 +2,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.e
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
@@ -13,12 +17,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
@@ -38,15 +44,18 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.LocalAuthorityAreaEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.asJsonValue
@@ -61,6 +70,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import java.time.LocalDate
@@ -84,8 +95,11 @@ class EligibilityControllerIT : IntegrationTestBase() {
   private val cas2ApplicationUiUrl = "https://cas2-ui/applications/$cas2ApplicationId"
   private val cas3ReferralUiUrl = "https://cas3-ui/referrals/$cas3ApplicationId/full"
 
-  @Value($$"${service.commissioned-rehabilitative-services-ui.base-url}")
-  private lateinit var crsUrl: String
+  @Value($$"${frontend.commissioned-rehabilitative-services.probation-practitioner-dashboard}")
+  private lateinit var crsProbationPractitionerDashboardUrl: String
+
+  @Value($$"${frontend.commissioned-rehabilitative-services.find-interventions}")
+  private lateinit var crsFindInterventionsUrl: String
 
   @Autowired
   private lateinit var localAuthorityAreaRepository: LocalAuthorityAreaRepository
@@ -93,31 +107,13 @@ class EligibilityControllerIT : IntegrationTestBase() {
   @Autowired
   private lateinit var dutyToReferRepository: DutyToReferRepository
 
+  private val localAuthorityArea: LocalAuthorityAreaEntity by lazy {
+    localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+  }
+
   @BeforeEach
   fun setup() {
     databaseUtils.truncate(DUTY_TO_REFER)
-
-    val corePersonRecord = buildCorePersonRecord(
-      identifiers = buildIdentifiers(
-        crns = listOf(crn),
-      ),
-      addresses = listOf(
-        buildCanonicalAddress(
-          status = CanonicalAddressStatus(
-            code = AddressStatusCode.M.name,
-          ),
-          endDate = LocalDate.now().plusDays(1),
-          usages = listOf(
-            CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A02.name,
-              ),
-              isActive = true,
-            ),
-          ),
-        ),
-      ),
-    )
 
     val cas3Application = buildCas3Application(
       id = cas3ApplicationId,
@@ -134,7 +130,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
 
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+    createCorePersonRecord(SexCode.M)
+    SasAndDeliusStubs.stubGetSexualOffenceRegistrations(crn, SexualOffenceRegistrations(crn, emptyList()))
     PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber))
     CommissionedRehabilitativeServicesStubs.getCrsOkResponse(
       crn = crn,
@@ -150,6 +147,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
   @Test
   fun `should get eligibility for crn`() {
     val tier = buildTier("A")
+    ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
     val premises = buildCas1PremisesSummary(
       startDate = LocalDate.now(),
       endDate = LocalDate.now(),
@@ -277,8 +275,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     TierStubs.getTierOKResponse(crn = crn, tier)
 
-    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-
     val entity = buildCaseEntity(id = dutyToReferCaseId) {
       withCrn(crn)
       withPrisonNumber(prisonNumber)
@@ -295,10 +291,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityResponse(
@@ -315,7 +311,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
             cas1ApplicationUrl = cas1ApplicationUiUrl,
-            crsUrl = crsUrl,
+            crsUrl = crsProbationPractitionerDashboardUrl,
             cas3ReferralUrl = cas3ReferralUiUrl,
             cas1ApplicationStartedAt = cas1Application.application.createdAt.asJsonValue(),
             submittedAt = cas1Application.application.submittedAt?.asJsonValue().toString(),
@@ -332,11 +328,18 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get eligibility for cas 3 blocking reason`() {
-    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+    // eligible for CAS2 but not CAS1
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "E"))
+    ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
+
+    val entity = buildCaseEntity(
+      id = dutyToReferCaseId,
+    ) {
       withCrn(crn)
       withPrisonNumber(prisonNumber)
     }
     caseRepository.save(entity)
+
     PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.IN))
 
     val cas3Application = buildCas3Application(
@@ -347,12 +350,13 @@ class EligibilityControllerIT : IntegrationTestBase() {
         submittedDate = LocalDate.of(2025, 1, 2),
       ),
     )
+
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityResponseCannotStartYet(
@@ -360,7 +364,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             cas3ApplicationId = cas3ApplicationId,
             cas3Url = cas3ReferralUiUrl,
             crsSubmissionDate = crsSubmissionDate.toString(),
-            crsUrl = crsUrl,
+            crsUrl = crsProbationPractitionerDashboardUrl,
           ),
         )
       }
@@ -368,7 +372,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should continue evaluation and do not include 404 in upstream failures when tier returns not found`() {
-    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
     val cas1Application = buildCas1Application(
       application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED, id = cas1ApplicationId),
       requestForPlacement = buildCas1RequestForPlacementSummary(status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED),
@@ -394,10 +397,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityResponseTierNotFound(
@@ -414,7 +417,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
             cas1ApplicationUrl = cas1ApplicationUiUrl,
-            crsUrl = crsUrl,
+            crsUrl = crsProbationPractitionerDashboardUrl,
             cas3ReferralUrl = cas3ReferralUiUrl,
             cas1ApplicationStartedAt = cas1Application.application.createdAt.asJsonValue(),
           ),
@@ -426,10 +429,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
   fun `should send back upstream failures and a not eligible service result when there are upstream failures`() {
     val upstreamUrl = TierStubs.getTierServerErrorResponse(crn = crn)
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityUpstreamFailuresResponse(
@@ -442,8 +445,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should include failureReason when defined`() {
-    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-
     val cas1Application = buildCas1Application(
       application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.REJECTED, id = cas1ApplicationId, createdAt = OffsetDateTime.parse("2023-01-01T12:00:00.000Z")),
     )
@@ -460,7 +461,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     }
     caseRepository.save(entity)
 
-    val existingEntity = dutyToReferRepository.save(
+    dutyToReferRepository.save(
       buildDutyToReferEntity(
         caseId = entity.id,
         localAuthorityAreaId = localAuthorityArea.id,
@@ -470,7 +471,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
@@ -488,7 +489,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     }
     caseRepository.save(entity)
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
   }
@@ -500,8 +501,56 @@ class EligibilityControllerIT : IntegrationTestBase() {
     val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
     caseRepository.save(entity)
 
-    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = SexCode::class, names = ["M", "F"])
+  fun `should return find interventions url for crs when referral has not been started`(sex: SexCode) {
+    createCorePersonRecord(sex)
+    CommissionedRehabilitativeServicesStubs.getCrsOkResponse(crn = crn, response = emptyList())
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
+
+    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+      withCrn(crn)
+      withPrisonNumber(prisonNumber)
+    }
+    caseRepository.save(entity)
+
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data.crs.serviceResult.serviceStatus").isEqualTo(ServiceStatus.NOT_STARTED.name)
+      .jsonPath("$.data.crs.serviceResult.url").isEqualTo(crsFindInterventionsUrl)
+  }
+
+  private fun createCorePersonRecord(sex: SexCode) {
+    val corePersonRecord = buildCorePersonRecord(
+      sex = buildSex(code = sex),
+      identifiers = buildIdentifiers(
+        crns = listOf(crn),
+      ),
+      addresses = listOf(
+        buildCanonicalAddress(
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+          ),
+          endDate = LocalDate.now().plusDays(1),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A02.name,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+      ),
+    )
+
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
   }
 }

@@ -13,8 +13,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.web.client.RestClient
-import org.springframework.web.client.support.RestClientAdapter
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.support.WebClientAdapter
 import org.springframework.web.service.invoker.HttpServiceProxyFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
@@ -199,12 +199,12 @@ class CorePersonRecordClientPactTest {
   }
 
   private fun createCorePersonRecordClient(baseUrl: String): CorePersonRecordClient {
-    val restClient = RestClient.builder()
+    val webClient = WebClient.builder()
       .baseUrl(baseUrl)
       .build()
 
     val proxyFactory = HttpServiceProxyFactory
-      .builderFor(RestClientAdapter.create(restClient))
+      .builderFor(WebClientAdapter.create(webClient))
       .build()
 
     return proxyFactory.createClient(CorePersonRecordClient::class.java)

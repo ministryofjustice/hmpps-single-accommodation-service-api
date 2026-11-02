@@ -9,21 +9,13 @@ import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isTimeout
-import java.net.http.HttpTimeoutException
 import java.time.LocalDateTime
-
-data class CallsPerIdentifier(
-  val calls: Map<String, (String) -> Any>,
-  val identifiersToIterate: List<String>,
-)
 
 data class AggregatorResult(
   val standardCallsNoIterationResults: Map<String, Any>?,
-  val callsPerIdentifierResults: Map<String, Map<String, Any>>?,
 )
 
 @Service
@@ -36,20 +28,16 @@ class AggregatorService(
 
   fun orchestrateAsyncCalls(
     standardCallsNoIteration: Map<String, () -> Any?> = emptyMap(),
-    callsPerIdentifier: CallsPerIdentifier? = null,
   ): AggregatorResult = runBlocking {
-    if (standardCallsNoIteration.isEmpty() && callsPerIdentifier == null) {
+    if (standardCallsNoIteration.isEmpty()) {
       log.debug("No API calls to execute")
-      return@runBlocking AggregatorResult(emptyMap(), emptyMap())
+      return@runBlocking AggregatorResult(emptyMap())
     }
 
     log.debug("Starting async calls: {}", LocalDateTime.now())
 
     val standardCallsSuspend: Map<String, suspend () -> Any?> =
       standardCallsNoIteration.mapValues { (_, f) -> suspend { f() } }
-
-    val perIdentifierCallsSuspend: Map<String, suspend (String) -> Any>? =
-      callsPerIdentifier?.calls?.mapValues { (_, f) -> f.asSuspend() }
 
     val standardDeferred = async(Dispatchers.IO) {
       if (standardCallsSuspend.isNotEmpty()) {
@@ -59,21 +47,8 @@ class AggregatorService(
       }
     }
 
-    val perIdentifierDeferred = async(Dispatchers.IO) {
-      if (perIdentifierCallsSuspend != null) {
-        orchestrateAsyncCalls(
-          identifiers = callsPerIdentifier.identifiersToIterate,
-          functionCalls = perIdentifierCallsSuspend,
-          semaphore = semaphore,
-        )
-      } else {
-        null
-      }
-    }
-
     val result = AggregatorResult(
       standardCallsNoIterationResults = standardDeferred.await(),
-      callsPerIdentifierResults = perIdentifierDeferred.await(),
     )
     log.debug("Finished async calls at: {}. ", LocalDateTime.now())
 
@@ -136,27 +111,7 @@ class AggregatorService(
         )
       }
       is WebClientRequestException -> {
-        val isTimeout = exception.isTimeout()
-        if (isTimeout) {
-          log.error("Timeout for call {}: {}", logPrefix, exception.message)
-          AggregatorCallOutcome.Failure(
-            FailureType.TIMEOUT,
-            ErrorDetail(httpStatus = null, message = exception.message ?: "Request timed out"),
-            identifier = identifier,
-          )
-        } else {
-          log.error("Unknown error for call {}: {}", logPrefix, exception.message, exception)
-          AggregatorCallOutcome.Failure(
-            FailureType.UNKNOWN_ERROR,
-            ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
-            identifier = identifier,
-          )
-        }
-      }
-      // TODO: Once we have completed the switch to WebClient, we should remove this
-      is ResourceAccessException -> {
-        val isTimeout = exception.cause is HttpTimeoutException
-        if (isTimeout) {
+        if (exception.isTimeout()) {
           log.error("Timeout for call {}: {}", logPrefix, exception.message)
           AggregatorCallOutcome.Failure(
             FailureType.TIMEOUT,

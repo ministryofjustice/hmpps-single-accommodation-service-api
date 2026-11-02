@@ -55,13 +55,20 @@ class CaseController(
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     val normalizedTeamCode = teamCode?.trim()?.takeIf { it.isNotEmpty() }
     val personDtos = caseQueryService.getCaseList(normalizedTeamCode)
-    val upstreamFailures = personDtos.upstreamFailures.toMutableList()
+    caseApplicationService.createCases(
+      personDtos.data.map { CrnToPrisonNumber(it.crn, it.nomsNumber) },
+    )
 
-    val filteredCaseList = caseQueryService.applyCaseListFilters(personDtos.data, searchTerm, riskLevel, normalizedTeamCode)
-    val crnsToPrisonNumbers = filteredCaseList.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
-    caseApplicationService.createCases(crnsToPrisonNumbers)
-    val caseDtos = caseQueryService.getCases(filteredCaseList, peopleType)
-    return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))
+    val caseDtos = caseQueryService.getCaseDtos(
+      personDtos.data,
+      searchTerm,
+      riskLevel,
+      normalizedTeamCode,
+      peopleType,
+      userService.getUsername().value,
+    )
+
+    return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = personDtos.upstreamFailures))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
@@ -78,9 +85,15 @@ class CaseController(
     val caseResponse = caseQueryService.getCaseFromDelius(normalisedCrn)
 
     val crnToPrisonNumber = caseResponse.data?.let { CrnToPrisonNumber(it.crn, it.nomsNumber) }
-    // TODO: Change this to upsertCases after MVP
     caseApplicationService.createCases(listOfNotNull(crnToPrisonNumber))
-    val caseDto = caseQueryService.getCases(listOfNotNull(caseResponse.data)).first()
+    val caseDto = caseQueryService.getCaseDtos(
+      listOfNotNull(caseResponse.data),
+      searchTerm = null,
+      riskLevel = null,
+      teamCode = null,
+      peopleType = null,
+      username = null,
+    ).first()
     return ResponseEntity.ok(ApiResponseDto(data = caseDto, upstreamFailures = caseResponse.upstreamFailures))
   }
 

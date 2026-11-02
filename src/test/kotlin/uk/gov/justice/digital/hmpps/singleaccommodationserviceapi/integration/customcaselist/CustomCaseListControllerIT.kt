@@ -8,15 +8,20 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummaryName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildManager
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeam
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserCustomCaseListEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -26,6 +31,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCustomCaseListRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.expectApiResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationAccessControlStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
@@ -185,7 +191,61 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
   fun `returns BadRequest when a crn format is invalid`(crn: String) {
     postCustomCaseList(listOf(crn)).expectStatus().isBadRequest
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("Validation failure: CRN must be in format A123456: $crn")
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: Enter a valid format for all CRNs. For example, D016821. $crn is not a valid CRN format")
+
+    assertThat(userCustomCaseListRepository.findAll()).isEmpty()
+  }
+  companion object {
+    private val allCrns = setOf("A111111", "B222222", "C333333", "D444444")
+
+    @JvmStatic
+    fun customCaseListFilters() = listOf(
+      Arguments.of("no filters returns every case", emptyMap<String, String>(), allCrns),
+
+      Arguments.of("search by CRN ignoring case", mapOf("searchTerm" to "a111111"), setOf("A111111")),
+      Arguments.of("search by partial name ignoring case", mapOf("searchTerm" to "CAROL"), setOf("C333333")),
+      Arguments.of("search by multiple name parts", mapOf("searchTerm" to "alice alpha"), setOf("A111111")),
+      Arguments.of("search by CRN finds a limited case", mapOf("searchTerm" to "D444444"), setOf("D444444")),
+      Arguments.of("search by name does not find a limited case", mapOf("searchTerm" to "Dan Delta"), emptySet<String>()),
+      Arguments.of("search with no match", mapOf("searchTerm" to "nobody"), emptySet<String>()),
+
+      Arguments.of("risk level HIGH", mapOf("riskLevel" to "HIGH"), setOf("A111111")),
+      Arguments.of("risk level VERY_HIGH excludes the limited case", mapOf("riskLevel" to "VERY_HIGH"), setOf("B222222")),
+      Arguments.of("risk level LOW", mapOf("riskLevel" to "LOW"), setOf("C333333")),
+      Arguments.of("risk level with no matches", mapOf("riskLevel" to "MEDIUM"), emptySet<String>()),
+
+      Arguments.of("team code includes the limited case", mapOf("teamCode" to "TEAM_A"), setOf("A111111", "B222222", "D444444")),
+      Arguments.of("team code ignoring case", mapOf("teamCode" to "team_b"), setOf("C333333")),
+      Arguments.of("unknown team code", mapOf("teamCode" to "TEAM_Z"), emptySet<String>()),
+
+      Arguments.of("people type HOUSED", mapOf("peopleType" to "HOUSED"), setOf("A111111")),
+      Arguments.of("people type NFA_RISK", mapOf("peopleType" to "NFA_RISK"), setOf("B222222", "C333333", "D444444")),
+
+      Arguments.of(
+        "all filters combined",
+        mapOf("teamCode" to "TEAM_A", "riskLevel" to "VERY_HIGH", "peopleType" to "NFA_RISK", "searchTerm" to "bob"),
+        setOf("B222222"),
+      ),
+      Arguments.of(
+        "combined filters with no match",
+        mapOf("teamCode" to "TEAM_A", "riskLevel" to "HIGH", "peopleType" to "NFA_RISK"),
+        emptySet<String>(),
+      ),
+    )
+
+    @JvmStatic
+    fun invalidValues() = listOf(
+      listOf("123456", "AB12345"),
+      listOf("A12345", "A1234567", "A12B456"),
+    )
+  }
+
+  @ParameterizedTest
+  @MethodSource("invalidValues")
+  fun `returns BadRequest when multiple crn formats are invalid`(crnList: List<String>) {
+    postCustomCaseList(crnList).expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: Enter a valid format for all CRNs. For example, D016821. ${crnList.joinToString()} are not valid CRN formats")
 
     assertThat(userCustomCaseListRepository.findAll()).isEmpty()
   }
@@ -194,14 +254,14 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
   fun `returns BadRequest for an empty crn list`() {
     postCustomCaseList(emptyList()).expectStatus().isBadRequest
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: Between 1 and 500 CRNs must be provided")
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: Enter 500 CRNs or fewer")
   }
 
   @Test
   fun `returns BadRequest when more than 500 crns are provided`() {
     postCustomCaseList(List(501) { "A123456" }).expectStatus().isBadRequest
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: Between 1 and 500 CRNs must be provided")
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: Enter 500 CRNs or fewer")
 
     assertThat(userCustomCaseListRepository.findAll()).isEmpty()
   }
@@ -222,7 +282,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
 
     postCustomCaseList(listOf("A123456", "B654321", "C111111")).expectStatus().isBadRequest
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("Domain exception: invalidCrns: B654321, C111111")
+      .jsonPath("$.userMessage").isEqualTo("B654321, C111111")
 
     assertThat(caseRepository.findAll()).isEmpty()
     assertThat(userCustomCaseListRepository.findAll()).isEmpty()
@@ -305,16 +365,13 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
         ) { withCrn("A123456") },
       )
       addToCustomCaseList(case.id)
-      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, restrictedCrns = listOf("A123456"))
       ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
         CaseSummaries(listOf(buildCaseSummary(crn = "A123456", currentRestriction = true))),
       )
 
       getCustomCaseList().expectStatus().isOk
         .expectBody()
-        .jsonPath("$.data[0].assignedTo.forename").isEqualTo("Joe")
-        .jsonPath("$.data[0].assignedTo.surname").isEqualTo("Bloggs")
-        .jsonPath("$.data[0].assignedTo.username").isEqualTo("JOE.BLOGGS")
         .jsonPath("$.data[0].limitedAccess").isEqualTo(true)
         .jsonPath("$.upstreamFailures").doesNotExist()
 
@@ -325,7 +382,30 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `returns the cases with an upstream failure and no limited access flag when delius case summaries are unavailable`() {
+    fun `does not return cases whose only crn is archived in the users custom case list`() {
+      val activeCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val archivedCase = caseRepository.save(
+        buildCaseEntity {
+          withCrn("B654321")
+          archived = true
+        },
+      )
+
+      addToCustomCaseList(activeCase.id)
+      addToCustomCaseList(archivedCase.id)
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf("A123456"),
+      )
+
+      getCustomCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+    }
+
+    @Test
+    fun `returns the cases with an upstream failure and a false limited access flag when delius case summaries are unavailable`() {
       addToCustomCaseList(caseRepository.save(buildCaseEntity(firstName = "Joe") { withCrn("A123456") }).id)
       ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
       ProbationIntegrationDeliusStubs.postCaseSummariesServerError()
@@ -336,7 +416,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
         .jsonPath("$.data[0].crn").isEqualTo("A123456")
         .jsonPath("$.data[0].forename").isEqualTo("Joe")
         .jsonPath("$.data[0].userAccess").isEqualTo("FULL")
-        .jsonPath("$.data[0].limitedAccess").doesNotExist()
+        .jsonPath("$.data[0].limitedAccess").isEqualTo(false)
         .jsonPath("$.upstreamFailures.length()").isEqualTo(1)
         .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("postCaseSummaries")
 
@@ -443,11 +523,75 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
       sasWiremock.verify(3, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
     }
 
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.customcaselist.CustomCaseListControllerIT#customCaseListFilters")
+    fun `filters the custom case list`(description: String, queryParams: Map<String, String>, expectedCrns: Set<String>) {
+      seedFilterScenario()
+
+      val actualCrns = webTestClient.get()
+        .uri { builder ->
+          builder.path("/case-list/custom")
+          queryParams.forEach { (name, value) -> builder.queryParam(name, value) }
+          builder.build()
+        }
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectApiResponse<List<CaseDto>>()
+        .data
+        .map { it.crn }
+
+      assertThat(actualCrns).containsExactlyInAnyOrderElementsOf(expectedCrns)
+    }
+
+    // A111111 Alice Alpha  HIGH      SETTLED         TEAM_A  full
+    // B222222 Bob Beta     VERY_HIGH TRANSIENT       TEAM_A  full
+    // C333333 Carol Gamma  LOW       NO_FIXED_ABODE  TEAM_B  full
+    // D444444 Dan Delta    VERY_HIGH (none)          TEAM_A  restricted (limited)
+    private fun seedFilterScenario() {
+      fun addCase(crn: String, firstName: String, lastName: String, roshLevelCode: String, status: CaseAccommodationStatus?) {
+        addToCustomCaseList(
+          caseRepository.save(
+            buildCaseEntity(
+              firstName = firstName,
+              lastName = lastName,
+              roshLevelCode = roshLevelCode,
+              // assigned to someone else, to show the custom list is not filtered by assignee
+              assignedToForename = "Probation",
+              assignedToSurname = "Practitioner",
+              assignedToUsername = "SOMEONE.ELSE",
+              accommodationSummariesDto = status?.let { buildAccommodationSummariesDto(it) },
+            ) { withCrn(crn) },
+          ).id,
+        )
+      }
+      addCase("A111111", "Alice", "Alpha", "RHRH", CaseAccommodationStatus.SETTLED)
+      addCase("B222222", "Bob", "Beta", "RVHR", CaseAccommodationStatus.TRANSIENT)
+      addCase("C333333", "Carol", "Gamma", "RLRH", CaseAccommodationStatus.NO_FIXED_ABODE)
+      addCase("D444444", "Dan", "Delta", "RVHR", null)
+
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf("A111111", "B222222", "C333333"),
+        restrictedCrns = listOf("D444444"),
+      )
+      fun summary(crn: String, teamCode: String) = buildCaseSummary(crn = crn, manager = buildManager(buildTeam(code = teamCode)))
+      ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
+        CaseSummaries(
+          listOf(
+            summary("A111111", "TEAM_A"),
+            summary("B222222", "TEAM_A"),
+            summary("C333333", "TEAM_B"),
+            summary("D444444", "TEAM_A"),
+          ),
+        ),
+      )
+    }
+
     private fun addToCustomCaseList(caseId: UUID) = userCustomCaseListRepository.save(
       buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = caseId),
     )
 
-    private fun getCustomCaseList() = restTestClient.get().uri("/case-list/custom")
+    private fun getCustomCaseList() = webTestClient.get().uri("/case-list/custom")
       .withDeliusUserJwt()
       .exchange()
   }
@@ -480,6 +624,30 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
     }
 
     @Test
+    fun `does not return archived cases in the users custom case list`() {
+      val activeCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val archivedCase = caseRepository.save(
+        buildCaseEntity {
+          withCrn("B654321")
+          archived = true
+        },
+      )
+
+      userCustomCaseListRepository.save(
+        buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = activeCase.id),
+      )
+      userCustomCaseListRepository.save(
+        buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = archivedCase.id),
+      )
+
+      getCustomCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data").isEqualTo(listOf("A123456"))
+
+      sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
+    }
+
+    @Test
     fun `returns the crns that were saved by the POST request`() {
       caseRepository.save(buildCaseEntity { withCrn("A123456") })
       ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("B654321")
@@ -491,14 +659,14 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
         .jsonPath("$.data").isEqualTo(listOf("A123456", "B654321"))
     }
 
-    private fun getCustomCaseListCrns() = restTestClient.get().uri("/case-list/custom/crns")
+    private fun getCustomCaseListCrns() = webTestClient.get().uri("/case-list/custom/crns")
       .withDeliusUserJwt()
       .exchange()
   }
 
-  private fun postCustomCaseList(crns: List<String>) = restTestClient.post().uri("/case-list/custom")
+  private fun postCustomCaseList(crns: List<String>) = webTestClient.post().uri("/case-list/custom")
     .contentType(MediaType.APPLICATION_JSON)
-    .body(crns.joinToString(prefix = "[", postfix = "]") { "\"$it\"" })
+    .bodyValue(crns.joinToString(prefix = "[", postfix = "]") { "\"$it\"" })
     .withDeliusUserJwt()
     .exchange()
 }

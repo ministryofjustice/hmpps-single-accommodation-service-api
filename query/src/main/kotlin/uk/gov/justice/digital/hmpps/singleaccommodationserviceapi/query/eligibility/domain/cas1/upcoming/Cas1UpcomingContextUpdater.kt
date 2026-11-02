@@ -3,13 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.CAS1_UPCOMING_WEEKS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
 @Component
 class Cas1UpcomingContextUpdater : ContextUpdater() {
-
-  override val description = set("Upcoming and start Approved Premise application")
 
   val upcoming = "upcoming"
 
@@ -21,6 +20,8 @@ class Cas1UpcomingContextUpdater : ContextUpdater() {
 
   override fun toServiceResult(context: EvaluationContext) = outcome(
     key = upcoming,
-    actionStartDate = context.data.currentAccommodation!!.endDate!!.minusYears(1),
+    actionStartDate = context.data.currentAccommodation!!.endDate!!.minusWeeks(
+      CAS1_UPCOMING_WEEKS,
+    ),
   )
 }

@@ -22,7 +22,7 @@ class LocalAuthorityAreaQueryServiceTest {
   lateinit var service: LocalAuthorityAreaQueryService
 
   @Test
-  fun `should return all local authority areas ordered by name`() {
+  fun `should return all local authority areas correctly mapped retaining the order`() {
     val entity1 = buildLocalAuthorityAreaEntity(code = "E09000001", name = "City of London")
     val entity2 = buildLocalAuthorityAreaEntity(code = "E09000012", name = "London Borough of Hackney")
     every { localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName() } returns listOf(entity1, entity2)

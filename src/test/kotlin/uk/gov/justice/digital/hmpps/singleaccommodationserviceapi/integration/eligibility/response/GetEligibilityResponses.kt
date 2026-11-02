@@ -436,16 +436,18 @@ fun expectedGetEligibilityResponseTierNotFound(
       }
     },
     "cas2": {
-      "serviceResult": {
-        "serviceStatus": "NOT_STARTED",
-        "action": {"type":"START_CAS2_REFERRAL","startDate":null,"service":"CAS2"},
-        "link": "Start application",
-        "url": null,
-        "linkType": "CAS2_START_APPLICATION",
-        "failureReasons": [],
-        "blockingStatusReason": null
-      },
-      "cas2Application": null
+        "serviceResult": {
+            "serviceStatus": "NOT_ELIGIBLE",
+            "action": null,
+            "link": null,
+            "url": null,
+            "linkType": null,
+            "failureReasons": [
+                "INVALID_TIER"
+            ],
+            "blockingStatusReason": null
+        },
+        "cas2Application": null
     },
     "cas3": {
       "serviceResult": {
@@ -534,8 +536,7 @@ fun expectedGetEligibilityResponseTierNotFound(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
-         {"type":"START_CAS2_REFERRAL","startDate":null,"service":"CAS2"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
       ]
    }
 }

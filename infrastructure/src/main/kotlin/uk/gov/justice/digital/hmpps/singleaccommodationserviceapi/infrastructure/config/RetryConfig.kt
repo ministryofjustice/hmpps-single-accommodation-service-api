@@ -10,8 +10,6 @@ import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.EnableRetry
 import org.springframework.retry.annotation.Retryable
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException
-import org.springframework.web.client.HttpServerErrorException
-import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isRetryableConnectionError
@@ -24,9 +22,6 @@ class RetryConfig {
 
   object DefaultRetryDecider : RetryDecider {
     override fun shouldRetry(throwable: Throwable): Boolean = when (throwable) {
-      // TODO: Once we have completed the switch to WebClient, we should remove the first two entries
-      is HttpServerErrorException,
-      is ResourceAccessException,
       is OAuth2AuthorizationException,
       -> true
 

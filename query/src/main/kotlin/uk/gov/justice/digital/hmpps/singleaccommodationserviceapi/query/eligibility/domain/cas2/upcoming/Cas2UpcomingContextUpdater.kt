@@ -8,8 +8,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2UpcomingContextUpdater : ContextUpdater() {
-  override val description = set("Upcoming and start CAS2 application")
-
   val upcoming = "upcoming"
 
   override val outcomes = mapOf(

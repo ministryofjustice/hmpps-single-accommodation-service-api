@@ -51,6 +51,7 @@ object EligibilityNewToOldTransformer {
     ServiceStatusNew.CAS2_UNKNOWN -> ServiceStatus.UNKNOWN
     ServiceStatusNew.CAS2_UPCOMING -> ServiceStatus.UPCOMING
     ServiceStatusNew.CAS2_WITHDRAWN -> ServiceStatus.WITHDRAWN
+    ServiceStatusNew.CAS2_ARRIVED -> ServiceStatus.ARRIVED
 
     ServiceStatusNew.CAS3_BEDSPACE_OFFERED -> ServiceStatus.BEDSPACE_OFFERED
     ServiceStatusNew.CAS3_BOOKING_CANCELLED -> ServiceStatus.BOOKING_CANCELLED
@@ -63,6 +64,7 @@ object EligibilityNewToOldTransformer {
     ServiceStatusNew.CAS3_REJECTED -> ServiceStatus.REJECTED
     ServiceStatusNew.CAS3_SUBMITTED -> ServiceStatus.SUBMITTED
     ServiceStatusNew.CAS3_ARRIVED -> ServiceStatus.ARRIVED
+    ServiceStatusNew.CAS3_UPCOMING -> ServiceStatus.UPCOMING
     ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION -> ServiceStatus.CANNOT_START_YET
     ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS -> ServiceStatus.CANNOT_START_YET
     ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION -> ServiceStatus.CANNOT_START_YET

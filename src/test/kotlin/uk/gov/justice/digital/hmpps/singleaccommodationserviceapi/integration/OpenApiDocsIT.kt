@@ -16,7 +16,7 @@ class OpenApiDocsIT : IntegrationTestBase() {
 
   @Test
   fun `open api docs are available`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/swagger-ui/index.html?configUrl=/v3/api-docs")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
@@ -25,15 +25,17 @@ class OpenApiDocsIT : IntegrationTestBase() {
 
   @Test
   fun `open api docs redirect to correct page`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/swagger-ui.html")
       .accept(MediaType.APPLICATION_JSON)
-      .exchangeSuccessfully()
+      .exchange()
+      .expectStatus().is3xxRedirection
+      .expectHeader().value("Location") { it.contains("/swagger-ui/index.html?configUrl=/v3/api-docs/swagger-config") }
   }
 
   @Test
   fun `the open api json contains documentation`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/v3/api-docs")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
@@ -44,7 +46,7 @@ class OpenApiDocsIT : IntegrationTestBase() {
 
   @Test
   fun `the open api json contains the version number`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/v3/api-docs")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
@@ -61,7 +63,7 @@ class OpenApiDocsIT : IntegrationTestBase() {
   @ParameterizedTest
   @CsvSource(value = ["bearer-jwt"])
   fun `the security scheme is setup for bearer tokens`(key: String) {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/v3/api-docs")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
@@ -74,7 +76,7 @@ class OpenApiDocsIT : IntegrationTestBase() {
 
   @Test
   fun `the project has a security scheme defined`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/v3/api-docs")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()

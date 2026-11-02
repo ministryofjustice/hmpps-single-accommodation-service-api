@@ -18,6 +18,7 @@ fun buildCaseEntity(
   assignedToForename: String? = null,
   assignedToSurname: String? = null,
   assignedToUsername: String? = null,
+  archived: Boolean = false,
   accommodationSummariesDto: AccommodationSummariesDto? = null,
   customise: (CaseEntity.() -> Unit)? = null,
 ) = CaseEntity(
@@ -31,6 +32,7 @@ fun buildCaseEntity(
   assignedToForename = assignedToForename,
   assignedToSurname = assignedToSurname,
   assignedToUsername = assignedToUsername,
+  archived = archived,
   currentAccommodation = accommodationSummariesDto?.currentAccommodation,
   nextAccommodation = accommodationSummariesDto?.nextAccommodation,
   accommodationStatus = accommodationSummariesDto?.caseAccommodationStatus,

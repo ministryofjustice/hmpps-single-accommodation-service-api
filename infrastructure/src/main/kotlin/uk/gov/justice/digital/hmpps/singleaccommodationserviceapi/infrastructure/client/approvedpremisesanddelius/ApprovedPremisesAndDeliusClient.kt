@@ -17,7 +17,7 @@ interface ApprovedPremisesAndDeliusClient {
 
   @WebClientRetry
   @GetExchange(value = "/staff/{username}")
-  fun getStaffDetail(@PathVariable username: String): StaffDetail?
+  fun getStaffDetail(@PathVariable username: String): StaffDetail
 }
 
 @Service

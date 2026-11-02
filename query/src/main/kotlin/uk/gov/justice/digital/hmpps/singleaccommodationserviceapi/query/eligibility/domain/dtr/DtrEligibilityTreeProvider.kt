@@ -9,22 +9,20 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.referral.DtrActiveContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.referral.DtrRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.ReleaseWithin8WeeksRuleSet
 
 @Component
 class DtrEligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
-  private val upcoming: DtrUpcomingRuleSet,
+  private val releaseWithin8Weeks: ReleaseWithin8WeeksRuleSet,
   private val upcomingContextUpdater: DtrUpcomingContextUpdater,
-  private val suitability: DtrSuitabilityRuleSet,
-  private val completion: DtrCompletionRuleSet,
-  private val completionContextUpdater: DtrCompletionContextUpdater,
-  private val eligibility: DtrEligibilityRuleSet,
+  private val referral: DtrRuleSet,
+  private val activeContextUpdater: DtrActiveContextUpdater,
+  private val noNextAccommodation: NoNextAccommodationRuleSet,
 ) : EligibilityTreeProvider {
 
   private val tree: DecisionNode by lazy { build() }
@@ -33,45 +31,35 @@ class DtrEligibilityTreeProvider(
 
   override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
     data = data,
-    currentResult = ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_ACCEPTED),
+    currentResult = null,
   )
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
     val notRequired = builder.notRequired(ServiceType.DTR)
-    val accepted = builder.outcome("accepted", ServiceResultNew(ServiceStatusNew.DTR_ACCEPTED))
+    val notStarted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_STARTED))
 
-    val completionNode = builder
-      .ruleSet("DtrCompletion", completion, completionContextUpdater)
-      .onPass(accepted)
+    // runs when person is eligible (no next accommodation) and has no active referral
+    val releaseWithin8WeeksNode = builder
+      .ruleSet(releaseWithin8Weeks)
+      .applyContextUpdaterOnFailure(upcomingContextUpdater)
+      .onPass(notStarted)
       .onFail(confirmed)
       .build()
 
-    // runs when the person is eligible (no next accommodation) and has no active referral
-    val upcomingNode = builder
-      .ruleSet("DtrUpcoming", upcoming, upcomingContextUpdater)
-      .continueWith(confirmed)
-      .build()
-
     //  has next accommodation to produce NOT_REQUIRED
-    val eligibilityNode = builder
-      .ruleSet("DtrEligibility", eligibility)
-      .onPass(upcomingNode)
+    val noNextAccommodationNode = builder
+      .ruleSet(noNextAccommodation)
+      .onPass(releaseWithin8WeeksNode)
       .onFail(notRequired)
       .build()
 
     // runs when there is an active referral
-    // we dont care about the 8 week release window - surface the referral
+    // we do not care about the 8 week release window - surface the referral
     return builder
-      .ruleSet(
-        "DtrSuitability",
-        suitability,
-        onFailResult = ServiceResultNew(
-          serviceStatus = ServiceStatusNew.DTR_NOT_STARTED,
-        ),
-      )
-      .onPass(completionNode)
-      .onFail(eligibilityNode)
+      .ruleSet(referral)
+      .onPass(confirmed).applyContextUpdaterOnPass(activeContextUpdater)
+      .onFail(noNextAccommodationNode)
       .build()
   }
 }

@@ -24,6 +24,7 @@ import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import reactor.netty.http.client.PrematureCloseException
 import java.net.ConnectException
 import java.net.SocketException
 import java.net.URI
@@ -80,14 +81,6 @@ class RetryConfigTest {
     @JvmField
     val retryableExceptions = listOf(
       OAuth2AuthorizationException(OAuth2Error("invalid_token_response")),
-      ResourceAccessException("socket timeout"),
-      HttpServerErrorException.create(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        "Internal Server Error",
-        HttpHeaders.EMPTY,
-        ByteArray(0),
-        StandardCharsets.UTF_8,
-      ),
       WebClientRequestException(
         ReadTimeoutException.INSTANCE,
         HttpMethod.GET,
@@ -119,6 +112,12 @@ class RetryConfigTest {
         HttpHeaders.EMPTY,
       ),
       WebClientRequestException(
+        PrematureCloseException.TEST_EXCEPTION,
+        HttpMethod.GET,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
+      WebClientRequestException(
         SocketException("Connection reset by peer"),
         HttpMethod.POST,
         URI.create("https://example.com/api/test"),
@@ -136,6 +135,14 @@ class RetryConfigTest {
 
     @JvmField
     val nonRetryableExceptions = listOf(
+      ResourceAccessException("socket timeout"),
+      HttpServerErrorException.create(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "Internal Server Error",
+        HttpHeaders.EMPTY,
+        ByteArray(0),
+        StandardCharsets.UTF_8,
+      ),
       HttpClientErrorException.create(
         HttpStatus.NOT_FOUND,
         "Not Found",

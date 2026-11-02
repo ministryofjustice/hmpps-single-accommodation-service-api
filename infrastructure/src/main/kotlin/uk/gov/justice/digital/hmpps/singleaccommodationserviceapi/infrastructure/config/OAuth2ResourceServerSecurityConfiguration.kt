@@ -95,7 +95,7 @@ class AuthAwareTokenConverter(
           )
         }
         AuthSource.NOMIS -> {
-          val user = userService.getAndUpdateNomisUserOrCreate(username, jwt)
+          val user = userService.getAndUpdateNomisUserOrCreate(username)
           UserPrincipal(
             sasUserId = user.id,
             username = username,

@@ -19,14 +19,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -42,6 +41,8 @@ class DomainDataTest {
     val dutyToRefer = buildDutyToReferDto()
 
     val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
+    val case = buildCase()
+    val sexualOffenceRegistrations = buildSexualOffenceRegistrations(crn = crn)
 
     val currentAccommodation = buildAccommodationSummaryDto(
       endDate = endDate,
@@ -105,7 +106,9 @@ class DomainDataTest {
       cas3Application = cas3Application,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
+      roshLevel = case.roshLevel,
       currentAccommodationTypeEntity = currentAccommodationTypeEntity,
+      sexualOffenceRegistrations = sexualOffenceRegistrations,
     )
 
     val result = DomainData(
@@ -120,43 +123,10 @@ class DomainDataTest {
       nextAccommodations = nextAccommodations,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
+      sexualOffenceRegistrations = sexualOffenceRegistrations,
+      case = case,
     )
 
-    assertThat(result).isEqualTo(expected)
-  }
-
-  @Test
-  fun `Create DomainData from internal data`() {
-    val dutyToRefer = buildDutyToReferDto()
-    val crn = "ABC1234"
-    val tierScore = "A1"
-    val personDto = buildFullPersonDto(
-      crn = crn,
-      gender = "Male",
-    )
-    val caseEntity = buildCaseEntity(
-      tierScore = tierScore,
-      dateOfBirth = LocalDate.parse("1990-01-01"),
-    ) { withCrn(crn) }
-    val expected = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      dob = caseEntity.dateOfBirth,
-      sex = SexCode.M,
-      cas1Application = null,
-      cas3Application = null,
-      currentAccommodation = null,
-      currentAccommodationTypeEntity = null,
-      nextAccommodations = emptyList(),
-      dutyToRefer = dutyToRefer,
-      commissionedRehabilitativeServices = null,
-    )
-    val result = DomainData(
-      crn = crn,
-      sexCode = SexCode.findByGender(personDto.gender),
-      caseEntity = caseEntity,
-      dutyToRefer = dutyToRefer,
-    )
     assertThat(result).isEqualTo(expected)
   }
 }

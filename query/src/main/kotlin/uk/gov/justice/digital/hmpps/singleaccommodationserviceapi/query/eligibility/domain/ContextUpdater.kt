@@ -5,17 +5,42 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import java.time.LocalDate
 
+/**
+ * Context Updaters are used to update the [EvaluationContext.currentResult] value when rule sets fail
+ *
+ * There are two pre-defined implementations available:
+ * * - [ContextUpdater.constant] - Always set the value of [EvaluationContext.currentResult] to the same given value
+ * * - [ContextUpdater.identity] - Leaves the [EvaluationContext.currentResult] as-is
+ */
 abstract class ContextUpdater {
   open val propagatesFailureReasons: Boolean = false
-  open val description: String get() = this::class.simpleName ?: "Update result"
   open val outcomes: Map<String, ServiceResultSpec> get() = emptyMap()
+  open val terminalNode: Boolean get() = false
+  open val description: String
+    get() = if (terminalNode) {
+      val statuses = outcomes.values.map { it.serviceStatus.uiStatusName }.distinct().sorted()
+      if (statuses.size == 1) {
+        statuses.first()
+      } else {
+        statuses.joinToString(separator = ",\n ")
+      }
+    } else {
+      val statuses = outcomes.values.map { it.serviceStatus.uiStatusName }.distinct().sorted()
+      if (statuses.size == 1) {
+        "Set current status to ${statuses.first()}"
+      } else {
+        "Set current status to one of:\n" + statuses.joinToString(separator = ",\n ")
+      }
+    }
 
   fun update(context: EvaluationContext, failureReasons: List<FailureReason> = emptyList()): EvaluationContext {
     // expose the failing RuleSet failure reasons on the context so updaters can branch on which rules failed
     val contextWithFailureReasons = context.copy(
-      currentResult = context.currentResult.copy(failureReasons = failureReasons),
+      currentResult = context.currentResult?.copy(failureReasons = failureReasons),
     )
+
     val updatedServiceResult = toServiceResult(contextWithFailureReasons)
+
     val reasonsToApply = if (propagatesFailureReasons) failureReasons else emptyList()
 
     return context.copy(
@@ -26,12 +51,20 @@ abstract class ContextUpdater {
   protected abstract fun toServiceResult(context: EvaluationContext): ServiceResultNew
 
   protected fun outcome(key: String, actionStartDate: LocalDate? = null): ServiceResultNew = outcomes.getValue(key).toResult(actionStartDate)
-  protected fun set(text: String): String = "Set $text"
 
   companion object {
-    /** Returns a ContextUpdater that replaces the current ServiceResult with [result], ignoring the context. */
+
+    val identity = object : ContextUpdater() {
+      override val propagatesFailureReasons = true
+      override val description = "identity"
+      override fun toServiceResult(context: EvaluationContext): ServiceResultNew = requireNotNull(context.currentResult) {
+        "identity ContextUpdater requires currentResult to already be set, but it was null"
+      }.copy(failureReasons = emptyList())
+    }
+
+    /** Always set the value of [EvaluationContext.currentResult] to the same given value */
     fun constant(result: ServiceResultNew): ContextUpdater = object : ContextUpdater() {
-      override val description = set(result.serviceStatus.name)
+      override val description = "Set current status to ${result.serviceStatus.uiStatusName}"
 
       override val outcomes = mapOf(
         "constant" to ServiceResultSpec(
@@ -44,11 +77,7 @@ abstract class ContextUpdater {
       override fun toServiceResult(context: EvaluationContext): ServiceResultNew = result
     }
 
-    /** Returns a ContextUpdater that leaves the current ServiceResult unchanged and propagates failure reasons. */
-    fun identity(): ContextUpdater = object : ContextUpdater() {
-      override val propagatesFailureReasons = true
-      override val description = "identity"
-      override fun toServiceResult(context: EvaluationContext): ServiceResultNew = context.currentResult.copy(failureReasons = emptyList())
-    }
+    /** Leaves the [EvaluationContext.currentResult] unchanged and propagates failure reasons. */
+    fun identity() = identity
   }
 }

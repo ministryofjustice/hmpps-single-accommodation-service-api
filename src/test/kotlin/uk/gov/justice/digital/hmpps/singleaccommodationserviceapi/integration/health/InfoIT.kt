@@ -10,7 +10,7 @@ class InfoIT : IntegrationTestBase() {
 
   @Test
   fun `Info page is accessible`() {
-    restTestClient.get()
+    webTestClient.get()
       .uri("/info")
       .exchange()
       .expectStatus()
@@ -21,7 +21,7 @@ class InfoIT : IntegrationTestBase() {
 
   @Test
   fun `Info page reports version`() {
-    restTestClient.get().uri("/info")
+    webTestClient.get().uri("/info")
       .exchange()
       .expectStatus().isOk
       .expectBody().jsonPath("build.version").value<String> {

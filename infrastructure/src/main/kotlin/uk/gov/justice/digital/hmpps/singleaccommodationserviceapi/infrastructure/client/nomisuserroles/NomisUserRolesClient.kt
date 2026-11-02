@@ -1,20 +1,25 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles
 
-import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_NOMIS_USER_DETAIL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.WebClientRetry
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 
 interface NomisUserRolesClient {
+
   @WebClientRetry
-  @GetExchange(value = "/me")
-  fun getUserDetailsForMe(@RequestHeader(value = "Authorization", required = false) authorization: String?): NomisUserDetail?
+  @GetExchange(value = "/users/{username}")
+  fun getUserDetails(@PathVariable username: String): NomisUserDetail
 }
 
 @Service
 class NomisUserRolesService(
   private val nomisUserRolesClient: NomisUserRolesClient,
 ) {
-  fun getUserDetailsForMe(jwt: Jwt) = nomisUserRolesClient.getUserDetailsForMe("Bearer ${jwt.tokenValue}")
+
+  @Cacheable(GET_NOMIS_USER_DETAIL, sync = true)
+  fun getNomisUserDetail(username: Username): NomisUserDetail = nomisUserRolesClient.getUserDetails(username.value)
 }

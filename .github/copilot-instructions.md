@@ -17,6 +17,7 @@ Use this file as the default operating guide. Only search the repo when these in
 
 ## Tooling safety
 - For focused integration tests in this repo, use the root task explicitly: `./gradlew :integrationTest --tests '...' --no-daemon`.
+- Never use heredocs directly in `run_in_terminal`. Use a temporary file instead.
 
 ## Avoid duplication
 - Avoid introducing duplicated code when making changes; prefer existing helpers, fixtures, builders, and shared utilities where appropriate.
@@ -65,9 +66,11 @@ Use this file as the default operating guide. Only search the repo when these in
 
 ## Testing
 - Unit tests are plain JVM tests: use JUnit 5, AssertJ, and MockK with factories/builders; avoid loading Spring unless a test explicitly needs it.
+- Do not create unit tests for controllers; prefer focused integration tests for controller behavior, auth/role checks, and response payloads. Unit tests are only appropriate for lower-level service/query logic, not Spring MVC controllers.
 - Integration tests use the real Spring context and `IntegrationTestBase`, plus Postgres/Redis/LocalStack from `docker compose`.
 - Keep tests deterministic and package-aligned with the code under test; prefer focused tests while iterating and the full suite before handoff for broad changes.
 - For HTTP endpoints, cover the expected auth, happy path, validation/error path, and side effects/persistence changes.
+- This repository uses consumer-side Pact tests for upstream API contracts. When changing an upstream client, its request/response models, or serialization, review and update any affected Pact tests (for example, `infrastructure/src/test/.../*PactTest.kt`) and run `./gradlew pactTest`.
 
 ## Subject Access Requests
 - SAR functionality is part of this repo: the service aggregates data into a single SAR response and HTML report.
@@ -76,8 +79,10 @@ Use this file as the default operating guide. Only search the repo when these in
 - The SAR test fixture guide is `sar-test-fixtures-guide.md`; follow it when changing SAR data retrieval or the template.
 - To regenerate fixtures, run the SAR integration tests with `SAR_GENERATE_ACTUAL=true` and use `:integrationTest` (not the unqualified task name) because integration tasks exist in the root and subprojects.
 - Changes to SAR-relevant entities, schema, or Flyway migrations may require updating SAR fixtures and schema-related expectations alongside the code change.
+- When JPA entities change, follow `sar-test-fixtures-guide.md` to update the entity-schema fixture if needed, then run `SarIntegrationTest` with `./gradlew :integrationTest --tests 'uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar.SarIntegrationTest' --no-daemon`; entity-schema mismatches can cause this test to fail.
 
-```text
+
+```
 hmpps-single-accommodation-service-api/
 ├── src/                 # Main Spring Boot app: bootstrap, config, health, REST controllers (api/controller)
 ├── common/              # Shared DTOs, exceptions, small helpers (+ testFixtures: DTO factories)
@@ -213,3 +218,10 @@ docker compose up -d
 ## Root files worth knowing
 `build.gradle.kts`, `settings.gradle.kts`, `gradle/libs.versions.toml`, `docker-compose.yml`, `Dockerfile`, `detekt/detekt.yml`, `.editorconfig`, `.pre-commit-config.yaml`, `README.md`, `sonar-project.properties`, `.github/workflows/*`.
 
+## CSV fixture editing rules
+- Treat CSV fixture files as plain data files, not as JSON or Kotlin strings.
+- Preserve the exact column order and row count when editing CSV fixtures.
+- For multi-value `expectedFailureReasons`, keep the whole list in a single CSV field and wrap it in double quotes, for example: `"IN_COMMUNITY, INVALID_TIER"`.
+- Do not introduce escaped triple quotes such as `"""IN_COMMUNITY, INVALID_TIER"""`; that is a CSV-escaping artifact, not the intended file value.
+- Only update rows that match the explicit condition in the request; do not modify unrelated rows.
+- After editing, read the affected rows back to confirm the actual file content matches the requested CSV representation.

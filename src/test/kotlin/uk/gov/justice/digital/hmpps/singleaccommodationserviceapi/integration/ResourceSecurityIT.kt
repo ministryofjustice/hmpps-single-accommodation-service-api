@@ -29,7 +29,7 @@ class ResourceSecurityIT : IntegrationTestBase() {
 
   @Test
   fun `@PreAuthorise smoke test()`() {
-    restTestClient
+    webTestClient
       .get()
       .uri("/case-list")
       .withClientCredentialsJwt(roles = emptyList())
@@ -116,17 +116,25 @@ class ResourceSecurityIT : IntegrationTestBase() {
 
 private val defaultRoles = setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER")
 
-private val userControllerMap: Map<String, Set<String>> = mapOf("GET /user/teams" to defaultRoles)
+private val userControllerMap: Map<String, Set<String>> =
+  mapOf(
+    "GET /user/teams" to defaultRoles,
+    "GET /users/me" to defaultRoles,
+  )
 
 private val dutyToReferControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /cases/{crn}/dtr/{id}" to defaultRoles,
     "GET /cases/{crn}/dtr/{id}/timeline" to defaultRoles,
-    "GET /duty-to-refers/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
     "GET /cases/{crn}/dtr" to defaultRoles,
     "PUT /cases/{crn}/dtr/{id}" to defaultRoles,
     "POST /cases/{crn}/dtr" to defaultRoles,
     "POST /cases/{crn}/dtr/{id}/notes" to defaultRoles,
+  )
+
+private val eventDetailsControllerMap: Map<String, Set<String>> =
+  mapOf(
+    "GET /event-details/duty-to-refers/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__PROBATION_INTEGRATION"),
   )
 
 private val eligibilityControllerMap: Map<String, Set<String>> =
@@ -203,6 +211,7 @@ private val controllerMap: Map<String, Map<String, Set<String>>> =
   mapOf(
     "UserController" to userControllerMap,
     "DutyToReferController" to dutyToReferControllerMap,
+    "EventDetailsController" to eventDetailsControllerMap,
     "EligibilityController" to eligibilityControllerMap,
     "ProposedAccommodationController" to proposedAccommodationControllerMap,
     "AccommodationController" to accommodationControllerMap,

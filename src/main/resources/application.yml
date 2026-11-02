@@ -103,6 +103,10 @@ case-refresh:
     zone: UTC
 
 inbox-events:
+  cleanup:
+    cron: "0 0 6 * * *"
+    zone: Europe/London
+    retention-days: 90
   failed-monitor:
     cron: "0 0 12 * * *"
     zone: UTC
@@ -125,6 +129,9 @@ shedlock:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S
   inbox-event-failure-monitor:
+    lock-at-most-for: PT30M
+    lock-at-least-for: PT5M
+  inbox-event-cleanup:
     lock-at-most-for: PT30M
     lock-at-least-for: PT5M
   outbox-event-failure-monitor:

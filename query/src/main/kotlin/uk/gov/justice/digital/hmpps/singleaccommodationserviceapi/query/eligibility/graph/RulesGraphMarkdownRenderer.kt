@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 
 /**
  * # Eligibility rules graph
@@ -53,7 +54,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
  *
  * ### NamedContextUpdater
  * Set Upcoming
- * Used by: RulesetName2 (Diagram Name)
+ * Used by: RulesetName2 (Diagram Name) on [Pass|Fail]
  *
  * | Outcome | Status | Action | Link | Link type |
  * | --- | --- | --- | --- | --- |
@@ -76,6 +77,7 @@ object RulesGraphMarkdownRenderer {
       appendLine("## ${graph.treeName}")
       appendLine()
       appendLine("```mermaid")
+      appendLine("%%{init: {\"flowchart\": {\"wrappingWidth\": 800}}}%%")
       appendLine("flowchart TD")
       /*
        RulesetName1["RulesetName1"]
@@ -94,6 +96,16 @@ object RulesGraphMarkdownRenderer {
        */
       graph.edges.forEach { edge ->
         appendLine("  ${edge.from} -->|${edge.label}| ${edge.to}")
+      }
+      edgeStyles.forEach { (edgeLabel, colour) ->
+        val indexes = graph.edges.withIndex().filter { it.value.label == edgeLabel }.map { it.index }
+        if (indexes.isNotEmpty()) {
+          appendLine("  linkStyle ${indexes.joinToString(",")} stroke:$colour,stroke-width:2px")
+        }
+      }
+      nodeStyles.forEach { (styleClass, style) -> appendLine("  classDef $styleClass $style") }
+      graph.nodes.groupBy { nodeStyleClass(it) }.forEach { (styleClass, nodes) ->
+        appendLine("  class ${nodes.joinToString(",") { it.id }} $styleClass")
       }
       appendLine("```")
       // mermaid drawing closed
@@ -122,7 +134,13 @@ object RulesGraphMarkdownRenderer {
       appendLine()
       appendLine(row.description)
       appendLine()
-      appendLine("Used by: ${row.usedBy}")
+      val onDescription = if (row.kind == ContextUpdaterKind.ON_PASS) {
+        "on pass"
+      } else {
+        "on fail"
+      }
+
+      appendLine("Used by: ${row.usedBy} $onDescription")
       appendLine()
       if (row.outcomes.isNotEmpty()) {
         append(renderOutcomesTable(row.outcomes))
@@ -132,27 +150,63 @@ object RulesGraphMarkdownRenderer {
   }
 
   private fun label(node: GraphNode): String = when (node.kind) {
-    GraphNodeKind.RULE_SET -> ruleSetLabel(node)
-    GraphNodeKind.OUTCOME -> node.title
+    GraphNodeKind.RULE_SET -> nodeLabel(node)
+    GraphNodeKind.OUTCOME, GraphNodeKind.CONTEXT_UPDATER -> boldUiStatuses(nodeLabel(node))
   }
+
+  /** Plain-text node label, shared with [RulesGraphHtmlRenderer] so both graphs show the same content. */
+  internal fun nodeLabel(node: GraphNode): String = when (node.kind) {
+    GraphNodeKind.RULE_SET -> ruleSetLabel(node)
+    GraphNodeKind.OUTCOME, GraphNodeKind.CONTEXT_UPDATER -> node.title
+  }
+
+  private val edgeStyles = mapOf("PASS" to "green", "FAIL" to "red")
+
+  private val nodeStyles = linkedMapOf(
+    "ruleSetNode" to "fill:#FFF8E1,stroke:#C9B37E,color:#333",
+    "outcomeNode" to "fill:#DCEEFB,stroke:#7FA7C9,color:#333",
+    "updaterNode" to "fill:#EDE7F6,stroke:#A99BC9,color:#333",
+  )
+
+  private fun nodeStyleClass(node: GraphNode): String = when (node.kind) {
+    GraphNodeKind.RULE_SET -> "ruleSetNode"
+    GraphNodeKind.OUTCOME -> "outcomeNode"
+    GraphNodeKind.CONTEXT_UPDATER -> "updaterNode"
+  }
+
+  // Longest names first so e.g. "Placement Request Not Started" wins over "Not Started"
+  private val uiStatusRegex = ServiceStatusNew.entries
+    .map { it.uiStatusName }
+    .distinct()
+    .sortedByDescending { it.length }
+    .joinToString("|", prefix = "\\b(", postfix = ")\\b") { Regex.escape(it) }
+    .toRegex()
+
+  private fun boldUiStatuses(text: String): String = uiStatusRegex.replace(text) { "<b>${it.value}</b>" }
 
   private fun mermaidShape(node: GraphNode): String {
-    val text = escape(label(node))
-    val diamond = node.kind == GraphNodeKind.RULE_SET && node.contextUpdater != null
-    return if (diamond) "{\"$text\"}" else "[\"$text\"]"
+    val text = escape(
+      if (node.kind == GraphNodeKind.RULE_SET) "<div style='text-align:left'>${label(node)}</div>" else label(node),
+    )
+    val roundBox = node.kind == GraphNodeKind.RULE_SET
+    return if (roundBox) "(\"$text\")" else "[\"$text\"]"
   }
 
-  private fun ruleSetLabel(node: GraphNode): String {
-    val count = node.rules.size
-    return if (count == 0) "${node.title} (always PASS)" else "${node.title} ($count)"
-  }
+  private fun ruleSetLabel(node: GraphNode): String = node.ruleSet?.getRules().orEmpty()
+    .joinToString(separator = "\n") { it.description }
+    .ifEmpty { "always PASS" }
 
   private fun renderNode(node: GraphNode): String = buildString {
+    if (node.kind == GraphNodeKind.CONTEXT_UPDATER) {
+      return ""
+    }
+
     val kind = when (node.kind) {
       GraphNodeKind.RULE_SET -> "RuleSet"
       GraphNodeKind.OUTCOME -> "Outcome"
     }
-    append("**${node.title}** ($kind)")
+    val ruleSetClassName = node.ruleSet?.javaClass?.simpleName?.let { " `$it`" } ?: ""
+    append("**${node.title.replace(Regex("\\s*\\n\\s*"), " ")}** ($kind)$ruleSetClassName")
     if (node.kind == GraphNodeKind.RULE_SET) {
       appendLine()
       if (node.rules.isEmpty()) {
@@ -162,18 +216,30 @@ object RulesGraphMarkdownRenderer {
           appendLine("- ${codeLink(rule.className, rule.sourcePath)}: ${rule.description}")
         }
       }
-      val updater = node.contextUpdater
-      if (updater != null) {
-        appendLine("- FAIL: ${failLabel(updater)}")
-        if (updater.outcomes.isNotEmpty()) {
-          appendLine()
-          append(renderOutcomesTable(updater.outcomes))
-        }
+      append(renderContextUpdaterForNode(node.onPassContextUpdater))
+      append(renderContextUpdaterForNode(node.onFailContextUpdater))
+    }
+  }
+
+  private fun renderContextUpdaterForNode(
+    updater: ContextUpdaterInfo?,
+  ): String = buildString {
+    if (updater != null) {
+      val kindLabel = if (updater.kind == ContextUpdaterKind.ON_PASS) {
+        "PASS"
+      } else {
+        "FAIL"
+      }
+
+      appendLine("- $kindLabel: ${contextUpdaterLabel(updater)}")
+      if (updater.outcomes.isNotEmpty()) {
+        appendLine()
+        append(renderOutcomesTable(updater.outcomes))
       }
     }
   }
 
-  private fun failLabel(updater: ContextUpdaterInfo): String = if (updater.name == "constant") {
+  private fun contextUpdaterLabel(updater: ContextUpdaterInfo): String = if (updater.name == "constant") {
     updater.description
   } else {
     "${codeLink(updater.name, updater.sourcePath)} - ${updater.description}"
@@ -218,14 +284,16 @@ object RulesGraphMarkdownRenderer {
   private fun escapeTable(value: String): String = value.replace("|", "\\|")
 
   private fun updaterCatalogueRows(graphs: List<RulesGraph>): List<UpdaterCatalogueRow> {
-    data class Key(val name: String, val description: String, val outcomes: Map<String, ServiceResultSpec>)
+    data class Key(val name: String, val description: String, val outcomes: Map<String, ServiceResultSpec>, val kind: ContextUpdaterKind)
 
     val byUpdater = linkedMapOf<Key, MutableList<UpdaterUse>>()
     graphs.sortedBy { it.treeName }.forEach { graph ->
       graph.nodes.forEach { node ->
-        val updater = node.contextUpdater ?: return@forEach
-        byUpdater.getOrPut(Key(updater.name, updater.description, updater.outcomes)) { mutableListOf() }
-          .add(UpdaterUse(graph.treeName, node.title))
+        val contextUpdaters = listOfNotNull(node.onPassContextUpdater, node.onFailContextUpdater)
+        contextUpdaters.forEach { updater ->
+          byUpdater.getOrPut(Key(updater.name, updater.description, updater.outcomes, updater.kind)) { mutableListOf() }
+            .add(UpdaterUse(graph.treeName, node.title))
+        }
       }
     }
     return byUpdater.map { (key, uses) ->
@@ -234,7 +302,8 @@ object RulesGraphMarkdownRenderer {
         description = key.description,
         usedBy = uses.map { "${it.ruleSet} (${it.tree})" }.distinct().sorted().joinToString(", "),
         outcomes = key.outcomes,
-        anchor = updaterAnchor(ContextUpdaterInfo(key.name, key.description, key.outcomes)),
+        anchor = updaterAnchor(ContextUpdaterInfo(key.name, key.description, key.outcomes, key.kind)),
+        kind = key.kind,
       )
     }.sortedWith(compareBy({ it.name }, { it.usedBy }))
   }
@@ -279,6 +348,7 @@ object RulesGraphMarkdownRenderer {
     val usedBy: String,
     val outcomes: Map<String, ServiceResultSpec>,
     val anchor: String,
+    val kind: ContextUpdaterKind,
   )
 }
 

@@ -7,6 +7,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.RoshLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import java.time.LocalDate
@@ -16,6 +18,7 @@ fun buildDomainData(
   tierScore: String? = null,
   sex: SexCode? = null,
   dob: LocalDate? = null,
+  roshLevel: RoshLevel? = null,
   currentAccommodation: AccommodationSummaryDto? = null,
   currentAccommodationTypeEntity: AccommodationTypeEntity? = null,
   nextAccommodations: List<AccommodationSummaryDto> = emptyList(),
@@ -24,11 +27,13 @@ fun buildDomainData(
   cas3Application: Cas3Application? = null,
   dutyToRefer: DutyToReferDto? = null,
   commissionedRehabilitativeServices: CommissionedRehabilitativeServices? = null,
+  sexualOffenceRegistrations: SexualOffenceRegistrations? = null,
 ) = DomainData(
   crn = crn,
   tierScore = tierScore,
   sex = sex,
   dob = dob,
+  roshLevel = roshLevel,
   currentAccommodation = currentAccommodation,
   currentAccommodationTypeEntity = currentAccommodationTypeEntity,
   nextAccommodations = nextAccommodations,
@@ -37,4 +42,5 @@ fun buildDomainData(
   cas3Application = cas3Application,
   dutyToRefer = dutyToRefer,
   commissionedRehabilitativeServices = commissionedRehabilitativeServices,
+  sexualOffenceRegistrations = sexualOffenceRegistrations,
 )

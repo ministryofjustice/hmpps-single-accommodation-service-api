@@ -125,6 +125,7 @@ class EligibilityNewToOldTransformerTest {
       Arguments.of(ServiceStatusNew.CAS3_REJECTED, ServiceStatus.REJECTED),
       Arguments.of(ServiceStatusNew.CAS3_SUBMITTED, ServiceStatus.SUBMITTED),
       Arguments.of(ServiceStatusNew.CAS3_ARRIVED, ServiceStatus.ARRIVED),
+      Arguments.of(ServiceStatusNew.CAS3_UPCOMING, ServiceStatus.UPCOMING),
 
       Arguments.of(ServiceStatusNew.CRS_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
       Arguments.of(ServiceStatusNew.CRS_NOT_REQUIRED, ServiceStatus.NOT_REQUIRED),

@@ -17,7 +17,7 @@ class Cas1UpcomingContextUpdaterTest {
   @Nested
   inner class UpdateTests {
     @Test
-    fun `update returns context UPCOMING with due date one year before end date`() {
+    fun `update returns context UPCOMING with due date 28 weeks before end date`() {
       val endDate = LocalDate.of(2025, 1, 1).plusYears(2)
       val data = buildDomainData(
         currentAccommodation = buildAccommodationSummaryDto(endDate = endDate),
@@ -31,7 +31,7 @@ class Cas1UpcomingContextUpdaterTest {
         data = data,
         currentResult = buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS1_UPCOMING,
-          actionStartDate = LocalDate.parse("2026-01-01"),
+          actionStartDate = endDate.minusWeeks(28),
         ),
       )
 

@@ -54,7 +54,7 @@ class DecisionNodeTest {
             serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
           ),
         )
-      val outcomeNode = OutcomeNode { context -> context.currentResult }
+      val outcomeNode = OutcomeNode { context -> context.currentResult!! }
 
       val result = outcomeNode.eval(context)
 
@@ -86,9 +86,9 @@ class DecisionNodeTest {
     fun `RuleSetNode on PASS executes ruleset and evaluates onPass node with unchanged context`() {
       val ruleSet: RuleSet = mockk()
       val engine: RulesEngine = mockk()
-      val contextUpdater: ContextUpdater = mockk()
       val onPassNode: DecisionNode = mockk()
       val onFailNode: DecisionNode = mockk()
+      val onFailContextUpdater: ContextUpdater = mockk()
 
       val initialContext =
         EvaluationContext(
@@ -105,8 +105,9 @@ class DecisionNodeTest {
           ruleSet = ruleSet,
           engine = engine,
           onPass = onPassNode,
+          onPassContextUpdater = null,
           onFail = onFailNode,
-          contextUpdater = contextUpdater,
+          onFailContextUpdater = onFailContextUpdater,
           ruleSetName = "Test RuleSet",
         )
 
@@ -115,8 +116,36 @@ class DecisionNodeTest {
       assertThat(result).isEqualTo(expectedResult)
       verify { engine.execute(ruleSet, initialContext.data) }
       verify { onPassNode.eval(initialContext) }
-      verify(exactly = 0) { contextUpdater.update(any(), any()) }
+      verify(exactly = 0) { onFailContextUpdater.update(any(), any()) }
       verify(exactly = 0) { onFailNode.eval(any()) }
+    }
+
+    @Test
+    fun `RuleSetNode on FAIL without context updater passes context through with failure reasons`() {
+      val ruleSet: RuleSet = mockk()
+      val engine: RulesEngine = mockk()
+      val onFailNode: DecisionNode = mockk()
+      val failureReasons = listOf(FailureReason.SUITABLE_CAS1_APPLICATION)
+      val initialContext = EvaluationContext(data = buildDomainData(), currentResult = null)
+      val expectedResult = buildServiceResultNew(ServiceStatusNew.PA_NOT_ELIGIBLE)
+      val contextSlot = slot<EvaluationContext>()
+
+      every { engine.execute(ruleSet, initialContext.data) } returns RuleSetResult(RuleSetStatus.FAIL, failureReasons)
+      every { onFailNode.eval(capture(contextSlot)) } returns expectedResult
+
+      val result = RuleSetNode(
+        ruleSetName = "Test RuleSet",
+        ruleSet = ruleSet,
+        engine = engine,
+        onPass = mockk(),
+        onPassContextUpdater = null,
+        onFail = onFailNode,
+        onFailContextUpdater = null,
+      ).eval(initialContext)
+
+      assertThat(result).isEqualTo(expectedResult)
+      assertThat(contextSlot.captured.currentResult).isNull()
+      assertThat(contextSlot.captured.failureReasons).isEqualTo(failureReasons)
     }
 
     @Test
@@ -148,8 +177,9 @@ class DecisionNodeTest {
           ruleSet = ruleSet,
           engine = engine,
           onPass = onPassNode,
+          onPassContextUpdater = null,
           onFail = onFailNode,
-          contextUpdater = contextUpdater,
+          onFailContextUpdater = contextUpdater,
           ruleSetName = "Test RuleSet",
         )
 
@@ -185,8 +215,9 @@ class DecisionNodeTest {
           ruleSet = ruleSet,
           engine = engine,
           onPass = onPassNode,
+          onPassContextUpdater = null,
           onFail = onFailNode,
-          contextUpdater = contextUpdater,
+          onFailContextUpdater = contextUpdater,
           ruleSetName = "Test RuleSet",
         )
 
@@ -222,8 +253,9 @@ class DecisionNodeTest {
           ruleSet = ruleSet,
           engine = engine,
           onPass = onPassNode,
+          onPassContextUpdater = null,
           onFail = onFailNode,
-          contextUpdater = contextUpdater,
+          onFailContextUpdater = contextUpdater,
           ruleSetName = "Test RuleSet",
         )
 
@@ -259,16 +291,17 @@ class DecisionNodeTest {
         ruleSet = ruleSet,
         engine = engine,
         onPass = onPassNode,
+        onPassContextUpdater = null,
         onFail = onFailNode,
-        contextUpdater = contextUpdater,
+        onFailContextUpdater = contextUpdater,
         ruleSetName = "Test RuleSet",
       )
 
       ruleSetNode.eval(initialContext)
 
-      assertThat(capturedContext.captured.currentResult.serviceStatus)
+      assertThat(capturedContext.captured.currentResult!!.serviceStatus)
         .isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
-      assertThat(capturedContext.captured.currentResult.failureReasons)
+      assertThat(capturedContext.captured.currentResult!!.failureReasons)
         .containsExactly(FailureReason.IS_SETTLED, FailureReason.MALE_NOT_HIGH_RISK_TIER)
     }
 
@@ -300,14 +333,15 @@ class DecisionNodeTest {
         ruleSet = ruleSet,
         engine = engine,
         onPass = onPassNode,
+        onPassContextUpdater = null,
         onFail = onFailNode,
-        contextUpdater = contextUpdater,
+        onFailContextUpdater = contextUpdater,
         ruleSetName = "Test RuleSet",
       )
 
       ruleSetNode.eval(initialContext)
 
-      assertThat(capturedContext.captured.currentResult.failureReasons)
+      assertThat(capturedContext.captured.currentResult!!.failureReasons)
         .containsExactly(FailureReason.IS_SETTLED)
     }
   }

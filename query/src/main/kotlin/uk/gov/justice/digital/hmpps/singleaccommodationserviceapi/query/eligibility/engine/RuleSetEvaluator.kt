@@ -2,37 +2,26 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 interface RuleSetEvaluator {
-  fun evaluate(ruleset: RuleSet, data: DomainData): List<RuleResult>
+  fun evaluate(
+    ruleset: RuleSet,
+    data: DomainData,
+  ): List<PrioritisedRuleResult>
 }
 
 class DefaultRuleSetEvaluator : RuleSetEvaluator {
 
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  override fun evaluate(ruleset: RuleSet, data: DomainData): List<RuleResult> = ruleset.getRules()
+  override fun evaluate(ruleset: RuleSet, data: DomainData): List<PrioritisedRuleResult> = ruleset.getRules()
     .map { rule ->
       log.debug("Evaluating rule: {}", rule.description)
 
       rule.evaluate(data).also {
-        log.debug("Rule result: {}", it.ruleStatus)
+        log.debug("Rule result: {}", it.ruleResult.ruleStatus)
       }
     }
-}
-
-class CircuitBreakRuleSetEvaluator : RuleSetEvaluator {
-  override fun evaluate(ruleset: RuleSet, data: DomainData): List<RuleResult> {
-    ruleset.getRules()
-      .map { rule ->
-        val result = rule.evaluate(data)
-        if (result.ruleStatus == RuleStatus.FAIL) {
-          return listOf(result)
-        }
-      }
-    return listOf()
-  }
 }

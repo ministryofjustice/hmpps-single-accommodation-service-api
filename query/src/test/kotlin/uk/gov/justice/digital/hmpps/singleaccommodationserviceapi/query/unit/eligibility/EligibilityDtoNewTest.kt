@@ -16,6 +16,7 @@ class EligibilityDtoNewTest {
     names = [
       "CAS1_UPCOMING",
       "CAS2_UPCOMING",
+      "CAS3_UPCOMING",
       "DTR_UPCOMING",
       "CRS_UPCOMING_REFERRAL",
       "CRS_UPCOMING_ACCOMMODATION_REFERRAL",
@@ -39,6 +40,7 @@ class EligibilityDtoNewTest {
     names = [
       "CAS1_UPCOMING",
       "CAS2_UPCOMING",
+      "CAS3_UPCOMING",
       "DTR_UPCOMING",
       "CRS_UPCOMING_REFERRAL",
       "CRS_UPCOMING_ACCOMMODATION_REFERRAL",
@@ -63,6 +65,7 @@ class EligibilityDtoNewTest {
     names = [
       "CAS1_UPCOMING",
       "CAS2_UPCOMING",
+      "CAS3_UPCOMING",
       "DTR_UPCOMING",
       "CRS_UPCOMING_REFERRAL",
       "CRS_UPCOMING_ACCOMMODATION_REFERRAL",
@@ -87,6 +90,7 @@ class EligibilityDtoNewTest {
     names = [
       "CAS1_UPCOMING",
       "CAS2_UPCOMING",
+      "CAS3_UPCOMING",
       "DTR_UPCOMING",
       "CRS_UPCOMING_REFERRAL",
       "CRS_UPCOMING_ACCOMMODATION_REFERRAL",

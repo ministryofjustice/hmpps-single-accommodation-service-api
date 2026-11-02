@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
@@ -14,12 +15,15 @@ class StubRule(override val description: String) : Rule {
   override fun evaluate(data: DomainData) = RuleResult(description, RuleStatus.PASS)
 }
 
-class StubRuleSet(private val rules: List<Rule>) : RuleSet {
-  override fun getRules(): List<Rule> = rules
+class StubRuleSet(
+  private val rules: List<PrioritisedRule>,
+  override val name: String = "ExampleEligibility",
+) : RuleSet {
+  override fun getRules(): List<PrioritisedRule> = rules
 }
 
 class StubContextUpdater : ContextUpdater() {
-  override fun toServiceResult(context: EvaluationContext) = context.currentResult.copy(
+  override fun toServiceResult(context: EvaluationContext) = context.currentResult!!.copy(
     serviceStatus = ServiceStatusNew.CAS1_UPCOMING,
   )
 }

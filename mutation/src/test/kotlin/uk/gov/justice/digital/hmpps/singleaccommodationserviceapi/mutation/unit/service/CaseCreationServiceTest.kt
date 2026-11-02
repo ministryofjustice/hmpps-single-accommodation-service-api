@@ -6,6 +6,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.runs
 import io.mockk.verify
+import io.mockk.verifyOrder
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -18,8 +19,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER_V3
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
@@ -175,20 +174,31 @@ class CaseCreationServiceTest {
     @Nested
     inner class SaveUnpersistedCases {
 
+      private val saved = mutableListOf<CaseEntity>()
+
+      @BeforeEach
+      fun stubSave() {
+        saved.clear()
+        every { caseRepository.save(capture(saved)) } answers { firstArg() }
+      }
+
       @Test
       fun `persists only unpersisted Crns and populates all data on the record`() {
-        val caseToCreate =
-          CaseToCreate(crn = UUID.randomUUID().toString(), prisonNumber = UUID.randomUUID().toString())
+        val first = CaseToCreate(crn = "A111111", prisonNumber = "A1234BC")
+        val second = CaseToCreate(crn = "B222222", prisonNumber = "B1234BC")
+        val third = CaseToCreate(crn = "C333333", prisonNumber = "C1234BC")
 
-        every { caseRepository.findByIdentifiers(crns = any(), prisonNumbers = any()) } returns null
-        every { caseRepository.findUnpersistedCrns(any()) } returns listOf(caseToCreate.crn)
-        every { caseRepository.save(any<CaseEntity>()) } answers { firstArg() }
+        every { caseRepository.findUnpersistedCrns(any()) } returns listOf(first.crn, third.crn)
+        stubOrchestrationResult(first.crn)
+        stubOrchestrationResult(third.crn)
 
-        stubOrchestrationResult(caseToCreate.crn)
+        caseCreationService.saveUnpersistedCases(listOf(first, second, third))
 
-        caseCreationService.saveUnpersistedCases(listOf(caseToCreate))
-
-        verify(exactly = 1) { caseSnapshotAssembler.upsertCase(any(), any()) }
+        val entities = saved.toList()
+        assertThat(entities.map { it.latestCrn() }).containsExactly(first.crn, third.crn)
+        assertThat(entities.map { it.latestPrisonNumber() }).containsExactly(first.prisonNumber, third.prisonNumber)
+        verify(exactly = 2) { caseRepository.save(any()) }
+        verify(exactly = 0) { caseOrchestrationService.getCurrentCaseResult(crn = second.crn, prisonNumber = any()) }
       }
 
       @Test
@@ -206,60 +216,55 @@ class CaseCreationServiceTest {
 
         verify(exactly = 1) { caseRepository.findUnpersistedCrns(any()) }
         verify(exactly = 0) { caseOrchestrationService.getCurrentCaseResult(any(), any()) }
-        verify(exactly = 0) { entityManager.merge(any<CaseEntity>()) }
+        verify(exactly = 0) { caseRepository.save(any()) }
         verify(exactly = 0) { caseSnapshotAssembler.upsertCase(any(), any()) }
-      }
-    }
-
-    @Nested
-    inner class UpsertCase {
-
-      @Test
-      fun `saves the partial data and requests a refresh when a new case has upstream failures`() {
-        val entities = mutableListOf<CaseEntity>()
-
-        every { caseRepository.findByIdentifiers(crns = any(), prisonNumbers = any()) } returns null
-        every { caseRepository.save(capture(entities)) } answers { firstArg() }
-        stubOrchestrationResult("A111111", upstreamFailures = listOf(tierFailure))
-
-        val result = caseCreationService.upsertCase("A111111", "A1234BC")
-
-        val entity = entities.single()
-        assertThat(result).isSameAs(entity)
-        assertThat(entity.latestCrn()).isEqualTo("A111111")
-        assertThat(entity.latestPrisonNumber()).isEqualTo("A1234BC")
-        verify(exactly = 1) { caseSnapshotAssembler.upsertCase(any(), any()) }
-        verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(entity.id) }
-      }
-
-      @Test
-      fun `leaves an existing case unchanged and requests a refresh when there are upstream failures`() {
-        val existingCase = buildCaseEntity(firstName = "Joe", lastName = "Bloggs") { withCrn("A111111") }
-
-        every { caseRepository.findByIdentifiers(crns = any(), prisonNumbers = any()) } returns existingCase
-        stubOrchestrationResult("A111111", upstreamFailures = listOf(tierFailure))
-
-        val result = caseCreationService.upsertCase("A111111", "A1234BC")
-
-        assertThat(result).isSameAs(existingCase)
-        assertThat(result.firstName).isEqualTo("Joe")
-        assertThat(result.lastName).isEqualTo("Bloggs")
-        verify(exactly = 0) { caseSnapshotAssembler.upsertCase(any(), any()) }
-        verify(exactly = 0) { caseRepository.save(any<CaseEntity>()) }
-        verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(existingCase.id) }
-      }
-
-      @Test
-      fun `populates the case and does not request a refresh when there are no upstream failures`() {
-        every { caseRepository.findByIdentifiers(crns = any(), prisonNumbers = any()) } returns null
-        every { caseRepository.save(any<CaseEntity>()) } answers { firstArg() }
-        stubOrchestrationResult("A111111")
-
-        caseCreationService.upsertCase("A111111", "A1234BC")
-
-        verify(exactly = 1) { caseSnapshotAssembler.upsertCase(any(), any()) }
-        verify(exactly = 1) { caseRepository.save(any<CaseEntity>()) }
         verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
+      }
+
+      @Test
+      fun `saves the partial data and requests a refresh only for cases with upstream failures`() {
+        val failing = CaseToCreate(crn = "A111111", prisonNumber = "A1234BC")
+        val healthy = CaseToCreate(crn = "B222222", prisonNumber = "B1234BC")
+
+        every { caseRepository.findUnpersistedCrns(any()) } returns listOf(failing.crn, healthy.crn)
+        stubOrchestrationResult(failing.crn, upstreamFailures = listOf(tierFailure))
+        stubOrchestrationResult(healthy.crn)
+
+        caseCreationService.saveUnpersistedCases(listOf(failing, healthy))
+
+        val entities = saved.toList()
+        assertThat(entities).hasSize(2)
+        val failingEntity = entities.single { it.latestCrn() == failing.crn }
+        verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(failingEntity.id) }
+        verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(any()) }
+      }
+
+      @Test
+      fun `does not request a refresh when there are no upstream failures`() {
+        val caseToCreate = CaseToCreate(crn = "A111111", prisonNumber = "A1234BC")
+
+        every { caseRepository.findUnpersistedCrns(any()) } returns listOf(caseToCreate.crn)
+        stubOrchestrationResult(caseToCreate.crn)
+
+        caseCreationService.saveUnpersistedCases(listOf(caseToCreate))
+
+        verify(exactly = 1) { caseRepository.save(any()) }
+        verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
+      }
+
+      @Test
+      fun `requests refreshes after the cases have been saved`() {
+        val caseToCreate = CaseToCreate(crn = "A111111", prisonNumber = "A1234BC")
+
+        every { caseRepository.findUnpersistedCrns(any()) } returns listOf(caseToCreate.crn)
+        stubOrchestrationResult(caseToCreate.crn, upstreamFailures = listOf(tierFailure))
+
+        caseCreationService.saveUnpersistedCases(listOf(caseToCreate))
+
+        verifyOrder {
+          caseRepository.save(any())
+          caseRefreshRequestService.requestLiveRefresh(any())
+        }
       }
     }
   }

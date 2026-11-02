@@ -136,57 +136,61 @@ object EligibilityTransformer {
   ) = EligibilityDtoNew(
     crn = crn,
     cas1 = Cas1ServiceResultWrapper(
-      serviceResult = toNotEligibleServiceStatus(ServiceType.CAS1),
+      serviceResult = toNotEligibleServiceResult(ServiceType.CAS1),
       cas1Application = null,
       actionPosition = -1,
     ),
     cas2 = Cas2ServiceResultWrapper(
-      serviceResult = toNotEligibleServiceStatus(ServiceType.CAS2),
+      serviceResult = toNotEligibleServiceResult(ServiceType.CAS2),
       cas2Application = null,
       actionPosition = -1,
     ),
     cas3 = Cas3ServiceResultWrapper(
-      serviceResult = toNotEligibleServiceStatus(ServiceType.CAS3),
+      serviceResult = toNotEligibleServiceResult(ServiceType.CAS3),
       cas3Application = null,
       actionPosition = -1,
     ),
     dtr = DtrServiceResultWrapper(
-      serviceResult = toNotEligibleServiceStatus(ServiceType.DTR),
+      serviceResult = toNotEligibleServiceResult(ServiceType.DTR),
       caseId = null,
       submission = null,
       actionPosition = -1,
     ),
     crs = CrsServiceResultWrapper(
-      serviceResult = toNotEligibleServiceStatus(ServiceType.CRS),
+      serviceResult = toNotEligibleServiceResult(ServiceType.CRS),
       commissionedRehabilitativeServices = null,
       actionPosition = -1,
     ),
     pa = PaServiceResultWrapper(
-      serviceResult = toNotEligibleServiceStatus(ServiceType.PA),
+      serviceResult = toNotEligibleServiceResult(ServiceType.PA),
       actionPosition = -1,
     ),
   )
 
-  fun toNotEligibleServiceStatus(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultNew(
-    serviceStatus = when (service) {
-      ServiceType.CAS2 -> ServiceStatusNew.CAS2_NOT_ELIGIBLE
-      ServiceType.CAS3 -> ServiceStatusNew.CAS3_NOT_ELIGIBLE
-      ServiceType.CAS1 -> ServiceStatusNew.CAS1_NOT_ELIGIBLE
-      ServiceType.PA -> ServiceStatusNew.PA_NOT_ELIGIBLE
-      ServiceType.DTR -> ServiceStatusNew.DTR_NOT_ELIGIBLE
-      ServiceType.CRS -> ServiceStatusNew.CRS_NOT_ELIGIBLE
-    },
+  fun toNotEligibleServiceResult(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultNew(
+    serviceStatus = toNotEligibleServiceStatus(service),
     failureReasons = failureReasons,
   )
 
-  fun toNotRequiredServiceStatus(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultNew(
-    serviceStatus = when (service) {
-      ServiceType.DTR -> ServiceStatusNew.DTR_NOT_REQUIRED
-      ServiceType.CRS -> ServiceStatusNew.CRS_NOT_REQUIRED
-      else -> throw IllegalArgumentException("Unexpected not required service: $service")
-    },
+  fun toNotEligibleServiceStatus(service: ServiceType) = when (service) {
+    ServiceType.CAS2 -> ServiceStatusNew.CAS2_NOT_ELIGIBLE
+    ServiceType.CAS3 -> ServiceStatusNew.CAS3_NOT_ELIGIBLE
+    ServiceType.CAS1 -> ServiceStatusNew.CAS1_NOT_ELIGIBLE
+    ServiceType.PA -> ServiceStatusNew.PA_NOT_ELIGIBLE
+    ServiceType.DTR -> ServiceStatusNew.DTR_NOT_ELIGIBLE
+    ServiceType.CRS -> ServiceStatusNew.CRS_NOT_ELIGIBLE
+  }
+
+  fun toNotRequiredServiceResult(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultNew(
+    serviceStatus = toNotRequiredServiceStatus(service),
     failureReasons = failureReasons,
   )
+
+  fun toNotRequiredServiceStatus(service: ServiceType) = when (service) {
+    ServiceType.DTR -> ServiceStatusNew.DTR_NOT_REQUIRED
+    ServiceType.CRS -> ServiceStatusNew.CRS_NOT_REQUIRED
+    else -> throw IllegalArgumentException("Unexpected not required service: $service")
+  }
 
   // DTR referral data should only be surfaced when a referral exists and has relevant service status to show the data
   private val surfacingStatuses = setOf(

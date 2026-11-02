@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
@@ -30,7 +31,7 @@ class SasSarIntegrationTestHelper(
       .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
       .exchange()
       .expectStatus().isOk
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
     return objectMapper.readValue(response, responseType)
   }
@@ -43,7 +44,7 @@ class SasSarIntegrationTestHelper(
     .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
     .exchange()
     .expectStatus().isOk
-    .expectBody(String::class.java)
+    .expectBody<String>()
     .returnResult().responseBody!!
 
   internal fun setAuthorisation(

@@ -29,6 +29,7 @@ The configured settings are:
 
 | Property | Default | What it does |
 |---|---:|---|
+| `service.connection-pool.max-connections` | `500` | Max connections per remote host. Must be set explicitly: a custom `ConnectionProvider.builder(...)` otherwise defaults to `max(cores, 8) * 2` (vs 500 for Reactor Netty's own default pool), and because this pool is JVM-wide it is also used by `WebTestClient` in integration tests, so exhaustion shows up as `Timeout on blocking read for 5000000000 NANOSECONDS` |
 | `service.connection-pool.max-idle-time` | `30s` | Evicts connections that have sat idle too long before they can be reused |
 | `service.connection-pool.max-life-time` | `5m` | Recycles long-lived connections even if they are otherwise healthy |
 | `service.connection-pool.eviction-interval` | `30s` | Runs background cleanup so stale connections are removed even during quiet periods |
