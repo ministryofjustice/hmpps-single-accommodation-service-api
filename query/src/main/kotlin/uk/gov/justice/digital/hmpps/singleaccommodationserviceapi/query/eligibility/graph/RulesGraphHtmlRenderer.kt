@@ -31,6 +31,7 @@ object RulesGraphHtmlRenderer {
               mapOf(
                 "className" to rule.className,
                 "description" to rule.description,
+                "failureReason" to rule.failureReason?.name,
                 "sourcePath" to githubSourceUrl(rule.sourcePath),
               )
             },
@@ -328,6 +329,17 @@ Clicking a node also highlights every path from the root to it.</p></div>
     return html + '</div>';
   }
 
+  function traceOutcomeHtml(step, steps) {
+    let html = '<li><span class="muted">outcome:</span> <b>' + esc(step.node.title) + '</b>';
+    if (['Not Required', 'Cannot Start Yet', 'Not Eligible'].includes(step.node.title)) {
+      const previousRuleSet = steps.filter(s => s.node.kind === 'RULE_SET').pop();
+      const reasons = (previousRuleSet?.failed || []).filter(rule => rule.failureReason)
+        .map(rule => '<code>' + esc(rule.failureReason) + '</code>');
+      if (reasons.length) html += '<br><b>Reasons for failure:</b> ' + reasons.join(', ');
+    }
+    return html + '</li>';
+  }
+
   function renderSim() {
     const res = simulate();
     const statusById = new Map(res.steps.filter(s => s.status).map(s => [s.node.id, s.status]));
@@ -350,7 +362,7 @@ Clicking a node also highlights every path from the root to it.</p></div>
           return '<li><b>' + esc(s.node.title) + '</b> ' + badge(s.status) + why + '</li>';
         }
         if (s.node.kind === 'CONTEXT_UPDATER') return '<li><span class="muted">update:</span> ' + esc(s.node.title) + '</li>';
-        return '<li><span class="muted">outcome:</span> <b>' + esc(s.node.title) + '</b></li>';
+        return traceOutcomeHtml(s, res.steps);
       }).join('') + '</ol>' +
       '<h3>Rule inputs</h3>';
 

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.pa.completion.rules
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.pa.referral.rules
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

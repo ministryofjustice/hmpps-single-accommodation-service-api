@@ -92,12 +92,13 @@ class RulesGraphWalker {
     id = ensureUniqueId(slug(ruleSetName), this),
     title = ruleSetName,
     kind = GraphNodeKind.RULE_SET,
-    rules = ruleSet.getRules().map { priorityRule ->
+    rules = ruleSet.getRules().map { rule ->
       RuleInfo(
-        className = priorityRule.rule::class.simpleName
+        className = rule::class.simpleName
           ?: error("Rules should not be defined as anonymous classes"),
-        description = priorityRule.rule.description,
-        sourcePath = sourceLinkPath(priorityRule.rule::class),
+        description = rule.description,
+        sourcePath = sourceLinkPath(rule::class),
+        failureReason = rule.failureReason,
       )
     },
     onPassContextUpdater = contextUpdaterInfo(onPassContextUpdater, ContextUpdaterKind.ON_PASS),

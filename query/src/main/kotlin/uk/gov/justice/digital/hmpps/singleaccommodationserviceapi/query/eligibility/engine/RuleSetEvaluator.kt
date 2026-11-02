@@ -2,26 +2,26 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRuleResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 
 interface RuleSetEvaluator {
   fun evaluate(
     ruleset: RuleSet,
     data: DomainData,
-  ): List<PrioritisedRuleResult>
+  ): List<RuleResult>
 }
 
 class DefaultRuleSetEvaluator : RuleSetEvaluator {
 
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  override fun evaluate(ruleset: RuleSet, data: DomainData): List<PrioritisedRuleResult> = ruleset.getRules()
+  override fun evaluate(ruleset: RuleSet, data: DomainData): List<RuleResult> = ruleset.getRules()
     .map { rule ->
       log.debug("Evaluating rule: {}", rule.description)
 
       rule.evaluate(data).also {
-        log.debug("Rule result: {}", it.ruleResult.ruleStatus)
+        log.debug("Rule result: {}", it.ruleStatus)
       }
     }
 }

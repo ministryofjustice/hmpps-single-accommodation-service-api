@@ -13,10 +13,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligible.rules.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.Cas1StartContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.rules.Cas1NotPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.referral.rules.NoLiveCrsRule
@@ -48,7 +48,7 @@ class RulesGraphTest {
       val hidden = builder.notEligible(ServiceType.CAS1)
       val confirmed = builder.confirmed()
       val rootBuilder = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(StubRule("example")))))
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("example"))))
       val root = if (onPass) {
         rootBuilder
           .onPass(hidden).applyContextUpdaterOnPass(updater)
@@ -84,7 +84,7 @@ class RulesGraphTest {
       val pass = builder.confirmed()
       val fail = builder.notEligible(ServiceType.CAS1)
       val root = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(StubRule("FAIL if example")))))
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("FAIL if example"))))
         .onPass(pass)
         .onFail(fail).propagateContextOnFailure()
         .build()
@@ -110,7 +110,7 @@ class RulesGraphTest {
     fun `walk records source paths from each class package`() {
       val root = builder
         .ruleSet(
-          StubRuleSet(rules = listOf(PrioritisedRule(Cas1NotPresentRule()), PrioritisedRule(NoLiveCrsRule()))),
+          StubRuleSet(rules = listOf(Cas1NotPresentRule(), NoLiveCrsRule())),
         )
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1StartContextUpdater())
@@ -132,12 +132,12 @@ class RulesGraphTest {
     fun `shared outcome is a single node with two incoming edges`() {
       val confirmed = builder.confirmed()
       val eligibility = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(StubRule("eligible"))), name = "Eligibility"))
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("eligible")), name = "Eligibility"))
         .onPass(confirmed)
         .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
       val upcoming = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(StubRule("upcoming"))), name = "Upcoming"))
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("upcoming")), name = "Upcoming"))
         .onPass(confirmed)
         .onFail(eligibility).applyContextUpdaterOnFailure(StubContextUpdater())
         .build()
@@ -153,7 +153,7 @@ class RulesGraphTest {
     fun `continueWith emits PASS and FAIL to the same node`() {
       val confirmed = builder.confirmed()
       val upcoming = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(StubRule("window"))), name = "Upcoming"))
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("window")), name = "Upcoming"))
         .onPassAndFail(confirmed).propagateContextOnFailure()
         .build()
 
@@ -182,7 +182,7 @@ class RulesGraphTest {
         .ruleSet(
           StubRuleSet(
             rules =
-            listOf(PrioritisedRule(StubRule("window"))),
+            listOf(StubRule("window")),
             name = "Upcoming",
           ),
         )
@@ -219,7 +219,7 @@ class RulesGraphTest {
     fun `add fail context updater if not identity`() {
       val confirmed = builder.confirmed()
       val upcoming = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(StubRule("window"))), name = "Upcoming"))
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("window")), name = "Upcoming"))
         .onPassAndFail(confirmed)
         .setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED))
         .build()
@@ -256,7 +256,7 @@ class RulesGraphTest {
     @Test
     fun `render includes mermaid nodes, edges and rule catalogue`() {
       val root = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(StubRule("FAIL if example")))))
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("FAIL if example"))))
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
@@ -287,7 +287,7 @@ class RulesGraphTest {
     fun `render links to source files using each class package`() {
       val root = builder
         .ruleSet(
-          StubRuleSet(rules = listOf(PrioritisedRule(Cas1NotPresentRule()), PrioritisedRule(NoLiveCrsRule()))),
+          StubRuleSet(rules = listOf(Cas1NotPresentRule(), NoLiveCrsRule())),
         )
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1StartContextUpdater())
@@ -306,9 +306,24 @@ class RulesGraphTest {
     }
 
     @Test
+    fun `HTML exposes rule failure reasons for the outcome trace`() {
+      val root = builder
+        .ruleSet(StubRuleSet(name = "Tier", rules = listOf(MaleRiskEligibilityRule())))
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(ServiceType.CAS1))
+        .build()
+
+      val html = RulesGraphHtmlRenderer.render(listOf(RulesGraphWalker().walk("EXAMPLE", root)))
+
+      assertThat(html).contains("\"failureReason\":\"MALE_NOT_HIGH_RISK_TIER\"")
+      assertThat(html).contains("Reasons for failure:")
+      assertThat(html).contains("return traceOutcomeHtml(s, res.steps)")
+    }
+
+    @Test
     fun `HTML links rules and PASS and FAIL context updaters to GitHub source`() {
       val root = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(Cas1NotPresentRule()))))
+        .ruleSet(StubRuleSet(rules = listOf(Cas1NotPresentRule())))
         .onPass(builder.confirmed()).applyContextUpdaterOnPass(Cas1StartContextUpdater())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(StubContextUpdater())
         .build()
@@ -333,7 +348,7 @@ class RulesGraphTest {
     @Test
     fun `render lists named PASS context updater below the diagram and in the catalogue`() {
       val root = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(StubRule("window"))), name = "Upcoming"))
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("window")), name = "Upcoming"))
         .onPass(builder.confirmed()).applyContextUpdaterOnPass(StubContextUpdater())
         .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
@@ -350,7 +365,7 @@ class RulesGraphTest {
     @Test
     fun `render lists named FAIL context updater below the diagram and in the catalogue`() {
       val root = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(StubRule("window"))), name = "Upcoming"))
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("window")), name = "Upcoming"))
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(StubContextUpdater())
         .build()
@@ -367,7 +382,7 @@ class RulesGraphTest {
     fun `render describes constant FAIL updater without a mermaid node`() {
       val root = builder
         .ruleSet(
-          StubRuleSet(rules = listOf(PrioritisedRule(StubRule("complete"))), name = "PaCompletion"),
+          StubRuleSet(rules = listOf(StubRule("complete")), name = "PaCompletion"),
         )
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED))
@@ -388,7 +403,7 @@ class RulesGraphTest {
         override fun evaluate(data: DomainData) = RuleResult(description, RuleStatus.PASS)
       }
       val root = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(anonymous))))
+        .ruleSet(StubRuleSet(rules = listOf(anonymous)))
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).propagateContextOnFailure()
         .build()
@@ -403,7 +418,7 @@ class RulesGraphTest {
       val notStarted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED))
       val notStartedNew = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED_NEW))
       val root = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(StubRule("root"))), name = "Root"))
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("root")), name = "Root"))
         .onPass(notStarted)
         .onFail(notStartedNew)
         .build()
@@ -423,7 +438,7 @@ class RulesGraphTest {
     fun `constant updaters for distinct statuses sharing a UI label get distinct node ids`() {
       val confirmed = builder.confirmed()
       val root = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(StubRule("root"))), name = "ExampleEligibility"))
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("root")), name = "ExampleEligibility"))
         .onPassAndFail(confirmed)
         .applyContextUpdaterOnPass(ContextUpdater.constant(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED)))
         .setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED_NEW))
@@ -454,7 +469,7 @@ class RulesGraphTest {
           StubRuleSet(
             rules =
             listOf(
-              PrioritisedRule(StubRule("first")),
+              StubRule("first"),
             ),
           ),
         )
@@ -462,7 +477,7 @@ class RulesGraphTest {
         .onFail(notEligible).propagateContextOnFailure()
         .build()
       val root = builder
-        .ruleSet(StubRuleSet(rules = listOf(PrioritisedRule(StubRule("second")))))
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("second"))))
         .onPass(first)
         .onFail(notEligible).propagateContextOnFailure()
         .build()
