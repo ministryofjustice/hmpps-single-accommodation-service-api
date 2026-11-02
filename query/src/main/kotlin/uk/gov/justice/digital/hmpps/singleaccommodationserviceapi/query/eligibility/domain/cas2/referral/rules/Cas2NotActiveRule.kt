@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2NotActiveRule : Rule {
-  override val description = "FAIL if assessment is present and not active"
+  override val description = "FAIL if assessment is present and inactive"
 
   override fun evaluate(data: DomainData): RuleResult {
     val unsuitableStatuses = listOf(
