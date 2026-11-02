@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import java.time.OffsetDateTime
 
 class Cas2NotSubmittedRuleTest {
-  private val description = "FAIL if the referral is not submitted"
+  private val description = "FAIL if the referral is unsubmitted"
 
   @Test
   fun `application is submitted so rule passes`() {
@@ -32,7 +32,7 @@ class Cas2NotSubmittedRuleTest {
   }
 
   @Test
-  fun `application is not submitted so rule fails`() {
+  fun `application is unsubmitted so rule fails`() {
     val data = buildDomainData(
       cas2Application = buildCas2Application(
         submittedApplication = null,

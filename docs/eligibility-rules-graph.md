@@ -12,7 +12,7 @@ flowchart TD
   Release_Within_28_Weeks("<div style='text-align:left'>FAIL if release is more than 28 weeks from today</div>")
   CAS1_Referral("<div style='text-align:left'>FAIL if person does not have an application
 FAIL if the referral is expired and there is no pending or active placement
-FAIL if the referral is not submitted and active</div>")
+FAIL if the referral is inactive or unsubmitted</div>")
   outcome_Cas1ActiveContextUpdater["<b>Arrived</b>,
  <b>Information Requested</b>,
  <b>Not Arrived</b>,
@@ -70,7 +70,7 @@ FAIL if person is not Male and is not Tier A, B, C or D</div>")
 **CAS1 Referral** (RuleSet) `Cas1RuleSet`
 - [`Cas1NotPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/rules/Cas1NotPresentRule.kt): FAIL if person does not have an application
 - [`Cas1ExpiredRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/rules/Cas1ExpiredRule.kt): FAIL if the referral is expired and there is no pending or active placement
-- [`Cas1NotActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/rules/Cas1NotActiveRule.kt): FAIL if the referral is not submitted and active
+- [`Cas1NotActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/rules/Cas1NotActiveRule.kt): FAIL if the referral is inactive or unsubmitted
 - PASS: [`Cas1ActiveContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/Cas1ActiveContextUpdater.kt) - Arrived,
  Information Requested,
  Not Arrived,
@@ -136,8 +136,8 @@ Application Rejected,
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
   Release_Within_15_Days("<div style='text-align:left'>FAIL if release is more than 15 days from today</div>")
-  CAS2_Referral("<div style='text-align:left'>FAIL if the referral is not submitted
-FAIL if assessment is present and not active</div>")
+  CAS2_Referral("<div style='text-align:left'>FAIL if the referral is unsubmitted
+FAIL if assessment is present and inactive</div>")
   outcome_Cas2ActiveContextUpdater["<b>Arrived</b>,
  <b>Awaiting Arrival</b>,
  <b>Awaiting Decision</b>,
@@ -204,8 +204,8 @@ FAIL if person is in the community</div>")
 
 
 **CAS2 Referral** (RuleSet) `Cas2RuleSet`
-- [`Cas2NotSubmittedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/referral/rules/Cas2NotSubmittedRule.kt): FAIL if the referral is not submitted
-- [`Cas2NotActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/referral/rules/Cas2NotActiveRule.kt): FAIL if assessment is present and not active
+- [`Cas2NotSubmittedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/referral/rules/Cas2NotSubmittedRule.kt): FAIL if the referral is unsubmitted
+- [`Cas2NotActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/referral/rules/Cas2NotActiveRule.kt): FAIL if assessment is present and inactive
 - PASS: [`Cas2ActiveContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/referral/Cas2ActiveContextUpdater.kt) - Arrived,
  Awaiting Arrival,
  Awaiting Decision,
@@ -606,10 +606,10 @@ FAIL if CAS3 referral is submitted and active</div>")
 | --- | --- | --- | --- |
 | Cas1ActiveRule | FAIL if CAS1 referral is submitted and active | No Active CAS1 Or CAS3 Referrals | PA |
 | Cas1ExpiredRule | FAIL if the referral is expired and there is no pending or active placement | CAS1 Referral | CAS1 |
-| Cas1NotActiveRule | FAIL if the referral is not submitted and active | CAS1 Referral | CAS1 |
+| Cas1NotActiveRule | FAIL if the referral is inactive or unsubmitted | CAS1 Referral | CAS1 |
 | Cas1NotPresentRule | FAIL if person does not have an application | CAS1 Referral | CAS1 |
-| Cas2NotActiveRule | FAIL if assessment is present and not active | CAS2 Referral | CAS2 |
-| Cas2NotSubmittedRule | FAIL if the referral is not submitted | CAS2 Referral | CAS2 |
+| Cas2NotActiveRule | FAIL if assessment is present and inactive | CAS2 Referral | CAS2 |
+| Cas2NotSubmittedRule | FAIL if the referral is unsubmitted | CAS2 Referral | CAS2 |
 | Cas3ActiveRule | FAIL if CAS3 referral is submitted and active | No Active CAS1 Or CAS3 Referrals | PA |
 | Cas3AssessmentNotActiveRule | FAIL if the assessment is closed or rejected | CAS3 Referral | CAS3 |
 | Cas3BookingNotActiveRule | FAIL if the booking is departed or closed | CAS3 Referral | CAS3 |
