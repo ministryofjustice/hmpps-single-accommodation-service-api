@@ -88,7 +88,8 @@ event:
 
 case-refresh:
   worker:
-    fixed-delay: 50ms
+    cron: "* * * * * *"
+    zone: UTC
     max-requests-per-run: 10
     max-attempts: 2
     initial-backoff: 1m
