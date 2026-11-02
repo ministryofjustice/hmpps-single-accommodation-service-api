@@ -10,8 +10,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class CrsStartContextUpdater(
-  @Value($$"${frontend.commissioned-rehabilitative-services.find-interventions}") findInterventionsUrl: String,
+  @Value($$"${service.commissioned-rehabilitative-services-ui.base-url}") crsUiBaseUrl: String,
 ) : ContextUpdater() {
+
+  val url = crsUiBaseUrl
 
   val notStartedMale = "notStartedMale"
   val notStartedNonMale = "notStartedNonMale"
@@ -19,11 +21,11 @@ class CrsStartContextUpdater(
   override val outcomes = mapOf(
     notStartedMale to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL,
-      url = findInterventionsUrl,
+      url = url,
     ),
     notStartedNonMale to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_REFERRAL,
-      url = findInterventionsUrl,
+      url = url,
     ),
   )
 
