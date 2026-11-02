@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas3ActiveRule : Rule {
   override val description = "FAIL if CAS3 referral is submitted and active"
+  override val failureReason = FailureReason.SUITABLE_CAS3_APPLICATION
 
   override fun evaluate(data: DomainData): RuleResult {
     val activeStatuses = listOf(
@@ -23,7 +24,7 @@ class Cas3ActiveRule : Rule {
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
-      failureReason = if (isFail) FailureReason.SUITABLE_CAS3_APPLICATION else null,
+      failureReason = if (isFail) failureReason else null,
     )
   }
 }

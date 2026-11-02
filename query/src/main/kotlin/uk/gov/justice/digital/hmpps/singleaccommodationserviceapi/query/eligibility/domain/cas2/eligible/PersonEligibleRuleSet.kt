@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligible
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligible.rules.HasSexualOffenceRegistrationsRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligible.rules.Under18Rule
@@ -13,13 +13,13 @@ class PersonEligibleRuleSet(
   wrongTier: WrongTierRule,
   hasSexualOffenceRegistrations: HasSexualOffenceRegistrationsRule,
 ) : RuleSet {
-  private val rules: List<PrioritisedRule> = listOf(
-    PrioritisedRule(under18, 0),
-    PrioritisedRule(wrongTier, 0),
-    PrioritisedRule(hasSexualOffenceRegistrations, 0),
+  private val rules: List<Rule> = listOf(
+    under18,
+    wrongTier,
+    hasSexualOffenceRegistrations,
   )
 
   override val name: String = "Person Eligible"
 
-  override fun getRules(): List<PrioritisedRule> = rules
+  override fun getRules(): List<Rule> = rules
 }

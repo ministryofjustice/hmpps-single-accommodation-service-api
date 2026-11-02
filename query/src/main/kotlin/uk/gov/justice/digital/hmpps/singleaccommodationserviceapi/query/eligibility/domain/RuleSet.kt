@@ -6,5 +6,5 @@ interface RuleSet {
    */
   val name: String
 
-  fun getRules(): List<PrioritisedRule>
+  fun getRules(): List<Rule>
 }

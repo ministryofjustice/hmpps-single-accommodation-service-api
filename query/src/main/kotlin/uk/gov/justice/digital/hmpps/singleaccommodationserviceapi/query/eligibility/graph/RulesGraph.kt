@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 
@@ -13,6 +14,7 @@ data class RuleInfo(
   val className: String,
   val description: String,
   val sourcePath: String? = null,
+  val failureReason: FailureReason? = null,
 )
 
 data class ContextUpdaterInfo(

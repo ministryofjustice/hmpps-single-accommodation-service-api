@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.pa.completion
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.pa.referral
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -29,7 +29,7 @@ class HasNextAccommodationRuleSetTest {
 
   @Test
   fun `all rule components are included in rule set`() {
-    val ruleSetRules = ruleSet.getRules().map { it.rule.javaClass.simpleName }
+    val ruleSetRules = ruleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(1)

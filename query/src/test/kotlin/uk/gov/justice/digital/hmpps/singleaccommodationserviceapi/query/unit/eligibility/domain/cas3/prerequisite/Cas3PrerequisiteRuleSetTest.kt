@@ -35,7 +35,7 @@ class Cas3PrerequisiteRuleSetTest {
 
   @Test
   fun `all rule components are included in rule set`() {
-    val ruleSetRules = ruleSet.getRules().map { it.rule.javaClass.simpleName }
+    val ruleSetRules = ruleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(3)

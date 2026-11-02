@@ -5,7 +5,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
@@ -16,10 +15,10 @@ class StubRule(override val description: String) : Rule {
 }
 
 class StubRuleSet(
-  private val rules: List<PrioritisedRule>,
+  private val rules: List<Rule>,
   override val name: String = "ExampleEligibility",
 ) : RuleSet {
-  override fun getRules(): List<PrioritisedRule> = rules
+  override fun getRules(): List<Rule> = rules
 }
 
 class StubContextUpdater : ContextUpdater() {
@@ -45,7 +44,7 @@ class AlwaysFailRule :
 open class FixedOutcomeRule(
   override val description: String,
   val ruleStatus: RuleStatus,
-  val failureReason: FailureReason?,
+  override val failureReason: FailureReason?,
 ) : Rule {
   var hasBeenEvaluated: Boolean = false
 
