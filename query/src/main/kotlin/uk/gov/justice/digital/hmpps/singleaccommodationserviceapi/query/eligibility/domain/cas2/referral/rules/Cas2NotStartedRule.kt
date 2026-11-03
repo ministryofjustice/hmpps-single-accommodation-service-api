@@ -7,11 +7,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 @Component
-class Cas2NotSubmittedRule : Rule {
-  override val description = "FAIL if the referral is not submitted"
+class Cas2NotStartedRule : Rule {
+  override val description = "FAIL if the referral is not started"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.cas2Application?.submittedApplication?.submittedAt == null
+    val isFail = data.cas2Application == null
 
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 

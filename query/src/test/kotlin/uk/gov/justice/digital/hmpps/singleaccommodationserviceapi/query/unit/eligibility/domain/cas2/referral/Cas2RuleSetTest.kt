@@ -8,15 +8,13 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.referral.Cas2RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.referral.rules.Cas2NotActiveRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.referral.rules.Cas2NotSubmittedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.referral.rules.Cas2NotStartedRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     Cas2RuleSet::class,
-    Cas2NotSubmittedRule::class,
-    Cas2NotActiveRule::class,
+    Cas2NotStartedRule::class,
     ClockConfig::class,
   ],
 )
@@ -26,8 +24,7 @@ class Cas2RuleSetTest {
   lateinit var ruleSet: Cas2RuleSet
 
   private val expectedRuleNames = listOf(
-    Cas2NotSubmittedRule::class.java.simpleName,
-    Cas2NotActiveRule::class.java.simpleName,
+    Cas2NotStartedRule::class.java.simpleName,
   )
 
   @Test
@@ -35,7 +32,7 @@ class Cas2RuleSetTest {
     val ruleSetRules = ruleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(2)
+      .hasSize(1)
       .containsExactlyInAnyOrderElementsOf(expectedRuleNames)
   }
 }

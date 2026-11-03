@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas2.referral.rules
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas2.submittedReferral.rules
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -6,12 +6,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.referral.rules.Cas2NotSubmittedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.submittedReferral.rules.Cas2NotSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.OffsetDateTime
 
 class Cas2NotSubmittedRuleTest {
-  private val description = "FAIL if the referral is not submitted"
+  private val description = "FAIL if the referral is unsubmitted"
 
   @Test
   fun `application is submitted so rule passes`() {
@@ -32,7 +32,7 @@ class Cas2NotSubmittedRuleTest {
   }
 
   @Test
-  fun `application is not submitted so rule fails`() {
+  fun `application is unsubmitted so rule fails`() {
     val data = buildDomainData(
       cas2Application = buildCas2Application(
         submittedApplication = null,

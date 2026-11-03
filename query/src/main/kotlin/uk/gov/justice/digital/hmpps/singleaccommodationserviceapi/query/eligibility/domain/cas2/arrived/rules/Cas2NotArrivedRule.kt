@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.referral.rules
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.arrived.rules
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
@@ -8,17 +8,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 @Component
-class Cas2NotActiveRule : Rule {
-  override val description = "FAIL if assessment is present and not active"
+class Cas2NotArrivedRule : Rule {
+  override val description = "FAIL if referral status is not Awaiting Arrival"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val unsuitableStatuses = listOf(
-      Cas2AssessmentStatus.WITHDRAWN,
-      Cas2AssessmentStatus.CANCELLED,
-      Cas2AssessmentStatus.OFFER_DECLINED,
-    )
-
-    val isFail = unsuitableStatuses.contains(data.cas2Application?.submittedApplication?.latestAssessmentStatus)
+    val isFail = data.cas2Application?.submittedApplication?.latestAssessmentStatus != Cas2AssessmentStatus.AWAITING_ARRIVAL
 
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 

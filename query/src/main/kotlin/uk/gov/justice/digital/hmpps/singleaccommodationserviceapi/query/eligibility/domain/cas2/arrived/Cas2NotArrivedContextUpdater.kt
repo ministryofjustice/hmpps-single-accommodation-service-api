@@ -1,33 +1,26 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.referral
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.arrived
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
 @Component
-class Cas2ActiveContextUpdater(
-  private val sentryService: SentryService,
-) : ContextUpdater() {
+class Cas2NotArrivedContextUpdater : ContextUpdater() {
   override val terminalNode = true
 
-  val submitted = "submitted"
   val moreInfoRequested = "moreInfoRequested"
   val awaitingDecision = "awaitingDecision"
   val onWaitingList = "onWaitingList"
   val placeOffered = "placeOffered"
   val offerAccepted = "offerAccepted"
   val unknown = "unknown"
-  val arrived = "arrived"
   val awaitingArrival = "awaitingArrival"
+  val submitted = "submitted"
 
   override val outcomes = mapOf(
-    submitted to ServiceResultSpec(
-      serviceStatus = ServiceStatusNew.CAS2_SUBMITTED,
-    ),
     moreInfoRequested to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_MORE_INFORMATION_NEEDED,
     ),
@@ -46,27 +39,21 @@ class Cas2ActiveContextUpdater(
     unknown to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_UNKNOWN,
     ),
-    arrived to ServiceResultSpec(
-      serviceStatus = ServiceStatusNew.CAS2_ARRIVED,
-    ),
     awaitingArrival to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_AWAITING_ARRIVAL,
+    ),
+    submitted to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS2_SUBMITTED,
     ),
   )
 
   override fun toServiceResult(context: EvaluationContext) = when (context.data.cas2Application?.submittedApplication?.latestAssessmentStatus) {
-    null -> outcome(submitted)
     Cas2AssessmentStatus.MORE_INFO_REQUESTED -> outcome(moreInfoRequested)
     Cas2AssessmentStatus.AWAITING_DECISION -> outcome(awaitingDecision)
     Cas2AssessmentStatus.ON_WAITING_LIST -> outcome(onWaitingList)
     Cas2AssessmentStatus.PLACE_OFFERED -> outcome(placeOffered)
     Cas2AssessmentStatus.OFFER_ACCEPTED -> outcome(offerAccepted)
-    Cas2AssessmentStatus.AWAITING_ARRIVAL -> if (context.data.cas2Application.submittedApplication?.markedAsArrivedDateTime != null) outcome(arrived) else outcome(awaitingArrival)
-    else -> outcome(unknown).also {
-      val latestAssessmentStatus = context.data.cas2Application.submittedApplication?.latestAssessmentStatus
-      sentryService.captureErrorMessage(
-        "CAS2 Service Status unknown because unexpected latest assessment status for ${context.data.crn}: $latestAssessmentStatus",
-      )
-    }
+    Cas2AssessmentStatus.AWAITING_ARRIVAL -> outcome(awaitingArrival)
+    else -> outcome(submitted)
   }
 }
