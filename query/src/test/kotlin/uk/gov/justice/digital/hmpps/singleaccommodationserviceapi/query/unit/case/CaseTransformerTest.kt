@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistration
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
@@ -210,24 +211,22 @@ class CaseTransformerTest {
   }
 
   @Test
-  fun `should use the supplied accommodation when transforming from case entity to case dto`() {
+  fun `should use the accommodation from the case entity when transforming to case dto`() {
     val currentAccommodationDto = buildAccommodationSummaryDto(crn = crn)
     val nextAccommodationDto = buildAccommodationSummaryDto(crn = crn)
     val caseEntity = buildCaseEntity {
       withCrn(crn)
       accommodationStatus = CaseAccommodationStatus.SETTLED
       accommodationStatusDate = LocalDate.now()
+      currentAccommodation = currentAccommodationDto
+      nextAccommodation = nextAccommodationDto
     }
 
     val result = toCaseDto(
       caseEntity = caseEntity,
       crn = crn,
-      prisonNumber = null,
-      riskLevel = null,
       assignedTo = null,
       limitedAccess = false,
-      currentAccommodation = currentAccommodationDto,
-      nextAccommodation = nextAccommodationDto,
       teamCode = "TEAM1",
     )
 
@@ -247,14 +246,15 @@ class CaseTransformerTest {
       caseAccommodationStatus = CaseAccommodationStatus.TRANSIENT,
       caseAccommodationStatusDate = LocalDate.now(),
     )
-    val caseEntity = buildCaseEntity(accommodationSummariesDto = accommodationSummaries) { withCrn(crn) }
+    val caseEntity = buildCaseEntity(roshLevelCode = RiskLevel.HIGH.code, accommodationSummariesDto = accommodationSummaries) {
+      withCrn(crn)
+      withPrisonNumber("A1234AA")
+    }
     val assignedTo = AssignedToDto(forename = "Staff", surname = "Member", username = "staff.member")
 
     val result = toCaseDto(
       caseEntity = caseEntity,
       crn = crn,
-      prisonNumber = "A1234AA",
-      riskLevel = RiskLevel.HIGH,
       assignedTo = assignedTo,
       limitedAccess = false,
       teamCode = "TeamX",
@@ -285,8 +285,6 @@ class CaseTransformerTest {
     val result = toCaseDto(
       caseEntity = null,
       crn = crn,
-      prisonNumber = null,
-      riskLevel = null,
       assignedTo = null,
       limitedAccess = null,
       teamCode = "TeamX",

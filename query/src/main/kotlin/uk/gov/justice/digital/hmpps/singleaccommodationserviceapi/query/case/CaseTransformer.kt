@@ -71,20 +71,16 @@ object CaseTransformer {
   fun toCaseDto(
     caseEntity: CaseEntity?,
     crn: String,
-    prisonNumber: String?,
-    riskLevel: RiskLevel?,
     assignedTo: AssignedToDto?,
     limitedAccess: Boolean?,
-    currentAccommodation: AccommodationSummaryDto? = caseEntity?.currentAccommodation,
-    nextAccommodation: AccommodationSummaryDto? = caseEntity?.nextAccommodation,
     teamCode: String?,
   ) = CaseDto(
     forename = caseEntity?.firstName,
     surname = caseEntity?.lastName,
     dateOfBirth = caseEntity?.dateOfBirth,
     crn = crn,
-    prisonNumber = prisonNumber,
-    riskLevel = riskLevel,
+    prisonNumber = caseEntity?.latestPrisonNumber(),
+    riskLevel = caseEntity?.roshLevelCode?.let { RiskLevel.findByCode(it) },
     assignedTo = assignedTo,
     tierScore = caseEntity?.tierScore,
     userAccess = UserAccess.FULL,
@@ -93,8 +89,8 @@ object CaseTransformer {
       toAccommodationSummariesDto(
         accommodationStatus = it.accommodationStatus,
         accommodationStatusDate = it.accommodationStatusDate,
-        currentAccommodation = currentAccommodation,
-        nextAccommodation = nextAccommodation,
+        currentAccommodation = it.currentAccommodation,
+        nextAccommodation = it.nextAccommodation,
       )
     },
     teamCode = teamCode,
