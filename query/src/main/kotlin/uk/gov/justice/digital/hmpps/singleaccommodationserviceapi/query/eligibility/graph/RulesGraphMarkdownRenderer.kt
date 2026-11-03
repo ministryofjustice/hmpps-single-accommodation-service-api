@@ -33,10 +33,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
  * - [`RuleB`](../.....RuleB.kt): Description
  * - FAIL: [`Updater`](../.....Updater.kt) - Set Upcoming
  *
- * | Outcome | Status | Action | Link | Link type |
- * | --- | --- | --- | --- | --- |
- * | upcoming | Upcoming | START_CAS2_APPLICATION (CAS2) | - | - |
- *
  *
  * **notConfirmed** (Outcome)
  *
@@ -55,10 +51,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
  * ### NamedContextUpdater
  * Set Upcoming
  * Used by: RulesetName2 (Diagram Name) on [Pass|Fail]
- *
- * | Outcome | Status | Action | Link | Link type |
- * | --- | --- | --- | --- | --- |
- * | upcoming | Upcoming | START_CAS2_APPLICATION (CAS2) | - | - |
  * ❯
  * ---
  *
@@ -141,11 +133,6 @@ object RulesGraphMarkdownRenderer {
       }
 
       appendLine("Used by: ${row.usedBy} $onDescription")
-      appendLine()
-      if (row.outcomes.isNotEmpty()) {
-        append(renderOutcomesTable(row.outcomes))
-      }
-      appendLine()
     }
   }
 
@@ -232,10 +219,6 @@ object RulesGraphMarkdownRenderer {
       }
 
       appendLine("- $kindLabel: ${contextUpdaterLabel(updater)}")
-      if (updater.outcomes.isNotEmpty()) {
-        appendLine()
-        append(renderOutcomesTable(updater.outcomes))
-      }
     }
   }
 
@@ -249,34 +232,6 @@ object RulesGraphMarkdownRenderer {
     "`$className`"
   } else {
     "[`$className`]($sourcePath)"
-  }
-
-  private fun renderOutcomesTable(outcomes: Map<String, ServiceResultSpec>): String {
-    val includeBlocking = outcomes.values.any { it.serviceStatus.blockingStatusReason != null }
-    val headers = buildList {
-      add("Status")
-      add("Action")
-      add("Link type")
-      if (includeBlocking) add("Blocking reason")
-    }
-    return buildString {
-      appendLine("| ${headers.joinToString(" | ")} |")
-      appendLine("| ${headers.joinToString(" | ") { "---" }} |")
-      outcomes.forEach { (_, result) ->
-        val cells = buildList {
-          add(escapeTable(result.serviceStatus.name))
-          add(escapeTable(actionCell(result)))
-          add(escapeTable(result.serviceStatus.link?.type?.name ?: "-"))
-          if (includeBlocking) add(escapeTable(result.serviceStatus.blockingStatusReason?.name ?: "-"))
-        }
-        appendLine("| ${cells.joinToString(" | ")} |")
-      }
-    }
-  }
-
-  private fun actionCell(result: ServiceResultSpec): String {
-    val action = result.serviceStatus.proposedAction ?: return "-"
-    return "${action.name} (${result.serviceStatus.service.name})"
   }
 
   private fun escape(value: String): String = value.replace("\"", "#quot;")

@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import java.util.UUID
 
 class Cas1NotActiveRuleTest {
-  private val description = "FAIL if the referral is not submitted and active"
+  private val description = "FAIL if the referral is inactive or unsubmitted"
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(

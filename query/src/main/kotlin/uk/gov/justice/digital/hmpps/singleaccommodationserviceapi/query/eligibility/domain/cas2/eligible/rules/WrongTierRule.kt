@@ -11,13 +11,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class WrongTierRule : Rule {
   override val description = "FAIL if person is not Tier A through G"
+  override val failureReason = FailureReason.INVALID_TIER
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = !TierRiskScores.isSingleLetterTier(data.tierScore)
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
-      failureReason = if (isFail) FailureReason.INVALID_TIER else null,
+      failureReason = if (isFail) failureReason else null,
     )
   }
 }

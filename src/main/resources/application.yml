@@ -92,7 +92,8 @@ bulk-load:
 
 case-refresh:
   worker:
-    fixed-delay: 500ms
+    cron: "* * 8-17 * * *" #runs between 08:00-18:00 daily as upstream services can be offline overnight.
+    zone: Europe/London
     max-requests-per-run: 10
     max-attempts: 3
     initial-backoff: 1m

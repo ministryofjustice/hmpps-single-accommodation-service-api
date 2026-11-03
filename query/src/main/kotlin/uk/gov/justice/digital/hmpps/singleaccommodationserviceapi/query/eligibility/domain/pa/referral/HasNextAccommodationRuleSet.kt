@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.referral
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.referral.rules.NoNextAccommodationRule
 
@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class HasNextAccommodationRuleSet(
   noNextAccommodation: NoNextAccommodationRule,
 ) : RuleSet {
-  private val rules: List<PrioritisedRule> = listOf(PrioritisedRule(noNextAccommodation))
+  private val rules: List<Rule> = listOf(noNextAccommodation)
   override val name: String = "Has Next Accommodation"
-  override fun getRules(): List<PrioritisedRule> = rules
+  override fun getRules(): List<Rule> = rules
 }

@@ -10,13 +10,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class InPrisonNoReleaseRule : Rule {
   override val description = "FAIL if person is in prison and has no release date"
+  override val failureReason = FailureReason.IN_PRISON_NO_RELEASE_DATE
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.currentAccommodationTypeEntity?.isPrison == true && data.currentAccommodation?.endDate == null
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
-      failureReason = if (isFail) FailureReason.IN_PRISON_NO_RELEASE_DATE else null,
+      failureReason = if (isFail) failureReason else null,
     )
   }
 }

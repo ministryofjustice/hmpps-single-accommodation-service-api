@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligible
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligible.rules.WrongCurrentAccommodationForCas3TypeRule
 
@@ -9,11 +9,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class CurrentAccommodationEligibleForCas3RuleSet(
   wrongCurrentAccommodationForCas3Type: WrongCurrentAccommodationForCas3TypeRule,
 ) : RuleSet {
-  private val rules: List<PrioritisedRule> = listOf(
-    PrioritisedRule(wrongCurrentAccommodationForCas3Type, 0),
+  private val rules: List<Rule> = listOf(
+    wrongCurrentAccommodationForCas3Type,
   )
 
   override val name: String = "Current Accommodation Eligible For CAS3"
 
-  override fun getRules(): List<PrioritisedRule> = rules
+  override fun getRules(): List<Rule> = rules
 }

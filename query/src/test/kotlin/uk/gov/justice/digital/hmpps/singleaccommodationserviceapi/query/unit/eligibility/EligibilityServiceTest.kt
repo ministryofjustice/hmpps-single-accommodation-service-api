@@ -261,9 +261,7 @@ class EligibilityServiceTest {
   var liveCrsRuleSet = LiveCrsRuleSet(
     NoLiveCrsRule(),
   )
-  var crsFindInterventionsUrl = "$crsUiUrl/find-interventions"
-  var crsProbationPractitionerDashboardUrl = "$crsUiUrl/probation-practitioner/dashboard"
-  var crsStartContextUpdater = CrsStartContextUpdater(crsFindInterventionsUrl)
+  var crsStartContextUpdater = CrsStartContextUpdater(crsUiUrl)
   var releaseWithin12WeeksRuleSet = ReleaseWithin12WeeksRuleSet(ReleaseOutside12WeeksRule(clock))
   var crsUpcomingContextUpdater = CrsUpcomingContextUpdater()
 
@@ -335,7 +333,7 @@ class EligibilityServiceTest {
     noNextAccommodation = noNextAccommodationRuleSet,
     liveCrs = liveCrsRuleSet,
     startContextUpdater = crsStartContextUpdater,
-    probationPractitionerDashboardUrl = crsProbationPractitionerDashboardUrl,
+    crsUiBaseUrl = crsUiUrl,
   )
 
   private val paTree = PaEligibilityTreeProvider(
@@ -1351,12 +1349,6 @@ class EligibilityServiceTest {
           currentAccommodationTypeEntity = currentAccommodationTypeEntity,
         )
 
-        val expectedUrl = when (s.expectedCrsUrl) {
-          "CRS_UI_URL_DASHBOARD" -> crsProbationPractitionerDashboardUrl
-          "CRS_UI_URL_FIND_INTERVENTIONS" -> crsFindInterventionsUrl
-          else -> null
-        }
-
         val result = eligibilityService.evaluate(crsTree, data)
 
         assertThat(result.serviceStatus)
@@ -1371,6 +1363,7 @@ class EligibilityServiceTest {
           },
         )
         assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CRS)
+        val expectedUrl = if (s.expectedCrsUrl == "CRS_UI_URL") crsUiUrl else null
         assertThat(result.url).isEqualTo(expectedUrl)
         assertThat(result.failureReasons)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")

@@ -36,6 +36,8 @@ service:
     read-timeout: 300ms
   prisoner-search:
     read-timeout: 300ms
+  commissioned-rehabilitative-services-ui:
+    base-url: commissioned-rehabilitative-services-ui-test-url
 
 spring:
   cache:
@@ -86,7 +88,8 @@ event:
 
 case-refresh:
   worker:
-    fixed-delay: 50ms
+    cron: "* * * * * *"
+    zone: UTC
     max-requests-per-run: 10
     max-attempts: 2
     initial-backoff: 1m
@@ -172,6 +175,3 @@ logging:
 frontend:
   duty-to-refer:
     view: https://single-accommodation-service-test.hmpps.service.justice.gov.uk/cases/#crn/dtr/#dtrId/details
-  commissioned-rehabilitative-services:
-    find-interventions: commissioned-rehabilitative-services-ui-test-url/find-interventions
-    probation-practitioner-dashboard: commissioned-rehabilitative-services-ui-test-url/probation-practitioner/dashboard

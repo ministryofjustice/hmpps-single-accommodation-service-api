@@ -31,6 +31,7 @@ object RulesGraphHtmlRenderer {
               mapOf(
                 "className" to rule.className,
                 "description" to rule.description,
+                "failureReason" to rule.failureReason?.name,
                 "sourcePath" to githubSourceUrl(rule.sourcePath),
               )
             },
@@ -207,21 +208,10 @@ Clicking a node also highlights every path from the root to it.</p></div>
     document.getElementById('search').value = '';
   }
 
-  function outcomesTable(outcomes) {
-    if (!outcomes.length) return '';
-    const blocking = outcomes.some(o => o.blockingReason);
-    let html = '<table><tr><th>Status</th><th>Action</th><th>Link type</th>' + (blocking ? '<th>Blocking reason</th>' : '') + '</tr>';
-    outcomes.forEach(o => {
-      html += '<tr><td>' + esc(o.status) + '</td><td>' + esc(o.action || '-') + '</td><td>' + esc(o.linkType || '-') + '</td>' +
-        (blocking ? '<td>' + esc(o.blockingReason || '-') + '</td>' : '') + '</tr>';
-    });
-    return html + '</table>';
-  }
-
   function updaterHtml(title, u) {
     if (!u) return '';
     const name = u.name === 'constant' ? '' : codeLink(u.name, u.sourcePath) + ' – ';
-    return '<h3>' + title + ' context updater</h3><p>' + name + esc(u.description) + '</p>' + outcomesTable(u.outcomes);
+    return '<h3>' + title + ' context updater</h3><p>' + name + esc(u.description);
   }
 
   function showNode(id) {
@@ -312,7 +302,7 @@ Clicking a node also highlights every path from the root to it.</p></div>
       if (updater.outcomes.length > 1) {
         html += '<br><span class="muted">One of the following; which one depends on data the simulator does not model.</span>';
       }
-      return html + outcomesTable(updater.outcomes) + '</div>';
+      return html + '</div>';
     }
     if (/current status/i.test(last.node.title)) {
       if (res.lastUpdater && res.lastUpdater.outcomes.length) {
@@ -320,12 +310,23 @@ Clicking a node also highlights every path from the root to it.</p></div>
         if (res.lastUpdater.outcomes.length > 1) {
           html += '<br><span class="muted">One of the following; which one depends on data the simulator does not model.</span>';
         }
-        html += outcomesTable(res.lastUpdater.outcomes);
+        html;
       } else {
         html += '<br><span class="muted">No context updater ran, so the status is the initial status from the context.</span>';
       }
     }
     return html + '</div>';
+  }
+
+  function traceOutcomeHtml(step, steps) {
+    let html = '<li><span class="muted">outcome:</span> <b>' + esc(step.node.title) + '</b>';
+    if (['Not Required', 'Cannot Start Yet', 'Not Eligible'].includes(step.node.title)) {
+      const previousRuleSet = steps.filter(s => s.node.kind === 'RULE_SET').pop();
+      const reasons = (previousRuleSet?.failed || []).filter(rule => rule.failureReason)
+        .map(rule => '<code>' + esc(rule.failureReason) + '</code>');
+      if (reasons.length) html += '<br><b>Reasons for failure:</b> ' + reasons.join(', ');
+    }
+    return html + '</li>';
   }
 
   function renderSim() {
@@ -350,7 +351,7 @@ Clicking a node also highlights every path from the root to it.</p></div>
           return '<li><b>' + esc(s.node.title) + '</b> ' + badge(s.status) + why + '</li>';
         }
         if (s.node.kind === 'CONTEXT_UPDATER') return '<li><span class="muted">update:</span> ' + esc(s.node.title) + '</li>';
-        return '<li><span class="muted">outcome:</span> <b>' + esc(s.node.title) + '</b></li>';
+        return traceOutcomeHtml(s, res.steps);
       }).join('') + '</ol>' +
       '<h3>Rule inputs</h3>';
 
