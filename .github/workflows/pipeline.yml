@@ -60,9 +60,10 @@ jobs:
   pact_test:
     permissions:
       contents: read
+      id-token: write
     name: Pact Consumer Tests and Publish Contracts
     needs: app_version
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_test_publish.yml@v2
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_test_publish.yml@386d4ea009b450ddd4e6d37c2a1f484762bfa9de # WORKFLOW_VERSION
     with:
       app_version: '${{ needs.app_version.outputs.version }}'
       pact_test_task: pactTest
