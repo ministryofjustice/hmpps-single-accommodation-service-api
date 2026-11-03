@@ -135,6 +135,7 @@ object AccommodationReferralTransformer {
       withdrawalReason = externalReferral.withdrawalReason?.name,
       withdrawalNote = externalReferral.withdrawalNote,
       otherReason = externalReferral.otherReason,
+      organisationName = submission.organisationName,
     )
   }
 }
