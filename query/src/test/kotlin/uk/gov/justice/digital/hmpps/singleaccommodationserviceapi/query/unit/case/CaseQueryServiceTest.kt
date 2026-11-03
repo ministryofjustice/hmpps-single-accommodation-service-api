@@ -86,11 +86,6 @@ class CaseQueryServiceTest {
   private val crnTwo = "X12346"
   private val crnThree = "X12347"
   private val crnFour = "X12348"
-  private val crnFive = "X12349"
-  private val crnSix = "X12350"
-  private val crnSeven = "X12351"
-  private val crnEight = "X12352"
-  private val crnNine = "X12353"
   private val username = "user1"
 
   @Nested
@@ -221,8 +216,6 @@ class CaseQueryServiceTest {
       username = username,
     )
 
-    private fun fullAccess(case: Case) = CaseWithUserAccess(case, UserAccess.FULL)
-
     @Test
     fun `CaseDto is redacted when UserAccess is not FULL`() {
       val entity = buildCaseEntity(assignedToForename = "DbForename", assignedToSurname = "DbSurname", assignedToUsername = "DbUsername") { withCrn(crnTwo) }
@@ -230,7 +223,7 @@ class CaseQueryServiceTest {
 
       val result = getCaseDtos(
         cases = listOf(
-          fullAccess(buildCase(crn = crnOne)),
+          CaseWithUserAccess(buildCase(crn = crnOne), UserAccess.FULL),
           CaseWithUserAccess(buildCase(crn = crnTwo), UserAccess.LIMITED),
           CaseWithUserAccess(buildCase(crn = crnThree), UserAccess.UNKNOWN),
           CaseWithUserAccess(buildCase(crn = crnFour), null),
@@ -270,7 +263,7 @@ class CaseQueryServiceTest {
       }
       every { caseRepository.mapByCrns(listOf(crnOne)) } returns mapOf(crnOne to entity)
 
-      val result = getCaseDtos(cases = listOf(fullAccess(case)))
+      val result = getCaseDtos(cases = listOf(CaseWithUserAccess(case, UserAccess.FULL)))
 
       assertThat(result.single()).isEqualTo(
         CaseDto(
@@ -298,7 +291,7 @@ class CaseQueryServiceTest {
     fun `should default limitedAccess to false when delius does not send it`() {
       every { caseRepository.mapByCrns(listOf(crnOne)) } returns emptyMap()
 
-      val result = getCaseDtos(cases = listOf(fullAccess(buildCase(crn = crnOne).copy(limitedAccess = null))))
+      val result = getCaseDtos(cases = listOf(CaseWithUserAccess(buildCase(crn = crnOne).copy(limitedAccess = null), UserAccess.FULL)))
 
       assertThat(result.single().limitedAccess).isFalse()
     }
@@ -307,7 +300,7 @@ class CaseQueryServiceTest {
     fun `should return a null risk level when the persisted rosh level code is unknown`() {
       every { caseRepository.mapByCrns(listOf(crnOne)) } returns mapOf(crnOne to buildCaseEntity(roshLevelCode = "UNKNOWN") { withCrn(crnOne) })
 
-      val result = getCaseDtos(cases = listOf(fullAccess(buildCase(crn = crnOne))))
+      val result = getCaseDtos(cases = listOf(CaseWithUserAccess(buildCase(crn = crnOne), UserAccess.FULL)))
 
       assertThat(result.single().riskLevel).isNull()
     }
@@ -316,7 +309,7 @@ class CaseQueryServiceTest {
     fun `should return a case with only delius data when there is no persisted row for the crn`() {
       every { caseRepository.mapByCrns(listOf(crnOne)) } returns emptyMap()
 
-      val result = getCaseDtos(cases = listOf(fullAccess(buildCase(crn = crnOne, team = buildCaseTeam("TeamX")))))
+      val result = getCaseDtos(cases = listOf(CaseWithUserAccess(buildCase(crn = crnOne, team = buildCaseTeam("TeamX")), UserAccess.FULL)))
 
       assertThat(result.single()).isEqualTo(
         CaseDto(
@@ -339,10 +332,10 @@ class CaseQueryServiceTest {
         crnFour to buildCaseEntity { withCrn(crnFour) },
       )
       val cases = listOf(
-        fullAccess(buildCase(crn = crnOne, staff = buildOfficer(username = username))),
-        fullAccess(buildCase(crn = crnTwo, staff = buildOfficer(username = username))),
-        fullAccess(buildCase(crn = crnThree, staff = buildOfficer(username = username))),
-        fullAccess(buildCase(crn = crnFour, staff = otherStaff)),
+        CaseWithUserAccess(buildCase(crn = crnOne, staff = buildOfficer(username = username)), UserAccess.FULL),
+        CaseWithUserAccess(buildCase(crn = crnTwo, staff = buildOfficer(username = username)), UserAccess.FULL),
+        CaseWithUserAccess(buildCase(crn = crnThree, staff = buildOfficer(username = username)), UserAccess.FULL),
+        CaseWithUserAccess(buildCase(crn = crnFour, staff = otherStaff), UserAccess.FULL),
       )
 
       assertThat(getCaseDtos(cases = cases, username = username).map { it.crn }).containsExactlyInAnyOrder(crnOne, crnThree)
@@ -360,7 +353,7 @@ class CaseQueryServiceTest {
 
     @Test
     fun `should sort cases using today from the clock`() {
-      val cases = listOf(crnOne, crnTwo).map { fullAccess(buildCase(crn = it)) }
+      val cases = listOf(crnOne, crnTwo).map { CaseWithUserAccess(buildCase(crn = it), UserAccess.FULL) }
       every { caseRepository.mapByCrns(listOf(crnOne, crnTwo)) } returns mapOf(
         crnOne to buildCaseEntity {
           withCrn(crnOne)
@@ -384,10 +377,10 @@ class CaseQueryServiceTest {
     fun `should apply the search, risk level, team code and people type filters`() {
       val teamX = buildCaseTeam("TeamX")
       val cases = listOf(
-        fullAccess(buildCase(crn = crnOne, team = teamX)),
-        fullAccess(buildCase(crn = crnTwo, team = teamX)),
-        fullAccess(buildCase(crn = crnThree, team = buildCaseTeam("TeamY"))),
-        fullAccess(buildCase(crn = crnFour, team = teamX)),
+        CaseWithUserAccess(buildCase(crn = crnOne, team = teamX), UserAccess.FULL),
+        CaseWithUserAccess(buildCase(crn = crnTwo, team = teamX), UserAccess.FULL),
+        CaseWithUserAccess(buildCase(crn = crnThree, team = buildCaseTeam("TeamY")), UserAccess.FULL),
+        CaseWithUserAccess(buildCase(crn = crnFour, team = teamX), UserAccess.FULL),
       )
       every { caseRepository.mapByCrns(any()) } returns listOf(crnOne, crnTwo, crnThree, crnFour).associateWith { crn ->
         buildCaseEntity(roshLevelCode = if (crn == crnTwo) RiskLevel.LOW.code else RiskLevel.HIGH.code) {

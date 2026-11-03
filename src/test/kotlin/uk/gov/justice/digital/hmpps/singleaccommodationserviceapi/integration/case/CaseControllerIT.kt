@@ -477,7 +477,7 @@ class CaseControllerIT : IntegrationTestBase() {
     val staff = buildOfficer(name = buildName("DeliusForename", "DeliusSurname"), username = deliusUser.username)
     val case = buildCase(
       crn = crn,
-      nomsNumber = "DeliusPrisonNumber",
+      nomsNumber = "PRI1",
       staff = staff,
       roshLevel = buildRoshLevel("RLRH", "Low"),
     )
@@ -490,7 +490,7 @@ class CaseControllerIT : IntegrationTestBase() {
         assignedToUsername = deliusUser.username,
       ) {
         withCrn(crn)
-        withPrisonNumber("DbPrisonNumber")
+        withPrisonNumber("PRI2")
       },
     )
 
@@ -499,7 +499,7 @@ class CaseControllerIT : IntegrationTestBase() {
       .exchangeSuccessfully()
       .expectBody()
       .jsonPath("$.data.length()").isEqualTo(1)
-      .jsonPath("$.data[0].prisonNumber").isEqualTo("DbPrisonNumber")
+      .jsonPath("$.data[0].prisonNumber").isEqualTo("PRI2")
       .jsonPath("$.data[0].riskLevel").isEqualTo("HIGH")
       .jsonPath("$.data[0].assignedTo.forename").isEqualTo("DbForename")
   }
@@ -629,13 +629,12 @@ class CaseControllerIT : IntegrationTestBase() {
     @BeforeEach
     fun setup() {
       val staff = buildOfficer(username = deliusUser.username)
-      val cases = listOf(
-        buildCase(crn = accessibleCrn, nomsNumber = "PRI1", staff = staff),
-        buildCase(crn = restrictedCrn, nomsNumber = "PRI2", staff = staff, name = buildName("RestrictedForename", "RestrictedSurname")),
-      )
       SasAndDeliusStubs.stubCaseList(
         deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-        cases = cases,
+        cases = listOf(
+          buildCase(crn = accessibleCrn, nomsNumber = "PRI1", staff = staff),
+          buildCase(crn = restrictedCrn, nomsNumber = "PRI2", staff = staff, name = buildName("RestrictedForename", "RestrictedSurname")),
+        ),
         pageSize = pageSize.toInt(),
       )
     }

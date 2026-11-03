@@ -35,11 +35,11 @@ object CaseTransformer {
     else -> toLimitedCaseDto(
       crn = case.crn,
       teamCode = case.team.code,
-      assignedTo = case.assignedToDto(),
+      assignedTo = case.toAssignedToDto(),
     )
   }
 
-  fun Case.assignedToDto() = AssignedToDto(
+  fun Case.toAssignedToDto() = AssignedToDto(
     forename = this.staff.name.forename,
     surname = this.staff.name.surname,
     username = this.staff.username,
@@ -59,7 +59,7 @@ object CaseTransformer {
     tierScore = tier?.tierScore,
     riskLevel = this.roshLevel?.let { RiskLevel.findByCode(it.code) },
     pncReference = cpr?.identifiers?.pncs?.firstOrNull(),
-    assignedTo = this.assignedToDto(),
+    assignedTo = this.toAssignedToDto(),
     userAccess = UserAccess.FULL,
     limitedAccess = this.limitedAccess ?: false,
     sexualOffenceRegistrations = sexualOffenceRegistrations
