@@ -39,7 +39,7 @@ object CaseTransformer {
     )
   }
 
-  private fun Case.assignedToDto() = AssignedToDto(
+  fun Case.assignedToDto() = AssignedToDto(
     forename = this.staff.name.forename,
     surname = this.staff.name.surname,
     username = this.staff.username,

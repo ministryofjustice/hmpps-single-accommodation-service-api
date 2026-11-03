@@ -27,7 +27,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Name
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Officer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
@@ -44,7 +43,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
@@ -151,7 +149,6 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = cases,
       pageSize = pageSize.toInt(),
     )
-    cases.forEach { SasAndDeliusStubs.stubGetCase(crn = it.crn, response = it) }
     ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = cases.map { it.crn })
 
     // SAS knows about 2 cases
@@ -263,22 +260,18 @@ class CaseControllerIT : IntegrationTestBase() {
       listOf(
         buildCaseEntity {
           withCrn(settledCase.crn)
-          assignTo(staff)
           accommodationStatus = CaseAccommodationStatus.SETTLED
         },
         buildCaseEntity {
           withCrn(transientCase.crn)
-          assignTo(staff)
           accommodationStatus = CaseAccommodationStatus.TRANSIENT
         },
         buildCaseEntity {
           withCrn(riskCase.crn)
-          assignTo(staff)
           accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
         },
         buildCaseEntity {
           withCrn(noFixedAbodeCase.crn)
-          assignTo(staff)
           accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
         },
       ),
@@ -446,7 +439,6 @@ class CaseControllerIT : IntegrationTestBase() {
       tierScore = "D2",
     ) {
       withCrn(crn)
-      assignTo(staff)
       currentAccommodation = buildAccommodationSummaryDto(
         crn = crn,
         status = buildAccommodationStatusDto(code = "C", description = "Custody"),
@@ -513,6 +505,22 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should fall back to delius for assignedTo when the row has none yet`() {
+    val crn = "X12345"
+    stubCaseListForCrns(listOf(buildCase(crn = crn, staff = buildOfficer(name = buildName("DeliusForename", "DeliusSurname"), username = deliusUser.username))))
+    caseRepository.saveAndFlush(buildCaseEntity { withCrn(crn) })
+
+    webTestClient.get().uri { it.path("/case-list").build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data.length()").isEqualTo(1)
+      .jsonPath("$.data[0].crn").isEqualTo(crn)
+      .jsonPath("$.data[0].assignedTo.forename").isEqualTo("DeliusForename")
+      .jsonPath("$.data[0].assignedTo.username").isEqualTo(deliusUser.username)
+  }
+
+  @Test
   fun `should not fail the case list when delius returns a case that is archived in the DB`() {
     val archivedCrn = "X12345"
     val activeCrn = "X12346"
@@ -526,14 +534,14 @@ class CaseControllerIT : IntegrationTestBase() {
     caseRepository.saveAllAndFlush(
       listOf(
         buildCaseEntity(archived = true) { withCrn(archivedCrn) },
-        buildCaseEntity {
-          withCrn(activeCrn)
-          assignTo(staff)
-        },
+        buildCaseEntity { withCrn(activeCrn) },
       ),
     )
 
-    assertThat(getCaseListResponse().data.map { it.crn }).containsExactly(activeCrn)
+    val response = getCaseListResponse().data
+
+    assertThat(response.map { it.crn }).containsExactlyInAnyOrder(archivedCrn, activeCrn)
+    assertThat(response.single { it.crn == archivedCrn }.forename).isNull()
   }
 
   @Test
@@ -550,8 +558,6 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = listOf(assignedCase, teamCase),
       pageSize = pageSize.toInt(),
     )
-    SasAndDeliusStubs.stubGetCase(crn = assignedCase.crn, response = assignedCase)
-    SasAndDeliusStubs.stubGetCase(crn = teamCase.crn, response = teamCase)
     ProbationAccessControlStubs.postUserAccessForCrns(deliusUser.username, accessibleCrns = listOf(assignedCase.crn, teamCase.crn))
 
     assertThat(caseRepository.findAll()).hasSize(0)
@@ -632,7 +638,6 @@ class CaseControllerIT : IntegrationTestBase() {
         cases = cases,
         pageSize = pageSize.toInt(),
       )
-      cases.forEach { SasAndDeliusStubs.stubGetCase(crn = it.crn, response = it) }
     }
 
     @Test
@@ -1091,12 +1096,6 @@ class CaseControllerIT : IntegrationTestBase() {
       pageSize = pageSize.toInt(),
     )
     ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = cases.map { it.crn })
-  }
-
-  private fun CaseEntity.assignTo(staff: Officer) {
-    assignedToForename = staff.name.forename
-    assignedToSurname = staff.name.surname
-    assignedToUsername = staff.username
   }
 
   private fun stubAdditionalCorePersonRecords() {

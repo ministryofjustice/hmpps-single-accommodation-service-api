@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseTeam
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOfficer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -317,20 +318,35 @@ class CaseQueryServiceTest {
 
       val result = getCaseDtos(cases = listOf(fullAccess(buildCase(crn = crnOne, team = buildCaseTeam("TeamX")))))
 
-      assertThat(result.single()).isEqualTo(CaseDto(crn = crnOne, userAccess = UserAccess.FULL, limitedAccess = false, teamCode = "TeamX"))
+      assertThat(result.single()).isEqualTo(
+        CaseDto(
+          crn = crnOne,
+          assignedTo = AssignedToDto(forename = "First", surname = "Last", username = "user1"),
+          userAccess = UserAccess.FULL,
+          limitedAccess = false,
+          teamCode = "TeamX",
+        ),
+      )
     }
 
     @Test
-    fun `should only return cases whose persisted row is assigned to the given username`() {
+    fun `should only return cases assigned to the given username, falling back to delius when the row has no assigned user`() {
+      val otherStaff = buildOfficer(username = "OtherUsername")
       every { caseRepository.mapByCrns(any()) } returns mapOf(
         crnOne to buildCaseEntity(assignedToForename = "DbForename", assignedToSurname = "DbSurname", assignedToUsername = username) { withCrn(crnOne) },
         crnTwo to buildCaseEntity(assignedToForename = "DbForename", assignedToSurname = "DbSurname", assignedToUsername = "OtherUsername") { withCrn(crnTwo) },
         crnThree to buildCaseEntity { withCrn(crnThree) },
+        crnFour to buildCaseEntity { withCrn(crnFour) },
       )
-      val cases = listOf(crnOne, crnTwo, crnThree).map { fullAccess(buildCase(crn = it)) }
+      val cases = listOf(
+        fullAccess(buildCase(crn = crnOne, staff = buildOfficer(username = username))),
+        fullAccess(buildCase(crn = crnTwo, staff = buildOfficer(username = username))),
+        fullAccess(buildCase(crn = crnThree, staff = buildOfficer(username = username))),
+        fullAccess(buildCase(crn = crnFour, staff = otherStaff)),
+      )
 
-      assertThat(getCaseDtos(cases = cases, username = username).map { it.crn }).containsExactly(crnOne)
-      assertThat(getCaseDtos(cases = cases, username = null).map { it.crn }).containsExactlyInAnyOrder(crnOne, crnTwo, crnThree)
+      assertThat(getCaseDtos(cases = cases, username = username).map { it.crn }).containsExactlyInAnyOrder(crnOne, crnThree)
+      assertThat(getCaseDtos(cases = cases, username = null).map { it.crn }).containsExactlyInAnyOrder(crnOne, crnTwo, crnThree, crnFour)
     }
 
     @Test

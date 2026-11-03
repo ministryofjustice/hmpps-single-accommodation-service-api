@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.assignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
@@ -56,6 +57,8 @@ class CaseQueryService(
 
     return cases.map { (case, userAccess) ->
       val entity = caseEntitiesByCrn[case.crn]
+      // fallback for if a case row has no assignedTp - use Delius data to ensure case is not hidden
+      val assignedTo = entity?.toAssignedToDto() ?: case.assignedToDto()
 
       when (userAccess) {
         UserAccess.FULL -> {
@@ -65,7 +68,7 @@ class CaseQueryService(
             prisonNumber = entity?.latestPrisonNumber(),
             riskLevel = entity?.roshLevelCode?.let { RiskLevel.findByCode(it) },
             pncReference = null,
-            assignedTo = entity?.toAssignedToDto(),
+            assignedTo = assignedTo,
             limitedAccess = case.limitedAccess ?: false,
             teamCode = case.team.code,
           )
@@ -74,7 +77,7 @@ class CaseQueryService(
         UserAccess.LIMITED, UserAccess.UNKNOWN, null -> toLimitedCaseDto(
           case.crn,
           teamCode = case.team.code,
-          assignedTo = entity?.toAssignedToDto(),
+          assignedTo = assignedTo,
         )
       }
     }.filterCases(
