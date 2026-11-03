@@ -9,9 +9,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligible.CurrentAccommodationEligibleForCas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligible.TierEligibleForCas1RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.Cas1ActiveContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.placement.NoPlacementContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.placement.PlacementContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.placement.PlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.Cas1StartContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.requestForPlacement.NoRequestForPlacementContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.requestForPlacement.RequestForPlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithin28WeeksRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RoshEligibleRuleSet
@@ -22,8 +26,12 @@ class Cas1EligibilityTreeProvider(
   private val releaseWithin28Weeks: ReleaseWithin28WeeksRuleSet,
   private val upcomingContextUpdater: Cas1UpcomingContextUpdater,
   private val referral: Cas1RuleSet,
+  private val placement: PlacementRuleSet,
+  private val requestForPlacement: RequestForPlacementRuleSet,
+  private val noRequestForPlacementContextUpdater: NoRequestForPlacementContextUpdater,
+  private val placementContextUpdater: PlacementContextUpdater,
   private val startContextUpdater: Cas1StartContextUpdater,
-  private val activeContextUpdater: Cas1ActiveContextUpdater,
+  private val noPlacementContextUpdater: NoPlacementContextUpdater,
   private val tierEligibleForCas1: TierEligibleForCas1RuleSet,
   private val currentAccommodationEligibleForCas1: CurrentAccommodationEligibleForCas1RuleSet,
   private val roshEligible: RoshEligibleRuleSet,
@@ -60,9 +68,21 @@ class Cas1EligibilityTreeProvider(
       .onFail(notEligible)
       .build()
 
+    val placementNode = builder
+      .ruleSet(placement)
+      .onPass(confirmed).applyContextUpdaterOnPass(placementContextUpdater)
+      .onFail(confirmed).applyContextUpdaterOnFailure(noPlacementContextUpdater)
+      .build()
+
+    val requestForPlacementNode = builder
+      .ruleSet(requestForPlacement)
+      .onPass(placementNode)
+      .onFail(confirmed).applyContextUpdaterOnFailure(noRequestForPlacementContextUpdater)
+      .build()
+
     val referralNode = builder
       .ruleSet(referral)
-      .onPass(confirmed).applyContextUpdaterOnPass(activeContextUpdater)
+      .onPass(requestForPlacementNode)
       .onFail(tierEligibleForCas1Node).applyContextUpdaterOnFailure(startContextUpdater)
       .build()
 

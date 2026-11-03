@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas1NotActiveRule : Rule {
-  override val description = "FAIL if the referral is not submitted and active"
+  override val description = "FAIL if the referral is unsubmitted and inactive"
 
   override fun evaluate(data: DomainData): RuleResult {
     val unsuitableStatuses = listOf(
