@@ -54,13 +54,13 @@ class CaseController(
     @RequestParam(required = false) peopleType: PeopleType?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     val normalizedTeamCode = teamCode?.trim()?.takeIf { it.isNotEmpty() }
-    val personDtos = caseQueryService.getCaseList(normalizedTeamCode)
+    val casesWithUserAccess = caseQueryService.getCaseList(normalizedTeamCode)
     caseApplicationService.createCases(
-      personDtos.data.map { CrnToPrisonNumber(it.crn, it.nomsNumber) },
+      casesWithUserAccess.data.map { CrnToPrisonNumber(it.case.crn, it.case.nomsNumber) },
     )
 
     val caseDtos = caseQueryService.getCaseDtos(
-      personDtos.data,
+      casesWithUserAccess.data,
       searchTerm,
       riskLevel,
       normalizedTeamCode,
@@ -68,7 +68,7 @@ class CaseController(
       userService.getUsername().value,
     )
 
-    return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = personDtos.upstreamFailures))
+    return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = casesWithUserAccess.upstreamFailures))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
@@ -84,10 +84,13 @@ class CaseController(
     val normalisedCrn = crn.uppercase()
     val caseResponse = caseQueryService.getCaseFromDelius(normalisedCrn)
 
-    val crnToPrisonNumber = caseResponse.data?.let { CrnToPrisonNumber(it.crn, it.nomsNumber) }
-    caseApplicationService.createCases(listOfNotNull(crnToPrisonNumber))
+    val caseWithUserAccess = caseResponse.data ?: return ResponseEntity.notFound().build()
+
+    val case = caseWithUserAccess.case
+    caseApplicationService.createCases(listOf(CrnToPrisonNumber(case.crn, case.nomsNumber)))
+
     val caseDto = caseQueryService.getCaseDtos(
-      listOfNotNull(caseResponse.data),
+      listOf(caseWithUserAccess),
       searchTerm = null,
       riskLevel = null,
       teamCode = null,

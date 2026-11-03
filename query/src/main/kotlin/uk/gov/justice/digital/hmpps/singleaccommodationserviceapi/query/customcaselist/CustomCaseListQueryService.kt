@@ -56,9 +56,6 @@ class CustomCaseListQueryService(
           toCaseDto(
             caseEntity = entity,
             crn = entity.latestCrn(),
-            prisonNumber = entity.latestPrisonNumber(),
-            riskLevel = entity.roshLevelCode?.let { RiskLevel.findByCode(it) },
-            pncReference = null,
             assignedTo = entity.toAssignedToDto(),
             limitedAccess = isLao,
             teamCode = caseTeamCode,
