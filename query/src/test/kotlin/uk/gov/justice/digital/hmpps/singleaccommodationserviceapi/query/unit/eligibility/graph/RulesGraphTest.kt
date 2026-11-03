@@ -393,7 +393,6 @@ class RulesGraphTest {
       assertThat(markdown).doesNotContain("_onFail")
       assertThat(markdown).contains("- FAIL: Set current status to Not Started")
       assertThat(markdown).contains("Used by: PaCompletion (PA)")
-      assertThat(markdown).contains("| CAS1_NOT_STARTED | START_APPROVED_PREMISE_APPLICATION (CAS1) | CAS1_START_APPLICATION |")
     }
 
     @Test

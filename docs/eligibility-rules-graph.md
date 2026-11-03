@@ -62,10 +62,6 @@ FAIL if person is not Male and is not Tier A, B, C or D</div>")
 - [`ReleaseOutside28WeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/rules/ReleaseOutside28WeeksRule.kt): FAIL if release is more than 28 weeks from today
 - FAIL: [`Cas1UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/Cas1UpcomingContextUpdater.kt) - Set current status to Upcoming
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS1_UPCOMING | START_APPROVED_PREMISE_APPLICATION (CAS1) | - |
-
 
 **CAS1 Referral** (RuleSet) `Cas1RuleSet`
 - [`Cas1NotPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/rules/Cas1NotPresentRule.kt): FAIL if person does not have an application
@@ -81,30 +77,10 @@ FAIL if person is not Male and is not Tier A, B, C or D</div>")
  Placement Request Submitted,
  Placement Request Withdrawn,
  Submitted
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS1_ARRIVED | - | CAS1_VIEW_APPLICATION |
-| CAS1_NOT_ARRIVED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_BOOKED | - | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_CANCELLED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_REQUEST_NOT_STARTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_REQUEST_WITHDRAWN | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_REQUEST_REJECTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_REQUEST_SUBMITTED | - | CAS1_VIEW_APPLICATION |
-| CAS1_INFO_REQUESTED | PROVIDE_INFORMATION (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_SUBMITTED | - | CAS1_VIEW_APPLICATION |
 - FAIL: [`Cas1StartContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/Cas1StartContextUpdater.kt) - Set current status to one of:
 Application Rejected,
  Not Started,
  Not Submitted
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS1_NOT_SUBMITTED | CONTINUE_APPROVED_PREMISE_APPLICATION (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_APPLICATION_REJECTED | START_APPROVED_PREMISE_APPLICATION (CAS1) | CAS1_START_APPLICATION |
-| CAS1_NOT_STARTED | START_APPROVED_PREMISE_APPLICATION (CAS1) | CAS1_START_APPLICATION |
 
 
 **Arrived, Information Requested, Not Arrived, Placement Booked, Placement Cancelled, Placement Request Not Started, Placement Request Rejected, Placement Request Submitted, Placement Request Withdrawn, Submitted** (Outcome)
@@ -198,10 +174,6 @@ FAIL if person is in the community</div>")
 - [`ReleaseOutside15DaysRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/ReleaseOutside15DaysRule.kt): FAIL if release is more than 15 days from today
 - FAIL: [`Cas2UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/upcoming/Cas2UpcomingContextUpdater.kt) - Set current status to Upcoming
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS2_UPCOMING | START_CAS2_REFERRAL (CAS2) | - |
-
 
 **CAS2 Referral** (RuleSet) `Cas2RuleSet`
 - [`Cas2NotSubmittedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/referral/rules/Cas2NotSubmittedRule.kt): FAIL if the referral is unsubmitted
@@ -215,18 +187,6 @@ FAIL if person is in the community</div>")
  Place Offered,
  Submitted,
  Unknown
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS2_SUBMITTED | - | CAS2_VIEW_APPLICATION |
-| CAS2_MORE_INFORMATION_NEEDED | PROVIDE_MORE_INFORMATION_FOR_CAS2_REFERRAL (CAS2) | CAS2_VIEW_APPLICATION |
-| CAS2_AWAITING_DECISION | - | CAS2_VIEW_APPLICATION |
-| CAS2_ON_WAITING_LIST | - | CAS2_VIEW_APPLICATION |
-| CAS2_PLACE_OFFERED | REPLY_TO_CAS2_PLACE_OFFER (CAS2) | CAS2_VIEW_APPLICATION |
-| CAS2_OFFER_ACCEPTED | - | CAS2_VIEW_APPLICATION |
-| CAS2_UNKNOWN | - | - |
-| CAS2_ARRIVED | - | CAS2_VIEW_APPLICATION |
-| CAS2_AWAITING_ARRIVAL | - | CAS2_VIEW_APPLICATION |
 - FAIL: [`Cas2StartContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/referral/Cas2StartContextUpdater.kt) - Set current status to one of:
 Cancelled,
  Not Started,
@@ -234,15 +194,6 @@ Cancelled,
  Offer Declined or Withdrawn,
  Unknown,
  Withdrawn
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS2_NOT_STARTED | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
-| CAS2_NOT_SUBMITTED | CONTINUE_A_CAS2_REFERRAL (CAS2) | CAS2_VIEW_APPLICATION |
-| CAS2_OFFER_DECLINED_OR_WITHDRAWN | - | CAS2_START_APPLICATION |
-| CAS2_CANCELLED | - | CAS2_START_APPLICATION |
-| CAS2_WITHDRAWN | - | CAS2_START_APPLICATION |
-| CAS2_UNKNOWN | - | - |
 
 
 **Arrived, Awaiting Arrival, Awaiting Decision, More Information Needed, Offer Accepted, On Waiting List, Place Offered, Submitted, Unknown** (Outcome)
@@ -339,10 +290,6 @@ FAIL if person is not male and the referral is neither live nor completed</div>"
 - [`ReleaseOutside15DaysRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/rules/ReleaseOutside15DaysRule.kt): FAIL if release is more than 15 days from today
 - FAIL: [`Cas3UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/upcoming/Cas3UpcomingContextUpdater.kt) - Set current status to Upcoming
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS3_UPCOMING | START_CAS3_REFERRAL (CAS3) | - |
-
 
 **CAS3 Referral** (RuleSet) `Cas3RuleSet`
 - [`Cas3ReferralNotActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/referral/rules/Cas3ReferralNotActiveRule.kt): FAIL if the referral is rejected or in progress
@@ -355,26 +302,10 @@ FAIL if person is not male and the referral is neither live nor completed</div>"
  Booking Confirmed,
  Not Arrived,
  Submitted
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS3_BEDSPACE_OFFERED | REPLY_TO_CAS3_BEDSPACE_OFFER (CAS3) | CAS3_VIEW_REFERRAL |
-| CAS3_BOOKING_CONFIRMED | - | CAS3_VIEW_REFERRAL |
-| CAS3_NOT_ARRIVED | - | CAS3_VIEW_REFERRAL |
-| CAS3_BOOKING_CANCELLED | - | CAS3_VIEW_REFERRAL |
-| CAS3_SUBMITTED | - | CAS3_VIEW_REFERRAL |
-| CAS3_ARRIVED | - | CAS3_VIEW_REFERRAL |
 - FAIL: [`Cas3StartContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/referral/Cas3StartContextUpdater.kt) - Set current status to one of:
 Not Started,
  Not Submitted,
  Rejected
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS3_NOT_STARTED_NEW | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
-| CAS3_REJECTED | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
-| CAS3_NOT_SUBMITTED | CONTINUE_CAS3_REFERRAL (CAS3) | CAS3_VIEW_REFERRAL |
-| CAS3_NOT_STARTED | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
 
 
 **Arrived, Bedspace Offered, Booking Cancelled, Booking Confirmed, Not Arrived, Submitted** (Outcome)
@@ -398,14 +329,6 @@ Not Started,
 - [`CrsSubmittedRuleMale`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/prerequisite/rules/CrsSubmittedRuleMale.kt): FAIL if person is male and the referral is neither live nor completed
 - [`CrsSubmittedRuleNonMale`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/prerequisite/rules/CrsSubmittedRuleNonMale.kt): FAIL if person is not male and the referral is neither live nor completed
 - FAIL: [`Cas3CannotStartContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/prerequisite/Cas3CannotStartContextUpdater.kt) - Cannot Start Yet
-
-| Status | Action | Link type | Blocking reason |
-| --- | --- | --- | --- |
-| CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION | - | - | SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS | - | - | SUBMIT_DTR_AND_CRS_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION | - | - | SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET_SUBMIT_CRS | - | - | SUBMIT_CRS_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET_SUBMIT_DTR | - | - | SUBMIT_DTR_BEFORE_CAS3 |
 
 
 **current status** (Outcome)
@@ -456,20 +379,10 @@ flowchart TD
 - [`ReleaseOutside12WeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/upcoming/rules/ReleaseOutside12WeeksRule.kt): FAIL if release is more than 12 weeks from today
 - FAIL: [`CrsUpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/upcoming/CrsUpcomingContextUpdater.kt) - Set current status to Upcoming
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| CRS_UPCOMING_ACCOMMODATION_REFERRAL | SUBMIT_CRS_ACCOMMODATION_REFERRAL (CRS) | - |
-| CRS_UPCOMING_REFERRAL | SUBMIT_CRS_REFERRAL (CRS) | - |
-
 
 **Live CRS** (RuleSet) `LiveCrsRuleSet`
 - [`NoLiveCrsRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/referral/rules/NoLiveCrsRule.kt): FAIL if no live CRS referral
 - FAIL: [`CrsStartContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/referral/CrsStartContextUpdater.kt) - Set current status to Not Started
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| CRS_NOT_STARTED_ACCOMMODATION_REFERRAL | SUBMIT_CRS_ACCOMMODATION_REFERRAL (CRS) | - |
-| CRS_NOT_STARTED_REFERRAL | SUBMIT_CRS_REFERRAL (CRS) | - |
 
 
 **Submitted** (Outcome)
@@ -531,12 +444,6 @@ FAIL if the DTR submission date is missing or more than 26 weeks ago</div>")
  Not Accepted,
  Submitted
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| DTR_ACCEPTED | - | - |
-| DTR_NOT_ACCEPTED | - | - |
-| DTR_SUBMITTED | ADD_DTR_OUTCOME (DTR) | - |
-
 
 **Accepted, Not Accepted, Submitted** (Outcome)
 
@@ -547,10 +454,6 @@ FAIL if the DTR submission date is missing or more than 26 weeks ago</div>")
 **Release Within 8 Weeks** (RuleSet) `ReleaseWithin8WeeksRuleSet`
 - [`ReleaseOutside8WeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/upcoming/rules/ReleaseOutside8WeeksRule.kt): FAIL if release is more than 8 weeks from today
 - FAIL: [`DtrUpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/upcoming/DtrUpcomingContextUpdater.kt) - Upcoming
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| DTR_UPCOMING | SUBMIT_DTR_REFERRAL (DTR) | - |
 
 
 **Not Started** (Outcome)
@@ -657,21 +560,6 @@ Arrived,
 
 Used by: CAS1 Referral (CAS1) on pass
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS1_ARRIVED | - | CAS1_VIEW_APPLICATION |
-| CAS1_NOT_ARRIVED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_BOOKED | - | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_CANCELLED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_REQUEST_NOT_STARTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_REQUEST_WITHDRAWN | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_REQUEST_REJECTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_REQUEST_SUBMITTED | - | CAS1_VIEW_APPLICATION |
-| CAS1_INFO_REQUESTED | PROVIDE_INFORMATION (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_SUBMITTED | - | CAS1_VIEW_APPLICATION |
-
-
 Set current status to one of:
 Application Rejected,
  Not Started,
@@ -679,21 +567,9 @@ Application Rejected,
 
 Used by: CAS1 Referral (CAS1) on fail
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS1_NOT_SUBMITTED | CONTINUE_APPROVED_PREMISE_APPLICATION (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_APPLICATION_REJECTED | START_APPROVED_PREMISE_APPLICATION (CAS1) | CAS1_START_APPLICATION |
-| CAS1_NOT_STARTED | START_APPROVED_PREMISE_APPLICATION (CAS1) | CAS1_START_APPLICATION |
-
-
 Set current status to Upcoming
 
 Used by: Release Within 28 Weeks (CAS1) on fail
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS1_UPCOMING | START_APPROVED_PREMISE_APPLICATION (CAS1) | - |
-
 
 Arrived,
  Awaiting Arrival,
@@ -707,19 +583,6 @@ Arrived,
 
 Used by: CAS2 Referral (CAS2) on pass
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS2_SUBMITTED | - | CAS2_VIEW_APPLICATION |
-| CAS2_MORE_INFORMATION_NEEDED | PROVIDE_MORE_INFORMATION_FOR_CAS2_REFERRAL (CAS2) | CAS2_VIEW_APPLICATION |
-| CAS2_AWAITING_DECISION | - | CAS2_VIEW_APPLICATION |
-| CAS2_ON_WAITING_LIST | - | CAS2_VIEW_APPLICATION |
-| CAS2_PLACE_OFFERED | REPLY_TO_CAS2_PLACE_OFFER (CAS2) | CAS2_VIEW_APPLICATION |
-| CAS2_OFFER_ACCEPTED | - | CAS2_VIEW_APPLICATION |
-| CAS2_UNKNOWN | - | - |
-| CAS2_ARRIVED | - | CAS2_VIEW_APPLICATION |
-| CAS2_AWAITING_ARRIVAL | - | CAS2_VIEW_APPLICATION |
-
-
 Set current status to one of:
 Cancelled,
  Not Started,
@@ -730,24 +593,9 @@ Cancelled,
 
 Used by: CAS2 Referral (CAS2) on fail
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS2_NOT_STARTED | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
-| CAS2_NOT_SUBMITTED | CONTINUE_A_CAS2_REFERRAL (CAS2) | CAS2_VIEW_APPLICATION |
-| CAS2_OFFER_DECLINED_OR_WITHDRAWN | - | CAS2_START_APPLICATION |
-| CAS2_CANCELLED | - | CAS2_START_APPLICATION |
-| CAS2_WITHDRAWN | - | CAS2_START_APPLICATION |
-| CAS2_UNKNOWN | - | - |
-
-
 Set current status to Upcoming
 
 Used by: Release Within 15 Days (CAS2) on fail
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS2_UPCOMING | START_CAS2_REFERRAL (CAS2) | - |
-
 
 Arrived,
  Bedspace Offered,
@@ -758,28 +606,9 @@ Arrived,
 
 Used by: CAS3 Referral (CAS3) on pass
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS3_BEDSPACE_OFFERED | REPLY_TO_CAS3_BEDSPACE_OFFER (CAS3) | CAS3_VIEW_REFERRAL |
-| CAS3_BOOKING_CONFIRMED | - | CAS3_VIEW_REFERRAL |
-| CAS3_NOT_ARRIVED | - | CAS3_VIEW_REFERRAL |
-| CAS3_BOOKING_CANCELLED | - | CAS3_VIEW_REFERRAL |
-| CAS3_SUBMITTED | - | CAS3_VIEW_REFERRAL |
-| CAS3_ARRIVED | - | CAS3_VIEW_REFERRAL |
-
-
 Cannot Start Yet
 
 Used by: Prerequisite (CAS3) on fail
-
-| Status | Action | Link type | Blocking reason |
-| --- | --- | --- | --- |
-| CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION | - | - | SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS | - | - | SUBMIT_DTR_AND_CRS_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION | - | - | SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET_SUBMIT_CRS | - | - | SUBMIT_CRS_BEFORE_CAS3 |
-| CAS3_CANNOT_START_YET_SUBMIT_DTR | - | - | SUBMIT_DTR_BEFORE_CAS3 |
-
 
 Set current status to one of:
 Not Started,
@@ -788,42 +617,17 @@ Not Started,
 
 Used by: CAS3 Referral (CAS3) on fail
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS3_NOT_STARTED_NEW | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
-| CAS3_REJECTED | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
-| CAS3_NOT_SUBMITTED | CONTINUE_CAS3_REFERRAL (CAS3) | CAS3_VIEW_REFERRAL |
-| CAS3_NOT_STARTED | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
-
-
 Set current status to Upcoming
 
 Used by: Release Within 15 Days (CAS3) on fail
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| CAS3_UPCOMING | START_CAS3_REFERRAL (CAS3) | - |
-
 
 Set current status to Not Started
 
 Used by: Live CRS (CRS) on fail
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| CRS_NOT_STARTED_ACCOMMODATION_REFERRAL | SUBMIT_CRS_ACCOMMODATION_REFERRAL (CRS) | - |
-| CRS_NOT_STARTED_REFERRAL | SUBMIT_CRS_REFERRAL (CRS) | - |
-
-
 Set current status to Upcoming
 
 Used by: Release Within 12 Weeks (CRS) on fail
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| CRS_UPCOMING_ACCOMMODATION_REFERRAL | SUBMIT_CRS_ACCOMMODATION_REFERRAL (CRS) | - |
-| CRS_UPCOMING_REFERRAL | SUBMIT_CRS_REFERRAL (CRS) | - |
-
 
 Accepted,
  Not Accepted,
@@ -831,18 +635,6 @@ Accepted,
 
 Used by: DTR (DTR) on pass
 
-| Status | Action | Link type |
-| --- | --- | --- |
-| DTR_ACCEPTED | - | - |
-| DTR_NOT_ACCEPTED | - | - |
-| DTR_SUBMITTED | ADD_DTR_OUTCOME (DTR) | - |
-
-
 Upcoming
 
 Used by: Release Within 8 Weeks (DTR) on fail
-
-| Status | Action | Link type |
-| --- | --- | --- |
-| DTR_UPCOMING | SUBMIT_DTR_REFERRAL (DTR) | - |
-

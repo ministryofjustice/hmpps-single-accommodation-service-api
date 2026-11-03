@@ -138,21 +138,10 @@ Clicking a node also highlights every path from the root to it.</p></div>
     document.getElementById('search').value = '';
   }
 
-  function outcomesTable(outcomes) {
-    if (!outcomes.length) return '';
-    const blocking = outcomes.some(o => o.blockingReason);
-    let html = '<table><tr><th>Status</th><th>Action</th><th>Link type</th>' + (blocking ? '<th>Blocking reason</th>' : '') + '</tr>';
-    outcomes.forEach(o => {
-      html += '<tr><td>' + esc(o.status) + '</td><td>' + esc(o.action || '-') + '</td><td>' + esc(o.linkType || '-') + '</td>' +
-        (blocking ? '<td>' + esc(o.blockingReason || '-') + '</td>' : '') + '</tr>';
-    });
-    return html + '</table>';
-  }
-
   function updaterHtml(title, u) {
     if (!u) return '';
     const name = u.name === 'constant' ? '' : codeLink(u.name, u.sourcePath) + ' – ';
-    return '<h3>' + title + ' context updater</h3><p>' + name + esc(u.description) + '</p>' + outcomesTable(u.outcomes);
+    return '<h3>' + title + ' context updater</h3><p>' + name + esc(u.description);
   }
 
   function showNode(id) {
@@ -243,7 +232,7 @@ Clicking a node also highlights every path from the root to it.</p></div>
       if (updater.outcomes.length > 1) {
         html += '<br><span class="muted">One of the following; which one depends on data the simulator does not model.</span>';
       }
-      return html + outcomesTable(updater.outcomes) + '</div>';
+      return html;
     }
     if (/current status/i.test(last.node.title)) {
       if (res.lastUpdater && res.lastUpdater.outcomes.length) {
@@ -251,7 +240,7 @@ Clicking a node also highlights every path from the root to it.</p></div>
         if (res.lastUpdater.outcomes.length > 1) {
           html += '<br><span class="muted">One of the following; which one depends on data the simulator does not model.</span>';
         }
-        html += outcomesTable(res.lastUpdater.outcomes);
+        html;
       } else {
         html += '<br><span class="muted">No context updater ran, so the status is the initial status from the context.</span>';
       }
