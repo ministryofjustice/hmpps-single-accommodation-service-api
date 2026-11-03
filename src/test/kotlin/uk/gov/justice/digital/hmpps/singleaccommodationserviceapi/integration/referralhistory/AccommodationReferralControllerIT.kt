@@ -276,6 +276,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
                 withdrawalReason = EntityExternalReferralWithdrawalReason.ANOTHER_REASON.name,
                 withdrawalNote = null,
                 otherReason = "Archived other reason",
+                organisationName = "Another Charity",
               ),
               expectedReferralHistoryItem(
                 id = completedReferral.id,
@@ -286,6 +287,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
                 referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
                 withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE.name,
                 withdrawalNote = null,
+                organisationName = "Another Charity",
               ),
               expectedReferralHistoryItem(
                 id = rejectedReferral.id,
@@ -296,6 +298,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
                 referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
                 withdrawalReason = EntityExternalReferralWithdrawalReason.NO_CAPACITY.name,
                 withdrawalNote = "Rejected withdrawal reason",
+                organisationName = "Rejecting Charity",
               ),
             ),
           ),
@@ -353,6 +356,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
                 referredByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
                 withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE.name,
                 withdrawalNote = "Completed withdrawal note",
+                organisationName = "Another Charity",
               ),
             ),
           ),
