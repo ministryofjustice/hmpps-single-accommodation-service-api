@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummaryV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
@@ -67,7 +68,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.statusLastUpdated
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -167,7 +167,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
       username = "Bob123",
       staffCode = "123",
     )
-    val outcome = buildCas1ExternalRequestForPlacementOutcomeDto(
+
+    val cas1RequestForPlacementOutcome = buildCas1ExternalRequestForPlacementOutcomeDto(
       requestForPlacement = buildCas1RequestForPlacementSummaryV2(
         status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
         decision = "accepted",
@@ -198,13 +199,15 @@ class EligibilityControllerIT : IntegrationTestBase() {
       status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       createdAt = OffsetDateTime.now(),
       createdBy = staff,
-      submittedAt = OffsetDateTime.now(),
       expiresAt = LocalDate.now(),
-      assessment = buildCas1AssessmentSummary(
-        decision = "accepted",
-        rejectionRationale = null,
+      submittedApplication = buildCas1SubmittedApplication(
+        submittedAt = OffsetDateTime.now(),
+        assessment = buildCas1AssessmentSummary(
+          decision = "accepted",
+          rejectionRationale = null,
+        ),
+        requestForPlacementHistory = listOf(cas1RequestForPlacementOutcome),
       ),
-      requestForPlacementHistory = listOf(outcome),
     )
 
     val cas2Application = buildCas2Application(
@@ -310,13 +313,12 @@ class EligibilityControllerIT : IntegrationTestBase() {
             crsUrl = crsUrl,
             cas3ReferralUrl = cas3ReferralUiUrl,
             cas1ApplicationStartedAt = cas1Application.createdAt.asJsonValue(),
-            submittedAt = cas1Application.submittedAt?.asJsonValue().toString(),
-            requestSubmittedAt = outcome.requestForPlacement.submittedAt.toString(),
-            expectedArrivalDate = outcome.requestForPlacement.expectedArrivalDate.toString(),
+            submittedAt = cas1Application.submittedApplication?.submittedAt?.asJsonValue().toString(),
+            requestSubmittedAt = cas1RequestForPlacementOutcome.requestForPlacement.submittedAt.toString(),
+            expectedArrivalDate = cas1RequestForPlacementOutcome.requestForPlacement.expectedArrivalDate.toString(),
             expiresAt = cas1Application.expiresAt.toString(),
-            startDate = outcome.placement!!.canonicalArrivalDate.toString(),
-            endDate = outcome.placement!!.canonicalDepartureDate.toString(),
-            dateApplied = outcome.statusLastUpdated.toLocalDate().toString(),
+            startDate = cas1RequestForPlacementOutcome.placement!!.canonicalArrivalDate.toString(),
+            endDate = cas1RequestForPlacementOutcome.placement!!.canonicalDepartureDate.toString(),
           ),
         )
       }
@@ -371,15 +373,17 @@ class EligibilityControllerIT : IntegrationTestBase() {
     val cas1Application = buildCas1ApplicationV2(
       status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       id = cas1ApplicationId,
-      upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
-        requestForPlacement = buildCas1RequestForPlacementSummaryV2(status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED),
-        placement = buildCas1PlacementV2(
-          status = Cas1PlacementStatus.ARRIVED,
-          canonicalArrivalDate = LocalDate.parse("2025-01-01"),
-          canonicalDepartureDate = LocalDate.parse("2025-07-01"),
+      uiUrl = cas1ApplicationUiUrl,
+      submittedApplication = buildCas1SubmittedApplication(
+        upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+          requestForPlacement = buildCas1RequestForPlacementSummaryV2(status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED),
+          placement = buildCas1PlacementV2(
+            status = Cas1PlacementStatus.ARRIVED,
+            canonicalArrivalDate = LocalDate.parse("2025-01-01"),
+            canonicalDepartureDate = LocalDate.parse("2025-07-01"),
+          ),
         ),
       ),
-      uiUrl = cas1ApplicationUiUrl,
     )
     ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = cas1Application)
     TierStubs.getTierNotFoundResponse(crn = crn)
@@ -423,6 +427,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             crsUrl = crsUrl,
             cas3ReferralUrl = cas3ReferralUiUrl,
             cas1ApplicationStartedAt = cas1Application.createdAt.asJsonValue(),
+            cas1ApplicationSubmittedAt = cas1Application.submittedApplication?.submittedAt?.asJsonValue().toString(),
           ),
         )
       }

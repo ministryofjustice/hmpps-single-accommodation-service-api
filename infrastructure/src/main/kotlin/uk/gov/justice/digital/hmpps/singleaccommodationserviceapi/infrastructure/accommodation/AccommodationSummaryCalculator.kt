@@ -139,7 +139,7 @@ class AccommodationSummaryCalculator(
     cas3Application: Cas3Application?,
     currentAccommodation: AccommodationSummaryDto?,
   ): List<AccommodationSummaryDto> {
-    val cas1NextAccommodation = cas1Application?.upcomingRequestForPlacement?.placement
+    val cas1NextAccommodation = cas1Application?.submittedApplication?.upcomingRequestForPlacement?.placement
       ?.takeIf { it.status == Cas1PlacementStatus.UPCOMING }
       ?.let { toAccommodationSummary(crn, placement = it, currentAccommodation) }
 

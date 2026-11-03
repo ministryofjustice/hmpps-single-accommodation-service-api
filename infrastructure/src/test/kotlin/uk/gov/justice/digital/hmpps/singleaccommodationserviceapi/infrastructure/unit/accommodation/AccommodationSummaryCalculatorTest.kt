@@ -39,6 +39,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummaryV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
@@ -498,12 +499,14 @@ class AccommodationSummaryCalculatorTest {
     @Test
     fun `V2 returns CAS1 next accommodation from upcoming placement using canonical dates`() {
       val cas1Application = buildCas1ApplicationV2(
-        upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
-          placement = buildCas1PlacementV2(
-            status = Cas1PlacementStatus.UPCOMING,
-            canonicalArrivalDate = LocalDate.of(2026, 1, 10),
-            canonicalDepartureDate = LocalDate.of(2026, 2, 10),
-            premises = buildCas1ExternalPremisesV2Dto(addressLine1 = "1 Test Street", town = "Testville", postcode = "TE1 1ST"),
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+            placement = buildCas1PlacementV2(
+              status = Cas1PlacementStatus.UPCOMING,
+              canonicalArrivalDate = LocalDate.of(2026, 1, 10),
+              canonicalDepartureDate = LocalDate.of(2026, 2, 10),
+              premises = buildCas1ExternalPremisesV2Dto(addressLine1 = "1 Test Street", town = "Testville", postcode = "TE1 1ST"),
+            ),
           ),
         ),
       )
@@ -529,8 +532,10 @@ class AccommodationSummaryCalculatorTest {
     @Test
     fun `V2 returns CAS1 next accommodation with PR1 status when current accommodation is prison`() {
       val cas1Application = buildCas1ApplicationV2(
-        upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
-          placement = buildCas1PlacementV2(status = Cas1PlacementStatus.UPCOMING),
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+            placement = buildCas1PlacementV2(status = Cas1PlacementStatus.UPCOMING),
+          ),
         ),
       )
 
@@ -548,14 +553,18 @@ class AccommodationSummaryCalculatorTest {
     @Test
     fun `V2 ignores upcoming request when placement is missing or not UPCOMING`() {
       val noPlacement = buildCas1ApplicationV2(
-        upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
-          requestForPlacement = buildCas1RequestForPlacementSummaryV2(),
-          placement = null,
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+            requestForPlacement = buildCas1RequestForPlacementSummaryV2(),
+            placement = null,
+          ),
         ),
       )
       val arrived = buildCas1ApplicationV2(
-        upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
-          placement = buildCas1PlacementV2(status = Cas1PlacementStatus.ARRIVED),
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+            placement = buildCas1PlacementV2(status = Cas1PlacementStatus.ARRIVED),
+          ),
         ),
       )
 

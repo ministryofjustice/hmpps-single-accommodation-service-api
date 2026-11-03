@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalPremisesV2Dto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalRequestForPlacementOutcomeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalRequestForPlacementOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementPair
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementSummary
@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummaryV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementWithdrawal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Staff
@@ -299,11 +300,8 @@ fun buildCas1ApplicationV2(
   status: Cas1ApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
   createdAt: OffsetDateTime = OffsetDateTime.now(),
   createdBy: Cas1Staff = buildCas1Staff(),
-  submittedAt: OffsetDateTime? = null,
   expiresAt: LocalDate? = null,
-  assessment: Cas1AssessmentSummary? = null,
-  upcomingRequestForPlacement: Cas1ExternalRequestForPlacementOutcomeDto? = null,
-  requestForPlacementHistory: List<Cas1ExternalRequestForPlacementOutcomeDto> = emptyList(),
+  submittedApplication: Cas1SubmittedApplication? = null,
   uiUrl: String = "https://cas1-ui/applications/$id",
 ) = Cas1ApplicationV2(
   uiUrl = uiUrl,
@@ -311,8 +309,17 @@ fun buildCas1ApplicationV2(
   status = status,
   createdAt = createdAt,
   createdBy = createdBy,
-  submittedAt = submittedAt,
   expiresAt = expiresAt,
+  submittedApplication = submittedApplication,
+)
+
+fun buildCas1SubmittedApplication(
+  submittedAt: OffsetDateTime = OffsetDateTime.now(),
+  assessment: Cas1AssessmentSummary? = null,
+  upcomingRequestForPlacement: Cas1ExternalRequestForPlacementOutcome? = null,
+  requestForPlacementHistory: List<Cas1ExternalRequestForPlacementOutcome> = emptyList(),
+) = Cas1SubmittedApplication(
+  submittedAt = submittedAt,
   assessment = assessment,
   upcomingRequestForPlacement = upcomingRequestForPlacement,
   requestForPlacementHistory = requestForPlacementHistory,
@@ -321,7 +328,7 @@ fun buildCas1ApplicationV2(
 fun buildCas1ExternalRequestForPlacementOutcomeDto(
   requestForPlacement: Cas1RequestForPlacementSummaryV2 = buildCas1RequestForPlacementSummaryV2(),
   placement: Cas1PlacementV2? = null,
-) = Cas1ExternalRequestForPlacementOutcomeDto(
+) = Cas1ExternalRequestForPlacementOutcome(
   requestForPlacement = requestForPlacement,
   placement = placement,
 )

@@ -12,14 +12,18 @@ data class Cas1ApplicationV2(
   val status: Cas1ApplicationStatus,
   val createdAt: OffsetDateTime,
   val createdBy: Cas1Staff,
-  val submittedAt: OffsetDateTime?,
   val expiresAt: LocalDate?,
-  val assessment: Cas1AssessmentSummary?,
-  val upcomingRequestForPlacement: Cas1ExternalRequestForPlacementOutcomeDto?,
-  val requestForPlacementHistory: List<Cas1ExternalRequestForPlacementOutcomeDto>,
+  val submittedApplication: Cas1SubmittedApplication?,
 )
 
-data class Cas1ExternalRequestForPlacementOutcomeDto(
+data class Cas1SubmittedApplication(
+  val submittedAt: OffsetDateTime,
+  val assessment: Cas1AssessmentSummary?,
+  val upcomingRequestForPlacement: Cas1ExternalRequestForPlacementOutcome?,
+  val requestForPlacementHistory: List<Cas1ExternalRequestForPlacementOutcome>,
+)
+
+data class Cas1ExternalRequestForPlacementOutcome(
   val requestForPlacement: Cas1RequestForPlacementSummaryV2,
   val placement: Cas1PlacementV2?,
 )

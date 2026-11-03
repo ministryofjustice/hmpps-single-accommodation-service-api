@@ -7,7 +7,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummaryV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.currentOutcome
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.historyExcludingCurrentOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.sortedRequestForPlacementHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.statusLastUpdated
 import java.time.LocalDateTime
@@ -48,11 +50,11 @@ class Cas1ApplicationV2ExtensionsTest {
       val middle = outcome(requestUpdated = now.minusDays(2))
       val newestViaPlacement = outcome(requestUpdated = now.minusDays(5), placementUpdated = now)
 
-      val application = buildCas1ApplicationV2(
+      val submittedApplication = buildCas1SubmittedApplication(
         requestForPlacementHistory = listOf(middle, newestViaPlacement, oldest),
       )
 
-      assertThat(application.sortedRequestForPlacementHistory)
+      assertThat(submittedApplication.sortedRequestForPlacementHistory)
         .containsExactly(newestViaPlacement, middle, oldest)
     }
   }
@@ -63,18 +65,27 @@ class Cas1ApplicationV2ExtensionsTest {
     fun `is the upcoming outcome when present`() {
       val upcoming = outcome(requestUpdated = now.minusDays(10))
       val application = buildCas1ApplicationV2(
-        upcomingRequestForPlacement = upcoming,
-        requestForPlacementHistory = listOf(outcome(requestUpdated = now)),
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = upcoming,
+          requestForPlacementHistory = listOf(outcome(requestUpdated = now)),
+        ),
       )
 
       assertThat(application.currentOutcome).isEqualTo(upcoming)
     }
 
     @Test
+    fun `is null when the application has not been submitted`() {
+      assertThat(buildCas1ApplicationV2(submittedApplication = null).currentOutcome).isNull()
+    }
+
+    @Test
     fun `is the most recently updated historic outcome when there is no upcoming outcome`() {
       val latest = outcome(requestUpdated = now)
       val application = buildCas1ApplicationV2(
-        requestForPlacementHistory = listOf(outcome(requestUpdated = now.minusDays(1)), latest),
+        submittedApplication = buildCas1SubmittedApplication(
+          requestForPlacementHistory = listOf(outcome(requestUpdated = now.minusDays(1)), latest),
+        ),
       )
 
       assertThat(application.currentOutcome).isEqualTo(latest)
@@ -83,6 +94,58 @@ class Cas1ApplicationV2ExtensionsTest {
     @Test
     fun `is null when there is no upcoming or historic outcome`() {
       assertThat(buildCas1ApplicationV2().currentOutcome).isNull()
+    }
+  }
+
+  @Nested
+  inner class HistoryExcludingCurrentOutcome {
+    @Test
+    fun `is empty when the application has not been submitted`() {
+      assertThat(buildCas1ApplicationV2(submittedApplication = null).historyExcludingCurrentOutcome).isEmpty()
+    }
+
+    @Test
+    fun `is empty when there is no upcoming or historic outcome`() {
+      assertThat(buildCas1ApplicationV2().historyExcludingCurrentOutcome).isEmpty()
+    }
+
+    @Test
+    fun `contains all history sorted by most recent first when there is an upcoming outcome`() {
+      val older = outcome(requestUpdated = now.minusDays(2))
+      val newer = outcome(requestUpdated = now.minusDays(1))
+      val application = buildCas1ApplicationV2(
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = outcome(requestUpdated = now.plusDays(5)),
+          requestForPlacementHistory = listOf(older, newer),
+        ),
+      )
+
+      assertThat(application.historyExcludingCurrentOutcome).containsExactly(newer, older)
+    }
+
+    @Test
+    fun `excludes the most recent historic outcome when there is no upcoming outcome`() {
+      val oldest = outcome(requestUpdated = now.minusDays(3))
+      val middle = outcome(requestUpdated = now.minusDays(2))
+      val latest = outcome(requestUpdated = now)
+      val application = buildCas1ApplicationV2(
+        submittedApplication = buildCas1SubmittedApplication(
+          requestForPlacementHistory = listOf(oldest, latest, middle),
+        ),
+      )
+
+      assertThat(application.historyExcludingCurrentOutcome).containsExactly(middle, oldest)
+    }
+
+    @Test
+    fun `is empty when the only outcome is the current historic outcome`() {
+      val application = buildCas1ApplicationV2(
+        submittedApplication = buildCas1SubmittedApplication(
+          requestForPlacementHistory = listOf(outcome(requestUpdated = now)),
+        ),
+      )
+
+      assertThat(application.historyExcludingCurrentOutcome).isEmpty()
     }
   }
 }

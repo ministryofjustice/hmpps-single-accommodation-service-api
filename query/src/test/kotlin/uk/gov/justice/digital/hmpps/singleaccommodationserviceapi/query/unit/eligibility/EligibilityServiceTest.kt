@@ -47,6 +47,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummaryV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
@@ -71,6 +72,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.currentOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.ActivePlacementContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1NotSubmittedContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1RejectedContextUpdater
@@ -718,16 +720,18 @@ class EligibilityServiceTest {
         val cas1Application = s.cas1ApplicationStatus?.let {
           buildCas1ApplicationV2(
             status = it,
-            upcomingRequestForPlacement = if (s.cas1RequestForPlacementStatus != null || s.cas1PlacementStatus != null) {
-              buildCas1ExternalRequestForPlacementOutcomeDto(
-                requestForPlacement = buildCas1RequestForPlacementSummaryV2(
-                  status = s.cas1RequestForPlacementStatus!!,
-                ),
-                placement = s.cas1PlacementStatus?.let { status -> buildCas1PlacementV2(status = status) },
-              )
-            } else {
-              null
-            },
+            submittedApplication = buildCas1SubmittedApplication(
+              upcomingRequestForPlacement = if (s.cas1RequestForPlacementStatus != null || s.cas1PlacementStatus != null) {
+                buildCas1ExternalRequestForPlacementOutcomeDto(
+                  requestForPlacement = buildCas1RequestForPlacementSummaryV2(
+                    status = s.cas1RequestForPlacementStatus!!,
+                  ),
+                  placement = s.cas1PlacementStatus?.let { status -> buildCas1PlacementV2(status = status) },
+                )
+              } else {
+                null
+              },
+            ),
           )
         }
 
@@ -1473,11 +1477,13 @@ class EligibilityServiceTest {
         val cas1Application = if (s.isSubmittedCas1.toBoolean()) {
           buildCas1ApplicationV2(
             status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-            upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
-              requestForPlacement = buildCas1RequestForPlacementSummaryV2(
-                status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+            submittedApplication = buildCas1SubmittedApplication(
+              upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+                requestForPlacement = buildCas1RequestForPlacementSummaryV2(
+                  status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+                ),
+                placement = buildCas1PlacementV2(status = Cas1PlacementStatus.UPCOMING),
               ),
-              placement = buildCas1PlacementV2(status = Cas1PlacementStatus.UPCOMING),
             ),
           )
         } else {

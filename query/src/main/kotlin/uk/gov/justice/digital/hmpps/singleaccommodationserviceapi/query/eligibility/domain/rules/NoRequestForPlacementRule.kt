@@ -11,7 +11,7 @@ class NoRequestForPlacementRule : Rule {
   override val description = "FAIL if no current request for placement"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.cas1Application?.requestForPlacement?.status == null
+    val isFail = data.cas1Application?.currentOutcome?.requestForPlacement?.status == null
 
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 

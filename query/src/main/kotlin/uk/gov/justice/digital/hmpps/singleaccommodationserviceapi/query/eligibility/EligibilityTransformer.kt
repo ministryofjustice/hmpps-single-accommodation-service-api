@@ -43,7 +43,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalRequestForPlacementOutcomeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalRequestForPlacementOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummaryV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
@@ -58,6 +58,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.statusLastUpdated
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Cas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as Cas1ApplicationStatusInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus as Cas1PlacementStatusInfra
@@ -320,15 +322,15 @@ object EligibilityTransformer {
       placementStatus = toCas1PlacementStatus(currentOutcome?.placement?.status),
       uiUrl = application.uiUrl,
       application = toCas1ApplicationSummaryDto(application),
-      assessment = toCas1AssessmentSummaryDto(application.assessment),
+      assessment = toCas1AssessmentSummaryDto(application.submittedApplication?.assessment),
       requestForPlacement = toRequestForPlacementDto(currentOutcome?.requestForPlacement),
       placement = toPlacementDto(currentOutcome?.placement),
-      placementHistory = toPlacementHistory(application.sortedRequestForPlacementHistory),
+      placementHistory = toPlacementHistory(cas1ApplicationDomainData.historyExcludingCurrentOutcome),
     )
   }
 
   private fun toPlacementHistory(
-    placementHistory: List<Cas1ExternalRequestForPlacementOutcomeDto>,
+    placementHistory: List<Cas1ExternalRequestForPlacementOutcome>,
   ) = placementHistory.map { outcome ->
     Cas1PlacementPairDto(
       requestForPlacement = toRequestForPlacementDto(outcome.requestForPlacement),
@@ -362,7 +364,7 @@ object EligibilityTransformer {
     status = toCas1ApplicationStatus(application.status),
     createdAt = application.createdAt,
     createdBy = toCas1StaffDto(application.createdBy),
-    submittedAt = application.submittedAt,
+    submittedAt = application.submittedApplication?.submittedAt,
     expiresAt = application.expiresAt,
   )
 

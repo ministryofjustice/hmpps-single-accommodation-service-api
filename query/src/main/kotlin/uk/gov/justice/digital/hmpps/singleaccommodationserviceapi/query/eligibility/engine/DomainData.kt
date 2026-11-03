@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalRequestForPlacementOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
@@ -13,8 +14,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.currentOutcome
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.historyExcludingCurrentOutcome
 import java.time.LocalDate
 
 data class DomainData(
@@ -56,7 +57,13 @@ data class DomainData(
     currentAccommodation = currentAccommodation,
     currentAccommodationTypeEntity = accommodationTypes.find { it.code == currentAccommodation?.type?.code },
     nextAccommodations = nextAccommodations,
-    cas1Application = cas1Application?.let { Cas1ApplicationDomainData(it, it.currentOutcome) },
+    cas1Application = cas1Application?.let {
+      Cas1ApplicationDomainData(
+        application = it,
+        currentOutcome = it.currentOutcome,
+        historyExcludingCurrentOutcome = it.historyExcludingCurrentOutcome,
+      )
+    },
     cas2Application = cas2Application,
     cas3Application = cas3Application,
     dutyToRefer = dutyToRefer,
@@ -64,3 +71,9 @@ data class DomainData(
     sexualOffenceRegistrations = sexualOffenceRegistrations,
   )
 }
+
+data class Cas1ApplicationDomainData(
+  val application: Cas1ApplicationV2,
+  val currentOutcome: Cas1ExternalRequestForPlacementOutcome?,
+  val historyExcludingCurrentOutcome: List<Cas1ExternalRequestForPlacementOutcome>,
+)
