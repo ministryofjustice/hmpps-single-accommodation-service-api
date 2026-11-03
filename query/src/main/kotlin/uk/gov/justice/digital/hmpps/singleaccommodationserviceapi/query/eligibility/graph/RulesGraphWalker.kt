@@ -64,22 +64,27 @@ class RulesGraphWalker {
     contextUpdater: ContextUpdater?,
     edgeLabel: String,
   ) {
-    val onPassSourceNode = if (contextUpdater == null || contextUpdater === ContextUpdater.identity()) {
-      fromGraphNode
-    } else {
-      val contextUpdaterNode = if (contextUpdater.terminalNode) contextUpdater.toOutcomeNode() else contextUpdater.toContextUpdaterNode()
+    if (contextUpdater == null || contextUpdater === ContextUpdater.identity()) {
+      visit(toNode)
+      edges += GraphEdge(fromGraphNode.id, nodes.getValue(toNode).id, edgeLabel)
+      return
+    }
 
-      nodes[contextUpdater] = contextUpdaterNode
-
-      edges += GraphEdge(from = fromGraphNode.id, to = contextUpdaterNode.id, label = edgeLabel)
-
-      if (contextUpdater.terminalNode) return
-
-      contextUpdaterNode
+    if (contextUpdater.terminalNode) {
+      val outcomeNode = nodes.getOrPut(contextUpdater) { contextUpdater.toOutcomeNode() }
+      edges += GraphEdge(fromGraphNode.id, outcomeNode.id, edgeLabel)
+      return
     }
 
     visit(toNode)
-    edges += GraphEdge(onPassSourceNode.id, nodes.getValue(toNode).id, edgeLabel)
+    val destinationId = nodes.getValue(toNode).id
+    val key = contextUpdater to toNode
+    val contextUpdaterNode = nodes.getOrPut(key) {
+      contextUpdater.toContextUpdaterNode(key, destinationId)
+    }
+    edges += GraphEdge(fromGraphNode.id, contextUpdaterNode.id, edgeLabel)
+    val continuation = GraphEdge(contextUpdaterNode.id, destinationId, "CONTINUE")
+    if (continuation !in edges) edges += continuation
   }
 
   private fun OutcomeNode.toGraphNode() = GraphNode(
@@ -112,8 +117,8 @@ class RulesGraphWalker {
     kind = GraphNodeKind.OUTCOME,
   )
 
-  private fun ContextUpdater.toContextUpdaterNode() = GraphNode(
-    id = ensureUniqueId("updater_" + slug(graphKey()), this),
+  private fun ContextUpdater.toContextUpdaterNode(key: Any, destinationId: String) = GraphNode(
+    id = ensureUniqueId("updater_" + slug(graphKey()) + "_" + destinationId, key),
     title = description,
     kind = GraphNodeKind.CONTEXT_UPDATER,
     onPassContextUpdater = null,

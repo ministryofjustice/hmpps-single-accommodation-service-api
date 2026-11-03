@@ -10,14 +10,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 
 const val ELIGIBILITY_GRAPH_PROFILE = "eligibility-graph"
 
 @Profile(ELIGIBILITY_GRAPH_PROFILE)
 @Configuration
 @ComponentScan(
-  basePackageClasses = [EligibilityTreeProvider::class],
+  basePackageClasses = [DecisionTreeBuilder::class, DeeplinkResolver::class],
   excludeFilters = [
     ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = [DeeplinkResolver::class]),
   ],

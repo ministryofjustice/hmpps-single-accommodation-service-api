@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas3NotPresentRuleTest {
-  private val description = "FAIL if person does not have an application"
+  private val description = "FAIL if person does not have a referral"
 
   @Test
   fun `application is present so rule passes`() {
