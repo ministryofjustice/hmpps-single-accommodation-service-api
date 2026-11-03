@@ -30,13 +30,13 @@ class CaseQueryService(
   private val clock: Clock,
 ) {
 
-  fun getCaseList(teamCode: String?): ApiResponseDto<Map<Case, UserAccess?>> {
+  fun getCaseList(teamCode: String?): ApiResponseDto<List<CaseWithUserAccess>> {
     val user = userService.authorizeAndRetrieveUser()
     val caseOrchestrationResult = caseOrchestrationService.getCaseList(user.username, teamCode)
     limitedAccessService.throwIfUserAccessFailed(caseOrchestrationResult.upstreamFailures)
 
     val crnsToUserAccess = limitedAccessService.getCrnToUserAccess(caseOrchestrationResult.data.caseAccess)
-    val cases = caseOrchestrationResult.data.cases.associateWith { case -> crnsToUserAccess[case.crn] }
+    val cases = caseOrchestrationResult.data.cases.map { CaseWithUserAccess(it, crnsToUserAccess[it.crn]) }
 
     return toApiResponseDto(
       data = cases,
@@ -45,39 +45,36 @@ class CaseQueryService(
   }
 
   fun getCaseDtos(
-    caseToUserAccess: Map<Case, UserAccess?>,
+    cases: List<CaseWithUserAccess>,
     searchTerm: String?,
     riskLevel: RiskLevel?,
     teamCode: String?,
     peopleType: PeopleType?,
     username: String?,
   ): List<CaseDto> {
-    val crns = caseToUserAccess.keys.map { it.crn }
-    val caseEntitiesByCrn = caseRepository.mapByCrns(crns)
+    val caseEntitiesByCrn = caseRepository.mapByCrns(cases.map { it.case.crn })
 
-    return caseToUserAccess.map { (case, userAccess) ->
-
-      // entities are persisted in the previous step.
-      val entity = caseEntitiesByCrn[case.crn]!!
+    return cases.map { (case, userAccess) ->
+      val entity = caseEntitiesByCrn[case.crn]
 
       when (userAccess) {
         UserAccess.FULL -> {
           toCaseDto(
             caseEntity = entity,
-            crn = entity.latestCrn(),
-            prisonNumber = entity.latestPrisonNumber(),
-            riskLevel = entity.roshLevelCode?.let { RiskLevel.findByCode(it) },
+            crn = case.crn,
+            prisonNumber = entity?.latestPrisonNumber(),
+            riskLevel = entity?.roshLevelCode?.let { RiskLevel.findByCode(it) },
             pncReference = null,
-            assignedTo = entity.toAssignedToDto(),
-            limitedAccess = case.limitedAccess,
+            assignedTo = entity?.toAssignedToDto(),
+            limitedAccess = case.limitedAccess ?: false,
             teamCode = case.team.code,
           )
         }
 
-        else -> toLimitedCaseDto(
+        UserAccess.LIMITED, UserAccess.UNKNOWN, null -> toLimitedCaseDto(
           case.crn,
           teamCode = case.team.code,
-          assignedTo = entity.toAssignedToDto(),
+          assignedTo = entity?.toAssignedToDto(),
         )
       }
     }.filterCases(
@@ -97,17 +94,15 @@ class CaseQueryService(
     val orchestrationResult = caseOrchestrationService.getCase(user.username, crn)
     hasMandatoryCaseData(orchestrationResult)
     limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
-    val crnToCaseAccess = limitedAccessService.getCrnToUserAccess(orchestrationResult.data.caseAccess)
-    val case = orchestrationResult.data.case ?: throw IllegalStateException("CRN $crn not found")
 
     val caseOrchestrationDto = orchestrationResult.data
     val data = toCaseDto(
       crn,
-      case,
+      caseOrchestrationDto.case,
       caseOrchestrationDto.cpr,
       caseOrchestrationDto.tier,
       caseOrchestrationDto.sexualOffenceRegistrations,
-      crnToUserAccess = crnToCaseAccess,
+      caseOrchestrationDto.getUserAccess(),
     ).obfuscateIfLimitedAccess()
     return toApiResponseDto(data = data, upstreamFailures = orchestrationResult.upstreamFailures)
   }
@@ -120,18 +115,17 @@ class CaseQueryService(
     }
   }
 
-  fun getCaseFromDelius(crn: String): ApiResponseDto<Map<Case, UserAccess>> {
+  fun getCaseFromDelius(crn: String): ApiResponseDto<CaseWithUserAccess?> {
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCaseFromDelius(user.username, crn)
     hasMandatoryCaseData(orchestrationResult)
     limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
-    val case = orchestrationResult.data.case ?: throw IllegalArgumentException("CRN $crn not found in delius")
-
-    val userAccess =
-      limitedAccessService.getCrnToUserAccess(orchestrationResult.data.caseAccess)[crn] ?: UserAccess.UNKNOWN
-    return toApiResponseDto(
-      data = mapOf(case to userAccess),
-      upstreamFailures = orchestrationResult.upstreamFailures,
-    )
+    val caseOrchestrationDto = orchestrationResult.data
+    val case = caseOrchestrationDto.case?.let { CaseWithUserAccess(it, caseOrchestrationDto.getUserAccess()) }
+    return toApiResponseDto(data = case, upstreamFailures = orchestrationResult.upstreamFailures)
   }
+
+  private fun CaseOrchestrationDto.getUserAccess() = case?.let { limitedAccessService.getCrnToUserAccess(caseAccess)[it.crn] }
 }
+
+data class CaseWithUserAccess(val case: Case, val userAccess: UserAccess?)

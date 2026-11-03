@@ -18,25 +18,25 @@ import java.time.LocalDate
 object CaseTransformer {
   fun toCaseDto(
     crn: String,
-    case: Case,
+    case: Case?,
     cpr: CorePersonRecord?,
     tier: Tier?,
     sexualOffenceRegistrations: SexualOffenceRegistrations?,
-    crnToUserAccess: Map<String, UserAccess?>,
-  ) = when (crnToUserAccess[crn]) {
-    UserAccess.FULL -> case.toOrchestratedCaseDto(
+    userAccess: UserAccess?,
+  ) = when {
+    case == null -> CaseDto(crn = crn, userAccess = UserAccess.UNKNOWN, limitedAccess = null)
+
+    userAccess == UserAccess.FULL -> case.toOrchestratedCaseDto(
       cpr = cpr,
       tier = tier,
       sexualOffenceRegistrations = sexualOffenceRegistrations,
     )
 
-    UserAccess.LIMITED -> toLimitedCaseDto(
-      crn = crn,
+    else -> toLimitedCaseDto(
+      crn = case.crn,
       teamCode = case.team.code,
       assignedTo = case.assignedToDto(),
     )
-
-    else -> CaseDto(crn = crn, userAccess = UserAccess.UNKNOWN, limitedAccess = null)
   }
 
   private fun Case.assignedToDto() = AssignedToDto(
@@ -62,7 +62,7 @@ object CaseTransformer {
     assignedTo = this.assignedToDto(),
     photoUrl = null,
     userAccess = UserAccess.FULL,
-    limitedAccess = this.limitedAccess,
+    limitedAccess = this.limitedAccess ?: false,
     sexualOffenceRegistrations = sexualOffenceRegistrations
       ?.sexualOffenceRegistrations
       ?.map { SexualOffenceRegistrationCode.valueOf(it.type.code.name) }

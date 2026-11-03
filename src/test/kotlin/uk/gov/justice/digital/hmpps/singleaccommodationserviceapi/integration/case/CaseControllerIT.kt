@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Name
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Officer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
@@ -43,6 +44,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
@@ -149,6 +151,7 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = cases,
       pageSize = pageSize.toInt(),
     )
+    cases.forEach { SasAndDeliusStubs.stubGetCase(crn = it.crn, response = it) }
     ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = cases.map { it.crn })
 
     // SAS knows about 2 cases
@@ -260,18 +263,22 @@ class CaseControllerIT : IntegrationTestBase() {
       listOf(
         buildCaseEntity {
           withCrn(settledCase.crn)
+          assignTo(staff)
           accommodationStatus = CaseAccommodationStatus.SETTLED
         },
         buildCaseEntity {
           withCrn(transientCase.crn)
+          assignTo(staff)
           accommodationStatus = CaseAccommodationStatus.TRANSIENT
         },
         buildCaseEntity {
           withCrn(riskCase.crn)
+          assignTo(staff)
           accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
         },
         buildCaseEntity {
           withCrn(noFixedAbodeCase.crn)
+          assignTo(staff)
           accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
         },
       ),
@@ -314,6 +321,8 @@ class CaseControllerIT : IntegrationTestBase() {
     assertThat(createdCase.tierScore).isEqualTo("B")
     assertThat(createdCase.firstName).isEqualTo(deliusName.forename)
     assertThat(createdCase.lastName).isEqualTo(deliusName.surname)
+    assertThat(createdCase.roshLevelCode).isEqualTo(case.roshLevel?.code)
+    assertThat(createdCase.assignedToUsername).isEqualTo(deliusUser.username)
 
     val currentAccommodation = createdCase.currentAccommodation!!
     assertThat(currentAccommodation.type?.code).isEqualTo("HMP")
@@ -437,6 +446,7 @@ class CaseControllerIT : IntegrationTestBase() {
       tierScore = "D2",
     ) {
       withCrn(crn)
+      assignTo(staff)
       currentAccommodation = buildAccommodationSummaryDto(
         crn = crn,
         status = buildAccommodationStatusDto(code = "C", description = "Custody"),
@@ -470,6 +480,63 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should source prisonNumber, riskLevel and assignedTo from CaseEntity`() {
+    val crn = "X12345"
+    val staff = buildOfficer(name = buildName("DeliusForename", "DeliusSurname"), username = deliusUser.username)
+    val case = buildCase(
+      crn = crn,
+      nomsNumber = "DeliusPrisonNumber",
+      staff = staff,
+      roshLevel = buildRoshLevel("RLRH", "Low"),
+    )
+    stubCaseListForCrns(listOf(case))
+    caseRepository.saveAndFlush(
+      buildCaseEntity(
+        roshLevelCode = "RHRH",
+        assignedToForename = "DbForename",
+        assignedToSurname = "DbSurname",
+        assignedToUsername = deliusUser.username,
+      ) {
+        withCrn(crn)
+        withPrisonNumber("DbPrisonNumber")
+      },
+    )
+
+    webTestClient.get().uri { it.path("/case-list").build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data.length()").isEqualTo(1)
+      .jsonPath("$.data[0].prisonNumber").isEqualTo("DbPrisonNumber")
+      .jsonPath("$.data[0].riskLevel").isEqualTo("HIGH")
+      .jsonPath("$.data[0].assignedTo.forename").isEqualTo("DbForename")
+  }
+
+  @Test
+  fun `should not fail the case list when delius returns a case that is archived in the DB`() {
+    val archivedCrn = "X12345"
+    val activeCrn = "X12346"
+    val staff = buildOfficer(username = deliusUser.username)
+    stubCaseListForCrns(
+      listOf(
+        buildCase(crn = archivedCrn, nomsNumber = "PRI1", staff = staff),
+        buildCase(crn = activeCrn, nomsNumber = "PRI2", staff = staff),
+      ),
+    )
+    caseRepository.saveAllAndFlush(
+      listOf(
+        buildCaseEntity(archived = true) { withCrn(archivedCrn) },
+        buildCaseEntity {
+          withCrn(activeCrn)
+          assignTo(staff)
+        },
+      ),
+    )
+
+    assertThat(getCaseListResponse().data.map { it.crn }).containsExactly(activeCrn)
+  }
+
+  @Test
   fun `should save all cases in the case list response`() {
     val team = buildCaseTeam("TestTeam")
     val staff = buildOfficer(username = deliusUser.username)
@@ -483,6 +550,8 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = listOf(assignedCase, teamCase),
       pageSize = pageSize.toInt(),
     )
+    SasAndDeliusStubs.stubGetCase(crn = assignedCase.crn, response = assignedCase)
+    SasAndDeliusStubs.stubGetCase(crn = teamCase.crn, response = teamCase)
     ProbationAccessControlStubs.postUserAccessForCrns(deliusUser.username, accessibleCrns = listOf(assignedCase.crn, teamCase.crn))
 
     assertThat(caseRepository.findAll()).hasSize(0)
@@ -554,14 +623,16 @@ class CaseControllerIT : IntegrationTestBase() {
     @BeforeEach
     fun setup() {
       val staff = buildOfficer(username = deliusUser.username)
+      val cases = listOf(
+        buildCase(crn = accessibleCrn, nomsNumber = "PRI1", staff = staff),
+        buildCase(crn = restrictedCrn, nomsNumber = "PRI2", staff = staff, name = buildName("RestrictedForename", "RestrictedSurname")),
+      )
       SasAndDeliusStubs.stubCaseList(
         deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-        cases = listOf(
-          buildCase(crn = accessibleCrn, nomsNumber = "PRI1", staff = staff),
-          buildCase(crn = restrictedCrn, nomsNumber = "PRI2", staff = staff, name = buildName("RestrictedForename", "RestrictedSurname")),
-        ),
+        cases = cases,
         pageSize = pageSize.toInt(),
       )
+      cases.forEach { SasAndDeliusStubs.stubGetCase(crn = it.crn, response = it) }
     }
 
     @Test
@@ -999,11 +1070,33 @@ class CaseControllerIT : IntegrationTestBase() {
         firstName = case.name.forename,
         lastName = case.name.surname,
         dateOfBirth = case.dateOfBirth,
+        roshLevelCode = case.roshLevel?.code,
+        assignedToForename = case.staff.name.forename,
+        assignedToSurname = case.staff.name.surname,
+        assignedToUsername = case.staff.username,
         accommodationSummariesDto = buildAccommodationSummariesDto(),
-      ) { withCrn(case.crn) }
+      ) {
+        withCrn(case.crn)
+        case.nomsNumber?.let { withPrisonNumber(it) }
+      }
     }
 
     caseRepository.saveAll(entities)
+  }
+
+  private fun stubCaseListForCrns(cases: List<Case>) {
+    SasAndDeliusStubs.stubCaseList(
+      deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+      cases = cases,
+      pageSize = pageSize.toInt(),
+    )
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = cases.map { it.crn })
+  }
+
+  private fun CaseEntity.assignTo(staff: Officer) {
+    assignedToForename = staff.name.forename
+    assignedToSurname = staff.name.surname
+    assignedToUsername = staff.username
   }
 
   private fun stubAdditionalCorePersonRecords() {
@@ -1026,6 +1119,7 @@ class CaseControllerIT : IntegrationTestBase() {
     val dateOfBirth = LocalDate.of(1980, 3, 20)
     val case = buildCase(crn = crn, nomsNumber = nomsNumber, staff = staff, name = deliusName, dateOfBirth = dateOfBirth)
 
+    SasAndDeliusStubs.stubGetCase(crn = crn, response = case)
     stubCorePersonRecord(crn = crn, prisonNumber = nomsNumber, firstName = deliusName.forename, lastName = deliusName.surname)
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"))
     PrisonerSearchStubs.getPrisonerOKResponse(
