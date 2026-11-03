@@ -31,14 +31,10 @@ class Cas1ActiveRuleTest {
     ],
   )
   fun `application is suitable so rule fails`(status: Cas1ApplicationStatus) {
-    val cas1Application = buildCas1Application(
-      application = buildCas1ApplicationSummary(status = status, id = UUID.randomUUID()),
-      placement = null,
-      requestForPlacement = null,
-    )
+    val cas1Application = buildCas1ApplicationV2(status = status, id = UUID.randomUUID())
 
     val data = buildDomainData(
-      cas1Application = cas1Application,
+      cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = null),
     )
 
     val result = Cas1ActiveRule().evaluate(data)
@@ -64,14 +60,10 @@ class Cas1ActiveRuleTest {
     ],
   )
   fun `application does not have a suitable status so rule passes`(status: Cas1ApplicationStatus) {
-    val cas1Application = buildCas1Application(
-      application = buildCas1ApplicationSummary(status = status, id = UUID.randomUUID()),
-      placement = null,
-      requestForPlacement = null,
-    )
+    val cas1Application = buildCas1ApplicationV2(status = status, id = UUID.randomUUID())
 
     val data = buildDomainData(
-      cas1Application = cas1Application,
+      cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = null),
     )
 
     val result = Cas1ActiveRule().evaluate(data)

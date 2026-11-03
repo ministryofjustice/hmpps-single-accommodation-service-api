@@ -14,7 +14,7 @@ class Cas1NotPresentRuleTest {
   @Test
   fun `application is present so rule passes`() {
     val data = buildDomainData(
-      cas1Application = buildCas1Application(),
+      cas1Application = buildCas1ApplicationDomainData(buildCas1ApplicationV2(), currentOutcome = null),
     )
 
     val result = Cas1NotPresentRule().evaluate(data)

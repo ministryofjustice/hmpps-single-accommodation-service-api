@@ -13,8 +13,9 @@ class Cas1ExpiredRule : Rule {
   override val description = "FAIL if the referral is expired and there is no pending or active placement"
 
   override fun evaluate(data: DomainData): RuleResult {
+    val placementStatus = data.cas1Application?.currentOutcome?.placement?.status
     val isFail = data.cas1Application?.application?.status == Cas1ApplicationStatus.EXPIRED &&
-      (data.cas1Application.placement?.status != Cas1PlacementStatus.UPCOMING && data.cas1Application.placement?.status != Cas1PlacementStatus.ARRIVED)
+      (placementStatus != Cas1PlacementStatus.UPCOMING && placementStatus != Cas1PlacementStatus.ARRIVED)
 
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 

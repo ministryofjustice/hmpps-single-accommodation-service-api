@@ -126,7 +126,7 @@ class EligibilityService(
       cas3CurrentPremises = eligibilityOrchestrationDto.cas3CurrentPremises,
     )
 
-    val nextAccommodations = accommodationSummaryCalculator.calculateNextAccommodations(
+    val nextAccommodations = accommodationSummaryCalculator.calculateNextAccommodationsV2(
       crn,
       addresses = eligibilityOrchestrationDto.cpr?.addresses,
       cas1Application = eligibilityOrchestrationDto.cas1Application,

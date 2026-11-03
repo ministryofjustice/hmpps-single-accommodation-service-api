@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.ass
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
@@ -22,14 +23,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1AssessmentSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementPair
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Staff
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalPremisesV2Dto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummaryV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
@@ -68,6 +67,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.statusLastUpdated
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -162,67 +162,49 @@ class EligibilityControllerIT : IntegrationTestBase() {
   fun `should get eligibility for crn`() {
     val tier = buildTier("A")
     ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
-    val premises = buildCas1PremisesSummary(
-      startDate = LocalDate.now(),
-      endDate = LocalDate.now(),
-      addressLine1 = "Test House",
-      addressLine2 = "Test Road",
-      town = "Test Town",
-      postcode = "Test Postcode",
-    )
-    val staff = buildCas1Staff(
+    val staff = Cas1Staff(
       name = "Bob",
       username = "Bob123",
       staffCode = "123",
     )
-    val requestForPlacement = buildCas1RequestForPlacementSummary(
-      status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-      decision = "accepted",
-      rejectionReason = null,
-      submittedBy = staff,
-      submittedAt = LocalDate.now(),
-      withdrawalReason = null,
-      withdrawalDate = null,
-      expectedArrivalDate = LocalDate.now(),
-      durationDays = 12,
+    val outcome = buildCas1ExternalRequestForPlacementOutcomeDto(
+      requestForPlacement = buildCas1RequestForPlacementSummaryV2(
+        status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+        decision = "accepted",
+        rejectionReason = null,
+        submittedBy = staff,
+        submittedAt = LocalDate.now(),
+        withdrawal = null,
+        expectedArrivalDate = LocalDate.now(),
+        durationDays = 12,
+      ),
+      placement = buildCas1PlacementV2(
+        status = Cas1PlacementStatus.CANCELLED,
+        canonicalArrivalDate = LocalDate.now(),
+        canonicalDepartureDate = LocalDate.now().plusMonths(6),
+        cancellationReason = "Oops",
+        premises = buildCas1ExternalPremisesV2Dto(
+          addressLine1 = "Test House",
+          addressLine2 = "Test Road",
+          town = "Test Town",
+          postcode = "Test Postcode",
+        ),
+      ),
     )
 
-    val cas1Application = buildCas1Application(
+    val cas1Application = buildCas1ApplicationV2(
       uiUrl = cas1ApplicationUiUrl,
-      application = buildCas1ApplicationSummary(
-        id = cas1ApplicationId,
-        status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-        createdAt = OffsetDateTime.now(),
-        createdBy = staff,
-        submittedAt = OffsetDateTime.now(),
-        expiresAt = LocalDate.now(),
-      ),
-      placement = buildCas1PlacementSummary(
-        premises = premises,
-        status = Cas1PlacementStatus.CANCELLED,
-        actualArrivalDate = null,
-        expectedDepartureDate = null,
-        actualDepartureDate = null,
-        cancellationReason = "Oops",
-      ),
+      id = cas1ApplicationId,
+      status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+      createdAt = OffsetDateTime.now(),
+      createdBy = staff,
+      submittedAt = OffsetDateTime.now(),
+      expiresAt = LocalDate.now(),
       assessment = buildCas1AssessmentSummary(
         decision = "accepted",
         rejectionRationale = null,
       ),
-      requestForPlacement = requestForPlacement,
-      placementHistory = listOf(
-        buildCas1PlacementPair(
-          requestForPlacement = requestForPlacement,
-          placement = buildCas1PlacementSummary(
-            status = Cas1PlacementStatus.CANCELLED,
-            actualArrivalDate = null,
-            actualDepartureDate = null,
-            cancellationReason = "Oops",
-            premises = premises,
-          ),
-          dateApplied = LocalDate.now(),
-        ),
-      ),
+      requestForPlacementHistory = listOf(outcome),
     )
 
     val cas2Application = buildCas2Application(
@@ -285,7 +267,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
     ApprovedPremisesStubs.getCas2SuitableApplicationOKResponse(crn = crn, response = cas2Application)
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
+    ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = cas1Application)
 
     TierStubs.getTierOKResponse(crn = crn, tier)
 
@@ -327,14 +309,14 @@ class EligibilityControllerIT : IntegrationTestBase() {
             cas1ApplicationUrl = cas1ApplicationUiUrl,
             crsUrl = crsUrl,
             cas3ReferralUrl = cas3ReferralUiUrl,
-            cas1ApplicationStartedAt = cas1Application.application.createdAt.asJsonValue(),
-            submittedAt = cas1Application.application.submittedAt?.asJsonValue().toString(),
-            requestSubmittedAt = cas1Application.requestForPlacement?.submittedAt.toString(),
-            expectedArrivalDate = cas1Application.requestForPlacement?.expectedArrivalDate.toString(),
-            expiresAt = cas1Application.application.expiresAt.toString(),
-            startDate = cas1Application.placement?.premises?.startDate.toString(),
-            endDate = cas1Application.placement?.premises?.endDate.toString(),
-            dateApplied = cas1Application.placementHistory.firstOrNull()?.dateApplied.toString(),
+            cas1ApplicationStartedAt = cas1Application.createdAt.asJsonValue(),
+            submittedAt = cas1Application.submittedAt?.asJsonValue().toString(),
+            requestSubmittedAt = outcome.requestForPlacement.submittedAt.toString(),
+            expectedArrivalDate = outcome.requestForPlacement.expectedArrivalDate.toString(),
+            expiresAt = cas1Application.expiresAt.toString(),
+            startDate = outcome.placement!!.canonicalArrivalDate.toString(),
+            endDate = outcome.placement!!.canonicalDepartureDate.toString(),
+            dateApplied = outcome.statusLastUpdated.toLocalDate().toString(),
           ),
         )
       }
@@ -386,13 +368,20 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should continue evaluation and do not include 404 in upstream failures when tier returns not found`() {
-    val cas1Application = buildCas1Application(
-      application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED, id = cas1ApplicationId),
-      requestForPlacement = buildCas1RequestForPlacementSummary(status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED),
-      placement = buildCas1PlacementSummary(status = Cas1PlacementStatus.ARRIVED),
+    val cas1Application = buildCas1ApplicationV2(
+      status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+      id = cas1ApplicationId,
+      upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+        requestForPlacement = buildCas1RequestForPlacementSummaryV2(status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED),
+        placement = buildCas1PlacementV2(
+          status = Cas1PlacementStatus.ARRIVED,
+          canonicalArrivalDate = LocalDate.parse("2025-01-01"),
+          canonicalDepartureDate = LocalDate.parse("2025-07-01"),
+        ),
+      ),
       uiUrl = cas1ApplicationUiUrl,
     )
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
+    ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = cas1Application)
     TierStubs.getTierNotFoundResponse(crn = crn)
 
     val entity = buildCaseEntity(id = dutyToReferCaseId) {
@@ -433,7 +422,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             cas1ApplicationUrl = cas1ApplicationUiUrl,
             crsUrl = crsUrl,
             cas3ReferralUrl = cas3ReferralUiUrl,
-            cas1ApplicationStartedAt = cas1Application.application.createdAt.asJsonValue(),
+            cas1ApplicationStartedAt = cas1Application.createdAt.asJsonValue(),
           ),
         )
       }
@@ -459,12 +448,14 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should include failureReason when defined`() {
-    val cas1Application = buildCas1Application(
-      application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.REJECTED, id = cas1ApplicationId, createdAt = OffsetDateTime.parse("2023-01-01T12:00:00.000Z")),
+    val cas1Application = buildCas1ApplicationV2(
+      status = Cas1ApplicationStatus.REJECTED,
+      id = cas1ApplicationId,
+      createdAt = OffsetDateTime.parse("2023-01-01T12:00:00.000Z"),
     )
 
     TierStubs.getTierOKResponse(crn = crn, buildTier("E"))
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
+    ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(
       crn = crn,
       response = cas1Application,
     )

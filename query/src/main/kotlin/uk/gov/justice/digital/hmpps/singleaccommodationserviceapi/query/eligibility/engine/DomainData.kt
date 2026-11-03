@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
@@ -13,6 +13,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ApplicationDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.currentOutcome
 import java.time.LocalDate
 
 data class DomainData(
@@ -24,7 +26,7 @@ data class DomainData(
   val currentAccommodation: AccommodationSummaryDto?,
   val currentAccommodationTypeEntity: AccommodationTypeEntity?,
   val nextAccommodations: List<AccommodationSummaryDto>,
-  val cas1Application: Cas1Application?,
+  val cas1Application: Cas1ApplicationDomainData?,
   val cas2Application: Cas2Application?,
   val cas3Application: Cas3Application?,
   val dutyToRefer: DutyToReferDto?,
@@ -37,7 +39,7 @@ data class DomainData(
     tier: Tier?,
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodations: List<AccommodationSummaryDto>,
-    cas1Application: Cas1Application?,
+    cas1Application: Cas1ApplicationV2?,
     cas2Application: Cas2Application?,
     cas3Application: Cas3Application?,
     dutyToRefer: DutyToReferDto?,
@@ -54,7 +56,7 @@ data class DomainData(
     currentAccommodation = currentAccommodation,
     currentAccommodationTypeEntity = accommodationTypes.find { it.code == currentAccommodation?.type?.code },
     nextAccommodations = nextAccommodations,
-    cas1Application = cas1Application,
+    cas1Application = cas1Application?.let { Cas1ApplicationDomainData(it, it.currentOutcome) },
     cas2Application = cas2Application,
     cas3Application = cas3Application,
     dutyToRefer = dutyToRefer,

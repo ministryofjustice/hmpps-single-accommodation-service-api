@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationSummary
@@ -299,7 +298,7 @@ fun buildCas1ApplicationV2(
   id: UUID = UUID.randomUUID(),
   status: Cas1ApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
   createdAt: OffsetDateTime = OffsetDateTime.now(),
-  createdBy: Cas1StaffDto = Cas1StaffDto(name = "Test Tester", username = "testTester", staffCode = "1234"),
+  createdBy: Cas1Staff = buildCas1Staff(),
   submittedAt: OffsetDateTime? = null,
   expiresAt: LocalDate? = null,
   assessment: Cas1AssessmentSummary? = null,
@@ -330,7 +329,7 @@ fun buildCas1ExternalRequestForPlacementOutcomeDto(
 fun buildCas1RequestForPlacementSummaryV2(
   status: Cas1RequestForPlacementStatus = Cas1RequestForPlacementStatus.REQUEST_SUBMITTED,
   statusLastUpdated: LocalDateTime = LocalDateTime.now(),
-  submittedBy: Cas1StaffDto? = null,
+  submittedBy: Cas1Staff? = null,
   submittedAt: LocalDate? = null,
   expectedArrivalDate: LocalDate? = null,
   durationDays: Int? = null,

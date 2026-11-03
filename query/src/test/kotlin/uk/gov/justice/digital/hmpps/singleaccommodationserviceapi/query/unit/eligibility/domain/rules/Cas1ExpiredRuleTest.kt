@@ -27,15 +27,10 @@ class Cas1ExpiredRuleTest {
     ],
   )
   fun `application is not expired so rule passes`(status: Cas1ApplicationStatus) {
-    val cas1Application = buildCas1Application(
-      application = buildCas1ApplicationSummary(
-        status = status,
-        id = UUID.randomUUID(),
-      ),
-    )
+    val cas1Application = buildCas1ApplicationV2(status = status, id = UUID.randomUUID())
 
     val data = buildDomainData(
-      cas1Application = cas1Application,
+      cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = null),
     )
 
     val result = Cas1ExpiredRule().evaluate(data)
@@ -56,14 +51,14 @@ class Cas1ExpiredRuleTest {
       "UPCOMING",
     ],
   )
-  fun `application is expired and UPCOMING or ARRIVED rule passes`(status: Cas1PlacementStatus) {
-    val cas1Application = buildCas1Application(
-      application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.EXPIRED, id = UUID.randomUUID()),
-      placement = buildCas1PlacementSummary(status = status),
-    )
-
+  fun `application is expired and current outcome placement is UPCOMING or ARRIVED so rule passes`(status: Cas1PlacementStatus) {
     val data = buildDomainData(
-      cas1Application = cas1Application,
+      cas1Application = buildCas1ApplicationDomainData(
+        application = buildCas1ApplicationV2(status = Cas1ApplicationStatus.EXPIRED, id = UUID.randomUUID()),
+        currentOutcome = buildCas1ExternalRequestForPlacementOutcomeDto(
+          placement = buildCas1PlacementV2(status = status),
+        ),
+      ),
     )
 
     val result = Cas1ExpiredRule().evaluate(data)
@@ -85,17 +80,14 @@ class Cas1ExpiredRuleTest {
       "UPCOMING",
     ],
   )
-  fun `application is expired and not UPCOMING or ARRIVED rule fails`(status: Cas1PlacementStatus) {
-    val cas1Application = buildCas1Application(
-      application = buildCas1ApplicationSummary(
-        status = Cas1ApplicationStatus.EXPIRED,
-        id = UUID.randomUUID(),
-      ),
-      placement = buildCas1PlacementSummary(status = status),
-    )
-
+  fun `application is expired and current outcome placement is not UPCOMING or ARRIVED so rule fails`(status: Cas1PlacementStatus) {
     val data = buildDomainData(
-      cas1Application = cas1Application,
+      cas1Application = buildCas1ApplicationDomainData(
+        application = buildCas1ApplicationV2(status = Cas1ApplicationStatus.EXPIRED, id = UUID.randomUUID()),
+        currentOutcome = buildCas1ExternalRequestForPlacementOutcomeDto(
+          placement = buildCas1PlacementV2(status = status),
+        ),
+      ),
     )
 
     val result = Cas1ExpiredRule().evaluate(data)
@@ -109,11 +101,11 @@ class Cas1ExpiredRuleTest {
   }
 
   @Test
-  fun `application is expired with no placement so rule fails`() {
+  fun `application is expired and current outcome has no placement so rule fails`() {
     val data = buildDomainData(
-      cas1Application = buildCas1Application(
-        application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.EXPIRED),
-        placement = null,
+      cas1Application = buildCas1ApplicationDomainData(
+        application = buildCas1ApplicationV2(status = Cas1ApplicationStatus.EXPIRED),
+        currentOutcome = null,
       ),
     )
 

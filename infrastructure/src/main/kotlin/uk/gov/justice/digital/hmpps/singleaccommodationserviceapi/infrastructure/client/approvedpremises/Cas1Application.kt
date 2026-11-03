@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1StaffDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -13,7 +11,7 @@ data class Cas1ApplicationV2(
   val id: UUID,
   val status: Cas1ApplicationStatus,
   val createdAt: OffsetDateTime,
-  val createdBy: Cas1StaffDto,
+  val createdBy: Cas1Staff,
   val submittedAt: OffsetDateTime?,
   val expiresAt: LocalDate?,
   val assessment: Cas1AssessmentSummary?,
@@ -29,7 +27,7 @@ data class Cas1ExternalRequestForPlacementOutcomeDto(
 data class Cas1RequestForPlacementSummaryV2(
   val status: Cas1RequestForPlacementStatus,
   val statusLastUpdated: LocalDateTime,
-  val submittedBy: Cas1StaffDto?,
+  val submittedBy: Cas1Staff?,
   val submittedAt: LocalDate?,
   val expectedArrivalDate: LocalDate?,
   val durationDays: Int?,
@@ -39,7 +37,7 @@ data class Cas1RequestForPlacementSummaryV2(
 )
 
 data class Cas1RequestForPlacementWithdrawal(
-  val withdrawalReason: WithdrawPlacementRequestReason?,
+  val withdrawalReason: String?,
   val withdrawalDate: LocalDate?,
 )
 

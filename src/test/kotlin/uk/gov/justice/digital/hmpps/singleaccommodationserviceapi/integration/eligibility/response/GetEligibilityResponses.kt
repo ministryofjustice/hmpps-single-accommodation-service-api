@@ -426,7 +426,14 @@ fun expectedGetEligibilityResponseTierNotFound(
           "actualDepartureDate": null,
           "expectedDepartureDate": null,
           "cancellationReason": null,
-          "premises": null
+          "premises": {
+            "startDate": "2025-01-01",
+            "endDate": "2025-07-01",
+            "addressLine1": "TEST HOUSE",
+            "addressLine2": null,
+            "town": null,
+            "postcode": "TEST POSTCODE"
+          }
         },
         "placementHistory": [],
         "id": "$cas1ApplicationId",

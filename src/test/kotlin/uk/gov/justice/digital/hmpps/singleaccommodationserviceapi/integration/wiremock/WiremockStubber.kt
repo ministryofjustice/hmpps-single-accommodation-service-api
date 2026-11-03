@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
@@ -40,6 +41,7 @@ class WiremockStubber {
     TierStubs.getTierOKResponse(crn = crn, response = responses.tier!!)
     ApprovedPremisesStubs.getCas1CurrentPremisesOKResponse(crn = crn, response = responses.cas1CurrentPremises!!)
     ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = responses.cas1Application!!)
+    ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = buildCas1ApplicationV2())
     ApprovedPremisesStubs.getCas3CurrentPremisesOKResponse(crn = crn, response = responses.cas3CurrentPremises!!)
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = responses.cas3Application!!)
     return responses
