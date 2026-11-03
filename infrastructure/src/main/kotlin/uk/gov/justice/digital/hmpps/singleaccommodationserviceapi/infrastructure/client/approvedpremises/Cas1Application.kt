@@ -1,9 +1,67 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1StaffDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.UUID
+
+data class Cas1ApplicationV2(
+  val uiUrl: String,
+  val id: UUID,
+  val status: Cas1ApplicationStatus,
+  val createdAt: OffsetDateTime,
+  val createdBy: Cas1StaffDto,
+  val submittedAt: OffsetDateTime?,
+  val expiresAt: LocalDate?,
+  val assessment: Cas1AssessmentSummary?,
+  val upcomingRequestForPlacement: Cas1ExternalRequestForPlacementOutcomeDto?,
+  val requestForPlacementHistory: List<Cas1ExternalRequestForPlacementOutcomeDto>,
+)
+
+data class Cas1ExternalRequestForPlacementOutcomeDto(
+  val requestForPlacement: Cas1RequestForPlacementSummaryV2,
+  val placement: Cas1PlacementV2?,
+)
+
+data class Cas1RequestForPlacementSummaryV2(
+  val status: Cas1RequestForPlacementStatus,
+  val statusLastUpdated: LocalDateTime,
+  val submittedBy: Cas1StaffDto?,
+  val submittedAt: LocalDate?,
+  val expectedArrivalDate: LocalDate?,
+  val durationDays: Int?,
+  val decision: String?,
+  val rejectionReason: String?,
+  val withdrawal: Cas1RequestForPlacementWithdrawal?,
+)
+
+data class Cas1RequestForPlacementWithdrawal(
+  val withdrawalReason: WithdrawPlacementRequestReason?,
+  val withdrawalDate: LocalDate?,
+)
+
+data class Cas1PlacementV2(
+  val status: Cas1PlacementStatus?,
+  val statusLastUpdated: LocalDateTime,
+  val canonicalArrivalDate: LocalDate,
+  val canonicalDepartureDate: LocalDate,
+  val actualArrivalDate: LocalDate?,
+  val actualDepartureDate: LocalDate?,
+  val expectedArrivalDate: LocalDate?,
+  val expectedDepartureDate: LocalDate?,
+  val cancellationReason: String?,
+  val premises: Cas1ExternalPremisesV2Dto,
+)
+
+data class Cas1ExternalPremisesV2Dto(
+  val addressLine1: String,
+  val addressLine2: String?,
+  val town: String?,
+  val postcode: String,
+)
 
 data class Cas1Application(
   val uiUrl: String,

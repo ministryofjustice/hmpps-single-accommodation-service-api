@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationTransformer.toAccommodationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
@@ -128,6 +129,30 @@ class AccommodationSummaryCalculator(
         toAccommodationSummary(crn, premises = it, currentAccommodation)
       }
 
+    return calculateNextAccommodations(crn, addresses, cas1NextAccommodation, cas3Application, currentAccommodation)
+  }
+
+  fun calculateNextAccommodationsV2(
+    crn: String,
+    addresses: List<CanonicalAddress>?,
+    cas1Application: Cas1ApplicationV2?,
+    cas3Application: Cas3Application?,
+    currentAccommodation: AccommodationSummaryDto?,
+  ): List<AccommodationSummaryDto> {
+    val cas1NextAccommodation = cas1Application?.upcomingRequestForPlacement?.placement
+      ?.takeIf { it.status == Cas1PlacementStatus.UPCOMING }
+      ?.let { toAccommodationSummary(crn, placement = it, currentAccommodation) }
+
+    return calculateNextAccommodations(crn, addresses, cas1NextAccommodation, cas3Application, currentAccommodation)
+  }
+
+  private fun calculateNextAccommodations(
+    crn: String,
+    addresses: List<CanonicalAddress>?,
+    cas1NextAccommodation: AccommodationSummaryDto?,
+    cas3Application: Cas3Application?,
+    currentAccommodation: AccommodationSummaryDto?,
+  ): List<AccommodationSummaryDto> {
     val cas3LatestBooking = cas3Application?.submittedApplication?.latestBooking
     val cas3NextAccommodation = cas3LatestBooking?.takeIf { it.status == Cas3BookingStatus.CONFIRMED }
       ?.premises?.let {

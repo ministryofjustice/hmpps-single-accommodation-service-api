@@ -1,15 +1,22 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalPremisesV2Dto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalRequestForPlacementOutcomeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementPair
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummaryV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementWithdrawal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
@@ -27,6 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3SubmittedApplication
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -285,4 +293,94 @@ fun buildCas3PremisesSummary(
   town = town,
   postcode = postcode,
   name = name,
+)
+
+fun buildCas1ApplicationV2(
+  id: UUID = UUID.randomUUID(),
+  status: Cas1ApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
+  createdAt: OffsetDateTime = OffsetDateTime.now(),
+  createdBy: Cas1StaffDto = Cas1StaffDto(name = "Test Tester", username = "testTester", staffCode = "1234"),
+  submittedAt: OffsetDateTime? = null,
+  expiresAt: LocalDate? = null,
+  assessment: Cas1AssessmentSummary? = null,
+  upcomingRequestForPlacement: Cas1ExternalRequestForPlacementOutcomeDto? = null,
+  requestForPlacementHistory: List<Cas1ExternalRequestForPlacementOutcomeDto> = emptyList(),
+  uiUrl: String = "https://cas1-ui/applications/$id",
+) = Cas1ApplicationV2(
+  uiUrl = uiUrl,
+  id = id,
+  status = status,
+  createdAt = createdAt,
+  createdBy = createdBy,
+  submittedAt = submittedAt,
+  expiresAt = expiresAt,
+  assessment = assessment,
+  upcomingRequestForPlacement = upcomingRequestForPlacement,
+  requestForPlacementHistory = requestForPlacementHistory,
+)
+
+fun buildCas1ExternalRequestForPlacementOutcomeDto(
+  requestForPlacement: Cas1RequestForPlacementSummaryV2 = buildCas1RequestForPlacementSummaryV2(),
+  placement: Cas1PlacementV2? = null,
+) = Cas1ExternalRequestForPlacementOutcomeDto(
+  requestForPlacement = requestForPlacement,
+  placement = placement,
+)
+
+fun buildCas1RequestForPlacementSummaryV2(
+  status: Cas1RequestForPlacementStatus = Cas1RequestForPlacementStatus.REQUEST_SUBMITTED,
+  statusLastUpdated: LocalDateTime = LocalDateTime.now(),
+  submittedBy: Cas1StaffDto? = null,
+  submittedAt: LocalDate? = null,
+  expectedArrivalDate: LocalDate? = null,
+  durationDays: Int? = null,
+  decision: String? = null,
+  rejectionReason: String? = null,
+  withdrawal: Cas1RequestForPlacementWithdrawal? = null,
+) = Cas1RequestForPlacementSummaryV2(
+  status = status,
+  statusLastUpdated = statusLastUpdated,
+  submittedBy = submittedBy,
+  submittedAt = submittedAt,
+  expectedArrivalDate = expectedArrivalDate,
+  durationDays = durationDays,
+  decision = decision,
+  rejectionReason = rejectionReason,
+  withdrawal = withdrawal,
+)
+
+fun buildCas1PlacementV2(
+  status: Cas1PlacementStatus? = null,
+  statusLastUpdated: LocalDateTime = LocalDateTime.now(),
+  canonicalArrivalDate: LocalDate = LocalDate.now(),
+  canonicalDepartureDate: LocalDate = LocalDate.now().plusMonths(6),
+  actualArrivalDate: LocalDate? = null,
+  actualDepartureDate: LocalDate? = null,
+  expectedArrivalDate: LocalDate? = null,
+  expectedDepartureDate: LocalDate? = null,
+  cancellationReason: String? = null,
+  premises: Cas1ExternalPremisesV2Dto = buildCas1ExternalPremisesV2Dto(),
+) = Cas1PlacementV2(
+  status = status,
+  statusLastUpdated = statusLastUpdated,
+  canonicalArrivalDate = canonicalArrivalDate,
+  canonicalDepartureDate = canonicalDepartureDate,
+  actualArrivalDate = actualArrivalDate,
+  actualDepartureDate = actualDepartureDate,
+  expectedArrivalDate = expectedArrivalDate,
+  expectedDepartureDate = expectedDepartureDate,
+  cancellationReason = cancellationReason,
+  premises = premises,
+)
+
+fun buildCas1ExternalPremisesV2Dto(
+  addressLine1: String = "TEST HOUSE",
+  addressLine2: String? = null,
+  town: String? = null,
+  postcode: String = "TEST POSTCODE",
+) = Cas1ExternalPremisesV2Dto(
+  addressLine1 = addressLine1,
+  addressLine2 = addressLine2,
+  town = town,
+  postcode = postcode,
 )
