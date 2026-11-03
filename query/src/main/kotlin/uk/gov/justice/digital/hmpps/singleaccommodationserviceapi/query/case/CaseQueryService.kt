@@ -67,7 +67,6 @@ class CaseQueryService(
             crn = case.crn,
             prisonNumber = entity?.latestPrisonNumber(),
             riskLevel = entity?.roshLevelCode?.let { RiskLevel.findByCode(it) },
-            pncReference = null,
             assignedTo = assignedTo,
             limitedAccess = case.limitedAccess ?: false,
             teamCode = case.team.code,
