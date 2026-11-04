@@ -75,7 +75,7 @@ class UserQueryService(
       }
     }
     .filterNot { it.username.equals(currentUsername, ignoreCase = true) }
-    .distinctBy { it.username }
+    .distinctBy { it.username.uppercase() }
     .sortedWith(
       compareBy<TeamMemberDto, String>(String.CASE_INSENSITIVE_ORDER) { it.forename }
         .thenBy(String.CASE_INSENSITIVE_ORDER) { it.surname },

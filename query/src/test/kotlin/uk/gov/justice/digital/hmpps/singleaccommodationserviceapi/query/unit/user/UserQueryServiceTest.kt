@@ -153,6 +153,16 @@ class UserQueryServiceTest {
   }
 
   @Test
+  fun `getUserTeamMembers returns usernames differing only by case once`() {
+    stubDeliusUserWithTeams("TEAM1")
+    every { userOrchestrationService.getStaffForTeams(listOf("TEAM1")) } returns OrchestrationResultDto(
+      data = listOf(buildTeamStaffMember(username = "user1"), buildTeamStaffMember(username = "USER1")),
+    )
+
+    assertThat(userQueryService.getUserTeamMembers().data.map { it.username }).containsExactly("user1")
+  }
+
+  @Test
   fun `getUserTeamMembers omits staff without a username`() {
     stubDeliusUserWithTeams("TEAM1")
     every { userOrchestrationService.getStaffForTeams(listOf("TEAM1")) } returns OrchestrationResultDto(
