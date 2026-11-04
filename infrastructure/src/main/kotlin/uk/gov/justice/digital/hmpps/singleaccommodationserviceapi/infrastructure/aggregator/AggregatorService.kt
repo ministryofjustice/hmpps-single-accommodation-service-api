@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isTimeout
 import java.time.LocalDateTime
 
@@ -142,4 +143,28 @@ class AggregatorService(
     }
     return failure
   }
+}
+
+inline fun <reified R : Any, T> AggregatorService.fetchAllPages(
+  callKey: (Long) -> String,
+  crossinline fetchPage: (Long) -> R,
+  pageMetadata: (R) -> PageMetadata,
+  content: (R) -> List<T>,
+): OrchestrationResultDto<List<T>> {
+  val firstPageKey = callKey(0)
+  val firstPageResults = orchestrateAsyncCalls(
+    standardCallsNoIteration = mapOf(firstPageKey to { fetchPage(0) }),
+  ).standardCallsNoIterationResults!!
+  val firstPage = firstPageResults.getResult<R>(firstPageKey)
+
+  val remainingPageNumbers = firstPage?.let { 1 until pageMetadata(it).totalPages } ?: LongRange.EMPTY
+  val remainingPageResults = orchestrateAsyncCalls(
+    standardCallsNoIteration = remainingPageNumbers.associate { number -> callKey(number) to { fetchPage(number) } },
+  ).standardCallsNoIterationResults!!
+  val remainingPages = remainingPageNumbers.mapNotNull { number -> remainingPageResults.getResult<R>(callKey(number)) }
+
+  return OrchestrationResultDto(
+    data = (listOfNotNull(firstPage) + remainingPages).flatMap { content(it) },
+    upstreamFailures = firstPageResults.getFailures() + remainingPageResults.getFailures(),
+  )
 }
