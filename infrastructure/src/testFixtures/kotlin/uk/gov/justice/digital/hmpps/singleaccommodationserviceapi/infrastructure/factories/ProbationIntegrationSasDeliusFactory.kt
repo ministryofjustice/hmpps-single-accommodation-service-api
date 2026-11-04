@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrationCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Team
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamStaffMember
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.LocalDate
 
@@ -64,6 +65,16 @@ fun buildCaseTeam(
 ) = Team(
   code = code,
   description = description,
+)
+
+fun buildTeamStaffMember(
+  username: String? = "user1",
+  code: String = "A01BCD",
+  name: Name = buildName(),
+) = TeamStaffMember(
+  username = username,
+  code = code,
+  name = name,
 )
 
 fun buildRoshLevel(

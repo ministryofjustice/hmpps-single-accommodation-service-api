@@ -11,6 +11,7 @@ object ApiCallKeys {
   const val GET_CASE_LIST = "getCaseListByUsername"
   const val FULL_CASE_LIST = "fullCaseListByUsername"
   const val GET_CASES_BY_TEAM = "getCasesByTeamCode"
+  const val GET_STAFF_FOR_TEAMS = "getStaffForTeams"
   const val GET_SEXUAL_OFFENCE_REGISTRATIONS = "getSexualOffenceRegistrations"
 
   // core-person-record service
