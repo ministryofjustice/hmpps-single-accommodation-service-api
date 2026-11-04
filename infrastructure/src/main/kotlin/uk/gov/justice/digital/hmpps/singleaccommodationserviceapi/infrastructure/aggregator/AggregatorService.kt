@@ -41,11 +41,7 @@ class AggregatorService(
       standardCallsNoIteration.mapValues { (_, f) -> suspend { f() } }
 
     val standardDeferred = async(Dispatchers.IO) {
-      if (standardCallsSuspend.isNotEmpty()) {
-        orchestrateAsyncCalls(standardCallsSuspend, semaphore)
-      } else {
-        null
-      }
+      orchestrateAsyncCalls(standardCallsSuspend, semaphore)
     }
 
     val result = AggregatorResult(
@@ -55,8 +51,6 @@ class AggregatorService(
 
     result
   }
-
-  private fun <T, R> ((T) -> R).asSuspend(): suspend (T) -> R = { t: T -> this(t) }
 
   private suspend fun orchestrateAsyncCalls(
     functionCalls: Map<String, suspend () -> Any?>,
@@ -75,65 +69,38 @@ class AggregatorService(
     }.mapValues { (_, deferred) -> deferred.await() }
   }
 
-  private suspend fun orchestrateAsyncCalls(
-    identifiers: List<String>,
-    functionCalls: Map<String, suspend (String) -> Any>,
-    semaphore: Semaphore,
-  ): Map<String, Map<String, Any>> = coroutineScope {
-    identifiers.associateWith { identifier ->
-      async(Dispatchers.IO) {
-        functionCalls.mapValues { (key, supplier) ->
-          async(Dispatchers.IO) {
-            semaphore.withPermit {
-              try {
-                AggregatorCallOutcome.Success(supplier(identifier))
-              } catch (e: Exception) {
-                classifyAndWrap(key, e, identifier = identifier)
-              }
-            }
-          }
-        }.mapValues { (_, deferred) -> deferred.await() }
-      }
-    }.mapValues { (_, deferred) -> deferred.await() }
-  }
-
-  private fun classifyAndWrap(key: String, exception: Exception, identifier: String? = null): AggregatorCallOutcome.Failure {
-    val logPrefix = if (identifier != null) "'$key' [identifier=$identifier]" else "'$key'"
+  private fun classifyAndWrap(key: String, exception: Exception): AggregatorCallOutcome.Failure {
     val failure = when (exception) {
       is WebClientResponseException -> {
-        log.error("Upstream HTTP error for call {}: {} {}", logPrefix, exception.statusCode, exception.message)
+        log.error("Upstream HTTP error for call '{}': {} {}", key, exception.statusCode, exception.message)
         AggregatorCallOutcome.Failure(
           FailureType.UPSTREAM_HTTP_ERROR,
           ErrorDetail(
             httpStatus = HttpStatus.resolve(exception.statusCode.value()),
             message = exception.message,
           ),
-          identifier = identifier,
         )
       }
       is WebClientRequestException -> {
         if (exception.isTimeout()) {
-          log.error("Timeout for call {}: {}", logPrefix, exception.message)
+          log.error("Timeout for call '{}': {}", key, exception.message)
           AggregatorCallOutcome.Failure(
             FailureType.TIMEOUT,
             ErrorDetail(httpStatus = null, message = exception.message ?: "Request timed out"),
-            identifier = identifier,
           )
         } else {
-          log.error("Unknown error for call {}: {}", logPrefix, exception.message, exception)
+          log.error("Unknown error for call '{}': {}", key, exception.message, exception)
           AggregatorCallOutcome.Failure(
             FailureType.UNKNOWN_ERROR,
             ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
-            identifier = identifier,
           )
         }
       }
       else -> {
-        log.error("Unknown error for call {}: {}", logPrefix, exception.message, exception)
+        log.error("Unknown error for call '{}': {}", key, exception.message, exception)
         AggregatorCallOutcome.Failure(
           FailureType.UNKNOWN_ERROR,
           ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
-          identifier = identifier,
         )
       }
     }
