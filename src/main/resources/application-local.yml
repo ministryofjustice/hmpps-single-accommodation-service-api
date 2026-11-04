@@ -65,6 +65,7 @@ logging:
     org.hibernate.SQL: INFO
     org.hibernate.orm.jdbc.bind: INFO # TRACE - shows what parameters are bound to queries
     org.hibernate.session.metrics: INFO
+    uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService: DEBUG
 
 scheduling:
   enabled: true

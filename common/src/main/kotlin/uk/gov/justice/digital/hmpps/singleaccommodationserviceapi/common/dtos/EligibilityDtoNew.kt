@@ -482,6 +482,9 @@ enum class ServiceStatusNew(
     service = ServiceType.PA,
     uiStatusName = "Completed",
   ),
+  ;
+
+  override fun toString(): String = "ServiceStatusNew(name=${this.name}, service=$service, proposedAction=$proposedAction, link=$link, isUpcoming=$isUpcoming, blockingStatusReason=$blockingStatusReason, uiStatusName='$uiStatusName')"
 }
 
 enum class LinkType {
