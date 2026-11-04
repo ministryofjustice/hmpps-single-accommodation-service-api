@@ -48,7 +48,7 @@ class CorePersonRecordClientPactTest {
   @Pact(consumer = CONSUMER, provider = PROVIDER)
   fun getProbationPerson(builder: PactDslWithProvider): RequestResponsePact = builder
     .given("A probation person exists for the requested CRN")
-    .uponReceiving("a request to retrieve a probation person by CRN")
+    .uponReceiving("a request for a probation person by CRN")
     .pathFromProviderState("/person/probation/\${crn}", "/person/probation/$crn")
     .method("GET")
     .willRespondWith()
