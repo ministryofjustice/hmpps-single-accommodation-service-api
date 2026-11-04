@@ -1,0 +1,64 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine
+
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.RoshLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
+import java.time.LocalDate
+
+data class DomainData(
+  val crn: String,
+  val tierScore: String?,
+  val dob: LocalDate?,
+  val sex: SexCode?,
+  val roshLevel: RoshLevel?,
+  val currentAccommodation: AccommodationSummaryDto?,
+  val currentAccommodationTypeEntity: AccommodationTypeEntity?,
+  val nextAccommodations: List<AccommodationSummaryDto>,
+  val cas1Application: Cas1Application?,
+  val cas2Application: Cas2Application?,
+  val cas3Application: Cas3Application?,
+  val dutyToRefer: DutyToReferDto?,
+  val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
+  val sexualOffenceRegistrations: SexualOffenceRegistrations?,
+) {
+  constructor(
+    crn: String,
+    cpr: CorePersonRecord?,
+    tier: Tier?,
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodations: List<AccommodationSummaryDto>,
+    cas1Application: Cas1Application?,
+    cas2Application: Cas2Application?,
+    cas3Application: Cas3Application?,
+    dutyToRefer: DutyToReferDto?,
+    commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
+    accommodationTypes: List<AccommodationTypeEntity>,
+    sexualOffenceRegistrations: SexualOffenceRegistrations?,
+    case: Case?,
+  ) : this(
+    crn = crn,
+    tierScore = tier?.tierScore,
+    sex = cpr?.sex?.code,
+    dob = cpr?.dateOfBirth,
+    roshLevel = case?.roshLevel,
+    currentAccommodation = currentAccommodation,
+    currentAccommodationTypeEntity = accommodationTypes.find { it.code == currentAccommodation?.type?.code },
+    nextAccommodations = nextAccommodations,
+    cas1Application = cas1Application,
+    cas2Application = cas2Application,
+    cas3Application = cas3Application,
+    dutyToRefer = dutyToRefer,
+    commissionedRehabilitativeServices = commissionedRehabilitativeServices,
+    sexualOffenceRegistrations = sexualOffenceRegistrations,
+  )
+}
