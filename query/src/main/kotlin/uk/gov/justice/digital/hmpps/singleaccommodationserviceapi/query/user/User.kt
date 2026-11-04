@@ -24,4 +24,10 @@ data class TeamDto(
   val code: String,
 )
 
+data class TeamMemberDto(
+  val username: String,
+  val forename: String,
+  val surname: String,
+)
+
 enum class UserType { DELIUS, NOMIS }
