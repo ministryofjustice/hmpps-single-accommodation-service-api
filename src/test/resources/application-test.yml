@@ -166,6 +166,9 @@ case-list:
 
 bulk-load:
   page-size: 1
+
+team-members:
+  page-size: 1
 logging:
   level:
     root: WARN
