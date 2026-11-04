@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas1NotPresentRule : Rule {
-  override val description = "FAIL if person does not have an application"
+  override val description = "FAIL if person does not have a referral"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.cas1Application == null

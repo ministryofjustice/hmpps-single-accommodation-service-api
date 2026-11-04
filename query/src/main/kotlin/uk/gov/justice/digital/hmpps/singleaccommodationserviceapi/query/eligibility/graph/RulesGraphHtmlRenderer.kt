@@ -131,6 +131,7 @@ object RulesGraphHtmlRenderer {
       <span style="background:#d9f2d9;border:1px solid #2e8b2e">Outcome</span>
       <span style="color:#2e8b2e">━ PASS</span>
       <span style="color:#c0392b">━ FAIL</span>
+      <span style="color:#000">━ CONTINUE</span>
     </span>
   </div>
   <div id="cy"></div>
@@ -178,6 +179,7 @@ Clicking a node also highlights every path from the root to it.</p></div>
         'font-size': 10, 'text-background-color': '#fff', 'text-background-opacity': 1, 'text-background-padding': 2 } },
       { selector: 'edge[label = "PASS"]', style: { 'line-color': '#2e8b2e', 'target-arrow-color': '#2e8b2e', 'color': '#2e8b2e' } },
       { selector: 'edge[label = "FAIL"]', style: { 'line-color': '#c0392b', 'target-arrow-color': '#c0392b', 'color': '#c0392b' } },
+      { selector: 'edge[label = "CONTINUE"]', style: { 'line-color': '#000', 'target-arrow-color': '#000', 'color': '#000' } },
       { selector: '.faded', style: { 'opacity': 0.15 } },
       { selector: '.match', style: { 'border-width': 5, 'border-color': '#8e44ad' } },
       { selector: 'node:selected', style: { 'border-width': 5, 'border-color': '#000' } },
@@ -258,7 +260,6 @@ Clicking a node also highlights every path from the root to it.</p></div>
     const steps = [];
     const pathEdges = [];
     let id = root.id;
-    let via = null;
     let lastUpdater = null;
     let guard = 0;
     while (id && guard++ < 200) {
@@ -270,12 +271,10 @@ Clicking a node also highlights every path from the root to it.</p></div>
         steps.push({ node: n, status: status, failed: failed });
         const updater = status === 'PASS' ? n.onPass : n.onFail;
         if (updater) lastUpdater = updater;
-        via = status;
         edge = outEdges(id).find(e => e.label === status);
       } else if (n.kind === 'CONTEXT_UPDATER') {
         steps.push({ node: n });
-        const outs = outEdges(id);
-        edge = outs.find(e => e.label === via) || outs[0];
+        edge = outEdges(id).find(e => e.label === 'CONTINUE');
       } else {
         steps.push({ node: n });
         break;
