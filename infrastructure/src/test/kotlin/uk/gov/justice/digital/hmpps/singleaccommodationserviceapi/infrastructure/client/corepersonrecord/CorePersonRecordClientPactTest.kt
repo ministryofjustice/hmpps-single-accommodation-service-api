@@ -290,7 +290,7 @@ class CorePersonRecordClientPactTest {
           AddressContact(
             typeCode = ContactType.MOBILE,
             value = "07123456789",
-            extension = "456",
+            extension = "123",
           ),
         ),
       ),
