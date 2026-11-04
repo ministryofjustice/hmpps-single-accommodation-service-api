@@ -42,11 +42,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummaryV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
@@ -71,6 +72,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.currentOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.ActivePlacementContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1NotSubmittedContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1RejectedContextUpdater
@@ -170,6 +172,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDtoNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
@@ -432,7 +435,7 @@ class EligibilityServiceTest {
       val endDate = LocalDate.now().plusDays(1)
       val expectedTier = "A1"
       val caseId = UUID.randomUUID()
-      val cas1Application = buildCas1Application()
+      val cas1Application = buildCas1ApplicationV2()
       val cas2Application = buildCas2Application()
       val cas1CurrentPremises = buildCas1PremisesSummary()
       val cas3CurrentPremises = buildCas3PremisesSummary()
@@ -485,7 +488,7 @@ class EligibilityServiceTest {
       val accommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true, code = "A02")
 
       every { accommodationTypeRepository.findAll() } returns listOf(accommodationTypeEntity)
-      every { accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
+      every { accommodationSummaryCalculator.calculateNextAccommodationsV2(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
       every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises, cas3CurrentPremises) } returns currentAccommodation
       val result = eligibilityService.buildDomainData(crn, orchestrationDto.data, caseEntity)
@@ -498,7 +501,7 @@ class EligibilityServiceTest {
         currentAccommodation = currentAccommodation,
         currentAccommodationTypeEntity = accommodationTypeEntity,
         nextAccommodations = emptyList(),
-        cas1Application = cas1Application,
+        cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = cas1Application.currentOutcome),
         cas2Application = cas2Application,
         cas3Application = cas3Application,
         commissionedRehabilitativeServices = crs,
@@ -540,7 +543,7 @@ class EligibilityServiceTest {
 
       every { accommodationTypeRepository.findAll() } returns emptyList()
       every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, null, null, null) } returns currentAccommodation
-      every { accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, null, null, currentAccommodation) } returns emptyList()
+      every { accommodationSummaryCalculator.calculateNextAccommodationsV2(crn, cpr.addresses, null, null, currentAccommodation) } returns emptyList()
 
       val result = eligibilityService.buildDomainData(crn, orchestrationDto, caseEntity = null)
 
@@ -715,10 +718,20 @@ class EligibilityServiceTest {
         clock.setNow(s.referenceDate)
 
         val cas1Application = s.cas1ApplicationStatus?.let {
-          buildCas1Application(
-            application = buildCas1ApplicationSummary(status = it),
-            placement = buildCas1PlacementSummary(status = s.cas1PlacementStatus),
-            requestForPlacement = buildCas1RequestForPlacementSummary(status = s.cas1RequestForPlacementStatus),
+          buildCas1ApplicationV2(
+            status = it,
+            submittedApplication = buildCas1SubmittedApplication(
+              upcomingRequestForPlacement = if (s.cas1RequestForPlacementStatus != null || s.cas1PlacementStatus != null) {
+                buildCas1ExternalRequestForPlacementOutcomeDto(
+                  requestForPlacement = buildCas1RequestForPlacementSummaryV2(
+                    status = s.cas1RequestForPlacementStatus!!,
+                  ),
+                  placement = s.cas1PlacementStatus?.let { status -> buildCas1PlacementV2(status = status) },
+                )
+              } else {
+                null
+              },
+            ),
           )
         }
 
@@ -731,7 +744,7 @@ class EligibilityServiceTest {
             endDate = s.currentAccommodationEndDate,
           ),
           currentAccommodationTypeEntity = buildAccommodationTypeEntity(code = "A02", isCas1 = true),
-          cas1Application = cas1Application,
+          cas1Application = cas1Application?.let { buildCas1ApplicationDomainData(it, currentOutcome = it.currentOutcome) },
           roshLevel = buildRoshLevel(code = RiskLevel.LOW.code),
         )
 
@@ -1462,15 +1475,15 @@ class EligibilityServiceTest {
       runScenarios(scenarios) { s ->
 
         val cas1Application = if (s.isSubmittedCas1.toBoolean()) {
-          buildCas1Application(
-            application = buildCas1ApplicationSummary(
-              status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-            ),
-            requestForPlacement = buildCas1RequestForPlacementSummary(
-              status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-            ),
-            placement = buildCas1PlacementSummary(
-              status = Cas1PlacementStatus.UPCOMING,
+          buildCas1ApplicationV2(
+            status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+            submittedApplication = buildCas1SubmittedApplication(
+              upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+                requestForPlacement = buildCas1RequestForPlacementSummaryV2(
+                  status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+                ),
+                placement = buildCas1PlacementV2(status = Cas1PlacementStatus.UPCOMING),
+              ),
             ),
           )
         } else {
@@ -1500,7 +1513,7 @@ class EligibilityServiceTest {
         val data = buildDomainData(
           crn = s.testCaseId,
           nextAccommodations = nextAccommodations,
-          cas1Application = cas1Application,
+          cas1Application = cas1Application?.let { buildCas1ApplicationDomainData(it, currentOutcome = it.currentOutcome) },
           cas3Application = cas3Application,
         )
 

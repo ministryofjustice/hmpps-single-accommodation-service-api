@@ -12,7 +12,7 @@ class DepartedPlacementRule : Rule {
   override val description = "FAIL if current placement is departed"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.cas1Application?.placement?.status == Cas1PlacementStatus.DEPARTED
+    val isFail = data.cas1Application?.currentOutcome?.placement?.status == Cas1PlacementStatus.DEPARTED
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 
     return RuleResult(

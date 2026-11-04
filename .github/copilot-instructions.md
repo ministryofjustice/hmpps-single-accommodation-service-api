@@ -15,7 +15,11 @@ Use this file as the default operating guide. Only search the repo when these in
 - Do **not** manually format or reformat code as part of unrelated changes; rely on running `./gradlew ktlintFormat --no-daemon` when formatting is needed.
 - Focus solely on the task you were asked to do, and keep changes as small and targeted as possible.
 
+## Commit messages
+- First line must be 72 characters or fewer
+
 ## Tooling safety
+- Prefer the edit tool over regex/python rewrites of Kotlin files; regex edits have silently deleted neighbouring functions. Check `git diff` afterwards, and re-grep anchors after `ktlintFormat` since it reflows code.
 - For focused integration tests in this repo, use the root task explicitly: `./gradlew :integrationTest --tests '...' --no-daemon`.
 - Never use heredocs directly in `run_in_terminal`. Use a temporary file instead.
 
@@ -71,6 +75,10 @@ Use this file as the default operating guide. Only search the repo when these in
 - Keep tests deterministic and package-aligned with the code under test; prefer focused tests while iterating and the full suite before handoff for broad changes.
 - For HTTP endpoints, cover the expected auth, happy path, validation/error path, and side effects/persistence changes.
 - This repository uses consumer-side Pact tests for upstream API contracts. When changing an upstream client, its request/response models, or serialization, review and update any affected Pact tests (for example, `infrastructure/src/test/.../*PactTest.kt`) and run `./gradlew pactTest`.
+
+- Do not write tests that assert a field is "ignored"; test the behaviour that matters.
+- When a rule or updater consumes a precomputed value (for example `Cas1ApplicationDomainData.currentOutcome`), set that value directly in the test via the factory (`buildCas1ApplicationDomainData(application, currentOutcome)`, where `currentOutcome` is required and may be `null`), rather than deriving it through upstream model fields. Don't keep duplicate tests with different setup; rename existing tests instead.
+- New upstream endpoints need a cache key in `ApiCallKeys` (named `GET_CAS_1_...`, with matching camelCase value), the 404-exclusion list if 204/404 means "none", and an entry in `RedissonCacheConfig`; integration tests need stubs in `ApprovedPremisesStubs` and `WiremockStubber`.
 
 ## Subject Access Requests
 - SAR functionality is part of this repo: the service aggregates data into a single SAR response and HTML report.

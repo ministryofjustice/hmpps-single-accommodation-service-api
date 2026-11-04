@@ -34,7 +34,7 @@ class NoPlacementContextUpdater : ContextUpdater() {
   override val terminalNode = true
 
   override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
-    val requestForPlacementStatus = context.data.cas1Application?.requestForPlacement?.status
+    val requestForPlacementStatus = context.data.cas1Application?.currentOutcome?.requestForPlacement?.status
 
     return when (requestForPlacementStatus) {
       Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> outcome(placementRequestWithdrawn)

@@ -25,7 +25,6 @@ fun expectedGetEligibilityResponse(
   cas1ApplicationStartedAt: String,
   startDate: String,
   endDate: String,
-  dateApplied: String,
 ): String = """
 {
   "data": {
@@ -88,41 +87,7 @@ fun expectedGetEligibilityResponse(
             "postcode": "Test Postcode"
           }
         },
-        "placementHistory": [
-          {
-            "requestForPlacement": {
-              "status": "PLACEMENT_BOOKED",
-              "decision": "ACCEPTED",
-              "rejectionReason": null,
-              "submittedBy": {
-                "name": "Bob",
-                "username": "Bob123",
-                "staffCode": "123"
-              },
-              "submittedAt": "$requestSubmittedAt",
-              "withdrawalReason": null,
-              "withdrawalDate": null,
-              "expectedArrivalDate": "$expectedArrivalDate",
-              "durationDays": 12
-            },
-            "placement": {
-              "status": "CANCELLED",
-              "actualArrivalDate": null,
-              "actualDepartureDate": null,
-              "expectedDepartureDate": null,
-              "cancellationReason": "Oops",
-              "premises": {
-                "startDate": "$startDate",
-                "endDate": "$endDate",
-                "addressLine1": "Test House",
-                "addressLine2": "Test Road",
-                "town": "Test Town",
-                "postcode": "Test Postcode"
-              }
-            },
-            "dateApplied": "$dateApplied"
-          }
-        ],
+        "placementHistory": [],
         "id": "$cas1ApplicationId",
         "applicationStatus": "PLACEMENT_ALLOCATED",
         "requestForPlacementStatus": "PLACEMENT_BOOKED",
@@ -380,6 +345,7 @@ fun expectedGetEligibilityResponseTierNotFound(
   cas3ReferralUrl: String,
   crsUrl: String,
   cas1ApplicationStartedAt: String,
+  cas1ApplicationSubmittedAt: String,
 ): String = """
 {
   "data": {
@@ -405,7 +371,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "username": "testTester",
             "staffCode": "1234"
           },
-          "submittedAt": null,
+          "submittedAt": "$cas1ApplicationSubmittedAt",
           "expiresAt": null
         },
         "assessment": null,
@@ -426,7 +392,14 @@ fun expectedGetEligibilityResponseTierNotFound(
           "actualDepartureDate": null,
           "expectedDepartureDate": null,
           "cancellationReason": null,
-          "premises": null
+          "premises": {
+            "startDate": "2025-01-01",
+            "endDate": "2025-07-01",
+            "addressLine1": "TEST HOUSE",
+            "addressLine2": null,
+            "town": null,
+            "postcode": "TEST POSTCODE"
+          }
         },
         "placementHistory": [],
         "id": "$cas1ApplicationId",

@@ -41,13 +41,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementPair
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalRequestForPlacementOutcome
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummaryV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
@@ -60,6 +58,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.statusLastUpdated
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Cas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as Cas1ApplicationStatusInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus as Cas1PlacementStatusInfra
@@ -225,17 +225,15 @@ object EligibilityTransformer {
   }
 
   private fun toCas1PremisesSummaryDto(
-    premises: Cas1PremisesSummary?,
-  ) = premises?.let { premises ->
-    Cas1PremisesSummaryDto(
-      startDate = premises.startDate,
-      endDate = premises.endDate,
-      addressLine1 = premises.addressLine1,
-      addressLine2 = premises.addressLine2,
-      town = premises.town,
-      postcode = premises.postcode,
-    )
-  }
+    placement: Cas1PlacementV2,
+  ) = Cas1PremisesSummaryDto(
+    startDate = placement.canonicalArrivalDate,
+    endDate = placement.canonicalDepartureDate,
+    addressLine1 = placement.premises.addressLine1,
+    addressLine2 = placement.premises.addressLine2,
+    town = placement.premises.town,
+    postcode = placement.premises.postcode,
+  )
 
   private fun toCas3PremisesSummaryDto(
     premises: Cas3BookingPremises?,
@@ -263,6 +261,14 @@ object EligibilityTransformer {
       cohort = toCas2CohortDto(application.cohort),
     )
   }
+
+  private fun toCas1StaffDto(
+    staff: Cas1Staff,
+  ) = Cas1StaffDto(
+    name = staff.name,
+    username = staff.username,
+    staffCode = staff.staffCode,
+  )
 
   private fun toCas2StaffDto(
     staff: Cas2Staff,
@@ -307,29 +313,29 @@ object EligibilityTransformer {
   }
 
   private fun toCas1ApplicationDto(
-    cas1Application: Cas1Application?,
-  ) = cas1Application?.let { application ->
+    cas1ApplicationDomainData: Cas1ApplicationDomainData?,
+  ) = cas1ApplicationDomainData?.let { (application, currentOutcome) ->
     Cas1ApplicationDto(
-      id = application.application.id,
-      applicationStatus = toCas1ApplicationStatus(application.application.status),
-      requestForPlacementStatus = toCas1RequestForPlacementStatus(application.requestForPlacement?.status),
-      placementStatus = toCas1PlacementStatus(application.placement?.status),
+      id = application.id,
+      applicationStatus = toCas1ApplicationStatus(application.status),
+      requestForPlacementStatus = toCas1RequestForPlacementStatus(currentOutcome?.requestForPlacement?.status),
+      placementStatus = toCas1PlacementStatus(currentOutcome?.placement?.status),
       uiUrl = application.uiUrl,
-      application = toCas1ApplicationSummaryDto(application.application),
-      assessment = toCas1AssessmentSummaryDto(application.assessment),
-      requestForPlacement = toRequestForPlacementDto(application.requestForPlacement),
-      placement = toPlacementDto(application.placement),
-      placementHistory = toPlacementHistory(application.placementHistory),
+      application = toCas1ApplicationSummaryDto(application),
+      assessment = toCas1AssessmentSummaryDto(application.submittedApplication?.assessment),
+      requestForPlacement = toRequestForPlacementDto(currentOutcome?.requestForPlacement),
+      placement = toPlacementDto(currentOutcome?.placement),
+      placementHistory = toPlacementHistory(cas1ApplicationDomainData.historyExcludingCurrentOutcome),
     )
   }
 
   private fun toPlacementHistory(
-    placementHistory: List<Cas1PlacementPair>,
-  ) = placementHistory.map { pair ->
+    placementHistory: List<Cas1ExternalRequestForPlacementOutcome>,
+  ) = placementHistory.map { outcome ->
     Cas1PlacementPairDto(
-      requestForPlacement = toRequestForPlacementDto(pair.requestForPlacement),
-      placement = toPlacementDto(pair.placement),
-      dateApplied = pair.dateApplied,
+      requestForPlacement = toRequestForPlacementDto(outcome.requestForPlacement),
+      placement = toPlacementDto(outcome.placement),
+      dateApplied = outcome.statusLastUpdated.toLocalDate(),
     )
   }
 
@@ -352,13 +358,13 @@ object EligibilityTransformer {
   }
 
   private fun toCas1ApplicationSummaryDto(
-    application: Cas1ApplicationSummary,
+    application: Cas1ApplicationV2,
   ) = Cas1ApplicationSummaryDto(
     id = application.id,
     status = toCas1ApplicationStatus(application.status),
     createdAt = application.createdAt,
-    createdBy = toCas1StaffDto(application.createdBy)!!,
-    submittedAt = application.submittedAt,
+    createdBy = toCas1StaffDto(application.createdBy),
+    submittedAt = application.submittedApplication?.submittedAt,
     expiresAt = application.expiresAt,
   )
 
@@ -375,30 +381,30 @@ object EligibilityTransformer {
   }
 
   private fun toRequestForPlacementDto(
-    requestForPlacement: Cas1RequestForPlacementSummary?,
+    requestForPlacement: Cas1RequestForPlacementSummaryV2?,
   ) = requestForPlacement?.let {
     Cas1RequestForPlacementSummaryDto(
       status = toCas1RequestForPlacementStatus(it.status),
       decision = toRequestForPlacementDecision(it.decision),
       rejectionReason = it.rejectionReason,
-      submittedBy = toCas1StaffDto(it.submittedBy),
+      submittedBy = it.submittedBy?.let { staff -> toCas1StaffDto(staff) },
       submittedAt = it.submittedAt,
-      withdrawalReason = toWithdrawalReason(it.withdrawalReason),
-      withdrawalDate = it.withdrawalDate,
+      withdrawalReason = toWithdrawalReason(it.withdrawal?.withdrawalReason),
+      withdrawalDate = it.withdrawal?.withdrawalDate,
       expectedArrivalDate = it.expectedArrivalDate,
       durationDays = it.durationDays,
     )
   }
 
   private fun toPlacementDto(
-    placement: Cas1PlacementSummary?,
+    placement: Cas1PlacementV2?,
   ) = placement?.let {
     Cas1PlacementSummaryDto(
       status = toCas1PlacementStatus(it.status),
       actualArrivalDate = it.actualArrivalDate,
       actualDepartureDate = it.actualDepartureDate,
       cancellationReason = it.cancellationReason,
-      premises = toCas1PremisesSummaryDto(it.premises),
+      premises = toCas1PremisesSummaryDto(it),
       expectedDepartureDate = it.expectedDepartureDate,
     )
   }
@@ -409,16 +415,6 @@ object EligibilityTransformer {
     Cas1AssessmentSummaryDto(
       decision = toAssessmentDecision(assessment.decision),
       rejectionRationale = assessment.rejectionRationale,
-    )
-  }
-
-  private fun toCas1StaffDto(
-    staff: Cas1Staff?,
-  ) = staff?.let {
-    Cas1StaffDto(
-      name = staff.name,
-      username = staff.username,
-      staffCode = staff.staffCode,
     )
   }
 

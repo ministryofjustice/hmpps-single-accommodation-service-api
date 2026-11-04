@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_IF_EXISTS
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_SEXUAL_OFFENCE_REGISTRATIONS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER_V3
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
@@ -51,7 +51,7 @@ class EligibilityOrchestrationService(
       put(GET_TIER_V3) { tierCachingService.getTier(crn) }
       put(GET_CASE_IF_EXISTS) { sasAndDeliusCachingService.getCase(crn) }
       put(GET_SEXUAL_OFFENCE_REGISTRATIONS) { sasAndDeliusCachingService.getSexualOffenceRegistrations(crn) }
-      put(GET_CAS_1_APPLICATION) { approvedPremisesCachingService.getSuitableCas1Application(crn) }
+      put(GET_CAS_1_CURRENT_APPLICATION) { approvedPremisesCachingService.getCurrentCas1Application(crn) }
       put(GET_CAS_2_APPLICATION) { approvedPremisesCachingService.getSuitableCas2Application(crn) }
       put(GET_CAS_3_APPLICATION) { approvedPremisesCachingService.getSuitableCas3Application(crn) }
       put(GET_CRS) { commissionedRehabilitativeServicesCachingService.getCrs(crn) }
@@ -67,7 +67,7 @@ class EligibilityOrchestrationService(
     val tier = results.getResult<Tier>(GET_TIER_V3)
     val case = results.getResult<Case>(GET_CASE_IF_EXISTS)
     val sexualOffenceRegistrations = results.getResult<SexualOffenceRegistrations>(GET_SEXUAL_OFFENCE_REGISTRATIONS)
-    val cas1Application = results.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
+    val cas1Application = results.getResult<Cas1ApplicationV2>(GET_CAS_1_CURRENT_APPLICATION)
     val cas2Application = results.getResult<Cas2Application>(GET_CAS_2_APPLICATION)
     val cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
     val crs = results.getResult<List<CommissionedRehabilitativeServices>>(GET_CRS)

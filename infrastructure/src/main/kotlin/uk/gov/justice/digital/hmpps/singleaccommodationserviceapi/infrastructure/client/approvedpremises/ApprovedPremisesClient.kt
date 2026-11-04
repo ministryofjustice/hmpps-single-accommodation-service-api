@@ -24,6 +24,10 @@ interface ApprovedPremisesClient {
   fun getSuitableCas1ApplicationInternal(@PathVariable crn: String): Cas1Application
 
   @WebClientRetry
+  @GetExchange(value = "/cas1/external/cases/{crn}/applications/current")
+  fun getCurrentCas1ApplicationInternal(@PathVariable crn: String): Cas1ApplicationV2
+
+  @WebClientRetry
   @GetExchange(value = "/cas2/external/cases/{crn}/applications/suitable")
   fun getSuitableCas2ApplicationInternal(@PathVariable crn: String): Cas2Application
 
@@ -80,6 +84,9 @@ class ApprovedPremisesCachingService(
 
   @Cacheable(ApiCallKeys.GET_CAS_1_APPLICATION, sync = true)
   fun getSuitableCas1Application(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getSuitableCas1ApplicationInternal(crn) }
+
+  @Cacheable(ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION, sync = true)
+  fun getCurrentCas1Application(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCurrentCas1ApplicationInternal(crn) }
 
   @Cacheable(ApiCallKeys.GET_CAS_2_APPLICATION, sync = true)
   fun getSuitableCas2Application(crn: String) = approvedPremisesClient.getSuitableCas2ApplicationInternal(crn)

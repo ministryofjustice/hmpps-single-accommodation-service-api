@@ -5,12 +5,13 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NotActiveRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.util.UUID
 
@@ -30,14 +31,10 @@ class Cas1NotActiveRuleTest {
     ],
   )
   fun `application is suitable (but not PLACEMENT_ALLOCATED) so rule passes`(status: Cas1ApplicationStatus) {
-    val cas1Application = buildCas1Application(
-      application = buildCas1ApplicationSummary(status = status, id = UUID.randomUUID()),
-      placement = null,
-      requestForPlacement = null,
-    )
+    val cas1Application = buildCas1ApplicationV2(status = status, id = UUID.randomUUID())
 
     val data = buildDomainData(
-      cas1Application = cas1Application,
+      cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = null),
     )
 
     val result = Cas1NotActiveRule().evaluate(data)
@@ -53,14 +50,13 @@ class Cas1NotActiveRuleTest {
   @ParameterizedTest(name = "{0}")
   @EnumSource(value = Cas1PlacementStatus::class)
   fun `application is suitable (PLACEMENT_ALLOCATED) so rule passes`(status: Cas1PlacementStatus) {
-    val cas1Application = buildCas1Application(
-      application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED, id = UUID.randomUUID()),
-      placement = buildCas1PlacementSummary(status = status),
-      requestForPlacement = null,
-    )
-
     val data = buildDomainData(
-      cas1Application = cas1Application,
+      cas1Application = buildCas1ApplicationDomainData(
+        application = buildCas1ApplicationV2(status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED, id = UUID.randomUUID()),
+        currentOutcome = buildCas1ExternalRequestForPlacementOutcomeDto(
+          placement = buildCas1PlacementV2(status = status),
+        ),
+      ),
     )
 
     val result = Cas1NotActiveRule().evaluate(data)
@@ -85,14 +81,10 @@ class Cas1NotActiveRuleTest {
     ],
   )
   fun `application does not have a suitable status so rule fails`(status: Cas1ApplicationStatus) {
-    val cas1Application = buildCas1Application(
-      application = buildCas1ApplicationSummary(status = status, id = UUID.randomUUID()),
-      placement = null,
-      requestForPlacement = null,
-    )
+    val cas1Application = buildCas1ApplicationV2(status = status, id = UUID.randomUUID())
 
     val data = buildDomainData(
-      cas1Application = cas1Application,
+      cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = null),
     )
 
     val result = Cas1NotActiveRule().evaluate(data)

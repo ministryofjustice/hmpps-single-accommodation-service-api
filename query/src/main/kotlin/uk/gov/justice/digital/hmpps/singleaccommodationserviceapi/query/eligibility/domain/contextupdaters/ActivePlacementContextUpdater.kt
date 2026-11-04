@@ -33,7 +33,7 @@ class ActivePlacementContextUpdater : ContextUpdater() {
   override val terminalNode = true
 
   override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
-    val placementStatus = context.data.cas1Application?.placement?.status
+    val placementStatus = context.data.cas1Application?.currentOutcome?.placement?.status
 
     return when (placementStatus) {
       Cas1PlacementStatus.ARRIVED -> outcome(arrived)

@@ -6,11 +6,11 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1ActiveRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.util.UUID
 
@@ -31,14 +31,10 @@ class Cas1ActiveRuleTest {
     ],
   )
   fun `application is suitable so rule fails`(status: Cas1ApplicationStatus) {
-    val cas1Application = buildCas1Application(
-      application = buildCas1ApplicationSummary(status = status, id = UUID.randomUUID()),
-      placement = null,
-      requestForPlacement = null,
-    )
+    val cas1Application = buildCas1ApplicationV2(status = status, id = UUID.randomUUID())
 
     val data = buildDomainData(
-      cas1Application = cas1Application,
+      cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = null),
     )
 
     val result = Cas1ActiveRule().evaluate(data)
@@ -64,14 +60,10 @@ class Cas1ActiveRuleTest {
     ],
   )
   fun `application does not have a suitable status so rule passes`(status: Cas1ApplicationStatus) {
-    val cas1Application = buildCas1Application(
-      application = buildCas1ApplicationSummary(status = status, id = UUID.randomUUID()),
-      placement = null,
-      requestForPlacement = null,
-    )
+    val cas1Application = buildCas1ApplicationV2(status = status, id = UUID.randomUUID())
 
     val data = buildDomainData(
-      cas1Application = cas1Application,
+      cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = null),
     )
 
     val result = Cas1ActiveRule().evaluate(data)
