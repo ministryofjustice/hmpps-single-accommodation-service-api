@@ -147,7 +147,7 @@ object RulesGraphMarkdownRenderer {
     GraphNodeKind.OUTCOME, GraphNodeKind.CONTEXT_UPDATER -> node.title
   }
 
-  private val edgeStyles = mapOf("PASS" to "green", "FAIL" to "red")
+  private val edgeStyles = mapOf("PASS" to "green", "FAIL" to "red", "CONTINUE" to "black")
 
   private val nodeStyles = linkedMapOf(
     "ruleSetNode" to "fill:#FFF8E1,stroke:#C9B37E,color:#333",

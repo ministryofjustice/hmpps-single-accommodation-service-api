@@ -39,6 +39,42 @@ class RulesGraphTest {
   inner class WalkerTests {
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
+    fun `shared updater has one continuation per destination`(sameDestination: Boolean) {
+      val updater = StubContextUpdater()
+      val confirmed = builder.confirmed()
+      val fail = if (sameDestination) confirmed else builder.notEligible(ServiceType.CAS1)
+      val root = builder
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("example"))))
+        .onPass(confirmed).applyContextUpdaterOnPass(updater)
+        .onFail(fail).applyContextUpdaterOnFailure(updater)
+        .build()
+
+      val graph = RulesGraphWalker().walk("EXAMPLE", root)
+      val updaterNodes = graph.nodes.filter { it.kind == GraphNodeKind.CONTEXT_UPDATER }
+      assertThat(updaterNodes).hasSize(if (sameDestination) 1 else 2)
+      updaterNodes.forEach { node ->
+        val outgoing = graph.edges.filter { it.from == node.id }
+        assertThat(outgoing).hasSize(1)
+        assertThat(outgoing.single().label).isEqualTo("CONTINUE")
+      }
+      assertThat(graph.edges.filter { it.to in updaterNodes.map { node -> node.id } }.map { it.label })
+        .containsExactlyInAnyOrder("PASS", "FAIL")
+      assertThat(graph.edges.filter { it.label == "CONTINUE" }.map { it.to })
+        .containsExactlyInAnyOrderElementsOf(if (sameDestination) listOf("confirmed") else listOf("confirmed", "CAS1_NOT_ELIGIBLE"))
+
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
+      val continuationIndexes = graph.edges.withIndex().filter { it.value.label == "CONTINUE" }.map { it.index }
+      assertThat(markdown).contains("linkStyle ${continuationIndexes.joinToString(",")} stroke:black,stroke-width:2px")
+      graph.edges.filter { it.label == "CONTINUE" }.forEach { edge ->
+        assertThat(markdown).contains("${edge.from} -->|CONTINUE| ${edge.to}")
+      }
+      val html = RulesGraphHtmlRenderer.render(listOf(graph))
+      assertThat(html).contains("edge[label = \"CONTINUE\"]")
+      assertThat(html).contains("'line-color': '#000', 'target-arrow-color': '#000', 'color': '#000'")
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
     fun `terminal context updater ends its branch as an outcome`(onPass: Boolean) {
       val updater = object : ContextUpdater() {
         override val terminalNode = true
@@ -205,7 +241,7 @@ class RulesGraphTest {
         GraphEdge(
           contextUpdaterId,
           confirmedId,
-          "PASS",
+          "CONTINUE",
         ),
         GraphEdge(
           upcomingId,
@@ -244,7 +280,7 @@ class RulesGraphTest {
         GraphEdge(
           contextUpdaterId,
           confirmedId,
-          "FAIL",
+          "CONTINUE",
         ),
       )
     }
@@ -356,7 +392,7 @@ class RulesGraphTest {
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
 
       assertThat(markdown).contains("Upcoming -->|PASS| updater_StubContextUpdater")
-      assertThat(markdown).contains("class updater_StubContextUpdater updaterNode")
+      assertThat(markdown).contains("class updater_StubContextUpdater_confirmed updaterNode")
       assertThat(markdown).doesNotContain(")onPass")
       assertThat(markdown).doesNotContain("[`StubContextUpdater`](#stubcontextupdater)")
       assertThat(markdown).contains("Used by: Upcoming (EXAMPLE)")
@@ -448,14 +484,14 @@ class RulesGraphTest {
       val updaters = graph.nodes.filter { it.kind == GraphNodeKind.CONTEXT_UPDATER }
       assertThat(updaters.map { it.title }).containsOnly("Set current status to Not Started").hasSize(2)
       assertThat(updaters.map { it.id }).containsExactly(
-        "updater_constant_CAS3_NOT_STARTED",
-        "updater_constant_CAS3_NOT_STARTED_NEW",
+        "updater_constant_CAS3_NOT_STARTED_confirmed",
+        "updater_constant_CAS3_NOT_STARTED_NEW_confirmed",
       )
       assertThat(graph.edges).containsExactlyInAnyOrder(
-        GraphEdge("ExampleEligibility", "updater_constant_CAS3_NOT_STARTED", "PASS"),
-        GraphEdge("updater_constant_CAS3_NOT_STARTED", "confirmed", "PASS"),
-        GraphEdge("ExampleEligibility", "updater_constant_CAS3_NOT_STARTED_NEW", "FAIL"),
-        GraphEdge("updater_constant_CAS3_NOT_STARTED_NEW", "confirmed", "FAIL"),
+        GraphEdge("ExampleEligibility", "updater_constant_CAS3_NOT_STARTED_confirmed", "PASS"),
+        GraphEdge("updater_constant_CAS3_NOT_STARTED_confirmed", "confirmed", "CONTINUE"),
+        GraphEdge("ExampleEligibility", "updater_constant_CAS3_NOT_STARTED_NEW_confirmed", "FAIL"),
+        GraphEdge("updater_constant_CAS3_NOT_STARTED_NEW_confirmed", "confirmed", "CONTINUE"),
       )
     }
 
