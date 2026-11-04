@@ -50,7 +50,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"MEDIUM",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -71,7 +71,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -92,7 +92,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"B3",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -113,7 +113,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"B3",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -134,7 +134,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"B3",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -155,7 +155,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"B3",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -176,7 +176,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -197,7 +197,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"D3",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -218,7 +218,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -239,7 +239,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -260,7 +260,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -281,7 +281,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -302,7 +302,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -323,7 +323,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -344,7 +344,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"A1",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -365,7 +365,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"A1S",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -386,7 +386,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"C1",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -407,7 +407,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"B3",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",

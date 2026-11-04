@@ -43,7 +43,7 @@ fun expectedGetCaseResponseSearch(): String = """
     "photoUrl": null,
     "tierScore": "A1",
     "riskLevel": "VERY_HIGH",
-    "pncReference": "Some PNC Reference",
+    "pncReference": null,
     "assignedTo": {
       "forename": "First",
       "surname": "Last",
