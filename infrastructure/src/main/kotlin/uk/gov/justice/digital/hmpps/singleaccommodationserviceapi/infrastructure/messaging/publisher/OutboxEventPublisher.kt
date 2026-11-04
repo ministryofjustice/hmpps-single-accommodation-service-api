@@ -101,9 +101,12 @@ class HmppsDomainEventBuilder(
       version = 1,
       description = eventType.typeDescription,
       occurredAt = outboxEventEntity.createdAt.atOffset(ZoneOffset.UTC),
-      additionalInformation = corePersonAddressId?.let {
-        mapOf("corePersonAddressId" to corePersonAddressId.toString())
-      } ?: emptyMap(),
+      additionalInformation = buildMap {
+        put("messageId", outboxEventEntity.id.toString())
+        corePersonAddressId?.let {
+          put("corePersonAddressId", it.toString())
+        }
+      },
     )
   }
 

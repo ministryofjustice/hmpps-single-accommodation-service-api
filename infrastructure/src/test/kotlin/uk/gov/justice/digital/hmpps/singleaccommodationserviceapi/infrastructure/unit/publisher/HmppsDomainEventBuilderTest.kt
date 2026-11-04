@@ -58,7 +58,12 @@ class HmppsDomainEventBuilderTest {
     assertThat(result.version).isEqualTo(1)
     assertThat(result.detailUrl).isEqualTo("http://sas/proposed-accommodation/$aggregateId")
     assertThat(result.occurredAt).isEqualTo(createdAt.atOffset(ZoneOffset.UTC))
-    assertThat(result.additionalInformation).isEqualTo(mapOf("corePersonAddressId" to cprAddressId.toString()))
+    assertThat(result.additionalInformation).isEqualTo(
+      mapOf(
+        "corePersonAddressId" to cprAddressId.toString(),
+        "messageId" to entity.id.toString(),
+      ),
+    )
   }
 
   @Test
@@ -71,7 +76,12 @@ class HmppsDomainEventBuilderTest {
 
     assertThat(result.eventType).isEqualTo("sas.accommodation.deleted")
     assertThat(result.detailUrl).isNull()
-    assertThat(result.additionalInformation).isEqualTo(mapOf("corePersonAddressId" to cprAddressId.toString()))
+    assertThat(result.additionalInformation).isEqualTo(
+      mapOf(
+        "corePersonAddressId" to cprAddressId.toString(),
+        "messageId" to entity.id.toString(),
+      ),
+    )
   }
 
   @Test
@@ -84,17 +94,27 @@ class HmppsDomainEventBuilderTest {
 
     assertThat(result.eventType).isEqualTo("sas.accommodation.person.arrived")
     assertThat(result.detailUrl).isEqualTo("http://sas/proposed-accommodation/$aggregateId")
-    assertThat(result.additionalInformation).isEqualTo(mapOf("corePersonAddressId" to cprAddressId.toString()))
+    assertThat(result.additionalInformation).isEqualTo(
+      mapOf(
+        "corePersonAddressId" to cprAddressId.toString(),
+        "messageId" to entity.id.toString(),
+      ),
+    )
   }
 
   @ParameterizedTest
   @EnumSource(value = SingleAccommodationServiceDomainEventType::class, names = ["SAS_DUTY_TO_REFER_UPDATED", "SAS_DUTY_TO_REFER_CREATED"])
   fun `duty to refer events have duty to refer url and empty additional information`(type: SingleAccommodationServiceDomainEventType) {
-    val result = builder.build(outboxEvent(type), type)
+    val entity = outboxEvent(type)
+    val result = builder.build(entity, type)
 
     assertThat(result.eventType).isEqualTo(type.typeName)
     assertThat(result.description).isEqualTo(type.typeDescription)
     assertThat(result.detailUrl).isEqualTo("http://sas/duty-to-refer/$aggregateId")
-    assertThat(result.additionalInformation).isEmpty()
+    assertThat(result.additionalInformation).isEqualTo(
+      mapOf(
+        "messageId" to entity.id.toString(),
+      ),
+    )
   }
 }
