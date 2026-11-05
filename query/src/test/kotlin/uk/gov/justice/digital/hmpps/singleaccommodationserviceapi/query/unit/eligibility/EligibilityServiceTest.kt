@@ -43,31 +43,18 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummaryV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
@@ -87,6 +74,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.DtrEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.PaEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityNewToOldTransformer.toEligibilityDtoOld
@@ -97,11 +85,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.CsvReader
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.UUID
 
 private const val CAS1_APPLICATION_START_URL = "CAS1_APPLICATION_START_URL"
 private const val CAS2_APPLICATION_START_URL = "CAS2_APPLICATION_START_URL#crn"
@@ -115,7 +100,7 @@ class EligibilityServiceTest {
 
   @Configuration
   @ComponentScan(basePackageClasses = [DecisionTreeBuilder::class, DeeplinkResolver::class])
-  @Import(RulesConfig::class, EligibilityService::class)
+  @Import(RulesConfig::class, EligibilityService::class, DomainDataFactory::class)
   class TestConfig {
     @Bean
     fun clock(): MutableClock = MutableClock()
@@ -200,132 +185,6 @@ class EligibilityServiceTest {
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
   private fun String.toLocalDate(): LocalDate = LocalDate.parse(this, dateFormatter)
-
-  @Nested
-  inner class DomainDataFunctions {
-    val crn = "ABC123"
-
-    @Test
-    fun `getDomainData returns correct DomainData`() {
-      val endDate = LocalDate.now().plusDays(1)
-      val expectedTier = "A1"
-      val caseId = UUID.randomUUID()
-      val cas1Application = buildCas1ApplicationV2()
-      val cas2Application = buildCas2Application()
-      val cas1CurrentPremises = buildCas1PremisesSummary()
-      val cas3CurrentPremises = buildCas3PremisesSummary()
-      val cas3Application = buildCas3Application()
-      val cpr = buildCorePersonRecord(
-        dateOfBirth = LocalDate.of(1990, 1, 1),
-        addresses = listOf(
-          buildCanonicalAddress(
-            status = CanonicalAddressStatus(
-              code = AddressStatusCode.M.name,
-              description = AddressStatusCode.M.description,
-            ),
-            endDate = endDate,
-            usages = listOf(
-              CanonicalAddressUsage(
-                usageCode = CanonicalAddressUsageCode(
-                  code = AddressUsageCode.A02.name,
-                  description = AddressUsageCode.A02.description,
-                ),
-                isActive = true,
-              ),
-            ),
-          ),
-        ),
-      )
-      val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
-      val roshLevel = buildRoshLevel()
-      val dutyToRefer = buildDutyToReferDto(crn, UUID.randomUUID(), DtrStatus.SUBMITTED, submission = null)
-      val crs = buildCommissionedRehabilitativeServices(status = CrsReferralStatus.LIVE)
-      val prisoner = buildPrisoner()
-      val registrations = buildSexualOffenceRegistrations(crn)
-      val orchestrationDto = OrchestrationResultDto(
-        data = EligibilityOrchestrationDto(
-          crn = crn,
-          cpr = cpr,
-          tier = tier,
-          cas1Application = cas1Application,
-          cas2Application = cas2Application,
-          cas3Application = cas3Application,
-          commissionedRehabilitativeServices = listOf(crs),
-          prisoner = prisoner,
-          cas1CurrentPremises = cas1CurrentPremises,
-          cas3CurrentPremises = cas3CurrentPremises,
-          sexualOffenceRegistrations = registrations,
-          case = buildCase(crn = crn, roshLevel = roshLevel),
-        ),
-      )
-      val caseEntity = buildCaseEntity(id = caseId)
-      val currentAccommodation = buildAccommodationSummaryDto(endDate = endDate, type = buildAccommodationTypeDto(code = "A02"))
-      val accommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true, code = "A02")
-
-      every { accommodationTypeRepository.findAll() } returns listOf(accommodationTypeEntity)
-      every { accommodationSummaryCalculator.calculateNextAccommodationsV2(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
-      every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
-      every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises, cas3CurrentPremises) } returns currentAccommodation
-      val result = eligibilityService.buildDomainData(crn, orchestrationDto.data, caseEntity)
-
-      val expected = buildDomainData(
-        crn = crn,
-        tierScore = expectedTier,
-        sex = cpr.sex!!.code,
-        dob = cpr.dateOfBirth,
-        currentAccommodation = currentAccommodation,
-        currentAccommodationTypeEntity = accommodationTypeEntity,
-        nextAccommodations = emptyList(),
-        cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = cas1Application.currentOutcome),
-        cas2Application = cas2Application,
-        cas3Application = cas3Application,
-        commissionedRehabilitativeServices = crs,
-        dutyToRefer = dutyToRefer,
-        roshLevel = roshLevel,
-        sexualOffenceRegistrations = registrations,
-      )
-
-      assertThat(result).isEqualTo(expected)
-    }
-
-    @Test
-    fun `getDomainData selects the most recent live referral and ignores the rest`() {
-      val cpr = buildCorePersonRecord()
-      val currentAccommodation = buildAccommodationSummaryDto()
-      val latestLiveReferral = buildCommissionedRehabilitativeServices(
-        status = CrsReferralStatus.LIVE,
-        sentAt = OffsetDateTime.now().minusDays(30),
-      )
-      val orchestrationDto = EligibilityOrchestrationDto(
-        crn = crn,
-        cpr = cpr,
-        tier = null,
-        cas1Application = null,
-        cas2Application = null,
-        cas3Application = null,
-        commissionedRehabilitativeServices = listOf(
-          buildCommissionedRehabilitativeServices(status = CrsReferralStatus.COMPLETED, sentAt = OffsetDateTime.now()),
-          buildCommissionedRehabilitativeServices(status = CrsReferralStatus.WITHDRAWN, sentAt = OffsetDateTime.now()),
-          latestLiveReferral,
-          buildCommissionedRehabilitativeServices(status = CrsReferralStatus.LIVE, sentAt = OffsetDateTime.now().minusDays(60)),
-        ),
-        cas1CurrentPremises = null,
-        cas3CurrentPremises = null,
-        prisoner = null,
-        sexualOffenceRegistrations = null,
-        case = null,
-      )
-
-      every { accommodationTypeRepository.findAll() } returns emptyList()
-      every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, null, null, null) } returns currentAccommodation
-      every { accommodationSummaryCalculator.calculateNextAccommodationsV2(crn, cpr.addresses, null, null, currentAccommodation) } returns emptyList()
-
-      val result = eligibilityService.buildDomainData(crn, orchestrationDto, caseEntity = null)
-
-      assertThat(result.commissionedRehabilitativeServices).isEqualTo(latestLiveReferral)
-      assertThat(result.sexualOffenceRegistrations).isNull()
-    }
-  }
 
   @Nested
   inner class GetEligibility {
