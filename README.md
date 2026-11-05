@@ -129,4 +129,7 @@ The eligibility rules engine is in the codebase, you can extract a markdown vers
 
 the file generated is viewable [here](./docs/eligibility-rules-graph.md)
 
+View the [interactive eligibility rules graph](https://ministryofjustice.github.io/hmpps-single-accommodation-service-api/eligibility-rules-graph.html).
+GitHub Pages must be configured to deploy from `main` and `/docs`; `docs/.nojekyll` disables Jekyll processing for these static files without changing the existing application deployment workflows.
+
 The pre-push hook in `scripts/hooks/pre-push` regenerates this graph and blocks the push if it differs from the committed version. Review and commit the updated graph before pushing again. Gradle's `copyGitHooks` task installs the script locally (also run automatically by root `compileKotlin`).

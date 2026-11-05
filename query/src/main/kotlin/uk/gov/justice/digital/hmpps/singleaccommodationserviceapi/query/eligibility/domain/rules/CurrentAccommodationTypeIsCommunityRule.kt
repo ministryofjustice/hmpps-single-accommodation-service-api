@@ -1,0 +1,26 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules
+
+import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
+
+@Component
+class CurrentAccommodationTypeIsCommunityRule : Rule {
+  override val description = "FAIL if person is in the community"
+  override val failureReason = FailureReason.IN_COMMUNITY
+
+  override fun evaluate(data: DomainData): RuleResult {
+    val isFail = data.currentAccommodationTypeEntity?.isPrison != true &&
+      data.currentAccommodationTypeEntity?.isCas1 != true &&
+      data.currentAccommodationTypeEntity?.isCas2 != true &&
+      data.currentAccommodationTypeEntity?.isCas3 != true
+    return RuleResult(
+      description = description,
+      ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
+      failureReason = if (isFail) failureReason else null,
+    )
+  }
+}

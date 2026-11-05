@@ -8,11 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarFlywaySchemaTest
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelper
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarJpaEntitiesTest
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
+import java.util.UUID
 import javax.sql.DataSource
 
 class SarIntegrationTest : IntegrationTestBase() {
@@ -92,6 +96,53 @@ class SarIntegrationTest : IntegrationTestBase() {
       .headers { it.setBearerAuth(nonSarToken()) }
       .exchange()
       .expectStatus().isForbidden
+  }
+
+  @Test
+  fun `findCaseForSubjectAccessRequest finds a case by CRN when the prison number is null`() {
+    val crn = UUID.randomUUID().toString()
+    val case = caseRepository.save(
+      buildCaseEntity {
+        withCrn(crn)
+        withPrisonNumber(UUID.randomUUID().toString())
+      },
+    )
+
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)?.id).isEqualTo(case.id)
+  }
+
+  @Test
+  fun `findCaseForSubjectAccessRequest finds a case by prison number when the CRN is null`() {
+    val prisonNumber = UUID.randomUUID().toString()
+    val case = caseRepository.save(
+      buildCaseEntity {
+        withCrn(UUID.randomUUID().toString())
+        withPrisonNumber(prisonNumber)
+      },
+    )
+
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(null, prisonNumber)?.id).isEqualTo(case.id)
+  }
+
+  @Test
+  fun `findCaseForSubjectAccessRequest finds an archived case`() {
+    val crn = UUID.randomUUID().toString()
+    val case = caseRepository.save(
+      buildCaseEntity {
+        withCrn(crn)
+        archived = true
+      },
+    )
+
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)?.id).isEqualTo(case.id)
+  }
+
+  @Test
+  fun `findCaseForSubjectAccessRequest returns null when no identifier matches`() {
+    caseRepository.save(buildCaseEntity { withCrn(UUID.randomUUID().toString()) })
+
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(UUID.randomUUID().toString(), null)).isNull()
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(null, UUID.randomUUID().toString())).isNull()
   }
 
   @Nested

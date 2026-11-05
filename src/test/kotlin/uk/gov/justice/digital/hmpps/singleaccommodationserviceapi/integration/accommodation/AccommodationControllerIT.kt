@@ -829,7 +829,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
     ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
-    ApprovedPremisesStubs.getCas1SuitableApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(crn = crn)
 
     webTestClient.get().uri("/cases/{crn}/accommodations/next", crn)

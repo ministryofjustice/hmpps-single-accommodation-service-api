@@ -23,6 +23,7 @@ fun expectedReferralHistoryItem(
   withdrawalReason: String? = null,
   withdrawalNote: String? = null,
   otherReason: String? = null,
+  organisationName: String? = null,
 ): String = """
   {
     "id":"$id",
@@ -42,7 +43,8 @@ fun expectedReferralHistoryItem(
     "uiUrl": ${uiUrl.toJsonValue()},
     "withdrawalReason": ${withdrawalReason.toJsonValue()},
     "withdrawalNote": ${withdrawalNote.toJsonValue()},
-    "otherReason": ${otherReason.toJsonValue()}
+    "otherReason": ${otherReason.toJsonValue()},
+    "organisationName": ${organisationName.toJsonValue()}
   }
 """.trimIndent()
 

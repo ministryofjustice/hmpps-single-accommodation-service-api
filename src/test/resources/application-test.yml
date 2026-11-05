@@ -88,7 +88,8 @@ event:
 
 case-refresh:
   worker:
-    fixed-delay: 50ms
+    cron: "* * * * * *"
+    zone: UTC
     max-requests-per-run: 10
     max-attempts: 2
     initial-backoff: 1m
@@ -120,6 +121,7 @@ hmpps:
               "core-person-record.probation.address.deleted",
               "core-person-record.probation.record.updated",
               "core-person-record.probation.record.merged",
+              "core-person-record.probation.record.deleted",
               "prisoner-offender-search.prisoner.released",
               "prisoner-offender-search.prisoner.received",
               "prisoner-offender-search.prisoner.updated",
@@ -148,7 +150,7 @@ hmpps:
       enabled: true
     tests:
       attachments-expected: false
-      expected-flyway-schema-version: "0064"
+      expected-flyway-schema-version: "0065"
       expected-jpa-entity-schema:
         path: /sar/sas-entities-schema.json
       expected-render-result:
@@ -163,6 +165,9 @@ case-list:
     - SAS
 
 bulk-load:
+  page-size: 1
+
+team-members:
   page-size: 1
 logging:
   level:

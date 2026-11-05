@@ -25,12 +25,14 @@ object RulesGraphHtmlRenderer {
           mapOf(
             "id" to node.id,
             "title" to node.title,
+            "label" to RulesGraphMarkdownRenderer.nodeLabel(node),
             "kind" to node.kind.name,
             "rules" to node.rules.map { rule ->
               mapOf(
                 "className" to rule.className,
                 "description" to rule.description,
-                "sourcePath" to rule.sourcePath,
+                "failureReason" to rule.failureReason?.name,
+                "sourcePath" to githubSourceUrl(rule.sourcePath),
               )
             },
             "onPass" to node.onPassContextUpdater?.let(::updaterJson),
@@ -48,9 +50,13 @@ object RulesGraphHtmlRenderer {
     "name" to updater.name,
     "description" to updater.description,
     "kind" to updater.kind.name,
-    "sourcePath" to updater.sourcePath,
+    "sourcePath" to githubSourceUrl(updater.sourcePath),
     "outcomes" to updater.outcomes.values.map(::outcomeJson),
   )
+
+  private fun githubSourceUrl(sourcePath: String?): String? = sourcePath?.let {
+    "https://github.com/ministryofjustice/hmpps-single-accommodation-service-api/blob/main/${it.removePrefix("../")}"
+  }
 
   private fun outcomeJson(result: ServiceResultSpec): Map<String, Any?> = mapOf(
     "status" to result.serviceStatus.name,
@@ -125,6 +131,7 @@ object RulesGraphHtmlRenderer {
       <span style="background:#d9f2d9;border:1px solid #2e8b2e">Outcome</span>
       <span style="color:#2e8b2e">━ PASS</span>
       <span style="color:#c0392b">━ FAIL</span>
+      <span style="color:#000">━ CONTINUE</span>
     </span>
   </div>
   <div id="cy"></div>
@@ -143,10 +150,7 @@ Clicking a node also highlights every path from the root to it.</p></div>
   const codeLink = (name, path) => path ? '<a href="' + esc(path) + '" target="_blank"><code>' + esc(name) + '</code></a>' : '<code>' + esc(name) + '</code>';
 
   function label(n) {
-    if (n.kind === 'RULE_SET') {
-      return n.title + '\n(' + (n.rules.length === 0 ? 'always PASS' : n.rules.length + ' rule' + (n.rules.length > 1 ? 's' : '')) + ')';
-    }
-    return n.title.length > 90 ? n.title.substring(0, 87) + '…' : n.title;
+    return n.label;
   }
 
   function searchText(n) {
@@ -164,18 +168,18 @@ Clicking a node also highlights every path from the root to it.</p></div>
     wheelSensitivity: 0.3,
     style: [
       { selector: 'node', style: {
-        'label': 'data(label)', 'text-wrap': 'wrap', 'text-max-width': 220, 'font-size': 12,
-        'text-valign': 'center', 'text-halign': 'center', 'width': 240, 'height': 'label', 'padding': 12,
+        'label': 'data(label)', 'text-wrap': 'wrap', 'text-max-width': 360, 'font-size': 12,
+        'text-valign': 'center', 'text-halign': 'center', 'width': 380, 'height': 'label', 'padding': 12,
         'shape': 'round-rectangle', 'border-width': 2 } },
-      { selector: 'node[kind = "RULE_SET"]', style: { 'background-color': '#dbe9ff', 'border-color': '#3b73c4', 'font-weight': 'bold' } },
-      { selector: 'node[kind = "RULE_SET"][?hasFailUpdater]', style: { 'shape': 'round-diamond', 'width': 260, 'padding': 30 } },
-      { selector: 'node[kind = "CONTEXT_UPDATER"]', style: { 'background-color': '#fff2cc', 'border-color': '#c99a00', 'shape': 'rectangle', 'font-size': 11 } },
-      { selector: 'node[kind = "OUTCOME"]', style: { 'background-color': '#d9f2d9', 'border-color': '#2e8b2e', 'shape': 'ellipse' } },
+      { selector: 'node[kind = "RULE_SET"]', style: { 'background-color': '#dbe9ff', 'border-color': '#3b73c4', 'text-justification': 'left' } },
+      { selector: 'node[kind = "CONTEXT_UPDATER"]', style: { 'background-color': '#fff2cc', 'border-color': '#c99a00', 'font-size': 11 } },
+      { selector: 'node[kind = "OUTCOME"]', style: { 'background-color': '#d9f2d9', 'border-color': '#2e8b2e' } },
       { selector: 'edge', style: {
         'curve-style': 'bezier', 'target-arrow-shape': 'triangle', 'width': 2, 'label': 'data(label)',
         'font-size': 10, 'text-background-color': '#fff', 'text-background-opacity': 1, 'text-background-padding': 2 } },
       { selector: 'edge[label = "PASS"]', style: { 'line-color': '#2e8b2e', 'target-arrow-color': '#2e8b2e', 'color': '#2e8b2e' } },
       { selector: 'edge[label = "FAIL"]', style: { 'line-color': '#c0392b', 'target-arrow-color': '#c0392b', 'color': '#c0392b' } },
+      { selector: 'edge[label = "CONTINUE"]', style: { 'line-color': '#000', 'target-arrow-color': '#000', 'color': '#000' } },
       { selector: '.faded', style: { 'opacity': 0.15 } },
       { selector: '.match', style: { 'border-width': 5, 'border-color': '#8e44ad' } },
       { selector: 'node:selected', style: { 'border-width': 5, 'border-color': '#000' } },
@@ -197,7 +201,7 @@ Clicking a node also highlights every path from the root to it.</p></div>
     currentTree = data.trees.find(t => t.name === name);
     cy.elements().remove();
     cy.add(currentTree.nodes.map(n => ({ group: 'nodes', data: {
-      id: n.id, label: label(n), kind: n.kind, hasFailUpdater: !!n.onFail, search: searchText(n) } })));
+      id: n.id, label: label(n), title: n.title, kind: n.kind, search: searchText(n) } })));
     cy.add(currentTree.edges.map((e, i) => ({ group: 'edges', data: {
       id: 'e' + i, source: e.from, target: e.to, label: e.label } })));
     runLayout();
@@ -206,21 +210,10 @@ Clicking a node also highlights every path from the root to it.</p></div>
     document.getElementById('search').value = '';
   }
 
-  function outcomesTable(outcomes) {
-    if (!outcomes.length) return '';
-    const blocking = outcomes.some(o => o.blockingReason);
-    let html = '<table><tr><th>Status</th><th>Action</th><th>Link type</th>' + (blocking ? '<th>Blocking reason</th>' : '') + '</tr>';
-    outcomes.forEach(o => {
-      html += '<tr><td>' + esc(o.status) + '</td><td>' + esc(o.action || '-') + '</td><td>' + esc(o.linkType || '-') + '</td>' +
-        (blocking ? '<td>' + esc(o.blockingReason || '-') + '</td>' : '') + '</tr>';
-    });
-    return html + '</table>';
-  }
-
   function updaterHtml(title, u) {
     if (!u) return '';
     const name = u.name === 'constant' ? '' : codeLink(u.name, u.sourcePath) + ' – ';
-    return '<h3>' + title + ' context updater</h3><p>' + name + esc(u.description) + '</p>' + outcomesTable(u.outcomes);
+    return '<h3>' + title + ' context updater</h3><p>' + name + esc(u.description);
   }
 
   function showNode(id) {
@@ -233,8 +226,8 @@ Clicking a node also highlights every path from the root to it.</p></div>
       html += updaterHtml('PASS', n.onPass) + updaterHtml('FAIL', n.onFail);
     }
     const node = cy.getElementById(id);
-    const inc = node.incomers('edge').map(e => esc(e.source().data('label').split('\n')[0]) + ' <b>' + esc(e.data('label')) + '</b>');
-    const out = node.outgoers('edge').map(e => '<b>' + esc(e.data('label')) + '</b> → ' + esc(e.target().data('label').split('\n')[0]));
+    const inc = node.incomers('edge').map(e => esc(e.source().data('title')) + ' <b>' + esc(e.data('label')) + '</b>');
+    const out = node.outgoers('edge').map(e => '<b>' + esc(e.data('label')) + '</b> → ' + esc(e.target().data('title')));
     if (inc.length) html += '<h3>Reached from</h3><ul>' + inc.map(s => '<li>' + s + '</li>').join('') + '</ul>';
     if (out.length) html += '<h3>Leads to</h3><ul>' + out.map(s => '<li>' + s + '</li>').join('') + '</ul>';
     panel.innerHTML = html;
@@ -267,7 +260,6 @@ Clicking a node also highlights every path from the root to it.</p></div>
     const steps = [];
     const pathEdges = [];
     let id = root.id;
-    let via = null;
     let lastUpdater = null;
     let guard = 0;
     while (id && guard++ < 200) {
@@ -279,12 +271,10 @@ Clicking a node also highlights every path from the root to it.</p></div>
         steps.push({ node: n, status: status, failed: failed });
         const updater = status === 'PASS' ? n.onPass : n.onFail;
         if (updater) lastUpdater = updater;
-        via = status;
         edge = outEdges(id).find(e => e.label === status);
       } else if (n.kind === 'CONTEXT_UPDATER') {
         steps.push({ node: n });
-        const outs = outEdges(id);
-        edge = outs.find(e => e.label === via) || outs[0];
+        edge = outEdges(id).find(e => e.label === 'CONTINUE');
       } else {
         steps.push({ node: n });
         break;
@@ -305,18 +295,37 @@ Clicking a node also highlights every path from the root to it.</p></div>
     const last = res.steps[res.steps.length - 1];
     if (!last || last.node.kind !== 'OUTCOME') return '<div class="result">No outcome reached</div>';
     let html = '<div class="result"><b>Outcome:</b> ' + esc(last.node.title);
+    const updater = res.lastUpdater;
+    // outcome produced by a terminal context updater: show the statuses it can set
+    if (updater && updater.description === last.node.title) {
+      if (updater.outcomes.length > 1) {
+        html += '<br><span class="muted">One of the following; which one depends on data the simulator does not model.</span>';
+      }
+      return html + '</div>';
+    }
     if (/current status/i.test(last.node.title)) {
       if (res.lastUpdater && res.lastUpdater.outcomes.length) {
         html += '<br><b>Status set by</b> ' + esc(res.lastUpdater.name === 'constant' ? res.lastUpdater.description : res.lastUpdater.name);
         if (res.lastUpdater.outcomes.length > 1) {
           html += '<br><span class="muted">One of the following; which one depends on data the simulator does not model.</span>';
         }
-        html += outcomesTable(res.lastUpdater.outcomes);
+        html;
       } else {
         html += '<br><span class="muted">No context updater ran, so the status is the initial status from the context.</span>';
       }
     }
     return html + '</div>';
+  }
+
+  function traceOutcomeHtml(step, steps) {
+    let html = '<li><span class="muted">outcome:</span> <b>' + esc(step.node.title) + '</b>';
+    if (['Not Required', 'Cannot Start Yet', 'Not Eligible'].includes(step.node.title)) {
+      const previousRuleSet = steps.filter(s => s.node.kind === 'RULE_SET').pop();
+      const reasons = (previousRuleSet?.failed || []).filter(rule => rule.failureReason)
+        .map(rule => '<code>' + esc(rule.failureReason) + '</code>');
+      if (reasons.length) html += '<br><b>Reasons for failure:</b> ' + reasons.join(', ');
+    }
+    return html + '</li>';
   }
 
   function renderSim() {
@@ -341,7 +350,7 @@ Clicking a node also highlights every path from the root to it.</p></div>
           return '<li><b>' + esc(s.node.title) + '</b> ' + badge(s.status) + why + '</li>';
         }
         if (s.node.kind === 'CONTEXT_UPDATER') return '<li><span class="muted">update:</span> ' + esc(s.node.title) + '</li>';
-        return '<li><span class="muted">outcome:</span> <b>' + esc(s.node.title) + '</b></li>';
+        return traceOutcomeHtml(s, res.steps);
       }).join('') + '</ol>' +
       '<h3>Rule inputs</h3>';
 

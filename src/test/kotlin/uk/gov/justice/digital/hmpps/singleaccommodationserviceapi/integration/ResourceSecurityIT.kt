@@ -120,6 +120,7 @@ private val userControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /user/teams" to defaultRoles,
     "GET /users/me" to defaultRoles,
+    "GET /users/me/team-members" to defaultRoles,
   )
 
 private val dutyToReferControllerMap: Map<String, Set<String>> =

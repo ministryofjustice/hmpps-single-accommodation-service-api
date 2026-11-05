@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.beans.BeansException
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.system.exitProcess

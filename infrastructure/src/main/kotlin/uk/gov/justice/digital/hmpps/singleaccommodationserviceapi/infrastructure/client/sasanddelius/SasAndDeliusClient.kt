@@ -15,12 +15,12 @@ interface SasAndDeliusClient {
   fun getCaseList(@PathVariable username: String, @RequestParam(required = false) teamCode: String?, @RequestParam page: Long, @RequestParam size: Long): CaseList
 
   @WebClientRetry
-  @GetExchange(value = "/case/{username}/{crn}")
-  fun getCase(@PathVariable username: String, @PathVariable crn: String): Case
-
-  @WebClientRetry
   @GetExchange(value = "/team/{teamCode}/case-list")
   fun getCasesByTeamCode(@PathVariable teamCode: String, @RequestParam page: Long, @RequestParam size: Long): TeamCaseList
+
+  @WebClientRetry
+  @GetExchange(value = "/team/staff")
+  fun getStaffForTeams(@RequestParam teamCodes: List<String>, @RequestParam page: Long, @RequestParam size: Long): TeamStaffList
 
   @WebClientRetry
   @GetExchange(value = "/case/{crn}")
@@ -47,12 +47,12 @@ class SasAndDeliusCachingService(
     return sasAndDeliusClient.getCaseList(username = username, teamCode = teamCode, page = page, size = size)
   }
 
+  @Cacheable(ApiCallKeys.GET_STAFF_FOR_TEAMS, sync = true)
+  fun getStaffForTeams(teamCodes: List<String>, page: Long, size: Long) = sasAndDeliusClient.getStaffForTeams(teamCodes = teamCodes, page = page, size = size)
+
   @Cacheable(ApiCallKeys.GET_SEXUAL_OFFENCE_REGISTRATIONS, key = "#crn", sync = true)
   fun getSexualOffenceRegistrations(crn: String) = sasAndDeliusClient.getSexualOffenceRegistrations(crn)
 
-  @Cacheable(ApiCallKeys.GET_CASE, sync = true)
-  fun getCase(username: String, crn: String) = sasAndDeliusClient.getCase(username, crn)
-
-  @Cacheable(ApiCallKeys.GET_CASE_WITHOUT_LAO, key = "#crn", sync = true)
+  @Cacheable(ApiCallKeys.GET_CASE, key = "#crn", sync = true)
   fun getCase(crn: String) = sasAndDeliusClient.getCase(crn)
 }

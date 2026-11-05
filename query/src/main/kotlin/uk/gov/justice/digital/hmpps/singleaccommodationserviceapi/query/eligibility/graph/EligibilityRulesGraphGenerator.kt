@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 
 object EligibilityRulesGraphGenerator {
 

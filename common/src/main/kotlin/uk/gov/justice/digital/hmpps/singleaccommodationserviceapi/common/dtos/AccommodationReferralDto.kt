@@ -22,6 +22,7 @@ data class AccommodationReferralDto(
   val withdrawalReason: String?,
   val withdrawalNote: String?,
   val otherReason: String? = null,
+  val organisationName: String? = null,
 )
 
 enum class AccommodationReferralStatus {

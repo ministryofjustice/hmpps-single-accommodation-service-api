@@ -42,11 +42,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummaryV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
@@ -70,91 +71,108 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityCurrentAccommodationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityTierRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.CurrentAccommodationIsPrisonOrCas1Rule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.MaleRiskEligibilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.NonMaleRiskEligibilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationPresentRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationRelevantExpiredRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationSuitabilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1CompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithinTwentyEightWeeksRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2EligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityCurrentAccommodationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityNextAccommodationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityPersonRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityReleaseDateRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas2Rule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCas3Rule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.CurrentAccommodationTypeIsCommunityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.InPrisonNoReleaseDateRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.SexualOffenceRegistrationsRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.SingleLetterTierRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Under18Rule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2ApplicationSubmittedRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2CompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitableStatusRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityCurrentAccommodationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityNextAccommodationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleMale
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleNonMale
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationPresentSuitabilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationSuitabilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3AssessmentSuitabilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3BookingSuitabilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3CompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.EligibilityRoshRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.ReleaseWithin15DaysRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RoshLevelRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsSubmittedRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityNextAccommodationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilitySettledRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsSettledRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrEligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrCompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrNotWithdrawnRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrPresentRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.ReleaseWithinEightWeeksRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.PaEligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.HasNextAccommodationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas1ApplicationNotSuitableRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas3ApplicationNotSuitableRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.PaEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.currentOutcome
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.ActivePlacementContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1NotSubmittedContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1RejectedContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1StartContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1UpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas2ActiveContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas2StartContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas2UpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas3ActiveContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas3CannotStartContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas3StartContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas3UpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.CrsStartContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.CrsUpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.DepartedPlacementContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.DtrActiveContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.DtrUpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.NoPlacementContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.NoRequestForPlacementContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1ActiveRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1ExpiredRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NotActiveRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NotPresentRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NotRejectedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1SubmittedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas2NotActiveRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas2NotSubmittedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas3ActiveRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas3AssessmentNotActiveRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas3BookingNotActiveRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas3NotPresentRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas3ReferralNotActiveRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.CrsSubmittedRuleMale
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.CrsSubmittedRuleNonMale
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.CurrentAccommodationIsPrisonOrCas1Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.CurrentAccommodationTypeIsCas2Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.CurrentAccommodationTypeIsCas3Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.CurrentAccommodationTypeIsCommunityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.DepartedPlacementRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.DtrExpiredRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.DtrNotPresentRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.DtrWithdrawnRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.HasNextAccommodationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.HasSexualOffenceRegistrationsRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.InPrisonNoReleaseRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.IsSettledRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.MaleRiskEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.MaleRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoLiveCrsRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoNextAccommodationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoPlacementRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoRequestForPlacementRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoRoshLevelRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NonMaleRiskEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.ReleaseOutside12WeeksRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.ReleaseOutside15DaysRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.ReleaseOutside28WeeksRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.ReleaseOutside8WeeksRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Under18Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.WrongCurrentAccommodationForCas3TypeRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.WrongTierRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ActivePlacementRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1ActiveRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotSubmittedRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1RejectedRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3PrerequisiteRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.CurrentAccommodationEligibleForCas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.CurrentAccommodationEligibleForCas2RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.CurrentAccommodationEligibleForCas3RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.DtrRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.HasNextAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.LiveCrsRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.MaleTierEligibleForCas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NoActiveCas1OrCas3ReferralsRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NoNextAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotMaleRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotMaleTierEligibleForCas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotSettledRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.PersonEligibleRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.PlacementRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ReleaseDateEligibleRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ReleaseWithin12WeeksRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ReleaseWithin15DaysRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ReleaseWithin28WeeksRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ReleaseWithin8WeeksRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.RequestForPlacementRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.RoshEligibleRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.Cas1EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.Cas2EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.Cas3EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.CrsEligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.DtrEligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.PaEligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDtoNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
@@ -185,174 +203,202 @@ class EligibilityServiceTest {
 
   // CAS1
   var cas1ApplicationStartUrl = "CAS1_APPLICATION_START_URL"
-  var cas1CompletionContextUpdater = Cas1CompletionContextUpdater()
-  var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(Cas1ApplicationPresentRule(), Cas1ApplicationSuitabilityRule(), Cas1ApplicationRelevantExpiredRule())
-  var cas1EligibilityTierRuleSet = Cas1EligibilityTierRuleSet(
+  var noPlacementContextUpdater = NoPlacementContextUpdater()
+  var activePlacementContextUpdater = ActivePlacementContextUpdater()
+  var departedPlacementContextUpdater = DepartedPlacementContextUpdater()
+  var activePlacementRuleSet = ActivePlacementRuleSet(
+    DepartedPlacementRule(),
+  )
+  var placementRuleSet = PlacementRuleSet(
+    NoPlacementRule(),
+  )
+  var cas1RuleSet = Cas1RuleSet(Cas1NotPresentRule(), Cas1ExpiredRule())
+  var cas1ActiveRuleSet = Cas1ActiveRuleSet(Cas1NotActiveRule())
+  var cas1RejectedContextUpdater = Cas1RejectedContextUpdater()
+  var cas1RejectedRuleSet = Cas1RejectedRuleSet(
+    Cas1NotRejectedRule(),
+  )
+  var cas1SubmittedRuleSet = Cas1NotSubmittedRuleSet(Cas1SubmittedRule())
+  var cas1NotSubmittedContextUpdater = Cas1NotSubmittedContextUpdater()
+  var maleTierEligibleForCas1RuleSet = MaleTierEligibleForCas1RuleSet(
     MaleRiskEligibilityRule(),
+  )
+  var notMaleTierEligibleForCas1RuleSet = NotMaleTierEligibleForCas1RuleSet(
     NonMaleRiskEligibilityRule(),
   )
-  val eligibilityRoshRuleSet = EligibilityRoshRuleSet(
-    RoshLevelRule(),
+  var notMaleRuleSet = NotMaleRuleSet(
+    MaleRule(),
   )
-  var cas1EligibilityCurrentAccommodationRuleSet = Cas1EligibilityCurrentAccommodationRuleSet(
+  val requestForPlacementRuleSet = RequestForPlacementRuleSet(
+    NoRequestForPlacementRule(),
+  )
+  val noRequestForPlacementContextUpdater = NoRequestForPlacementContextUpdater()
+  val roshEligibleRuleSet = RoshEligibleRuleSet(
+    NoRoshLevelRule(),
+  )
+  var currentAccommodationEligibleForCas1RuleSet = CurrentAccommodationEligibleForCas1RuleSet(
     CurrentAccommodationIsPrisonOrCas1Rule(),
   )
   val cas1UpcomingContextUpdater = Cas1UpcomingContextUpdater()
-  var cas1UpcomingRuleSet = Cas1UpcomingRuleSet(ReleaseWithinTwentyEightWeeksRule(clock))
-  val cas1SuitabilityContextUpdater = Cas1SuitabilityContextUpdater()
+  var releaseWithin28WeeksRuleSet = ReleaseWithin28WeeksRuleSet(ReleaseOutside28WeeksRule(clock))
+  val cas1StartContextUpdater = Cas1StartContextUpdater()
 
   // CAS2
   var cas2ApplicationStartUrl = "CAS2_APPLICATION_START_URL#crn"
-  var cas2CompletionContextUpdater = Cas2CompletionContextUpdater(sentryService)
-  var cas2SuitabilityRuleSet = Cas2SuitabilityRuleSet(Cas2ApplicationSubmittedRule(), Cas2SuitableStatusRule())
-  var cas2EligibilityPersonRuleSet = Cas2EligibilityPersonRuleSet(
+  var cas2ActiveContextUpdater = Cas2ActiveContextUpdater(sentryService)
+  var cas2RuleSet = Cas2RuleSet(Cas2NotSubmittedRule(), Cas2NotActiveRule())
+  var personEligibleRuleSet = PersonEligibleRuleSet(
     Under18Rule(clock),
-    SingleLetterTierRule(),
-    SexualOffenceRegistrationsRule(),
+    WrongTierRule(),
+    HasSexualOffenceRegistrationsRule(),
   )
-  var cas2EligibilityReleaseDateRuleSet = Cas2EligibilityReleaseDateRuleSet(
-    InPrisonNoReleaseDateRule(),
+  var releaseDateEligibleRuleSet = ReleaseDateEligibleRuleSet(
+    InPrisonNoReleaseRule(),
   )
-  var cas2EligibilityCurrentAccommodationRuleSet = Cas2EligibilityCurrentAccommodationRuleSet(
+  var currentAccommodationEligibleForCas2RuleSet = CurrentAccommodationEligibleForCas2RuleSet(
     CurrentAccommodationTypeIsCas3Rule(),
     CurrentAccommodationTypeIsCas2Rule(),
     CurrentAccommodationTypeIsCommunityRule(),
   )
-  var cas2EligibilityNextAccommodationRuleSet = Cas2EligibilityNextAccommodationRuleSet(
-    NoNextAccommodationRule(),
+  var noNextAccommodationRuleSet = NoNextAccommodationRuleSet(
+    HasNextAccommodationRule(),
   )
   val cas2UpcomingContextUpdater = Cas2UpcomingContextUpdater()
-  var cas2UpcomingRuleSet = Cas2UpcomingRuleSet(ReleaseWithin15DaysRule(clock))
-  val cas2SuitabilityContextUpdater = Cas2SuitabilityContextUpdater(sentryService)
+  var releaseWithin15DaysRuleSet = ReleaseWithin15DaysRuleSet(ReleaseOutside15DaysRule(clock))
+  val cas2StartContextUpdater = Cas2StartContextUpdater(sentryService)
 
   // CAS3
   var cas3ReferralStartUrl = "CAS3_REFERRAL_START_URL"
-  var cas3UpcomingRuleSet = Cas3UpcomingRuleSet(ReleaseWithin15DaysRule(clock))
   var cas3UpcomingContextUpdater = Cas3UpcomingContextUpdater()
-  var cas3SuitabilityContextUpdater = Cas3SuitabilityContextUpdater()
-  var cas3CompletionContextUpdater = Cas3CompletionContextUpdater()
-  var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(
-    Cas3ApplicationSuitabilityRule(),
-    Cas3ApplicationPresentSuitabilityRule(),
-    Cas3BookingSuitabilityRule(),
-    Cas3AssessmentSuitabilityRule(),
+  var cas3StartContextUpdater = Cas3StartContextUpdater()
+  var cas3ActiveContextUpdater = Cas3ActiveContextUpdater()
+  var cas3RuleSet = Cas3RuleSet(
+    Cas3ReferralNotActiveRule(),
+    Cas3NotPresentRule(),
+    Cas3BookingNotActiveRule(),
+    Cas3AssessmentNotActiveRule(),
   )
-  var cas3EligibilityCurrentAccommodationRuleSet = Cas3EligibilityCurrentAccommodationRuleSet(
-    CurrentAccommodationTypeRule(),
+  var currentAccommodationEligibleForCas3RuleSet = CurrentAccommodationEligibleForCas3RuleSet(
+    WrongCurrentAccommodationForCas3TypeRule(),
   )
-  var cas3EligibilityNextAccommodationRuleSet = Cas3EligibilityNextAccommodationRuleSet(
-    NoNextAccommodationRule(),
-  )
+
   var cas3PrerequisiteRuleSet = Cas3PrerequisiteRuleSet(
-    DtrExpiredReferralRule(clock),
+    DtrExpiredRule(clock),
     CrsSubmittedRuleMale(),
     CrsSubmittedRuleNonMale(),
   )
-  var cas3PrerequisiteContextUpdater = Cas3PrerequisiteContextUpdater()
+  var cas3CannotStartContextUpdater = Cas3CannotStartContextUpdater()
 
   // DTR
-  var dtrUpcomingRuleSet = DtrUpcomingRuleSet(ReleaseWithinEightWeeksRule(clock))
+  var releaseWithin8WeeksRuleSet = ReleaseWithin8WeeksRuleSet(ReleaseOutside8WeeksRule(clock))
   var dtrUpcomingContextUpdater = DtrUpcomingContextUpdater()
-  var dtrSuitabilityRuleSet = DtrSuitabilityRuleSet(
-    DtrPresentRule(),
-    DtrNotWithdrawnRule(),
-    DtrExpiredReferralRule(clock),
+  var dtrRuleSet = DtrRuleSet(
+    DtrNotPresentRule(),
+    DtrWithdrawnRule(),
+    DtrExpiredRule(clock),
   )
-  var dtrCompletionContextUpdater = DtrCompletionContextUpdater()
-  var dtrEligibilityRuleSet = DtrEligibilityRuleSet(
-    NoNextAccommodationRule(),
-  )
+  var dtrActiveContextUpdater = DtrActiveContextUpdater()
 
   // CRS
   var crsUiUrl = "CRS_UI_URL"
-  var crsEligibilitySettledRuleSet = CrsEligibilitySettledRuleSet(
+  var notSettledRuleSet = NotSettledRuleSet(
     IsSettledRule(),
   )
-  var crsEligibilityNextAccommodationRuleSet = CrsEligibilityNextAccommodationRuleSet(
-    NoNextAccommodationRule(),
+  var liveCrsRuleSet = LiveCrsRuleSet(
+    NoLiveCrsRule(),
   )
-  var crsCompletionRuleSet = CrsCompletionRuleSet(
-    CrsSubmittedRule(),
-  )
-  var crsCompletionContextUpdater = CrsCompletionContextUpdater(crsUiUrl)
-  var crsUpcomingRuleSet = CrsUpcomingRuleSet(CrsUpcomingRule(clock))
+  var crsStartContextUpdater = CrsStartContextUpdater(crsUiUrl)
+  var releaseWithin12WeeksRuleSet = ReleaseWithin12WeeksRuleSet(ReleaseOutside12WeeksRule(clock))
   var crsUpcomingContextUpdater = CrsUpcomingContextUpdater()
 
   // PA
-  var paEligibilityRuleSet = PaEligibilityRuleSet(
-    Cas1ApplicationNotSuitableRule(),
-    Cas3ApplicationNotSuitableRule(),
+  var noActiveCas1OrCas3ReferralsRuleSet = NoActiveCas1OrCas3ReferralsRuleSet(
+    Cas1ActiveRule(),
+    Cas3ActiveRule(),
   )
-  var paCompletionRuleSet = PaCompletionRuleSet(
-    HasNextAccommodationRule(),
+  var hasNextAccommodationRuleSet = HasNextAccommodationRuleSet(
+    NoNextAccommodationRule(),
   )
 
   private val builder = DecisionTreeBuilder(rulesEngine)
 
   private val cas1Tree = Cas1EligibilityTreeProvider(
     builder = builder,
-    upcoming = cas1UpcomingRuleSet,
+    releaseWithin28Weeks = releaseWithin28WeeksRuleSet,
     upcomingContextUpdater = cas1UpcomingContextUpdater,
-    suitability = cas1SuitabilityRuleSet,
-    suitabilityContextUpdater = cas1SuitabilityContextUpdater,
-    completionContextUpdater = cas1CompletionContextUpdater,
-    eligibilityTier = cas1EligibilityTierRuleSet,
-    eligibilityCurrentAccommodation = cas1EligibilityCurrentAccommodationRuleSet,
-    eligibilityRosh = eligibilityRoshRuleSet,
+    startContextUpdater = cas1StartContextUpdater,
+    maleTierEligibleForCas1 = maleTierEligibleForCas1RuleSet,
+    currentAccommodationEligibleForCas1 = currentAccommodationEligibleForCas1RuleSet,
+    roshEligible = roshEligibleRuleSet,
+    placement = placementRuleSet,
+    noPlacementContextUpdater = noPlacementContextUpdater,
+    requestForPlacement = requestForPlacementRuleSet,
+    noRequestForPlacementContextUpdater = noRequestForPlacementContextUpdater,
+    notSubmittedReferral = cas1SubmittedRuleSet,
+    notSubmittedContextUpdater = cas1NotSubmittedContextUpdater,
+    activeReferral = cas1ActiveRuleSet,
+    referral = cas1RuleSet,
+    activePlacementContextUpdater = activePlacementContextUpdater,
+    departedPlacementContextUpdater = departedPlacementContextUpdater,
+    activePlacement = activePlacementRuleSet,
+    rejectedContextUpdater = cas1RejectedContextUpdater,
+    rejected = cas1RejectedRuleSet,
+    notMaleTierEligibleForCas1 = notMaleTierEligibleForCas1RuleSet,
+    notMale = notMaleRuleSet,
   )
 
   private val cas2Tree = Cas2EligibilityTreeProvider(
     builder = builder,
-    upcoming = cas2UpcomingRuleSet,
     upcomingContextUpdater = cas2UpcomingContextUpdater,
-    suitability = cas2SuitabilityRuleSet,
-    suitabilityContextUpdater = cas2SuitabilityContextUpdater,
-    completionContextUpdater = cas2CompletionContextUpdater,
-    eligibilityPerson = cas2EligibilityPersonRuleSet,
-    eligibilityReleaseDate = cas2EligibilityReleaseDateRuleSet,
-    eligibilityCurrentAccommodation = cas2EligibilityCurrentAccommodationRuleSet,
-    eligibilityNextAccommodation = cas2EligibilityNextAccommodationRuleSet,
-    eligibilityRosh = eligibilityRoshRuleSet,
+    referral = cas2RuleSet,
+    startContextUpdater = cas2StartContextUpdater,
+    activeContextUpdater = cas2ActiveContextUpdater,
+    releaseWithin15Days = releaseWithin15DaysRuleSet,
+    personEligible = personEligibleRuleSet,
+    releaseDateEligible = releaseDateEligibleRuleSet,
+    currentAccommodationEligible = currentAccommodationEligibleForCas2RuleSet,
+    noNextAccommodation = noNextAccommodationRuleSet,
+    roshEligible = roshEligibleRuleSet,
   )
 
   private val cas3Tree = Cas3EligibilityTreeProvider(
     builder = builder,
-    upcoming = cas3UpcomingRuleSet,
     upcomingContextUpdater = cas3UpcomingContextUpdater,
-    suitability = cas3SuitabilityRuleSet,
-    suitabilityContextUpdater = cas3SuitabilityContextUpdater,
-    completionContextUpdater = cas3CompletionContextUpdater,
-    eligibilityCurrentAccommodation = cas3EligibilityCurrentAccommodationRuleSet,
-    eligibilityNextAccommodation = cas3EligibilityNextAccommodationRuleSet,
+    referral = cas3RuleSet,
+    startContextUpdater = cas3StartContextUpdater,
+    activeContextUpdater = cas3ActiveContextUpdater,
     prerequisite = cas3PrerequisiteRuleSet,
-    cas3PrerequisiteContextUpdater = cas3PrerequisiteContextUpdater,
-    eligibilityRosh = eligibilityRoshRuleSet,
+    releaseWithin15DaysRuleSet = releaseWithin15DaysRuleSet,
+    currentAccommodationEligible = currentAccommodationEligibleForCas3RuleSet,
+    noNextAccommodation = noNextAccommodationRuleSet,
+    cannotStartContextUpdater = cas3CannotStartContextUpdater,
+    roshEligible = roshEligibleRuleSet,
   )
 
   private val dtrTree = DtrEligibilityTreeProvider(
     builder = builder,
-    upcoming = dtrUpcomingRuleSet,
     upcomingContextUpdater = dtrUpcomingContextUpdater,
-    suitability = dtrSuitabilityRuleSet,
-    completionContextUpdater = dtrCompletionContextUpdater,
-    eligibility = dtrEligibilityRuleSet,
+    releaseWithin8Weeks = releaseWithin8WeeksRuleSet,
+    referral = dtrRuleSet,
+    activeContextUpdater = dtrActiveContextUpdater,
+    noNextAccommodation = noNextAccommodationRuleSet,
   )
 
   private val crsTree = CrsEligibilityTreeProvider(
     builder = builder,
-    eligibilitySettled = crsEligibilitySettledRuleSet,
-    eligibilityNextAccommodation = crsEligibilityNextAccommodationRuleSet,
-    completion = crsCompletionRuleSet,
-    completionContextUpdater = crsCompletionContextUpdater,
-    upcoming = crsUpcomingRuleSet,
+    upcoming = releaseWithin12WeeksRuleSet,
     upcomingContextUpdater = crsUpcomingContextUpdater,
+    notSettledRuleSet = notSettledRuleSet,
+    noNextAccommodation = noNextAccommodationRuleSet,
+    liveCrs = liveCrsRuleSet,
+    startContextUpdater = crsStartContextUpdater,
     crsUiBaseUrl = crsUiUrl,
   )
 
   private val paTree = PaEligibilityTreeProvider(
     builder = builder,
-    eligibility = paEligibilityRuleSet,
-    completion = paCompletionRuleSet,
+    noActiveCas1OrCas3Referrals = noActiveCas1OrCas3ReferralsRuleSet,
+    hasNextAccommodation = hasNextAccommodationRuleSet,
   )
 
   private val approvedPremisesCachingService = mockk<ApprovedPremisesCachingService> {
@@ -389,7 +435,7 @@ class EligibilityServiceTest {
       val endDate = LocalDate.now().plusDays(1)
       val expectedTier = "A1"
       val caseId = UUID.randomUUID()
-      val cas1Application = buildCas1Application()
+      val cas1Application = buildCas1ApplicationV2()
       val cas2Application = buildCas2Application()
       val cas1CurrentPremises = buildCas1PremisesSummary()
       val cas3CurrentPremises = buildCas3PremisesSummary()
@@ -442,7 +488,7 @@ class EligibilityServiceTest {
       val accommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true, code = "A02")
 
       every { accommodationTypeRepository.findAll() } returns listOf(accommodationTypeEntity)
-      every { accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
+      every { accommodationSummaryCalculator.calculateNextAccommodationsV2(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
       every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises, cas3CurrentPremises) } returns currentAccommodation
       val result = eligibilityService.buildDomainData(crn, orchestrationDto.data, caseEntity)
@@ -455,7 +501,7 @@ class EligibilityServiceTest {
         currentAccommodation = currentAccommodation,
         currentAccommodationTypeEntity = accommodationTypeEntity,
         nextAccommodations = emptyList(),
-        cas1Application = cas1Application,
+        cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = cas1Application.currentOutcome),
         cas2Application = cas2Application,
         cas3Application = cas3Application,
         commissionedRehabilitativeServices = crs,
@@ -497,7 +543,7 @@ class EligibilityServiceTest {
 
       every { accommodationTypeRepository.findAll() } returns emptyList()
       every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, null, null, null) } returns currentAccommodation
-      every { accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, null, null, currentAccommodation) } returns emptyList()
+      every { accommodationSummaryCalculator.calculateNextAccommodationsV2(crn, cpr.addresses, null, null, currentAccommodation) } returns emptyList()
 
       val result = eligibilityService.buildDomainData(crn, orchestrationDto, caseEntity = null)
 
@@ -672,10 +718,20 @@ class EligibilityServiceTest {
         clock.setNow(s.referenceDate)
 
         val cas1Application = s.cas1ApplicationStatus?.let {
-          buildCas1Application(
-            application = buildCas1ApplicationSummary(status = it),
-            placement = buildCas1PlacementSummary(status = s.cas1PlacementStatus),
-            requestForPlacement = buildCas1RequestForPlacementSummary(status = s.cas1RequestForPlacementStatus),
+          buildCas1ApplicationV2(
+            status = it,
+            submittedApplication = buildCas1SubmittedApplication(
+              upcomingRequestForPlacement = if (s.cas1RequestForPlacementStatus != null || s.cas1PlacementStatus != null) {
+                buildCas1ExternalRequestForPlacementOutcomeDto(
+                  requestForPlacement = buildCas1RequestForPlacementSummaryV2(
+                    status = s.cas1RequestForPlacementStatus!!,
+                  ),
+                  placement = s.cas1PlacementStatus?.let { status -> buildCas1PlacementV2(status = status) },
+                )
+              } else {
+                null
+              },
+            ),
           )
         }
 
@@ -688,7 +744,7 @@ class EligibilityServiceTest {
             endDate = s.currentAccommodationEndDate,
           ),
           currentAccommodationTypeEntity = buildAccommodationTypeEntity(code = "A02", isCas1 = true),
-          cas1Application = cas1Application,
+          cas1Application = cas1Application?.let { buildCas1ApplicationDomainData(it, currentOutcome = it.currentOutcome) },
           roshLevel = buildRoshLevel(code = RiskLevel.LOW.code),
         )
 
@@ -1419,15 +1475,15 @@ class EligibilityServiceTest {
       runScenarios(scenarios) { s ->
 
         val cas1Application = if (s.isSubmittedCas1.toBoolean()) {
-          buildCas1Application(
-            application = buildCas1ApplicationSummary(
-              status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-            ),
-            requestForPlacement = buildCas1RequestForPlacementSummary(
-              status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-            ),
-            placement = buildCas1PlacementSummary(
-              status = Cas1PlacementStatus.UPCOMING,
+          buildCas1ApplicationV2(
+            status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+            submittedApplication = buildCas1SubmittedApplication(
+              upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+                requestForPlacement = buildCas1RequestForPlacementSummaryV2(
+                  status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+                ),
+                placement = buildCas1PlacementV2(status = Cas1PlacementStatus.UPCOMING),
+              ),
             ),
           )
         } else {
@@ -1457,7 +1513,7 @@ class EligibilityServiceTest {
         val data = buildDomainData(
           crn = s.testCaseId,
           nextAccommodations = nextAccommodations,
-          cas1Application = cas1Application,
+          cas1Application = cas1Application?.let { buildCas1ApplicationDomainData(it, currentOutcome = it.currentOutcome) },
           cas3Application = cas3Application,
         )
 

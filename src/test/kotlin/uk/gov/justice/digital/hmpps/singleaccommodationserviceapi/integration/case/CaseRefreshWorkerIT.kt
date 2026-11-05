@@ -7,6 +7,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.transaction.PlatformTransactionManager
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -44,6 +45,9 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Autowired
   lateinit var clock: MutableTestClock
+
+  @Autowired
+  lateinit var transactionManager: PlatformTransactionManager
 
   private lateinit var crn: String
   private val now = Instant.parse("2026-07-23T10:00:00Z")
@@ -377,4 +381,56 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     assertThat(request.claimId).isEqualTo(replacementClaim.claimId)
     assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("A")
   }
+
+  @Test
+  fun `refresh completion is ignored when the case was archived before completion`() {
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
+    val claim = caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
+    caseRepository.archiveById(case.id)
+
+    val result = caseRefreshCompletionService.completeRefresh(claim, projection())
+
+    assertThat(result).isEqualTo(CaseRefreshCompletionService.Result.IGNORED_CASE_NOT_FOUND)
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)!!.tierScore).isEqualTo("A")
+  }
+
+  @Test
+  fun `archiving a case twice only archives it once`() {
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+
+    assertThat(caseRepository.archiveById(case.id)).isEqualTo(1)
+    assertThat(caseRepository.archiveById(case.id)).isZero()
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)!!.version).isEqualTo(case.version + 1)
+  }
+
+  @Test
+  fun `removes a refresh request enqueued after the case was archived`() {
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+    caseRepository.archiveById(case.id)
+
+    // e.g. a concurrent bulk refresh that read the case id before archival
+    caseRefreshRequestService.requestBulkRefresh(listOf(case.id))
+    assertThat(caseRefreshRequestRepository.findAll()).hasSize(1)
+
+    val result = caseRefreshWorker.process()
+
+    assertThat(result.refreshedCount).isZero()
+    assertThat(result.failedCount).isZero()
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)!!.tierScore).isEqualTo("A")
+  }
+
+  private fun projection() = CaseMutationOrchestrationDto(
+    crn = crn,
+    cpr = null,
+    tier = buildTier(tierScore = "B"),
+    prisoner = null,
+    cas1CurrentPremises = null,
+    cas3CurrentPremises = null,
+    cas1Application = null,
+    cas3Application = null,
+    case = null,
+  )
 }
