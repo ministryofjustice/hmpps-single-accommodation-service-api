@@ -63,11 +63,11 @@ class DomainDataFactoryTest {
   lateinit var factory: DomainDataFactory
 
   @Nested
-  inner class DomainDataFunctions {
+  inner class BuildDomainData {
     val crn = "ABC123"
 
     @Test
-    fun `getDomainData returns correct DomainData`() {
+    fun `returns correct DomainData`() {
       val endDate = LocalDate.now().plusDays(1)
       val expectedTier = "A1"
       val caseId = UUID.randomUUID()
@@ -150,7 +150,7 @@ class DomainDataFactoryTest {
     }
 
     @Test
-    fun `getDomainData selects the most recent live referral and ignores the rest`() {
+    fun `selects the most recent live referral and ignores the rest`() {
       val cpr = buildCorePersonRecord()
       val currentAccommodation = buildAccommodationSummaryDto()
       val latestLiveReferral = buildCommissionedRehabilitativeServices(
