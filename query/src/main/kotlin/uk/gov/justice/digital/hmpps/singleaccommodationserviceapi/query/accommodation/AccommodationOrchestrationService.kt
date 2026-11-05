@@ -104,9 +104,9 @@ class AccommodationOrchestrationService(
       upstreamFailures = results.getFailures().filterNot {
         it.errorDetail.httpStatus == HttpStatus.NOT_FOUND &&
           it.callKey in setOf(
-          GET_CAS_1_CURRENT_PREMISES,
-          GET_CAS_3_CURRENT_PREMISES,
-        )
+            GET_CAS_1_CURRENT_PREMISES,
+            GET_CAS_3_CURRENT_PREMISES,
+          )
       },
     )
   }
@@ -143,11 +143,11 @@ class AccommodationOrchestrationService(
       upstreamFailures = results.getFailures().filterNot {
         it.errorDetail.httpStatus == HttpStatus.NOT_FOUND &&
           it.callKey in setOf(
-          GET_CAS_1_APPLICATION,
-          GET_CAS_3_APPLICATION,
-          GET_CAS_1_CURRENT_PREMISES,
-          GET_CAS_3_CURRENT_PREMISES,
-        )
+            GET_CAS_1_APPLICATION,
+            GET_CAS_3_APPLICATION,
+            GET_CAS_1_CURRENT_PREMISES,
+            GET_CAS_3_CURRENT_PREMISES,
+          )
       },
     )
   }

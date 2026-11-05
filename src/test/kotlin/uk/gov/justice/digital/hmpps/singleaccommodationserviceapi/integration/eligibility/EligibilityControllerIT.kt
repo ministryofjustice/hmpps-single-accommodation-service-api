@@ -589,5 +589,4 @@ class EligibilityControllerIT : IntegrationTestBase() {
       .jsonPath("$.upstreamFailures[0].httpResponseStatus").isEqualTo("404 NOT_FOUND")
       .jsonPath("$.upstreamFailures[1].httpResponseStatus").isEqualTo("404 NOT_FOUND")
   }
-
 }
