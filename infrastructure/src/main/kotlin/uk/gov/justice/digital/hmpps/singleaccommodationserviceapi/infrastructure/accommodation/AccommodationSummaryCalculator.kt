@@ -50,7 +50,7 @@ class AccommodationSummaryCalculator(
     prisoner: Prisoner?,
     cas1CurrentPremises: Cas1PremisesSummary?,
     cas3CurrentPremises: Cas3BookingPremises?,
-    cas1Application: Cas1Application?,
+    cas1Application: Cas1ApplicationV2?,
     cas3Application: Cas3Application?,
   ): AccommodationSummariesDto {
     val currentAccommodation = calculateCurrentAccommodation(
@@ -61,7 +61,7 @@ class AccommodationSummaryCalculator(
       cas3CurrentPremises = cas3CurrentPremises,
     )
 
-    val nextAccommodation = calculateNextAccommodations(
+    val nextAccommodation = calculateNextAccommodationsV2(
       crn = crn,
       addresses = addresses,
       cas1Application = cas1Application,

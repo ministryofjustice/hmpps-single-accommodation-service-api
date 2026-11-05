@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommod
 
 fun buildAccommodationOrchestrationDto(
   cpr: CorePersonRecord? = buildCorePersonRecord(),
-  cas1Application: Cas1Application? = null,
+  cas1Application: Cas1ApplicationV2? = null,
   cas3Application: Cas3Application? = null,
   cas1CurrentPremises: Cas1PremisesSummary? = null,
   cas3CurrentPremises: Cas3BookingPremises? = null,
