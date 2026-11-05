@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation
 
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
@@ -100,7 +101,13 @@ class AccommodationOrchestrationService(
         cas1CurrentPremises = cas1CurrentPremises,
         cas3CurrentPremises = cas3CurrentPremises,
       ),
-      upstreamFailures = results.getFailures(),
+      upstreamFailures = results.getFailures().filterNot {
+        it.errorDetail.httpStatus == HttpStatus.NOT_FOUND &&
+          it.callKey in setOf(
+            GET_CAS_1_CURRENT_PREMISES,
+            GET_CAS_3_CURRENT_PREMISES,
+          )
+      },
     )
   }
 
@@ -133,7 +140,15 @@ class AccommodationOrchestrationService(
         cas1CurrentPremises = cas1CurrentPremises,
         cas3CurrentPremises = cas3CurrentPremises,
       ),
-      upstreamFailures = results.getFailures(),
+      upstreamFailures = results.getFailures().filterNot {
+        it.errorDetail.httpStatus == HttpStatus.NOT_FOUND &&
+          it.callKey in setOf(
+            GET_CAS_1_APPLICATION,
+            GET_CAS_3_APPLICATION,
+            GET_CAS_1_CURRENT_PREMISES,
+            GET_CAS_3_CURRENT_PREMISES,
+          )
+      },
     )
   }
 }

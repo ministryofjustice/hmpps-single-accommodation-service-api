@@ -147,6 +147,11 @@ class EligibilityControllerIT : IntegrationTestBase() {
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
     SasAndDeliusStubs.stubGetSexualOffenceRegistrations(crn, SexualOffenceRegistrations(crn, emptyList()))
     PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber))
+    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
+    ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas2SuitableApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
     CommissionedRehabilitativeServicesStubs.getCrsOkResponse(
       crn = crn,
       response = listOf(
@@ -514,5 +519,74 @@ class EligibilityControllerIT : IntegrationTestBase() {
     webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
+  }
+
+  @Test
+  fun `should send back failed eligibility when CAS applications returns 404`() {
+    ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn = crn)
+    ApprovedPremisesStubs.getCas2SuitableApplicationNotFoundResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3SuitableApplicationNotFoundResponse(crn = crn)
+
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
+      .jsonPath("$.data.cas2.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
+      .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
+      .jsonPath("$.data.cas1.cas1Application").isEmpty()
+      .jsonPath("$.data.cas2.cas2Application").isEmpty()
+      .jsonPath("$.data.cas3.cas3Application").isEmpty()
+      .jsonPath("$.upstreamFailures.length()").isEqualTo(3)
+      .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getCas1CurrentApplication")
+      .jsonPath("$.upstreamFailures[1].endpoint").isEqualTo("getCas2Application")
+      .jsonPath("$.upstreamFailures[2].endpoint").isEqualTo("getCas3Application")
+      .jsonPath("$.upstreamFailures[0].httpResponseStatus").isEqualTo("404 NOT_FOUND")
+      .jsonPath("$.upstreamFailures[1].httpResponseStatus").isEqualTo("404 NOT_FOUND")
+      .jsonPath("$.upstreamFailures[2].httpResponseStatus").isEqualTo("404 NOT_FOUND")
+  }
+
+  @Test
+  fun `should successfully get eligibility when CAS applications returns 204`() {
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas2SuitableApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(crn = crn)
+
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$.data.cas1.cas1Application").isEmpty()
+      .jsonPath("$.data.cas2.cas2Application").isEmpty()
+      .jsonPath("$.data.cas3.cas3Application").isEmpty()
+      .jsonPath("$.upstreamFailures").doesNotExist()
+  }
+
+  @Test
+  fun `should send back failed eligibility when CAS current premises returns 404`() {
+    ApprovedPremisesStubs.getCas1CurrentPremisesNotFoundResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3CurrentPremisesNotFoundResponse(crn = crn)
+
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+
+    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
+      .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
+      .jsonPath("$.upstreamFailures.length()").isEqualTo(2)
+      .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getCas1CurrentPremises")
+      .jsonPath("$.upstreamFailures[1].endpoint").isEqualTo("getCas3CurrentPremises")
+      .jsonPath("$.upstreamFailures[0].httpResponseStatus").isEqualTo("404 NOT_FOUND")
+      .jsonPath("$.upstreamFailures[1].httpResponseStatus").isEqualTo("404 NOT_FOUND")
   }
 }
