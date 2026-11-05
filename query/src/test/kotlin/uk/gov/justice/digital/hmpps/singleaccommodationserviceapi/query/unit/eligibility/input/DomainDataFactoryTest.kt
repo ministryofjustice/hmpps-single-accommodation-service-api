@@ -124,7 +124,7 @@ class DomainDataFactoryTest {
       val accommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true, code = "A02")
 
       every { accommodationTypeRepository.findAll() } returns listOf(accommodationTypeEntity)
-      every { accommodationSummaryCalculator.calculateNextAccommodationsV2(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
+      every { accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
       every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises, cas3CurrentPremises) } returns currentAccommodation
       val result = factory.buildDomainData(crn, orchestrationDto.data, caseEntity)
@@ -179,7 +179,7 @@ class DomainDataFactoryTest {
 
       every { accommodationTypeRepository.findAll() } returns emptyList()
       every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, null, null, null) } returns currentAccommodation
-      every { accommodationSummaryCalculator.calculateNextAccommodationsV2(crn, cpr.addresses, null, null, currentAccommodation) } returns emptyList()
+      every { accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, null, null, currentAccommodation) } returns emptyList()
 
       val result = factory.buildDomainData(crn, orchestrationDto, caseEntity = null)
 

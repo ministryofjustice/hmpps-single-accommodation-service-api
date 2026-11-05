@@ -1,19 +1,14 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalPremisesV2Dto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalRequestForPlacementOutcome
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementPair
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummaryV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementWithdrawal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
@@ -37,22 +32,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.UUID
-
-fun buildCas1Application(
-  application: Cas1ApplicationSummary = buildCas1ApplicationSummary(),
-  assessment: Cas1AssessmentSummary? = null,
-  requestForPlacement: Cas1RequestForPlacementSummary? = null,
-  placement: Cas1PlacementSummary? = null,
-  placementHistory: List<Cas1PlacementPair> = emptyList(),
-  uiUrl: String = "https://cas1-ui/applications/${application.id}",
-) = Cas1Application(
-  uiUrl = uiUrl,
-  application = application,
-  assessment = assessment,
-  requestForPlacement = requestForPlacement,
-  placement = placement,
-  placementHistory = placementHistory,
-)
 
 fun buildCas2Application(
   submittedApplication: Cas2SubmittedApplicationSummary? = null,
@@ -98,16 +77,6 @@ fun buildCas2Staff(
   userType = userType,
 )
 
-fun buildCas1PlacementPair(
-  requestForPlacement: Cas1RequestForPlacementSummary = buildCas1RequestForPlacementSummary(),
-  placement: Cas1PlacementSummary? = null,
-  dateApplied: LocalDate = LocalDate.now(),
-) = Cas1PlacementPair(
-  requestForPlacement = requestForPlacement,
-  placement = placement,
-  dateApplied = dateApplied,
-)
-
 fun buildCas1PremisesSummary(
   addressLine1: String = "TEST HOUSE",
   addressLine2: String? = null,
@@ -124,66 +93,12 @@ fun buildCas1PremisesSummary(
   postcode = postcode,
 )
 
-fun buildCas1PlacementSummary(
-  status: Cas1PlacementStatus? = null,
-  cancellationReason: String? = null,
-  actualDepartureDate: LocalDate? = null,
-  expectedDepartureDate: LocalDate? = null,
-  actualArrivalDate: LocalDate? = null,
-  premises: Cas1PremisesSummary? = null,
-) = Cas1PlacementSummary(
-  status = status,
-  actualArrivalDate = actualArrivalDate,
-  actualDepartureDate = actualDepartureDate,
-  expectedDepartureDate = expectedDepartureDate,
-  cancellationReason = cancellationReason,
-  premises = premises,
-)
-
-fun buildCas1RequestForPlacementSummary(
-  status: Cas1RequestForPlacementStatus? = null,
-  rejectionReason: String? = null,
-  submittedBy: Cas1Staff? = null,
-  submittedAt: LocalDate? = null,
-  withdrawalReason: String? = null,
-  withdrawalDate: LocalDate? = null,
-  expectedArrivalDate: LocalDate? = null,
-  durationDays: Int? = null,
-  decision: String? = null,
-) = Cas1RequestForPlacementSummary(
-  status = status,
-  decision = decision,
-  rejectionReason = rejectionReason,
-  submittedBy = submittedBy,
-  submittedAt = submittedAt,
-  withdrawalReason = withdrawalReason,
-  withdrawalDate = withdrawalDate,
-  expectedArrivalDate = expectedArrivalDate,
-  durationDays = durationDays,
-)
-
 fun buildCas1AssessmentSummary(
   rejectionRationale: String? = null,
   decision: String? = null,
 ) = Cas1AssessmentSummary(
   decision = decision,
   rejectionRationale = rejectionRationale,
-)
-
-fun buildCas1ApplicationSummary(
-  id: UUID = UUID.randomUUID(),
-  status: Cas1ApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
-  createdAt: OffsetDateTime = OffsetDateTime.now(),
-  createdBy: Cas1Staff = buildCas1Staff(),
-  submittedAt: OffsetDateTime? = null,
-  expiresAt: LocalDate? = null,
-) = Cas1ApplicationSummary(
-  id = id,
-  status = status,
-  createdAt = createdAt,
-  createdBy = createdBy,
-  submittedAt = submittedAt,
-  expiresAt = expiresAt,
 )
 
 fun buildCas1Staff(

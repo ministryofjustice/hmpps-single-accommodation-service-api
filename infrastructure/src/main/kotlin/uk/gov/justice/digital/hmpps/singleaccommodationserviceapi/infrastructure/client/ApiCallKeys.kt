@@ -30,7 +30,6 @@ object ApiCallKeys {
   // Approved Premises service
   const val GET_CAS_1_CURRENT_PREMISES = "getCas1CurrentPremises"
   const val GET_CAS_3_CURRENT_PREMISES = "getCas3CurrentPremises"
-  const val GET_CAS_1_APPLICATION = "getCas1Application"
   const val GET_CAS_1_CURRENT_APPLICATION = "getCas1CurrentApplication"
   const val GET_CAS_2_APPLICATION = "getCas2Application"
   const val GET_CAS_3_APPLICATION = "getCas3Application"
