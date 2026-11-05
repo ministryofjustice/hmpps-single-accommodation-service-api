@@ -13,15 +13,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 interface ApprovedPremisesClient {
   @WebClientRetry
   @GetExchange(value = "/cas1/external/cases/{crn}/premises/current")
-  fun getCas1CurrentPremises(@PathVariable crn: String): Cas1PremisesSummary
+  fun getCas1CurrentPremises(@PathVariable crn: String): Cas1PremisesSummary?
 
   @WebClientRetry
   @GetExchange(value = "/cas3/external/cases/{crn}/premises/current")
-  fun getCas3CurrentPremises(@PathVariable crn: String): Cas3BookingPremises
+  fun getCas3CurrentPremises(@PathVariable crn: String): Cas3BookingPremises?
 
   @WebClientRetry
   @GetExchange(value = "/cas1/external/cases/{crn}/applications/suitable")
-  fun getSuitableCas1ApplicationInternal(@PathVariable crn: String): Cas1Application
+  fun getSuitableCas1ApplicationInternal(@PathVariable crn: String): Cas1Application?
 
   @WebClientRetry
   @GetExchange(value = "/cas1/external/cases/{crn}/applications/current")
@@ -29,11 +29,11 @@ interface ApprovedPremisesClient {
 
   @WebClientRetry
   @GetExchange(value = "/cas2/external/cases/{crn}/applications/suitable")
-  fun getSuitableCas2ApplicationInternal(@PathVariable crn: String): Cas2Application
+  fun getSuitableCas2ApplicationInternal(@PathVariable crn: String): Cas2Application?
 
   @WebClientRetry
   @GetExchange(value = "/cas3/external/cases/{crn}/applications/suitable")
-  fun getSuitableCas3ApplicationInternal(@PathVariable crn: String): Cas3Application
+  fun getSuitableCas3ApplicationInternal(@PathVariable crn: String): Cas3Application?
 
   @WebClientRetry
   @GetExchange(value = "/cas1/external/referrals/{crn}")
@@ -77,22 +77,22 @@ class ApprovedPremisesCachingService(
   fun getCas3ReferralHistory(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas3ReferralHistory(crn) }
 
   @Cacheable(ApiCallKeys.GET_CAS_1_CURRENT_PREMISES, sync = true)
-  fun getCas1CurrentPremises(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas1CurrentPremises(crn) }
+  fun getCas1CurrentPremises(crn: String): Cas1PremisesSummary? = approvedPremisesClient.getCas1CurrentPremises(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_3_CURRENT_PREMISES, sync = true)
-  fun getCas3CurrentPremises(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas3CurrentPremises(crn) }
+  fun getCas3CurrentPremises(crn: String): Cas3BookingPremises? = approvedPremisesClient.getCas3CurrentPremises(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_1_APPLICATION, sync = true)
-  fun getSuitableCas1Application(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getSuitableCas1ApplicationInternal(crn) }
+  fun getSuitableCas1Application(crn: String): Cas1Application? = approvedPremisesClient.getSuitableCas1ApplicationInternal(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION, sync = true)
-  fun getCurrentCas1Application(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCurrentCas1ApplicationInternal(crn) }
+  fun getCurrentCas1Application(crn: String): Cas1ApplicationV2? = approvedPremisesClient.getCurrentCas1ApplicationInternal(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_2_APPLICATION, sync = true)
-  fun getSuitableCas2Application(crn: String) = approvedPremisesClient.getSuitableCas2ApplicationInternal(crn)
+  fun getSuitableCas2Application(crn: String): Cas2Application? = approvedPremisesClient.getSuitableCas2ApplicationInternal(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_3_APPLICATION, sync = true)
-  fun getSuitableCas3Application(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getSuitableCas3ApplicationInternal(crn) }
+  fun getSuitableCas3Application(crn: String): Cas3Application? = approvedPremisesClient.getSuitableCas3ApplicationInternal(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_1_URL_TEMPLATES, sync = true)
   fun getCas1UrlTemplates() = approvedPremisesClient.getCas1UrlTemplatesInternal()

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
@@ -104,10 +105,10 @@ class CaseMutationOrchestrationService(
     crn: String,
     loadTier: () -> Tier,
     loadPersonRecord: () -> CorePersonRecord,
-    loadCas1CurrentPremises: () -> Cas1PremisesSummary,
-    loadCas3CurrentPremises: () -> Cas3BookingPremises,
-    loadCas1Application: () -> Cas1Application,
-    loadCas3Application: () -> Cas3Application,
+    loadCas1CurrentPremises: () -> Cas1PremisesSummary?,
+    loadCas3CurrentPremises: () -> Cas3BookingPremises?,
+    loadCas1Application: () -> Cas1Application?,
+    loadCas3Application: () -> Cas3Application?,
     loadCase: () -> Case,
     loadPrisoner: (() -> Prisoner)? = null,
   ): OrchestrationResultDto<CaseMutationOrchestrationDto> {
@@ -138,7 +139,15 @@ class CaseMutationOrchestrationService(
         prisoner = results.getResult<Prisoner>(GET_PRISONER),
         case = results.getResult<Case>(GET_CASE_IF_EXISTS),
       ),
-      upstreamFailures = results.getFailures(),
+      upstreamFailures = results.getFailures().filterNot {
+        it.errorDetail.httpStatus == HttpStatus.NOT_FOUND &&
+          it.callKey in setOf(
+          GET_CAS_1_APPLICATION,
+          GET_CAS_3_APPLICATION,
+          GET_CAS_1_CURRENT_PREMISES,
+          GET_CAS_3_CURRENT_PREMISES,
+        )
+      },
     )
   }
 }
