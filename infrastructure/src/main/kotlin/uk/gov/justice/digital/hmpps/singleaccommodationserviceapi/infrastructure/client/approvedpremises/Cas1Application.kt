@@ -31,9 +31,9 @@ data class Cas1ExternalRequestForPlacementOutcome(
 data class Cas1RequestForPlacementSummaryV2(
   val status: Cas1RequestForPlacementStatus,
   val statusLastUpdated: LocalDateTime,
-  val submittedBy: Cas1Staff?,
-  val submittedAt: LocalDate?,
-  val expectedArrivalDate: LocalDate?,
+  val submittedBy: Cas1Staff,
+  val submittedAt: LocalDate,
+  val expectedArrivalDate: LocalDate,
   val durationDays: Int?,
   val decision: String?,
   val rejectionReason: String?,
@@ -46,14 +46,14 @@ data class Cas1RequestForPlacementWithdrawal(
 )
 
 data class Cas1PlacementV2(
-  val status: Cas1PlacementStatus?,
+  val status: Cas1PlacementStatus,
   val statusLastUpdated: LocalDateTime,
   val canonicalArrivalDate: LocalDate,
   val canonicalDepartureDate: LocalDate,
   val actualArrivalDate: LocalDate?,
   val actualDepartureDate: LocalDate?,
-  val expectedArrivalDate: LocalDate?,
-  val expectedDepartureDate: LocalDate?,
+  val expectedArrivalDate: LocalDate,
+  val expectedDepartureDate: LocalDate,
   val cancellationReason: String?,
   val premises: Cas1ExternalPremisesV2Dto,
 )

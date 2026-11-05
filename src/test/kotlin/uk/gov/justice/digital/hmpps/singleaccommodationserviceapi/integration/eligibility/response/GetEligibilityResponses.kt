@@ -21,6 +21,7 @@ fun expectedGetEligibilityResponse(
   submittedAt: String,
   requestSubmittedAt: String,
   expectedArrivalDate: String,
+  expectedDepartureDate: String,
   expiresAt: String,
   cas1ApplicationStartedAt: String,
   startDate: String,
@@ -76,7 +77,7 @@ fun expectedGetEligibilityResponse(
           "status": "CANCELLED",
           "actualArrivalDate": null,
           "actualDepartureDate": null,
-          "expectedDepartureDate": null,
+          "expectedDepartureDate": "$expectedDepartureDate",
           "cancellationReason": "Oops",
           "premises": {
             "startDate": "$startDate",
@@ -451,6 +452,9 @@ fun expectedGetEligibilityResponseTierNotFound(
   crsUrl: String,
   cas1ApplicationStartedAt: String,
   cas1ApplicationSubmittedAt: String,
+  cas1RequestForPlacementExpectedArrivalDate: String,
+  cas1PlacementExpectedDepartureDate: String,
+  cas1SubmittedAt: String,
 ): String = """
 {
   "data": {
@@ -484,18 +488,18 @@ fun expectedGetEligibilityResponseTierNotFound(
           "status": "PLACEMENT_BOOKED",
           "decision": null,
           "rejectionReason": null,
-          "submittedBy": null,
-          "submittedAt": null,
+          "submittedBy":{"name":"Test Tester","username":"testTester","staffCode":"1234"},
+          "submittedAt": "$cas1SubmittedAt",
           "withdrawalReason": null,
           "withdrawalDate": null,
-          "expectedArrivalDate": null,
+          "expectedArrivalDate": "$cas1RequestForPlacementExpectedArrivalDate",
           "durationDays": null
         },
         "placement": {
           "status": "ARRIVED",
           "actualArrivalDate": null,
           "actualDepartureDate": null,
-          "expectedDepartureDate": null,
+          "expectedDepartureDate": "$cas1PlacementExpectedDepartureDate",
           "cancellationReason": null,
           "premises": {
             "startDate": "2025-01-01",
