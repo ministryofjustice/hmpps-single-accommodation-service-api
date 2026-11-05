@@ -6,14 +6,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_PRISONER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
@@ -116,7 +116,7 @@ class AccommodationOrchestrationService(
       put(GET_CORE_PERSON_RECORD_BY_CRN) { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) }
       put(GET_CAS_1_CURRENT_PREMISES) { approvedPremisesCachingService.getCas1CurrentPremises(crn) }
       put(GET_CAS_3_CURRENT_PREMISES) { approvedPremisesCachingService.getCas3CurrentPremises(crn) }
-      put(GET_CAS_1_APPLICATION) { approvedPremisesCachingService.getSuitableCas1Application(crn) }
+      put(GET_CAS_1_CURRENT_APPLICATION) { approvedPremisesCachingService.getCurrentCas1Application(crn) }
       put(GET_CAS_3_APPLICATION) { approvedPremisesCachingService.getSuitableCas3Application(crn) }
       prisonNumber?.let { num -> put(GET_PRISONER) { prisonerSearchCachingService.getPrisoner(num) } }
     }
@@ -126,7 +126,7 @@ class AccommodationOrchestrationService(
 
     val prisoner = results.getResult<Prisoner>(GET_PRISONER)
     val cpr = results.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD_BY_CRN)
-    val cas1Application = results.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
+    val cas1Application = results.getResult<Cas1ApplicationV2>(GET_CAS_1_CURRENT_APPLICATION)
     val cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
     val cas1CurrentPremises = results.getResult<Cas1PremisesSummary>(GET_CAS_1_CURRENT_PREMISES)
     val cas3CurrentPremises = results.getResult<Cas3BookingPremises>(GET_CAS_3_CURRENT_PREMISES)
@@ -143,7 +143,7 @@ class AccommodationOrchestrationService(
       upstreamFailures = results.getFailures().filterNot {
         it.errorDetail.httpStatus == HttpStatus.NOT_FOUND &&
           it.callKey in setOf(
-            GET_CAS_1_APPLICATION,
+            GET_CAS_1_CURRENT_APPLICATION,
             GET_CAS_3_APPLICATION,
             GET_CAS_1_CURRENT_PREMISES,
             GET_CAS_3_CURRENT_PREMISES,
