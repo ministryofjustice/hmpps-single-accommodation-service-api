@@ -48,7 +48,7 @@ class AggregatorServiceTest {
     private val fetchedPages = CopyOnWriteArrayList<Long>()
 
     private fun fetchAllPages(fetchPage: (Long) -> PagedItems) = aggregatorService.fetchAllPages(
-      callKey = { page -> "callKey$page" },
+      callKeyForPage = { page -> "callKey$page" },
       fetchPage = { page ->
         fetchedPages.add(page)
         fetchPage(page)

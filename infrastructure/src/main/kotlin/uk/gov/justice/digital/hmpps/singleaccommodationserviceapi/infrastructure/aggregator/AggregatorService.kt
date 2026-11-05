@@ -113,12 +113,12 @@ class AggregatorService(
 }
 
 inline fun <reified R : Any, T> AggregatorService.fetchAllPages(
-  callKey: (Long) -> String,
+  callKeyForPage: (Long) -> String,
   crossinline fetchPage: (Long) -> R,
   pageMetadata: (R) -> PageMetadata,
   content: (R) -> List<T>,
 ): OrchestrationResultDto<List<T>> {
-  val firstPageKey = callKey(0)
+  val firstPageKey = callKeyForPage(0)
   val firstPageResults = orchestrateAsyncCalls(
     standardCallsNoIteration = mapOf(firstPageKey to { fetchPage(0) }),
   ).standardCallsNoIterationResults!!
@@ -126,9 +126,9 @@ inline fun <reified R : Any, T> AggregatorService.fetchAllPages(
 
   val remainingPageNumbers = firstPage?.let { 1 until pageMetadata(it).totalPages } ?: LongRange.EMPTY
   val remainingPageResults = orchestrateAsyncCalls(
-    standardCallsNoIteration = remainingPageNumbers.associate { number -> callKey(number) to { fetchPage(number) } },
+    standardCallsNoIteration = remainingPageNumbers.associate { number -> callKeyForPage(number) to { fetchPage(number) } },
   ).standardCallsNoIterationResults!!
-  val remainingPages = remainingPageNumbers.mapNotNull { number -> remainingPageResults.getResult<R>(callKey(number)) }
+  val remainingPages = remainingPageNumbers.mapNotNull { number -> remainingPageResults.getResult<R>(callKeyForPage(number)) }
 
   return OrchestrationResultDto(
     data = (listOfNotNull(firstPage) + remainingPages).flatMap { content(it) },

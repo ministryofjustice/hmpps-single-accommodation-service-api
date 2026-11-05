@@ -24,7 +24,7 @@ class TeamCaseOrchestrationService(
     log.debug("Retrieving cases from PI for team {}", teamCode)
 
     val cases = aggregatorService.fetchAllPages(
-      callKey = { page -> GET_CASES_BY_TEAM + teamCode + page },
+      callKeyForPage = { page -> GET_CASES_BY_TEAM + teamCode + page },
       fetchPage = { page ->
         sasAndDeliusClient.getCasesByTeamCode(teamCode = teamCode, page = page, size = pageSize)
       },

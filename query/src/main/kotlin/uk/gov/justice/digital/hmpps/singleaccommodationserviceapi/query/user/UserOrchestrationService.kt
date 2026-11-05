@@ -24,7 +24,7 @@ class UserOrchestrationService(
     log.debug("Retrieving staff from Delius for teams {}", teamCodes)
 
     val staff = aggregatorService.fetchAllPages(
-      callKey = { page -> GET_STAFF_FOR_TEAMS + page },
+      callKeyForPage = { page -> GET_STAFF_FOR_TEAMS + page },
       fetchPage = { page ->
         sasAndDeliusCachingService.getStaffForTeams(teamCodes = teamCodes, page = page, size = pageSize)
       },

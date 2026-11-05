@@ -37,7 +37,7 @@ class CaseOrchestrationService(
   fun getCaseList(username: String, teamCode: String?): OrchestrationResultDto<CaseListOrchestrationDto> {
     log.debug("Retrieving case list from Delius for username {}", username)
     val caseList = aggregatorService.fetchAllPages(
-      callKey = { page -> GET_CASE_LIST + username + page },
+      callKeyForPage = { page -> GET_CASE_LIST + username + page },
       fetchPage = { page ->
         sasAndDeliusCachingService.getCaseList(
           username = username,
