@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain
 
 import java.time.Clock
 import java.time.LocalDate
