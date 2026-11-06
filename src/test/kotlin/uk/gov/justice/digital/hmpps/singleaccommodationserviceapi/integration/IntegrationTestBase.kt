@@ -34,8 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.CacheHelper
@@ -89,7 +88,7 @@ private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
   ],
 )
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(initializers = [WireMockInitializer::class])
+@ContextConfiguration(initializers = [WireMockManager::class])
 @Tag("integration")
 abstract class IntegrationTestBase {
   protected val fixedInstant: Instant = Instant.parse(NOW_DATE_STRING)
@@ -150,7 +149,7 @@ abstract class IntegrationTestBase {
   @BeforeEach
   fun resetStubs() {
     testSentryService.reset()
-    sasWiremock.resetAll()
+    WireMockManager.reset()
     databaseUtils.truncate()
   }
 

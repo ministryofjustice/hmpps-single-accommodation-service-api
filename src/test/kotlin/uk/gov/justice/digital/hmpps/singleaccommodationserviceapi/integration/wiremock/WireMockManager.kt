@@ -2,19 +2,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.w
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
-import org.junit.jupiter.api.extension.AfterAllCallback
-import org.junit.jupiter.api.extension.AfterEachCallback
-import org.junit.jupiter.api.extension.ExtensionContext
 import org.springframework.boot.context.properties.bind.Bindable
 import org.springframework.boot.context.properties.bind.Binder
 import org.springframework.boot.test.util.TestPropertyValues
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
 
-class WireMockInitializer :
-  ApplicationContextInitializer<ConfigurableApplicationContext>,
-  AfterEachCallback,
-  AfterAllCallback {
+class WireMockManager : ApplicationContextInitializer<ConfigurableApplicationContext> {
 
   companion object {
     lateinit var sasWiremock: WireMockServer
@@ -24,7 +18,18 @@ class WireMockInitializer :
       if (!::sasWiremock.isInitialized) {
         sasWiremock = WireMockServer(options().dynamicPort())
         sasWiremock.start()
+
+        reset()
       }
+    }
+
+    fun reset() {
+      sasWiremock.resetAll()
+      setupDefaultResponse()
+    }
+
+    fun setupDefaultResponse() {
+      ApprovedPremisesStubs.setupDefaultResponses()
     }
   }
 
@@ -46,13 +51,5 @@ class WireMockInitializer :
       },
     ).and("hmpps-auth.url=${sasWiremock.baseUrl()}/auth")
       .applyTo(context.environment)
-  }
-
-  override fun afterEach(context: ExtensionContext) {
-    sasWiremock.resetAll()
-  }
-
-  override fun afterAll(context: ExtensionContext) {
-    sasWiremock.stop()
   }
 }

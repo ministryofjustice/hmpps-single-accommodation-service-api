@@ -8,6 +8,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
@@ -19,12 +20,27 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockUtils.resolveWireMockUrl
 
 object ApprovedPremisesStubs {
   const val CAS1_APPLICATION_START_URL = "https://cas1-ui/applications/start"
   const val CAS3_REFERRAL_START_URL = "https://cas3-ui/referrals/start"
+
+  /**
+   * CAS Endpoints return a 204 instead of a 404 if there is no content
+   *
+   * Several tests rely on the default WireMock behaviour of returning a
+   * 404 if no stub has been configured, but in the case of the CAS
+   * endpoints a 404 is treated as an error instead of a 'no data' response
+   *
+   * This function ensures the default response for these endpoints is
+   * 204, ensuring we don't need to explictly configure the 'no data' response
+   * in every test relying on it
+   */
+  fun setupDefaultResponses() {
+    getCas1CurrentPremisesDefaultNoContentResponse()
+  }
 
   fun getCas1UrlTemplatesOKResponse(cas1ApplicationStart: String = CAS1_APPLICATION_START_URL) {
     sasWiremock.stubFor(
@@ -37,6 +53,13 @@ object ApprovedPremisesStubs {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas3/external/url-templates"))
         .willReturn(okJson(jsonMapper.writeValueAsString(Cas3UrlTemplates(cas3ReferralStart)))),
+    )
+  }
+
+  fun getCas1CurrentPremisesDefaultNoContentResponse() {
+    sasWiremock.stubFor(
+      get(urlPathMatching("""/cas1/external/cases/[^/]+/premises/current"""))
+        .willReturn(noContent()),
     )
   }
 
