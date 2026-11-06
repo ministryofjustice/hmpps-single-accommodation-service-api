@@ -100,7 +100,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     )
     caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierServerErrorResponse(crn)
-    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationServerErrorResponse(crn)
 
     val result = caseRefreshWorker.process()
 
@@ -148,7 +148,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"), delayMs = 200)
 
-    ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn)
 
     val workerRun = CompletableFuture.runAsync { caseRefreshWorker.process() }
     waitFor {
@@ -275,7 +275,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
     clock.freezeAt(now.plus(Duration.ofMinutes(1)))
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"), delayMs = 200)
-    ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn)
 
     val workerRun = CompletableFuture.runAsync { caseRefreshWorker.process() }
     waitFor {

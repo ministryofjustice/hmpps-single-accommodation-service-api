@@ -31,7 +31,7 @@ class DomainDataFactory(
       cas3CurrentPremises = eligibilityOrchestrationDto.cas3CurrentPremises,
     )
 
-    val nextAccommodations = accommodationSummaryCalculator.calculateNextAccommodationsV2(
+    val nextAccommodations = accommodationSummaryCalculator.calculateNextAccommodations(
       crn,
       addresses = eligibilityOrchestrationDto.cpr?.addresses,
       cas1Application = eligibilityOrchestrationDto.cas1Application,

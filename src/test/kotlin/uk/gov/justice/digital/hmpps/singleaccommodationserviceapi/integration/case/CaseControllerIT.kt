@@ -27,9 +27,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Name
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalPremisesV2Dto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseTeam
@@ -374,7 +376,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should create a populated case without a refresh request on case-list when CAS1 and CAS3 return not found`() {
-      ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
+      ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn)
       ApprovedPremisesStubs.getCas3SuitableApplicationNotFoundResponse(crn)
 
       getCaseListResponse()
@@ -1129,18 +1131,21 @@ class CaseControllerIT : IntegrationTestBase() {
         releaseDate = LocalDate.of(2027, 1, 1),
       ),
     )
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
+    ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(
       crn = crn,
-      response = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = Cas1PlacementStatus.UPCOMING,
-          premises = buildCas1PremisesSummary(
-            postcode = "AP1 1AP",
-            addressLine1 = "AP House",
-            addressLine2 = "AP Area",
-            town = "AP Town",
-            startDate = LocalDate.of(2026, 6, 1),
-            endDate = null,
+      response = buildCas1ApplicationV2(
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+            placement = buildCas1PlacementV2(
+              status = Cas1PlacementStatus.UPCOMING,
+              canonicalArrivalDate = LocalDate.of(2026, 6, 1),
+              premises = buildCas1ExternalPremisesV2Dto(
+                postcode = "AP1 1AP",
+                addressLine1 = "AP House",
+                addressLine2 = "AP Area",
+                town = "AP Town",
+              ),
+            ),
           ),
         ),
       ),
