@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.Duration.ZERO
@@ -67,7 +67,7 @@ class MessagingTestStateHelper(
       )
     }
     awaitNoPendingMessagingWork()
-    sasWiremock.resetAll()
+    WireMockManager.reset()
   }
 
   private fun awaitSchedulerIdle() = taskScheduler.awaitIdle()

@@ -18,11 +18,18 @@ class WireMockManager : ApplicationContextInitializer<ConfigurableApplicationCon
       if (!::sasWiremock.isInitialized) {
         sasWiremock = WireMockServer(options().dynamicPort())
         sasWiremock.start()
+
+        reset()
       }
     }
 
     fun reset() {
       sasWiremock.resetAll()
+      setupDefaultResponse()
+    }
+
+    fun setupDefaultResponse() {
+      ApprovedPremisesStubs.setupDefaultResponses()
     }
   }
 
