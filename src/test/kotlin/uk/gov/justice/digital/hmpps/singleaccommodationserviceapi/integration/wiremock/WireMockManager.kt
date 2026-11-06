@@ -11,7 +11,7 @@ import org.springframework.boot.test.util.TestPropertyValues
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
 
-class WireMockInitializer :
+class WireMockManager :
   ApplicationContextInitializer<ConfigurableApplicationContext>,
   AfterEachCallback,
   AfterAllCallback {
