@@ -1,4 +1,7 @@
 import dev.detekt.gradle.plugin.getSupportedKotlinVersion
+import java.io.IOException
+import java.net.InetSocketAddress
+import java.net.Socket
 
 plugins {
   alias(libs.plugins.hmpps.spring.boot)
@@ -84,6 +87,94 @@ tasks.compileKotlin {
 
 tasks.named("check") {
   dependsOn("validateFlywayFilenames")
+}
+
+tasks.register<Exec>("ensureTestDependencies") {
+  group = "sar"
+  description = "Runs 'docker compose up' if the integration test database is not already accepting connections"
+
+  commandLine("docker", "compose", "up", "-d", "--wait")
+  onlyIf {
+    val running = try {
+      Socket().use { it.connect(InetSocketAddress("localhost", 5434), 1000) }
+      true
+    } catch (e: IOException) {
+      false
+    }
+    !running
+  }
+}
+
+fun Test.configureSarTest(vararg testPatterns: String) {
+  dependsOn("ensureTestDependencies")
+  group = "sar"
+  testClassesDirs = sourceSets.test.get().output.classesDirs
+  classpath = sourceSets.test.get().runtimeClasspath
+  useJUnitPlatform()
+  filter {
+    testPatterns.forEach { includeTestsMatching(it) }
+  }
+  outputs.upToDateWhen { false }
+}
+
+fun Test.copyGeneratedSarFiles(generatedFiles: () -> Map<File, File>) {
+  doFirst {
+    // Avoid copying stale files from a previous run
+    generatedFiles().keys.forEach { it.delete() }
+  }
+  doLast {
+    generatedFiles().filterKeys { it.exists() }.forEach { (generated, target) ->
+      generated.copyTo(target, overwrite = true)
+      generated.delete()
+      println("Updated ${target.relativeTo(projectDir)}")
+    }
+  }
+}
+
+val sarTestResourcesDir = file("src/test/resources")
+val sarFixturesDir = file("src/test/resources/sar")
+
+tasks.register<Test>("generateSarPdf") {
+  configureSarTest("*SasSarPdfReportTest")
+  description = "Renders the SAR report as a PDF to build/test-generated/sar-generated-report.pdf"
+}
+
+tasks.register<Test>("updateSarSchemaTrackers") {
+  configureSarTest("*SarIntegrationTest*JpaEntitiesTest*")
+  description = "Updates expected-flyway-schema-version in application-test-sar.yml and regenerates sar/sas-entities-schema.json"
+  environment("SAR_GENERATE_ACTUAL", "true")
+
+  val migrationsDir = file("infrastructure/src/main/resources/db/migration")
+  val sarConfig = sarTestResourcesDir.resolve("application-test-sar.yml")
+  val migrationVersion = Regex("""^V(\d+)__.*\.sql$""")
+
+  doFirst {
+    val latestVersion = migrationsDir.listFiles()!!
+      .mapNotNull { migrationVersion.find(it.name)?.groupValues?.get(1) }
+      .maxBy { it.toLong() }
+    sarConfig.writeText(
+      sarConfig.readText().replace(
+        Regex("""(expected-flyway-schema-version:\s*)"?\d+"?"""),
+        "$1\"$latestVersion\"",
+      ),
+    )
+    println("Set expected-flyway-schema-version to $latestVersion")
+  }
+
+  copyGeneratedSarFiles {
+    mapOf(sarTestResourcesDir.resolve("entity-schema.json.log") to sarFixturesDir.resolve("sas-entities-schema.json"))
+  }
+}
+
+tasks.register<Test>("updateSarFixtures") {
+  configureSarTest("*SasSarComplianceTest", "*SasSarPdfReportTest")
+  description = "Regenerates the expected SAR API response, HTML report and render result fixtures in src/test/resources/sar"
+  environment("SAR_GENERATE_ACTUAL", "true")
+
+  copyGeneratedSarFiles {
+    listOf("sas-expected-api-response.json", "sas-expected-report.html", "sas-expected-render-result.html")
+      .associate { sarTestResourcesDir.resolve("$it.log") to sarFixturesDir.resolve(it) }
+  }
 }
 
 val guavaDependency = libs.guava

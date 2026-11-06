@@ -19,6 +19,14 @@ import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import java.util.UUID
 import javax.sql.DataSource
 
+/**
+ * High level tests of the SAR endpoints, plus schema 'tripwire' tests
+ *
+ * Detailed tests verifying data and template responses against fixtures are in
+ * [SasSarComplianceTest] and [SasSarPdfReportTest]
+ *
+ * For general information on SARs and testing, see docs/subject_access_requests.md
+ */
 class SarIntegrationTest : IntegrationTestBase() {
 
   @Autowired
@@ -145,12 +153,33 @@ class SarIntegrationTest : IntegrationTestBase() {
     assertThat(caseRepository.findCaseForSubjectAccessRequest(null, UUID.randomUUID().toString())).isNull()
   }
 
+  /**
+   * Fails if the latest Flyway schema version doesn't match the 'expected-flyway-schema-version'
+   * value in application-test-sar.yml
+   *
+   * The intention of this test is to make you think about whether an update to the SAR template
+   * is required when the database schema changes
+   *
+   * Once that decision has been made, fix this test by running `./gradlew updateSarSchemaTrackers`
+   *
+   * For more information see docs/subject_access_requests.md
+   */
   @Nested
   inner class FlywaySchemaTest : SarFlywaySchemaTest {
     override fun getDataSourceInstance() = dataSource
     override fun getSarHelper() = sarIntegrationTestHelper
   }
 
+  /**
+   * Fails if the generated snapshot of the JPA entity model doesn't match sar/sas-entities-schema.json
+   *
+   * The intention of this test is to make you think about whether an update to the SAR template
+   * is required when the entity model changes
+   *
+   * Once that decision has been made, fix this test by running `./gradlew updateSarSchemaTrackers`
+   *
+   * For more information see docs/subject_access_requests.md
+   */
   @Nested
   inner class JpaEntitiesTest : SarJpaEntitiesTest {
     override fun getSarHelper() = sarIntegrationTestHelper

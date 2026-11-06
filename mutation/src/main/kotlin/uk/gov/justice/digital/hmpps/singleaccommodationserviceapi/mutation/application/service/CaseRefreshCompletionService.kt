@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
@@ -139,15 +138,7 @@ class CaseMutationOrchestrationService(
         prisoner = results.getResult<Prisoner>(GET_PRISONER),
         case = results.getResult<Case>(GET_CASE_IF_EXISTS),
       ),
-      upstreamFailures = results.getFailures().filterNot {
-        it.errorDetail.httpStatus == HttpStatus.NOT_FOUND &&
-          it.callKey in setOf(
-            GET_CAS_1_APPLICATION,
-            GET_CAS_3_APPLICATION,
-            GET_CAS_1_CURRENT_PREMISES,
-            GET_CAS_3_CURRENT_PREMISES,
-          )
-      },
+      upstreamFailures = results.getFailures(),
     )
   }
 }

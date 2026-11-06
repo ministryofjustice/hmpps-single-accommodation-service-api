@@ -83,11 +83,11 @@ Use this file as the default operating guide. Only search the repo when these in
 ## Subject Access Requests
 - SAR functionality is part of this repo: the service aggregates data into a single SAR response and HTML report.
 - The main SAR template is `src/main/resources/sar/template_hmpps-single-accommodation-service-api.mustache`.
-- SAR compliance tests and fixture generation live under `src/test/kotlin/.../integration/sar/` with expected fixtures in `src/test/resources/sar/`.
-- The SAR test fixture guide is `sar-test-fixtures-guide.md`; follow it when changing SAR data retrieval or the template.
-- To regenerate fixtures, run the SAR integration tests with `SAR_GENERATE_ACTUAL=true` and use `:integrationTest` (not the unqualified task name) because integration tasks exist in the root and subprojects.
-- Changes to SAR-relevant entities, schema, or Flyway migrations may require updating SAR fixtures and schema-related expectations alongside the code change.
-- When JPA entities change, follow `sar-test-fixtures-guide.md` to update the entity-schema fixture if needed, then run `SarIntegrationTest` with `./gradlew :integrationTest --tests 'uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar.SarIntegrationTest' --no-daemon`; entity-schema mismatches can cause this test to fail.
+- SAR compliance tests and fixture generation live under `src/test/kotlin/.../integration/sar/` with expected fixtures in `src/test/resources/sar/` and SAR test config in `src/test/resources/application-test-sar.yml`.
+- SAR documentation (including the change control process) is `docs/subject_access_requests.md`; follow it when changing SAR data retrieval, the template, entities, or Flyway migrations.
+- To regenerate the SAR API/report/render-result fixtures, run `./gradlew updateSarFixtures --no-daemon` and review the diff.
+- When Flyway migrations or JPA entities change, `SarIntegrationTest` (Flyway/JPA schema tests) will fail; after considering whether the SAR template needs updating, run `./gradlew updateSarSchemaTrackers --no-daemon`.
+- To produce a sample PDF report for SAR change control, run `./gradlew generateSarPdf --no-daemon`.
 
 
 ```
@@ -218,7 +218,7 @@ docker compose up -d
 
 ## Useful repo-specific docs and scripts
 - `README.md` — local run/test basics and architecture notes.
-- `sar-test-fixtures-guide.md` — SAR fixture regeneration; note the same `:integrationTest` root-task rule.
+- `docs/subject_access_requests.md` — SAR overview, change control, and Gradle tasks for fixture/schema updates.
 - `docs/components/InboxEventDispatcher.md` and `docs/components/Alerting.md` — event processing/monitoring behavior.
 - `docs/tools/remote-db-tunnel.md`, `docs/tools/remote-redis-tunnel.md` — remote environment access.
 - `scripts/create_flyway_migration.sh` — safest way to create the next Flyway file.

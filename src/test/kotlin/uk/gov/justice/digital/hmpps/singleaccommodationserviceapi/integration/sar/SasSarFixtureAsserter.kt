@@ -29,8 +29,11 @@ class SasSarFixtureAsserter(
     val response = sasSarHelper.requestSarData(prn, crn, fromDate, toDate, webTestClient, SubjectAccessRequestResponse::class.java)
     val actualJson = sarHelper.toJson(response)
 
-    if (generateActual()) {
-      sarHelper.saveContentToFile(actualJson, generatedApiResponseFilename)
+    if (sarGenerateActual()) {
+      sarHelper.saveContentToFile(
+        actualJson.replace(laaId.toString(), "%LAA_ID%").replace(laaName, "%LAA_NAME%"),
+        generatedApiResponseFilename,
+      )
     } else {
       val expected = sarHelper.getResourceAsString(expectedApiResponseResourcePath)
         .replace("%LAA_ID%", laaId.toString())
@@ -60,8 +63,8 @@ class SasSarFixtureAsserter(
       templateResponse,
     )
 
-    if (generateActual()) {
-      sarHelper.saveContentToFile(renderResult, generatedReportFilename)
+    if (sarGenerateActual()) {
+      sarHelper.saveContentToFile(renderResult.replace(laaName, "%LAA_NAME%"), generatedReportFilename)
     } else {
       sarHelper.assertHtmlEquals(
         renderResult,
@@ -69,6 +72,6 @@ class SasSarFixtureAsserter(
       )
     }
   }
-
-  private fun generateActual() = System.getenv("SAR_GENERATE_ACTUAL").toBoolean()
 }
+
+fun sarGenerateActual() = System.getenv("SAR_GENERATE_ACTUAL").toBoolean()

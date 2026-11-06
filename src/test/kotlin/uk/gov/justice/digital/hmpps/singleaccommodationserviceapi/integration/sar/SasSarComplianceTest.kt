@@ -13,6 +13,12 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
+/**
+ * For general information on SARs and testing, see docs/subject_access_requests.md
+ *
+ * These tests will fail when the template or test data changes. To regenerate the expected outputs
+ * run `./gradlew updateSarFixtures` and validate the updated files
+ */
 class SasSarComplianceTest : SasSarTestBase() {
 
   private val testCrn = "X320741"
@@ -26,8 +32,8 @@ class SasSarComplianceTest : SasSarTestBase() {
 
   private val expectedApiResponsePath = "/sar/sas-expected-api-response.json"
   private val expectedReportPath = "/sar/sas-expected-report.html"
-  private val generatedApiResponseFilename = "sas-sar-api-response.json.log"
-  private val generatedReportFilename = "sas-sar-report.html.log"
+  private val generatedApiResponseFilename = "sas-expected-api-response.json.log"
+  private val generatedReportFilename = "sas-expected-report.html.log"
 
   private val fixedTimestamp = Timestamp.from(Instant.parse("2026-06-30T15:31:04Z"))
 

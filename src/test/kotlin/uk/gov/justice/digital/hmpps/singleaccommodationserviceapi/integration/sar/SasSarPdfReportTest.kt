@@ -14,6 +14,9 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
+/**
+ * For general information on SARs and testing, see docs/subject_access_requests.md
+ */
 class SasSarPdfReportTest : SasSarTestBase() {
 
   private val testCrn = "X320741"
@@ -121,6 +124,13 @@ class SasSarPdfReportTest : SasSarTestBase() {
       Nisl malesuada lacinia integer nunc posuere ut hendrerit.
     """.trimIndent()
 
+  /**
+   * Renders the SAR report as a PDF to build/test-generated/sar-generated-report.pdf for manual review
+   * (or run `./gradlew generateSarPdf`), and checks the rendered HTML against sar/sas-expected-render-result.html
+   *
+   * This test will fail when the template or test data changes. To regenerate the expected output
+   * run `./gradlew updateSarFixtures` and validate the updated files
+   */
   @Test
   fun `SAR report should render PDF as expected`() {
     setupTestData()
@@ -146,6 +156,14 @@ class SasSarPdfReportTest : SasSarTestBase() {
     )
 
     sarIntegrationTestHelper.renderAndSaveReportAsPdf(renderResult, null, testCrn)
+
+    if (sarGenerateActual()) {
+      sarIntegrationTestHelper.saveContentToFile(
+        renderResult.replace(localAuthorityArea.name, "%LAA_NAME%"),
+        "sas-expected-render-result.html.log",
+      )
+      return
+    }
 
     val expected = sarIntegrationTestHelper.getExpectedRenderResult().replace("%LAA_NAME%", localAuthorityArea.name)
     sarIntegrationTestHelper.assertHtmlEquals(renderResult, expected)
