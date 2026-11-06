@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestInboxEventHelper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestInboxEventHelper.TestPersonIdentifier
 import java.util.UUID
 
 @EnableMessageProcessing
@@ -34,12 +36,12 @@ class CprProbationRecordMergedEventIT : DomainEventIntegrationTestBase() {
 
     testInboxEventHelper.publish(
       messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED,
-      crn = crn,
+      personIdentifier = TestPersonIdentifier("CRN", crn),
       detailUrl = eventDetailUrl,
     )
 
     testInboxEventHelper.assertMessageProcessed()
-    testInboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl, ProcessedStatus.PROCESSED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("CRN", crn), eventType, eventDetailUrl, ProcessedStatus.PROCESSED)
 
     waitFor { assertThat(caseRefreshRequestRepository.findAll()).hasSize(1) }
   }
@@ -51,7 +53,7 @@ class CprProbationRecordMergedEventIT : DomainEventIntegrationTestBase() {
     repeat(3) {
       testInboxEventHelper.publish(
         messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED,
-        crn = crn,
+        personIdentifier = TestPersonIdentifier("CRN", crn),
         detailUrl = eventDetailUrl,
       )
     }
@@ -69,11 +71,11 @@ class CprProbationRecordMergedEventIT : DomainEventIntegrationTestBase() {
     assertThat(caseRepository.findAll()).hasSize(0)
     testInboxEventHelper.publish(
       messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED,
-      crn = crn,
+      personIdentifier = TestInboxEventHelper.TestPersonIdentifier("CRN", crn),
       detailUrl = eventDetailUrl,
     )
 
-    testInboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl, ProcessedStatus.IGNORED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("CRN", crn), eventType, eventDetailUrl, ProcessedStatus.IGNORED)
     assertThat(caseRefreshRequestRepository.findAll()).hasSize(0)
   }
 }

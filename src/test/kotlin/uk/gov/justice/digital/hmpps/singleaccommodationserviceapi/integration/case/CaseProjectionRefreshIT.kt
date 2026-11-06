@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.TierEventHandlerConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestInboxEventHelper.TestPersonIdentifier
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -164,7 +165,7 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
       }
     } else {
       testInboxEventHelper.assertInboxEvent(
-        crn,
+        TestPersonIdentifier("CRN", crn),
         eventType = eventType.typeName,
         eventDetailUrl = domainEvent.detailUrl,
         processedStatus = ProcessedStatus.PROCESSED,
@@ -221,7 +222,7 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
     testInboxEventHelper.publish(domainEvent)
 
     testInboxEventHelper.assertInboxEvent(
-      crn,
+      TestPersonIdentifier("CRN", crn),
       eventType = eventType.typeName,
       eventDetailUrl = domainEvent.detailUrl,
       processedStatus = ProcessedStatus.IGNORED,

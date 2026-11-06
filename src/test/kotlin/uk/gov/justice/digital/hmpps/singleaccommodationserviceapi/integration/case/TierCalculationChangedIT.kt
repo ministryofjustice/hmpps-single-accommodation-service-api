@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.TierEventHandlerConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestInboxEventHelper.TestPersonIdentifier
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
@@ -47,7 +48,7 @@ class TierCalculationChangedIT : DomainEventIntegrationTestBase() {
     publishTierEvent()
 
     testInboxEventHelper.assertMessageProcessed()
-    testInboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("CRN", crn), eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
 
     waitFor { assertThat(caseRefreshRequestRepository.findAll()).hasSize(1) }
   }
@@ -78,7 +79,7 @@ class TierCalculationChangedIT : DomainEventIntegrationTestBase() {
 
     publishTierEvent()
 
-    testInboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.IGNORED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("CRN", crn), eventType, eventDetailUrl(), ProcessedStatus.IGNORED)
     assertThat(caseRefreshRequestRepository.findAll()).hasSize(0)
   }
 

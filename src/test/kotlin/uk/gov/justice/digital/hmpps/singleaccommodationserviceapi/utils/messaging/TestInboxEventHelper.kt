@@ -102,17 +102,22 @@ class TestInboxEventHelper(
     publish(message, domainEvent.eventType)
   }
 
+  data class TestPersonIdentifier(
+    val name: String,
+    val value: String,
+  )
+
   fun publish(
     messageType: IncomingHmppsDomainEventType,
-    crn: String?,
+    personIdentifier: TestPersonIdentifier?,
     detailUrl: String?,
     additionalInformation: Map<String, Any?>? = null,
   ) {
-    val personReference = crn?.let { PersonReference(listOf(PersonIdentifier("CRN", it))) } ?: PersonReference()
+    val personReference = personIdentifier?.let { PersonReference(listOf(PersonIdentifier(personIdentifier.name, personIdentifier.value))) } ?: PersonReference()
     val snsDomainEvent = SnsDomainEvent(
       eventType = messageType.typeName,
       version = 1,
-      description = "Test ${messageType.typeName} event for $crn",
+      description = "Test ${messageType.typeName} event for ${personIdentifier?.value}",
       detailUrl = detailUrl,
       occurredAt = OffsetDateTime.now(),
       personReference = personReference,
@@ -122,7 +127,7 @@ class TestInboxEventHelper(
   }
 
   fun assertInboxEvent(
-    crn: String,
+    personIdentifier: TestPersonIdentifier,
     eventType: String,
     eventDetailUrl: String?,
     processedStatus: ProcessedStatus,
@@ -136,7 +141,7 @@ class TestInboxEventHelper(
         assertThat(inboxEvents).hasSize(1)
         val inboxEvent = inboxEvents.first()
         val event = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-        assertThat(event.personReference["CRN"]).isEqualTo(crn)
+        assertThat(event.personReference[personIdentifier.name]).isEqualTo(personIdentifier.value)
         assertThat(inboxEvent.eventType).isEqualTo(eventType)
         assertThat(inboxEvent.eventDetailUrl).isEqualTo(eventDetailUrl)
         assertThat(inboxEvent.processedStatus).isEqualTo(processedStatus)
