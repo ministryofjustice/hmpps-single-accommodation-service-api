@@ -336,9 +336,9 @@ fun buildCas1ExternalRequestForPlacementOutcomeDto(
 fun buildCas1RequestForPlacementSummaryV2(
   status: Cas1RequestForPlacementStatus = Cas1RequestForPlacementStatus.REQUEST_SUBMITTED,
   statusLastUpdated: LocalDateTime = LocalDateTime.now(),
-  submittedBy: Cas1Staff? = null,
-  submittedAt: LocalDate? = null,
-  expectedArrivalDate: LocalDate? = null,
+  submittedBy: Cas1Staff = buildCas1Staff(),
+  submittedAt: LocalDate = LocalDate.now(),
+  expectedArrivalDate: LocalDate = LocalDate.now(),
   durationDays: Int? = null,
   decision: String? = null,
   rejectionReason: String? = null,
@@ -356,14 +356,14 @@ fun buildCas1RequestForPlacementSummaryV2(
 )
 
 fun buildCas1PlacementV2(
-  status: Cas1PlacementStatus? = null,
+  status: Cas1PlacementStatus = Cas1PlacementStatus.ARRIVED,
   statusLastUpdated: LocalDateTime = LocalDateTime.now(),
   canonicalArrivalDate: LocalDate = LocalDate.now(),
   canonicalDepartureDate: LocalDate = LocalDate.now().plusMonths(6),
   actualArrivalDate: LocalDate? = null,
   actualDepartureDate: LocalDate? = null,
-  expectedArrivalDate: LocalDate? = null,
-  expectedDepartureDate: LocalDate? = null,
+  expectedArrivalDate: LocalDate = LocalDate.now(),
+  expectedDepartureDate: LocalDate = LocalDate.now().plusMonths(6),
   cancellationReason: String? = null,
   premises: Cas1ExternalPremisesV2Dto = buildCas1ExternalPremisesV2Dto(),
 ) = Cas1PlacementV2(

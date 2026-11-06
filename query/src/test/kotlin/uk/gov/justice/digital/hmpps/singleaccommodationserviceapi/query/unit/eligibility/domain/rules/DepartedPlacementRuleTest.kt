@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import org.junit.jupiter.params.provider.NullSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
@@ -36,9 +35,8 @@ class DepartedPlacementRuleTest {
   }
 
   @ParameterizedTest
-  @NullSource
   @EnumSource(value = Cas1PlacementStatus::class, names = ["DEPARTED"], mode = EnumSource.Mode.EXCLUDE)
-  fun `placement that is not departed passes`(status: Cas1PlacementStatus?) {
+  fun `placement that is not departed passes`(status: Cas1PlacementStatus) {
     val data = buildDomainData(
       cas1Application = buildCas1ApplicationDomainData(
         application = buildCas1ApplicationV2(status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED),

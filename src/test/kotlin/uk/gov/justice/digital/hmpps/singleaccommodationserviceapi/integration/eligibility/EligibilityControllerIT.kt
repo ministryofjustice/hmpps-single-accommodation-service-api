@@ -188,6 +188,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
         status = Cas1PlacementStatus.CANCELLED,
         canonicalArrivalDate = LocalDate.now(),
         canonicalDepartureDate = LocalDate.now().plusMonths(6),
+        expectedArrivalDate = LocalDate.now(),
+        expectedDepartureDate = LocalDate.now().plusMonths(6),
         cancellationReason = "Oops",
         premises = buildCas1ExternalPremisesV2Dto(
           addressLine1 = "Test House",
@@ -321,6 +323,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             submittedAt = cas1Application.submittedApplication?.submittedAt?.asJsonValue().toString(),
             requestSubmittedAt = cas1RequestForPlacementOutcome.requestForPlacement.submittedAt.toString(),
             expectedArrivalDate = cas1RequestForPlacementOutcome.requestForPlacement.expectedArrivalDate.toString(),
+            expectedDepartureDate = cas1RequestForPlacementOutcome.placement?.expectedDepartureDate.toString(),
             expiresAt = cas1Application.expiresAt.toString(),
             startDate = cas1RequestForPlacementOutcome.placement!!.canonicalArrivalDate.toString(),
             endDate = cas1RequestForPlacementOutcome.placement!!.canonicalDepartureDate.toString(),
@@ -433,6 +436,9 @@ class EligibilityControllerIT : IntegrationTestBase() {
             cas3ReferralUrl = cas3ReferralUiUrl,
             cas1ApplicationStartedAt = cas1Application.createdAt.asJsonValue(),
             cas1ApplicationSubmittedAt = cas1Application.submittedApplication?.submittedAt?.asJsonValue().toString(),
+            cas1RequestForPlacementExpectedArrivalDate = cas1Application.submittedApplication?.upcomingRequestForPlacement?.requestForPlacement?.expectedArrivalDate.toString(),
+            cas1PlacementExpectedDepartureDate = cas1Application.submittedApplication?.upcomingRequestForPlacement?.placement?.expectedDepartureDate.toString(),
+            cas1SubmittedAt = cas1Application.submittedApplication?.upcomingRequestForPlacement?.requestForPlacement?.submittedAt.toString(),
           ),
         )
       }

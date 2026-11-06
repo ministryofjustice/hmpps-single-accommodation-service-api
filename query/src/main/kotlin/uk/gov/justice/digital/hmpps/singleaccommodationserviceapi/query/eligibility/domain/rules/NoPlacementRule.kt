@@ -11,7 +11,7 @@ class NoPlacementRule : Rule {
   override val description = "FAIL if no placement"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.cas1Application?.currentOutcome?.placement?.status == null
+    val isFail = data.cas1Application?.currentOutcome?.placement == null
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 
     return RuleResult(

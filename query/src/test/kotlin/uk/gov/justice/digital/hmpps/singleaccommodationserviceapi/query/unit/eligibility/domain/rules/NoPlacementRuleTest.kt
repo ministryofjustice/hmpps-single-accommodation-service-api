@@ -36,22 +36,6 @@ class NoPlacementRuleTest {
   }
 
   @Test
-  fun `placement with missing status fails`() {
-    val data = buildDomainData(
-      cas1Application = buildCas1ApplicationDomainData(
-        application = buildCas1ApplicationV2(status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED),
-        currentOutcome = buildCas1ExternalRequestForPlacementOutcomeDto(
-          placement = buildCas1PlacementV2(status = null),
-        ),
-      ),
-    )
-
-    val result = NoPlacementRule().evaluate(data)
-
-    assertThat(result).isEqualTo(RuleResult(description, RuleStatus.FAIL))
-  }
-
-  @Test
   fun `missing placement fails`() {
     val data = buildDomainData(
       cas1Application = buildCas1ApplicationDomainData(
