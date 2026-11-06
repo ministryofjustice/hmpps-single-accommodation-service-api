@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestInboxEventHelper.TestPersonIdentifier
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.UUID
@@ -176,7 +177,7 @@ class IncomingCprProbationAddressUpdatedEventIT : DomainEventIntegrationTestBase
     assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfSasSystemUser)
 
     testInboxEventHelper.assertInboxEvent(
-      crn = crn,
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId),
       processedStatus = ProcessedStatus.PROCESSED,
@@ -210,7 +211,7 @@ class IncomingCprProbationAddressUpdatedEventIT : DomainEventIntegrationTestBase
     assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfTestDataSetupUser)
 
     testInboxEventHelper.assertInboxEvent(
-      crn = crn,
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(unmatchingCprAddressId),
       processedStatus = ProcessedStatus.IGNORED,
