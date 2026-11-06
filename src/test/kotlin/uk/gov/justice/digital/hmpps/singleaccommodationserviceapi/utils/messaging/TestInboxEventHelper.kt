@@ -136,7 +136,7 @@ class TestInboxEventHelper(
         assertThat(inboxEvents).hasSize(1)
         val inboxEvent = inboxEvents.first()
         val event = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-        assertThat(event.personReference.findCrn()).isEqualTo(crn)
+        assertThat(event.personReference["CRN"]).isEqualTo(crn)
         assertThat(inboxEvent.eventType).isEqualTo(eventType)
         assertThat(inboxEvent.eventDetailUrl).isEqualTo(eventDetailUrl)
         assertThat(inboxEvent.processedStatus).isEqualTo(processedStatus)
