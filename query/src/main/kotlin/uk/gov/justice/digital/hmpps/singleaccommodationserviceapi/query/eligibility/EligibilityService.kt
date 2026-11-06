@@ -7,20 +7,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDtoNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationSummaryCalculator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityNewToOldTransformer.toEligibilityDtoOld
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toFailedEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.Cas1EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.Cas2EligibilityTreeProvider
@@ -28,16 +21,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.DtrEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.PaEligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataFactory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.EligibilityOrchestrationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityNewToOldTransformer.toEligibilityDtoOld
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityTransformer.toFailedEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 
 @Service
 class EligibilityService(
-  private val accommodationSummaryCalculator: AccommodationSummaryCalculator,
-  private val accommodationTypeRepository: AccommodationTypeRepository,
+  private val domainDataFactory: DomainDataFactory,
   private val caseRepository: CaseRepository,
-  private val dutyToReferQueryService: DutyToReferQueryService,
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
   private val deeplinkResolver: DeeplinkResolver,
   private val cas1Tree: Cas1EligibilityTreeProvider,
@@ -76,7 +72,7 @@ class EligibilityService(
       return toApiResponseDto(data = toEligibilityDtoOld(failedEligibilityDto), upstreamFailures = failuresRelevantToRulesEngine)
     }
 
-    val data = buildDomainData(crn, eligibilityOrchestrationDto.data, caseEntity)
+    val data = domainDataFactory.buildDomainData(crn, eligibilityOrchestrationDto.data, caseEntity)
     val eligibility = getEligibility(data)
 
     return toApiResponseDto(data = toEligibilityDtoOld(eligibility), upstreamFailures = emptyList())
@@ -126,48 +122,5 @@ class EligibilityService(
         it.serviceStatus,
       )
     }
-  }
-
-  fun buildDomainData(crn: String, eligibilityOrchestrationDto: EligibilityOrchestrationDto, caseEntity: CaseEntity?): DomainData {
-    val accommodationTypes = accommodationTypeRepository.findAll()
-
-    val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) }
-
-    val currentAccommodation = accommodationSummaryCalculator.calculateCurrentAccommodation(
-      crn = crn,
-      addresses = eligibilityOrchestrationDto.cpr?.addresses,
-      prisoner = eligibilityOrchestrationDto.prisoner,
-      cas1CurrentPremises = eligibilityOrchestrationDto.cas1CurrentPremises,
-      cas3CurrentPremises = eligibilityOrchestrationDto.cas3CurrentPremises,
-    )
-
-    val nextAccommodations = accommodationSummaryCalculator.calculateNextAccommodationsV2(
-      crn,
-      addresses = eligibilityOrchestrationDto.cpr?.addresses,
-      cas1Application = eligibilityOrchestrationDto.cas1Application,
-      cas3Application = eligibilityOrchestrationDto.cas3Application,
-      currentAccommodation = currentAccommodation,
-    )
-
-    val suitableCrsReferral = eligibilityOrchestrationDto.commissionedRehabilitativeServices
-      ?.filter { it.status == CrsReferralStatus.LIVE }
-      ?.filter { it.sentAt != null }
-      ?.maxByOrNull { it.sentAt!! }
-
-    return DomainData(
-      crn = crn,
-      cpr = eligibilityOrchestrationDto.cpr,
-      tier = eligibilityOrchestrationDto.tier,
-      case = eligibilityOrchestrationDto.case,
-      cas1Application = eligibilityOrchestrationDto.cas1Application,
-      cas2Application = eligibilityOrchestrationDto.cas2Application,
-      cas3Application = eligibilityOrchestrationDto.cas3Application,
-      currentAccommodation = currentAccommodation,
-      nextAccommodations = nextAccommodations,
-      dutyToRefer = dutyToRefer,
-      commissionedRehabilitativeServices = suitableCrsReferral,
-      accommodationTypes = accommodationTypes,
-      sexualOffenceRegistrations = eligibilityOrchestrationDto.sexualOffenceRegistrations,
-    )
   }
 }
