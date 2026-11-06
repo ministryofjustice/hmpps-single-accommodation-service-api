@@ -88,7 +88,7 @@ class DutyToReferQueryService(
 
   fun getEventDetailsDto(id: UUID): DtrEventDetailsDto {
     val dtrEntity = dutyToReferRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
-    val caseEntity = caseRepository.findWithIdentifiersById(dtrEntity.caseId).orThrowNotFound("id" to id)
+    val caseEntity = caseRepository.findWithIdentifiersById(dtrEntity.caseId).orThrowNotFound("id" to dtrEntity.caseId)
 
     return dutyToReferTransformer.toDutyToReferEventDetailsDto(
       dtrEntity,
