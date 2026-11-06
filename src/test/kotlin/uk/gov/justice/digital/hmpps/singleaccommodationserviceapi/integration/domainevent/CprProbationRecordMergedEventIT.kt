@@ -18,13 +18,13 @@ import java.util.UUID
 @EnableMessageProcessing
 class CprProbationRecordMergedEventIT : DomainEventIntegrationTestBase() {
 
-  lateinit var crn: String
+  lateinit var fromCrn: String
   private val eventType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED.typeName
   private val eventDetailUrl = "localhost"
 
   @BeforeEach
   fun setup() {
-    crn = UUID.randomUUID().toString()
+    fromCrn = UUID.randomUUID().toString()
     HmppsAuthStubs.stubGrantToken()
     databaseUtils.truncate(*DatabaseUtils.SasTables.entries.toTypedArray())
     createSasSystemUser()
@@ -32,28 +32,28 @@ class CprProbationRecordMergedEventIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should process incoming HMPPS ${CPR_PROBATION_RECORD_MERGED} domain events on existing record`() {
-    caseRepository.save(buildCaseEntity { withCrn(crn) })
+    caseRepository.save(buildCaseEntity { withCrn(fromCrn) })
 
     testInboxEventHelper.publish(
       messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED,
-      personIdentifier = TestPersonIdentifier("CRN", crn),
+      personIdentifier = TestPersonIdentifier("fromCRN", fromCrn),
       detailUrl = eventDetailUrl,
     )
 
     testInboxEventHelper.assertMessageProcessed()
-    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("CRN", crn), eventType, eventDetailUrl, ProcessedStatus.PROCESSED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("fromCRN", fromCrn), eventType, eventDetailUrl, ProcessedStatus.PROCESSED)
 
     waitFor { assertThat(caseRefreshRequestRepository.findAll()).hasSize(1) }
   }
 
   @Test
   fun `process multiple incoming HMPPS CPR_PROBATION_RECORD_MERGED domain events for the same CRN`() {
-    caseRepository.save(buildCaseEntity { withCrn(crn) })
+    caseRepository.save(buildCaseEntity { withCrn(fromCrn) })
 
     repeat(3) {
       testInboxEventHelper.publish(
         messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED,
-        personIdentifier = TestPersonIdentifier("CRN", crn),
+        personIdentifier = TestPersonIdentifier("fromCRN", fromCrn),
         detailUrl = eventDetailUrl,
       )
     }
@@ -71,11 +71,11 @@ class CprProbationRecordMergedEventIT : DomainEventIntegrationTestBase() {
     assertThat(caseRepository.findAll()).hasSize(0)
     testInboxEventHelper.publish(
       messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED,
-      personIdentifier = TestInboxEventHelper.TestPersonIdentifier("CRN", crn),
+      personIdentifier = TestPersonIdentifier("fromCRN", fromCrn),
       detailUrl = eventDetailUrl,
     )
 
-    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("CRN", crn), eventType, eventDetailUrl, ProcessedStatus.IGNORED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("fromCRN", fromCrn), eventType, eventDetailUrl, ProcessedStatus.IGNORED)
     assertThat(caseRefreshRequestRepository.findAll()).hasSize(0)
   }
 }
