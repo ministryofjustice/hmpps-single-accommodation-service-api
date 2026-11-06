@@ -148,7 +148,7 @@ class IncomingCprProbationAddressCreatedEventIT : DomainEventIntegrationTestBase
     assertThat(newlyCreatedProposedAccommodation?.lastUpdatedByUserId).isIn(userIdOfDeliusSyncUser, userIdOfSasSystemUser)
 
     testInboxEventHelper.assertInboxEvent(
-      personIdentifier = TestPersonIdentifier("CRN", crn),
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId),
       processedStatus = ProcessedStatus.PROCESSED,
@@ -269,7 +269,7 @@ class IncomingCprProbationAddressCreatedEventIT : DomainEventIntegrationTestBase
     assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfSasSystemUser)
 
     testInboxEventHelper.assertInboxEvent(
-      personIdentifier = TestPersonIdentifier("CRN", crn),
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId),
       processedStatus = ProcessedStatus.PROCESSED,
@@ -292,7 +292,7 @@ class IncomingCprProbationAddressCreatedEventIT : DomainEventIntegrationTestBase
     assertThat(proposedAccommodationRepository.findByCprAddressId(cprAddressId)).isNull()
 
     testInboxEventHelper.assertInboxEvent(
-      personIdentifier = TestPersonIdentifier("CRN", unmatchedCrn),
+      personIdentifier = TestPersonIdentifier.forCrn(unmatchedCrn),
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId, unmatchedCrn),
       processedStatus = ProcessedStatus.IGNORED,
@@ -324,7 +324,7 @@ class IncomingCprProbationAddressCreatedEventIT : DomainEventIntegrationTestBase
     assertThat(proposedAccommodationRepository.findByCprAddressId(cprAddressId)).isNull()
 
     testInboxEventHelper.assertInboxEvent(
-      personIdentifier = TestPersonIdentifier("CRN", crn),
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId),
       processedStatus = ProcessedStatus.IGNORED,

@@ -177,7 +177,7 @@ class IncomingCprProbationAddressUpdatedEventIT : DomainEventIntegrationTestBase
     assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfSasSystemUser)
 
     testInboxEventHelper.assertInboxEvent(
-      personIdentifier = TestPersonIdentifier("CRN", crn),
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId),
       processedStatus = ProcessedStatus.PROCESSED,
@@ -211,7 +211,7 @@ class IncomingCprProbationAddressUpdatedEventIT : DomainEventIntegrationTestBase
     assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfTestDataSetupUser)
 
     testInboxEventHelper.assertInboxEvent(
-      personIdentifier = TestPersonIdentifier("CRN", crn),
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(unmatchingCprAddressId),
       processedStatus = ProcessedStatus.IGNORED,

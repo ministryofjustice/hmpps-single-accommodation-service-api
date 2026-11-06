@@ -32,5 +32,5 @@ class CprProbationRecordMergedHandler(
     }
   }
 
-  fun InboxEventHandler.InboxEvent.findFromCrn() = inboxEventHelper.findPersonReference(this, name = "fromCRN")
+  private fun InboxEventHandler.InboxEvent.findFromCrn() = inboxEventHelper.findPersonReference(this, name = "fromCRN")
 }

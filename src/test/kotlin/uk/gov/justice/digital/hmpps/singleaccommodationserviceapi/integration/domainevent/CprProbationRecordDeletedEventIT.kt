@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestInboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestInboxEventHelper.TestPersonIdentifier
 import java.util.UUID
 
@@ -36,12 +35,12 @@ class CprProbationRecordDeletedEventIT : DomainEventIntegrationTestBase() {
 
     testInboxEventHelper.publish(
       messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_DELETED,
-      personIdentifier = TestInboxEventHelper.TestPersonIdentifier("CRN", crn),
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       detailUrl = eventDetailUrl,
     )
 
     testInboxEventHelper.assertMessageProcessed()
-    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("CRN", crn), eventType, eventDetailUrl, ProcessedStatus.PROCESSED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier.forCrn(crn), eventType, eventDetailUrl, ProcessedStatus.PROCESSED)
 
     waitFor {
       val updatedCase = caseRepository.findByCrn(crn)
@@ -54,11 +53,11 @@ class CprProbationRecordDeletedEventIT : DomainEventIntegrationTestBase() {
     assertThat(caseRepository.findAll()).hasSize(0)
     testInboxEventHelper.publish(
       messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_DELETED,
-      personIdentifier = TestInboxEventHelper.TestPersonIdentifier("CRN", crn),
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       detailUrl = eventDetailUrl,
     )
 
-    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("CRN", crn), eventType, eventDetailUrl, ProcessedStatus.IGNORED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier.forCrn(crn), eventType, eventDetailUrl, ProcessedStatus.IGNORED)
     assertThat(caseRepository.findAll()).hasSize(0)
   }
 
@@ -73,11 +72,11 @@ class CprProbationRecordDeletedEventIT : DomainEventIntegrationTestBase() {
 
     testInboxEventHelper.publish(
       messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_DELETED,
-      personIdentifier = TestInboxEventHelper.TestPersonIdentifier("CRN", crn),
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       detailUrl = eventDetailUrl,
     )
 
-    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("CRN", crn), eventType, eventDetailUrl, ProcessedStatus.IGNORED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier.forCrn(crn), eventType, eventDetailUrl, ProcessedStatus.IGNORED)
     assertThat(caseRepository.findAll()).hasSize(0)
   }
 }

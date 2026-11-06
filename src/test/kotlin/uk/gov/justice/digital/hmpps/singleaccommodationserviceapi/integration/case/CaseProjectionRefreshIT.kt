@@ -123,8 +123,15 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
         true
       }
 
-      IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
       IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED,
+      -> {
+        domainEvent =
+          domainEvent.copy(
+            personReference = PersonReference(listOf(PersonIdentifier(type = "fromCRN", value = crn))),
+          )
+        true
+      }
+      IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
       IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED,
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_CANCELLED,
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_CHANGED,
@@ -165,7 +172,7 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
       }
     } else {
       testInboxEventHelper.assertInboxEvent(
-        TestPersonIdentifier("CRN", crn),
+        TestPersonIdentifier.forCrn(crn),
         eventType = eventType.typeName,
         eventDetailUrl = domainEvent.detailUrl,
         processedStatus = ProcessedStatus.PROCESSED,
@@ -193,7 +200,7 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
   @EnumSource(
     IncomingHmppsDomainEventType::class,
     mode = EnumSource.Mode.EXCLUDE,
-    names = ["PERSON_COMMUNITY_MANAGER_ALLOCATED", "PROBATION_USER_USERNAME_CHANGED"],
+    names = ["PERSON_COMMUNITY_MANAGER_ALLOCATED", "PROBATION_USER_USERNAME_CHANGED", "CPR_PROBATION_RECORD_MERGED"],
   )
   fun `should ignore messages when the case is unknown`(eventType: IncomingHmppsDomainEventType) {
     val crn = UUID.randomUUID().toString()
@@ -222,7 +229,7 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
     testInboxEventHelper.publish(domainEvent)
 
     testInboxEventHelper.assertInboxEvent(
-      TestPersonIdentifier("CRN", crn),
+      TestPersonIdentifier.forCrn(crn),
       eventType = eventType.typeName,
       eventDetailUrl = domainEvent.detailUrl,
       processedStatus = ProcessedStatus.IGNORED,

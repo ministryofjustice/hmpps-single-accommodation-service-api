@@ -48,7 +48,7 @@ class TierCalculationChangedIT : DomainEventIntegrationTestBase() {
     publishTierEvent()
 
     testInboxEventHelper.assertMessageProcessed()
-    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("CRN", crn), eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier.forCrn(crn), eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
 
     waitFor { assertThat(caseRefreshRequestRepository.findAll()).hasSize(1) }
   }
@@ -79,7 +79,7 @@ class TierCalculationChangedIT : DomainEventIntegrationTestBase() {
 
     publishTierEvent()
 
-    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier("CRN", crn), eventType, eventDetailUrl(), ProcessedStatus.IGNORED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier.forCrn(crn), eventType, eventDetailUrl(), ProcessedStatus.IGNORED)
     assertThat(caseRefreshRequestRepository.findAll()).hasSize(0)
   }
 

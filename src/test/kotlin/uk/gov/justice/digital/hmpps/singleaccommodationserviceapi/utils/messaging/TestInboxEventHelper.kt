@@ -105,7 +105,11 @@ class TestInboxEventHelper(
   data class TestPersonIdentifier(
     val name: String,
     val value: String,
-  )
+  ) {
+    companion object {
+      fun forCrn(crn: String) = TestPersonIdentifier("CRN", crn)
+    }
+  }
 
   fun publish(
     messageType: IncomingHmppsDomainEventType,
