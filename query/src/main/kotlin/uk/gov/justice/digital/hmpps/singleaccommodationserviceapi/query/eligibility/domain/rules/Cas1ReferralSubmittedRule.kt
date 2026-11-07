@@ -8,11 +8,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 
 @Component
-class Cas1NotActiveRule : Rule {
-  override val description = "FAIL if the referral is not active"
+class Cas1ReferralSubmittedRule : Rule {
+  override val description = "FAIL if the referral is submitted"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val active = listOf(
+    val submittedStatuses = listOf(
       Cas1ApplicationStatus.AWAITING_ASSESSMENT,
       Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,
       Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
@@ -20,11 +20,15 @@ class Cas1NotActiveRule : Rule {
       Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
       Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
+      Cas1ApplicationStatus.REJECTED,
+      Cas1ApplicationStatus.INAPPLICABLE,
+      Cas1ApplicationStatus.WITHDRAWN,
+      Cas1ApplicationStatus.EXPIRED,
     )
 
-    val isPass = active.contains(data.cas1Application?.application?.status)
+    val isFail = submittedStatuses.contains(data.cas1Application?.application?.status)
 
-    val ruleStatus = if (isPass) RuleStatus.PASS else RuleStatus.FAIL
+    val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 
     return RuleResult(
       description = description,

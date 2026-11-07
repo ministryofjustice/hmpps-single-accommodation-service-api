@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 
 @Component
-class Cas1ActiveRule : Rule {
+class Cas1ReferralActiveRule : Rule {
   override val description = "FAIL if CAS1 referral is submitted and active"
   override val failureReason = FailureReason.SUITABLE_CAS1_APPLICATION
 

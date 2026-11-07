@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1StartContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NotPresentRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NoReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoLiveCrsRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
@@ -146,7 +146,7 @@ class RulesGraphTest {
     fun `walk records source paths from each class package`() {
       val root = builder
         .ruleSet(
-          StubRuleSet(rules = listOf(Cas1NotPresentRule(), NoLiveCrsRule())),
+          StubRuleSet(rules = listOf(Cas1NoReferralRule(), NoLiveCrsRule())),
         )
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1StartContextUpdater())
@@ -156,7 +156,7 @@ class RulesGraphTest {
       val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
 
       assertThat(ruleSetNode.rules.map { it.sourcePath }).containsExactly(
-        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1NotPresentRule.kt",
+        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1NoReferralRule.kt",
         "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/NoLiveCrsRule.kt",
       )
       assertThat(ruleSetNode.onFailContextUpdater?.sourcePath).isEqualTo(
@@ -323,7 +323,7 @@ class RulesGraphTest {
     fun `render links to source files using each class package`() {
       val root = builder
         .ruleSet(
-          StubRuleSet(rules = listOf(Cas1NotPresentRule(), NoLiveCrsRule())),
+          StubRuleSet(rules = listOf(Cas1NoReferralRule(), NoLiveCrsRule())),
         )
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1StartContextUpdater())
@@ -331,7 +331,7 @@ class RulesGraphTest {
       val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker().walk("EXAMPLE", root)))
 
       assertThat(markdown).contains(
-        "[`Cas1NotPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1NotPresentRule.kt)",
+        "[`Cas1NoReferralRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1NoReferralRule.kt)",
       )
       assertThat(markdown).contains(
         "[`NoLiveCrsRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/NoLiveCrsRule.kt)",
@@ -359,7 +359,7 @@ class RulesGraphTest {
     @Test
     fun `HTML links rules and PASS and FAIL context updaters to GitHub source`() {
       val root = builder
-        .ruleSet(StubRuleSet(rules = listOf(Cas1NotPresentRule())))
+        .ruleSet(StubRuleSet(rules = listOf(Cas1NoReferralRule())))
         .onPass(builder.confirmed()).applyContextUpdaterOnPass(Cas1StartContextUpdater())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(StubContextUpdater())
         .build()

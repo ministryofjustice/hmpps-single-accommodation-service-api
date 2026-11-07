@@ -9,13 +9,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoPlacementRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NoPlacementRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
-class NoPlacementRuleTest {
+class Cas1NoPlacementRuleTest {
   private val description = "FAIL if no placement"
 
   @ParameterizedTest
@@ -30,7 +30,7 @@ class NoPlacementRuleTest {
       ),
     )
 
-    val result = NoPlacementRule().evaluate(data)
+    val result = Cas1NoPlacementRule().evaluate(data)
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.PASS))
   }
@@ -46,14 +46,14 @@ class NoPlacementRuleTest {
       ),
     )
 
-    val result = NoPlacementRule().evaluate(data)
+    val result = Cas1NoPlacementRule().evaluate(data)
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.FAIL))
   }
 
   @Test
   fun `missing referral fails`() {
-    val result = NoPlacementRule().evaluate(buildDomainData(cas1Application = null))
+    val result = Cas1NoPlacementRule().evaluate(buildDomainData(cas1Application = null))
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.FAIL))
   }

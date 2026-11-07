@@ -6,13 +6,13 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NotRejectedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1ReferralNotRejectedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
-class Cas1NotRejectedRuleTest {
+class Cas1ReferralNotRejectedRuleTest {
   private val description = "FAIL if the referral is not rejected"
 
   @Test
@@ -26,7 +26,7 @@ class Cas1NotRejectedRuleTest {
       ),
     )
 
-    val result = Cas1NotRejectedRule().evaluate(data)
+    val result = Cas1ReferralNotRejectedRule().evaluate(data)
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.PASS))
   }
@@ -43,14 +43,14 @@ class Cas1NotRejectedRuleTest {
       ),
     )
 
-    val result = Cas1NotRejectedRule().evaluate(data)
+    val result = Cas1ReferralNotRejectedRule().evaluate(data)
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.FAIL))
   }
 
   @Test
   fun `missing referral fails`() {
-    val result = Cas1NotRejectedRule().evaluate(buildDomainData(cas1Application = null))
+    val result = Cas1ReferralNotRejectedRule().evaluate(buildDomainData(cas1Application = null))
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.FAIL))
   }
