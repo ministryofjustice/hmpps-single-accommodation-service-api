@@ -7,15 +7,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.RoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.currentOutcome
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.historyExcludingCurrentOutcome
 import java.time.LocalDate
 
 data class DomainData(
@@ -33,44 +28,7 @@ data class DomainData(
   val dutyToRefer: DutyToReferDto?,
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
   val sexualOffenceRegistrations: SexualOffenceRegistrations?,
-) {
-  constructor(
-    crn: String,
-    cpr: CorePersonRecord?,
-    tier: Tier?,
-    currentAccommodation: AccommodationSummaryDto?,
-    nextAccommodations: List<AccommodationSummaryDto>,
-    cas1Application: Cas1ApplicationV2?,
-    cas2Application: Cas2Application?,
-    cas3Application: Cas3Application?,
-    dutyToRefer: DutyToReferDto?,
-    commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
-    accommodationTypes: List<AccommodationTypeEntity>,
-    sexualOffenceRegistrations: SexualOffenceRegistrations?,
-    case: Case?,
-  ) : this(
-    crn = crn,
-    tierScore = tier?.tierScore,
-    sex = cpr?.sex?.code,
-    dob = cpr?.dateOfBirth,
-    roshLevel = case?.roshLevel,
-    currentAccommodation = currentAccommodation,
-    currentAccommodationTypeEntity = accommodationTypes.find { it.code == currentAccommodation?.type?.code },
-    nextAccommodations = nextAccommodations,
-    cas1Application = cas1Application?.let {
-      Cas1ApplicationDomainData(
-        application = it,
-        currentOutcome = it.currentOutcome,
-        historyExcludingCurrentOutcome = it.historyExcludingCurrentOutcome,
-      )
-    },
-    cas2Application = cas2Application,
-    cas3Application = cas3Application,
-    dutyToRefer = dutyToRefer,
-    commissionedRehabilitativeServices = commissionedRehabilitativeServices,
-    sexualOffenceRegistrations = sexualOffenceRegistrations,
-  )
-}
+)
 
 data class Cas1ApplicationDomainData(
   val application: Cas1ApplicationV2,
