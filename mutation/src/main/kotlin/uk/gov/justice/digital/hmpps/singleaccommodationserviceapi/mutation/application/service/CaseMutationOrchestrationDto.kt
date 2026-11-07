@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
@@ -16,7 +16,7 @@ data class CaseMutationOrchestrationDto(
   val prisoner: Prisoner?,
   val cas1CurrentPremises: Cas1PremisesSummary?,
   val cas3CurrentPremises: Cas3BookingPremises?,
-  val cas1Application: Cas1Application?,
+  val cas1Application: Cas1ApplicationV2?,
   val cas3Application: Cas3Application?,
   val case: Case?,
 )
