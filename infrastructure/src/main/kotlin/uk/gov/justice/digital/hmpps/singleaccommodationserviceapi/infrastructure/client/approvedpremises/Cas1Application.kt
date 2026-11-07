@@ -70,15 +70,6 @@ data class Cas1AssessmentSummary(
   val rejectionRationale: String?,
 )
 
-data class Cas1PremisesSummary(
-  val startDate: LocalDate?,
-  val endDate: LocalDate?,
-  val addressLine1: String,
-  val addressLine2: String?,
-  val town: String?,
-  val postcode: String,
-)
-
 data class Cas1Staff(
   val name: String,
   val username: String,

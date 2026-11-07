@@ -10,7 +10,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
@@ -38,8 +38,8 @@ object ApprovedPremisesStubs {
    * in every test relying on it
    */
   fun setupDefaultResponses() {
-    getCas1CurrentPremisesDefaultNoContentResponse()
     getCas3CurrentPremisesDefaultNoContentResponse()
+    getCas1ResidenceDefaultNoContentResponse()
     getCas1SuitableApplicationDefaultNoContentResponse()
     getCas2SuitableApplicationDefaultNoContentResponse()
     getCas3SuitableApplicationDefaultNoContentResponse()
@@ -57,13 +57,6 @@ object ApprovedPremisesStubs {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas3/external/url-templates"))
         .willReturn(okJson(jsonMapper.writeValueAsString(Cas3UrlTemplates(cas3ReferralStart)))),
-    )
-  }
-
-  fun getCas1CurrentPremisesDefaultNoContentResponse() {
-    sasWiremock.stubFor(
-      get(urlPathMatching("""/cas1/external/cases/[^/]+/premises/current"""))
-        .willReturn(noContent()),
     )
   }
 
@@ -102,24 +95,46 @@ object ApprovedPremisesStubs {
     )
   }
 
-  fun getCas1CurrentPremisesOKResponse(crn: String, response: Cas1PremisesSummary) {
+  fun getCas1ResidenceOKResponse(crn: String, response: Cas1PlacementV2) {
     sasWiremock.stubFor(
-      get(urlPathEqualTo("/cas1/external/cases/$crn/premises/current"))
+      get(urlPathEqualTo("/cas1/external/cases/$crn/residence"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
+  }
+
+  fun getCas1ResidenceDefaultNoContentResponse() {
+    sasWiremock.stubFor(
+      get(urlPathMatching("""/cas1/external/cases/[^/]+/residence"""))
+        .willReturn(noContent()),
+    )
+  }
+  fun getCas1ResidenceNoContentResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas1/external/cases/$crn/residence"))
+        .willReturn(noContent()),
+    )
+  }
+
+  fun getCas1ResidenceNotFoundResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas1/external/cases/$crn/residence"))
+        .willReturn(notFound()),
+    )
+  }
+
+  fun getCas1ResidenceServerErrorResponse(crn: String): String {
+    val path = "/cas1/external/cases/$crn/residence"
+    sasWiremock.stubFor(
+      get(urlPathEqualTo(path))
+        .willReturn(serverError()),
+    )
+    return resolveWireMockUrl(path)
   }
 
   fun getCas3CurrentPremisesOKResponse(crn: String, response: Cas3BookingPremises) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas3/external/cases/$crn/premises/current"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
-    )
-  }
-
-  fun getCas1CurrentPremisesNoContentResponse(crn: String) {
-    sasWiremock.stubFor(
-      get(urlPathEqualTo("/cas1/external/cases/$crn/premises/current"))
-        .willReturn(noContent()),
     )
   }
 
@@ -130,27 +145,11 @@ object ApprovedPremisesStubs {
     )
   }
 
-  fun getCas1CurrentPremisesNotFoundResponse(crn: String) {
-    sasWiremock.stubFor(
-      get(urlPathEqualTo("/cas1/external/cases/$crn/premises/current"))
-        .willReturn(notFound()),
-    )
-  }
-
   fun getCas3CurrentPremisesNotFoundResponse(crn: String) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas3/external/cases/$crn/premises/current"))
         .willReturn(notFound()),
     )
-  }
-
-  fun getCas1CurrentPremisesServerErrorResponse(crn: String): String {
-    val path = "/cas1/external/cases/$crn/premises/current"
-    sasWiremock.stubFor(
-      get(urlPathEqualTo(path))
-        .willReturn(serverError()),
-    )
-    return resolveWireMockUrl(path)
   }
 
   fun getCas3CurrentPremisesServerErrorResponse(crn: String): String {

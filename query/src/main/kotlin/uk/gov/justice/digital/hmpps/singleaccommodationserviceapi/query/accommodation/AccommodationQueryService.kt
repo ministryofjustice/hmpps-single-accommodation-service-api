@@ -51,7 +51,7 @@ class AccommodationQueryService(
         crn = crn,
         addresses = orchestrationResult.data.cpr?.addresses,
         prisoner = orchestrationResult.data.prisoner,
-        cas1CurrentPremises = orchestrationResult.data.cas1CurrentPremises,
+        cas1Residence = orchestrationResult.data.cas1Residence,
         cas3CurrentPremises = orchestrationResult.data.cas3CurrentPremises,
       )
       toApiResponseDto(
@@ -67,7 +67,7 @@ class AccommodationQueryService(
       crn = crn,
       addresses = orchestrationResult.data.cpr?.addresses,
       prisoner = orchestrationResult.data.prisoner,
-      cas1CurrentPremises = orchestrationResult.data.cas1CurrentPremises,
+      cas1Residence = orchestrationResult.data.cas1Residence,
       cas3CurrentPremises = orchestrationResult.data.cas3CurrentPremises,
       cas1Application = orchestrationResult.data.cas1Application,
       cas3Application = orchestrationResult.data.cas3Application,

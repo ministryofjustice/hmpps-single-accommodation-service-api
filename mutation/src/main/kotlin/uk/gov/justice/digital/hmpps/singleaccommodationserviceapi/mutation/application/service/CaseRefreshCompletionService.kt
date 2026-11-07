@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_IF_EXISTS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_RESIDENCE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER_V3
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
@@ -92,7 +92,7 @@ class CaseMutationOrchestrationService(
     crn = crn,
     loadTier = { tierClient.getTierV3(crn) },
     loadPersonRecord = { corePersonRecordClient.getByCrn(crn) },
-    loadCas1CurrentPremises = { approvedPremisesClient.getCas1CurrentPremises(crn) },
+    loadCas1Residence = { approvedPremisesClient.getCas1Residence(crn) },
     loadCas3CurrentPremises = { approvedPremisesClient.getCas3CurrentPremises(crn) },
     loadCas1Application = { approvedPremisesClient.getCurrentCas1ApplicationInternal(crn) },
     loadCas3Application = { approvedPremisesClient.getSuitableCas3ApplicationInternal(crn) },
@@ -104,7 +104,7 @@ class CaseMutationOrchestrationService(
     crn: String,
     loadTier: () -> Tier,
     loadPersonRecord: () -> CorePersonRecord,
-    loadCas1CurrentPremises: () -> Cas1PremisesSummary?,
+    loadCas1Residence: () -> Cas1PlacementV2?,
     loadCas3CurrentPremises: () -> Cas3BookingPremises?,
     loadCas1Application: () -> Cas1ApplicationV2?,
     loadCas3Application: () -> Cas3Application?,
@@ -114,7 +114,7 @@ class CaseMutationOrchestrationService(
     val calls = buildMap {
       put(GET_TIER_V3, loadTier)
       put(GET_CORE_PERSON_RECORD_BY_CRN, loadPersonRecord)
-      put(GET_CAS_1_CURRENT_PREMISES, loadCas1CurrentPremises)
+      put(GET_CAS_1_RESIDENCE, loadCas1Residence)
       put(GET_CAS_3_CURRENT_PREMISES, loadCas3CurrentPremises)
       put(GET_CAS_1_CURRENT_APPLICATION, loadCas1Application)
       put(GET_CAS_3_APPLICATION, loadCas3Application)
@@ -131,7 +131,7 @@ class CaseMutationOrchestrationService(
         crn = crn,
         cpr = results.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD_BY_CRN),
         tier = results.getResult<Tier>(GET_TIER_V3),
-        cas1CurrentPremises = results.getResult<Cas1PremisesSummary>(GET_CAS_1_CURRENT_PREMISES),
+        cas1Residence = results.getResult<Cas1PlacementV2>(GET_CAS_1_RESIDENCE),
         cas3CurrentPremises = results.getResult<Cas3BookingPremises>(GET_CAS_3_CURRENT_PREMISES),
         cas1Application = results.getResult<Cas1ApplicationV2>(GET_CAS_1_CURRENT_APPLICATION),
         cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION),

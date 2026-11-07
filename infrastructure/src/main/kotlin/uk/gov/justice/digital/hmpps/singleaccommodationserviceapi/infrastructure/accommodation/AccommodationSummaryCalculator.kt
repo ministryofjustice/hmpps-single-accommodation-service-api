@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationTransformer.toAccommodationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
@@ -47,7 +47,7 @@ class AccommodationSummaryCalculator(
     crn: String,
     addresses: List<CanonicalAddress>?,
     prisoner: Prisoner?,
-    cas1CurrentPremises: Cas1PremisesSummary?,
+    cas1Residence: Cas1PlacementV2?,
     cas3CurrentPremises: Cas3BookingPremises?,
     cas1Application: Cas1ApplicationV2?,
     cas3Application: Cas3Application?,
@@ -56,7 +56,7 @@ class AccommodationSummaryCalculator(
       crn = crn,
       addresses = addresses,
       prisoner = prisoner,
-      cas1CurrentPremises = cas1CurrentPremises,
+      cas1Residence = cas1Residence,
       cas3CurrentPremises = cas3CurrentPremises,
     )
 
@@ -82,7 +82,7 @@ class AccommodationSummaryCalculator(
     crn: String,
     addresses: List<CanonicalAddress>?,
     prisoner: Prisoner?,
-    cas1CurrentPremises: Cas1PremisesSummary?,
+    cas1Residence: Cas1PlacementV2?,
     cas3CurrentPremises: Cas3BookingPremises?,
   ): AccommodationSummaryDto? = if (prisoner?.inOutStatus == InOutStatus.IN) {
     toAccommodationSummary(crn, prisoner, includePrisonNameInAddress = true)
@@ -90,11 +90,11 @@ class AccommodationSummaryCalculator(
     addresses
       ?.firstOrNull { it.status.code == AddressStatusCode.M.name }?.let { mainAddress ->
         when {
-          isAddressWithUsageCode(mainAddress, AddressUsageCode.A02) && postcodesMatch(cas1CurrentPremises?.postcode, mainAddress.postcode) ->
+          isAddressWithUsageCode(mainAddress, AddressUsageCode.A02) && postcodesMatch(cas1Residence?.premises?.postcode, mainAddress.postcode) ->
             toAccommodationSummary(
               crn,
-              startDate = cas1CurrentPremises?.startDate,
-              endDate = cas1CurrentPremises?.endDate,
+              startDate = cas1Residence?.canonicalArrivalDate,
+              endDate = cas1Residence?.canonicalDepartureDate,
               address = mainAddress,
             )
 

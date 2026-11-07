@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
@@ -14,13 +14,13 @@ fun buildAccommodationOrchestrationDto(
   cpr: CorePersonRecord? = buildCorePersonRecord(),
   cas1Application: Cas1ApplicationV2? = null,
   cas3Application: Cas3Application? = null,
-  cas1CurrentPremises: Cas1PremisesSummary? = null,
+  cas1Residence: Cas1PlacementV2? = null,
   cas3CurrentPremises: Cas3BookingPremises? = null,
   prisoner: Prisoner? = buildPrisoner(),
 ) = AccommodationOrchestrationDto(
   cpr = cpr,
   cas1Application = cas1Application,
-  cas1CurrentPremises = cas1CurrentPremises,
+  cas1Residence = cas1Residence,
   cas3CurrentPremises = cas3CurrentPremises,
   cas3Application = cas3Application,
   prisoner = prisoner,

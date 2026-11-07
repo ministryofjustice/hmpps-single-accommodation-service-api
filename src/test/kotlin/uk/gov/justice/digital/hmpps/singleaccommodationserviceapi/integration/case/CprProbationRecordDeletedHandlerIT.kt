@@ -121,7 +121,7 @@ class CprProbationRecordDeletedHandlerIT : DomainEventIntegrationTestBase() {
     cpr = null,
     tier = buildTier(tierScore = "B"),
     prisoner = null,
-    cas1CurrentPremises = null,
+    cas1Residence = null,
     cas3CurrentPremises = null,
     cas1Application = null,
     cas3Application = null,

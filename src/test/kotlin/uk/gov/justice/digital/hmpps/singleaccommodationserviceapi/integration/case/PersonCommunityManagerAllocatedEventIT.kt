@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
@@ -16,7 +16,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Officer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalPremisesV2Dto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -77,7 +78,7 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
   fun `should process incoming CASE_ALLOCATED domain event as PROCESSED when case already exists - this is duplicate event scenario to prove idempotency`() {
     val existing = caseRepository.save(buildCaseEntity(tierScore = "A3") { withCrn(crn) })
     val responses = WiremockStubber().setupCaseOrchestrationStubs(crn, prisonNumber)
-    val (cpr, cas1CurrentPremises) = stubCurrentAndNextAddresses()
+    val (cpr, cas1CurrentPlacement) = stubCurrentAndNextAddresses()
 
     // when
     publishCaseAllocatedEvent()
@@ -85,7 +86,7 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
     assertSuccessful(
-      expectedCas1Premises = cas1CurrentPremises,
+      expectedCas1CurrentPlacement = cas1CurrentPlacement,
       expectedTier = responses.tier!!.tierScore,
       expectedCpr = cpr,
       expectedRoshLevelCode = responses.case!!.roshLevel!!.code,
@@ -177,7 +178,7 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
     assertSuccessful(
-      expectedCas1Premises = cas1CurrentPremises,
+      expectedCas1CurrentPlacement = cas1CurrentPremises,
       expectedTier = responses.tier!!.tierScore,
       expectedCpr = cpr,
       expectedRoshLevelCode = responses.case!!.roshLevel!!.code,
@@ -190,15 +191,19 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
     response = CaseSummaries(listOf(buildCaseSummary(crn = crn, nomsId = prisonNumber))),
   )
 
-  private fun stubCurrentAndNextAddresses(): Pair<CorePersonRecord, Cas1PremisesSummary> {
-    val cas1CurrentPremises = buildCas1PremisesSummary(postcode = "SW1A 1AA")
+  private fun stubCurrentAndNextAddresses(): Pair<CorePersonRecord, Cas1PlacementV2> {
+    val cas1CurrentPremises = buildCas1PlacementV2(
+      premises = buildCas1ExternalPremisesV2Dto(
+        postcode = "SW1A 1AA",
+      ),
+    )
     val cpr = buildCorePersonRecord(
       identifiers = buildIdentifiers(crns = listOf(crn), prisonNumbers = listOf(prisonNumber)),
       addresses = listOf(
         buildCanonicalAddress(
           cprAddressId = UUID.randomUUID(),
           noFixedAbode = false,
-          postcode = cas1CurrentPremises.postcode,
+          postcode = cas1CurrentPremises.premises.postcode,
           status = CanonicalAddressStatus(code = AddressStatusCode.M.name, description = AddressStatusCode.M.description),
           usages = listOf(
             CanonicalAddressUsage(
@@ -224,12 +229,12 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
     )
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, cpr)
     CorePersonRecordStubs.getCorePersonRecordByPrisonNumberOKResponse(prisonNumber, cpr)
-    ApprovedPremisesStubs.getCas1CurrentPremisesOKResponse(crn, cas1CurrentPremises)
+    ApprovedPremisesStubs.getCas1ResidenceOKResponse(crn, cas1CurrentPremises)
     return cpr to cas1CurrentPremises
   }
 
   private fun assertSuccessful(
-    expectedCas1Premises: Cas1PremisesSummary,
+    expectedCas1CurrentPlacement: Cas1PlacementV2,
     expectedTier: String,
     expectedCpr: CorePersonRecord,
     expectedRoshLevelCode: String,
@@ -255,8 +260,8 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
       val currentAccommodation = case.currentAccommodation!!
       assertThat(currentAccommodation.address.postcode).isEqualTo("SW1A 1AA")
       assertThat(currentAccommodation.type?.code).isEqualTo(AddressUsageCode.A02.name)
-      assertThat(currentAccommodation.startDate).isEqualTo(expectedCas1Premises.startDate)
-      assertThat(currentAccommodation.endDate).isEqualTo(expectedCas1Premises.endDate)
+      assertThat(currentAccommodation.startDate).isEqualTo(expectedCas1CurrentPlacement.canonicalArrivalDate)
+      assertThat(currentAccommodation.endDate).isEqualTo(expectedCas1CurrentPlacement.canonicalDepartureDate)
 
       val nextAccommodation = case.nextAccommodation!!
       assertThat(nextAccommodation.address.postcode).isEqualTo("SW1A 1AD")
