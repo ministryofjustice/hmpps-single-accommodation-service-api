@@ -171,7 +171,7 @@ abstract class IntegrationTestBase {
 
   protected fun createSasSystemUser() = userRepository.save(sasSystemUser())
 
-  protected fun createTestDataSetupUserAndDeliusUser() = userRepository.save(testDataSetupUser()).also { user ->
+  fun createTestDataSetupUserAndDeliusUser() = userRepository.save(testDataSetupUser()).also { user ->
     ProbationIntegrationDeliusStubs.stubGetStaffByUsername(user.username, staffDetail)
   } to createDeliusUser()
 
