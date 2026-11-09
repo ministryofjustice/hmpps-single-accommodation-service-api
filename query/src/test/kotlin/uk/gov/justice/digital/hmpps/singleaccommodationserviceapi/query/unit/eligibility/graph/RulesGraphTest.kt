@@ -64,13 +64,13 @@ class RulesGraphTest {
 
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
       val continuationIndexes = graph.edges.withIndex().filter { it.value.label == "CONTINUE" }.map { it.index }
-      assertThat(markdown).contains("linkStyle ${continuationIndexes.joinToString(",")} stroke:black,stroke-width:2px")
+      assertThat(markdown).contains("linkStyle ${continuationIndexes.joinToString(",")} stroke:#0088ff,stroke-width:2px")
       graph.edges.filter { it.label == "CONTINUE" }.forEach { edge ->
         assertThat(markdown).contains("${edge.from} -->|CONTINUE| ${edge.to}")
       }
       val html = RulesGraphHtmlRenderer.render(listOf(graph))
       assertThat(html).contains("edge[label = \"CONTINUE\"]")
-      assertThat(html).contains("'line-color': '#000', 'target-arrow-color': '#000', 'color': '#000'")
+      assertThat(html).contains("'line-color': '#0088ff', 'target-arrow-color': '#0088ff', 'color': '#0088ff'")
     }
 
     @ParameterizedTest
@@ -304,12 +304,12 @@ class RulesGraphTest {
       assertThat(markdown).contains("ExampleEligibility(\"<div style='text-align:left'>FAIL if example</div>\")")
       assertThat(markdown).contains("ExampleEligibility -->|PASS| confirmed")
       assertThat(markdown).contains("ExampleEligibility -->|FAIL| CAS1_NOT_ELIGIBLE")
-      assertThat(markdown).contains("linkStyle 0 stroke:green,stroke-width:2px")
-      assertThat(markdown).contains("linkStyle 1 stroke:red,stroke-width:2px")
+      assertThat(markdown).contains("linkStyle 0 stroke:#2e8b2e,stroke-width:2px")
+      assertThat(markdown).contains("linkStyle 1 stroke:#c0392b,stroke-width:2px")
       assertThat(markdown).contains("CAS1_NOT_ELIGIBLE[\"<b>Not Eligible</b>\"]")
-      assertThat(markdown).contains("classDef ruleSetNode fill:#FFF8E1")
-      assertThat(markdown).contains("classDef outcomeNode fill:#DCEEFB")
-      assertThat(markdown).contains("classDef updaterNode fill:#EDE7F6")
+      assertThat(markdown).contains("classDef ruleSetNode fill:#dbe9ff")
+      assertThat(markdown).contains("classDef outcomeNode fill:#d9f2d9")
+      assertThat(markdown).contains("classDef updaterNode fill:#fff2cc")
       assertThat(markdown).contains("class ExampleEligibility ruleSetNode")
       assertThat(markdown).contains("class confirmed,CAS1_NOT_ELIGIBLE outcomeNode")
       assertThat(markdown).doesNotContain("_onFail")
@@ -342,7 +342,72 @@ class RulesGraphTest {
     }
 
     @Test
-    fun `HTML exposes rule failure reasons for the outcome trace`() {
+    fun `HTML and markdown use the same node and edge colours`() {
+      val root = builder
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("example"))))
+        .onPass(builder.confirmed()).applyContextUpdaterOnPass(StubContextUpdater())
+        .onFail(builder.notEligible(ServiceType.CAS1))
+        .build()
+      val graphs = listOf(RulesGraphWalker().walk("EXAMPLE", root))
+      val html = RulesGraphHtmlRenderer.render(graphs)
+      val markdown = RulesGraphMarkdownRenderer.render(graphs)
+
+      Regex("""classDef \w+ fill:(#[0-9a-f]+),stroke:(#[0-9a-f]+),color:(#[0-9a-f]+)""")
+        .findAll(markdown).forEach { match ->
+          assertThat(html).contains(
+            "'background-color': '${match.groupValues[1]}'",
+            "'border-color': '${match.groupValues[2]}'",
+            "'color': '${match.groupValues[3]}'",
+          )
+        }
+      Regex("""linkStyle [\d,]+ stroke:(#[0-9a-f]+),""").findAll(markdown).forEach { match ->
+        assertThat(html).contains(
+          "'line-color': '${match.groupValues[1]}'",
+          "'target-arrow-color': '${match.groupValues[1]}'",
+        )
+      }
+    }
+
+    @Test
+    fun `HTML simulation rule descriptions link to their source`() {
+      val root = builder
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("FAIL if example"))))
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(ServiceType.CAS1))
+        .build()
+
+      val html = RulesGraphHtmlRenderer.render(listOf(RulesGraphWalker().walk("EXAMPLE", root)))
+      val simulationRules = html.substringAfter("n.rules.forEach(r => {").substringBefore("html += '</div>';")
+
+      assertThat(simulationRules).contains(
+        """data-rule="' + esc(r.className) + '">""",
+        """(r.sourcePath ? '<a href="' + esc(r.sourcePath) + '" target="_blank" rel="noopener noreferrer">' +""",
+        """esc(r.description) + '</a>' : esc(r.description))""",
+      )
+      assertThat(simulationRules).doesNotContain("<code>", "<br>", "data-source")
+    }
+
+    @Test
+    fun `HTML embeds standalone example status cards for simulation outcomes`() {
+      val html = RulesGraphHtmlRenderer.render(emptyList())
+
+      assertThat(html).contains(
+        "function statusCardPreview(outcome, failureReasons)",
+        "function exampleCardDetails(service, status)",
+        "outcomes.map(o => statusCardPreview(o, reasons) + statusActionPreview(o))",
+        "Start an approved premises (CAS1) application",
+        "<b>Action:</b>",
+        "\"actionType\":\"START_APPROVED_PREMISE_APPLICATION\"",
+        "Approved premises (CAS1)",
+        "aria-disabled=\"true\"",
+        "\"CAS1_NOT_STARTED\"",
+        "\"CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS\"",
+      )
+      assertThat(html).doesNotContain("__STATUS_CARD_PREVIEW__", "__GRAPH_DATA__")
+    }
+
+    @Test
+    fun `HTML shows failures and outcome cards in a flat trace above the rules`() {
       val root = builder
         .ruleSet(StubRuleSet(name = "Tier", rules = listOf(MaleRiskEligibilityRule())))
         .onPass(builder.confirmed())
@@ -352,8 +417,18 @@ class RulesGraphTest {
       val html = RulesGraphHtmlRenderer.render(listOf(RulesGraphWalker().walk("EXAMPLE", root)))
 
       assertThat(html).contains("\"failureReason\":\"MALE_NOT_HIGH_RISK_TIER\"")
-      assertThat(html).contains("Reasons for failure:")
-      assertThat(html).contains("return traceOutcomeHtml(s, res.steps)")
+      assertThat(html).contains(
+        "return 'Failed because '",
+        "sourceTextLink(failureDescription([rule]), rule.sourcePath) + ' ' + badge('FAIL')",
+        "'Passed because ' + step.node.title.replace",
+        "sourceTextLink(description, step.node.sourcePath)",
+        "sourceTextLink(n.title, n.sourcePath)",
+        "resultHtml(res) + '</div></li>'",
+        """(outcomeCount > 1 ? 'Outcomes' : 'Outcome')""",
+        "<h2>Trace</h2><ol",
+        "<h2>Rules</h2>",
+      )
+      assertThat(html).doesNotContain("data-section", "Reasons for failure:", "<b>Outcome:</b>")
     }
 
     @Test
