@@ -90,13 +90,13 @@ FAIL if the referral is expired and there is no pending or active placement</div
 
 
 **CAS1 Referral** (RuleSet) `Cas1RuleSet`
-- [`Cas1NotPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1NotPresentRule.kt): FAIL if person does not have a referral
-- [`Cas1ExpiredRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1ExpiredRule.kt): FAIL if the referral is expired and there is no pending or active placement
+- [`Cas1NoReferralRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1NoReferralRule.kt): FAIL if person does not have a referral
+- [`Cas1ReferralExpiredRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1ReferralExpiredRule.kt): FAIL if the referral is expired and there is no pending or active placement
 - FAIL: [`Cas1StartContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/contextupdaters/Cas1StartContextUpdater.kt) - Set current status to Not Started
 
 
 **Placement** (RuleSet) `PlacementRuleSet`
-- [`NoPlacementRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/NoPlacementRule.kt): FAIL if no placement
+- [`Cas1NoPlacementRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1NoPlacementRule.kt): FAIL if no placement
 
 
 **Active Placement** (RuleSet) `ActivePlacementRuleSet`
@@ -123,7 +123,7 @@ FAIL if the referral is expired and there is no pending or active placement</div
 **Placement Request Not Started, Placement Request Rejected, Placement Request Submitted, Placement Request Withdrawn** (Outcome)
 
 **CAS1 Active Referral** (RuleSet) `Cas1ActiveRuleSet`
-- [`Cas1NotActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1NotActiveRule.kt): FAIL if the referral is not active
+- [`Cas1ReferralNotActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1ReferralNotActiveRule.kt): FAIL if the referral is not active
 - PASS: [`NoRequestForPlacementContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/contextupdaters/NoRequestForPlacementContextUpdater.kt) - Information Requested,
  Placement Request Not Started,
  Submitted
@@ -132,7 +132,7 @@ FAIL if the referral is expired and there is no pending or active placement</div
 **Information Requested, Placement Request Not Started, Submitted** (Outcome)
 
 **CAS1 Rejected Referral** (RuleSet) `Cas1RejectedRuleSet`
-- [`Cas1NotRejectedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1NotRejectedRule.kt): FAIL if the referral is not rejected
+- [`Cas1ReferralNotRejectedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1ReferralNotRejectedRule.kt): FAIL if the referral is not rejected
 - PASS: [`Cas1RejectedContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/contextupdaters/Cas1RejectedContextUpdater.kt) - Set current status to Application Rejected
 
 
@@ -163,7 +163,7 @@ FAIL if the referral is expired and there is no pending or active placement</div
 
 
 **CAS1 Not Submitted Referral** (RuleSet) `Cas1NotSubmittedRuleSet`
-- [`Cas1SubmittedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1SubmittedRule.kt): FAIL if the referral is submitted
+- [`Cas1ReferralSubmittedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1ReferralSubmittedRule.kt): FAIL if the referral is submitted
 - PASS: [`Cas1NotSubmittedContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/contextupdaters/Cas1NotSubmittedContextUpdater.kt) - Set current status to Not Submitted
 - FAIL: [`Cas1StartContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/contextupdaters/Cas1StartContextUpdater.kt) - Set current status to Not Started
 
@@ -566,7 +566,7 @@ FAIL if CAS3 referral is submitted and active</div>")
 **Completed** (Outcome)
 
 **No Active CAS1 Or CAS3 Referrals** (RuleSet) `NoActiveCas1OrCas3ReferralsRuleSet`
-- [`Cas1ActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1ActiveRule.kt): FAIL if CAS1 referral is submitted and active
+- [`Cas1ReferralActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1ReferralActiveRule.kt): FAIL if CAS1 referral is submitted and active
 - [`Cas3ActiveRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas3ActiveRule.kt): FAIL if CAS3 referral is submitted and active
 
 
@@ -578,12 +578,13 @@ FAIL if CAS3 referral is submitted and active</div>")
 
 | Rule | Description | RuleSets | Trees |
 | --- | --- | --- | --- |
-| Cas1ActiveRule | FAIL if CAS1 referral is submitted and active | No Active CAS1 Or CAS3 Referrals | PA |
-| Cas1ExpiredRule | FAIL if the referral is expired and there is no pending or active placement | CAS1 Referral | CAS1 |
-| Cas1NotActiveRule | FAIL if the referral is not active | CAS1 Active Referral | CAS1 |
-| Cas1NotPresentRule | FAIL if person does not have a referral | CAS1 Referral | CAS1 |
-| Cas1NotRejectedRule | FAIL if the referral is not rejected | CAS1 Rejected Referral | CAS1 |
-| Cas1SubmittedRule | FAIL if the referral is submitted | CAS1 Not Submitted Referral | CAS1 |
+| Cas1NoPlacementRule | FAIL if no placement | Placement | CAS1 |
+| Cas1NoReferralRule | FAIL if person does not have a referral | CAS1 Referral | CAS1 |
+| Cas1ReferralActiveRule | FAIL if CAS1 referral is submitted and active | No Active CAS1 Or CAS3 Referrals | PA |
+| Cas1ReferralExpiredRule | FAIL if the referral is expired and there is no pending or active placement | CAS1 Referral | CAS1 |
+| Cas1ReferralNotActiveRule | FAIL if the referral is not active | CAS1 Active Referral | CAS1 |
+| Cas1ReferralNotRejectedRule | FAIL if the referral is not rejected | CAS1 Rejected Referral | CAS1 |
+| Cas1ReferralSubmittedRule | FAIL if the referral is submitted | CAS1 Not Submitted Referral | CAS1 |
 | Cas2NotActiveRule | FAIL if assessment is present and inactive | CAS2 Referral | CAS2 |
 | Cas2NotSubmittedRule | FAIL if the referral is unsubmitted | CAS2 Referral | CAS2 |
 | Cas3ActiveRule | FAIL if CAS3 referral is submitted and active | No Active CAS1 Or CAS3 Referrals | PA |
@@ -609,7 +610,6 @@ FAIL if CAS3 referral is submitted and active</div>")
 | MaleRule | FAIL if person is Male | Not Male | CAS1 |
 | NoLiveCrsRule | FAIL if no live CRS referral | Live CRS | CRS |
 | NoNextAccommodationRule | FAIL if person has no future accommodation | Has Next Accommodation | PA |
-| NoPlacementRule | FAIL if no placement | Placement | CAS1 |
 | NoRequestForPlacementRule | FAIL if no current request for placement | Request For Placement | CAS1 |
 | NoRoshLevelRule | FAIL if person has no ROSH level | ROSH Eligible | CAS1, CAS2, CAS3 |
 | NonMaleRiskEligibilityRule | FAIL if person is not Tier A, B, C or D | Not Male Tier Eligible For CAS1 | CAS1 |

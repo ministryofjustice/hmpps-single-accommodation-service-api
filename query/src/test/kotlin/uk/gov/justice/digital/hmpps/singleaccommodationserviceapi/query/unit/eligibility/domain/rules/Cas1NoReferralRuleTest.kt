@@ -3,13 +3,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NotPresentRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NoReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
-class Cas1NotPresentRuleTest {
+class Cas1NoReferralRuleTest {
   private val description = "FAIL if person does not have a referral"
 
   @Test
@@ -18,7 +18,7 @@ class Cas1NotPresentRuleTest {
       cas1Application = buildCas1ApplicationDomainData(buildCas1ApplicationV2(), currentOutcome = null),
     )
 
-    val result = Cas1NotPresentRule().evaluate(data)
+    val result = Cas1NoReferralRule().evaluate(data)
 
     assertThat(result).isEqualTo(
       RuleResult(
@@ -34,7 +34,7 @@ class Cas1NotPresentRuleTest {
       cas1Application = null,
     )
 
-    val result = Cas1NotPresentRule().evaluate(data)
+    val result = Cas1NoReferralRule().evaluate(data)
 
     assertThat(result).isEqualTo(
       RuleResult(

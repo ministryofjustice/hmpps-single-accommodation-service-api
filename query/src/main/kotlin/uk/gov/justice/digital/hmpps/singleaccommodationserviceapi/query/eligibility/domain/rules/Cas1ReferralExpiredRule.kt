@@ -2,31 +2,20 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 
 @Component
-class Cas1SubmittedRule : Rule {
-  override val description = "FAIL if the referral is submitted"
+class Cas1ReferralExpiredRule : Rule {
+  override val description = "FAIL if the referral is expired and there is no pending or active placement"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val submittedStatuses = listOf(
-      Cas1ApplicationStatus.AWAITING_ASSESSMENT,
-      Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,
-      Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
-      Cas1ApplicationStatus.AWAITING_PLACEMENT,
-      Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
-      Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
-      Cas1ApplicationStatus.REJECTED,
-      Cas1ApplicationStatus.INAPPLICABLE,
-      Cas1ApplicationStatus.WITHDRAWN,
-      Cas1ApplicationStatus.EXPIRED,
-    )
-
-    val isFail = submittedStatuses.contains(data.cas1Application?.application?.status)
+    val placementStatus = data.cas1Application?.currentOutcome?.placement?.status
+    val isFail = data.cas1Application?.application?.status == Cas1ApplicationStatus.EXPIRED &&
+      (placementStatus != Cas1PlacementStatus.UPCOMING && placementStatus != Cas1PlacementStatus.ARRIVED)
 
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 

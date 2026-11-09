@@ -6,13 +6,13 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1SubmittedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1ReferralSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
-class Cas1SubmittedRuleTest {
+class Cas1ReferralSubmittedRuleTest {
   private val description = "FAIL if the referral is submitted"
 
   @ParameterizedTest
@@ -27,7 +27,7 @@ class Cas1SubmittedRuleTest {
       ),
     )
 
-    val result = Cas1SubmittedRule().evaluate(data)
+    val result = Cas1ReferralSubmittedRule().evaluate(data)
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.FAIL))
   }
@@ -42,14 +42,14 @@ class Cas1SubmittedRuleTest {
         currentOutcome = null,
       ),
     )
-    val result = Cas1SubmittedRule().evaluate(data)
+    val result = Cas1ReferralSubmittedRule().evaluate(data)
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.PASS))
   }
 
   @Test
   fun `missing referral passes`() {
-    val result = Cas1SubmittedRule().evaluate(buildDomainData(cas1Application = null))
+    val result = Cas1ReferralSubmittedRule().evaluate(buildDomainData(cas1Application = null))
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.PASS))
   }
