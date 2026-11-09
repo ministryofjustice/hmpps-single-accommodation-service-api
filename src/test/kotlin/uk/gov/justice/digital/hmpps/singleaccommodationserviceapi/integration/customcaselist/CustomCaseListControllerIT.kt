@@ -22,13 +22,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummaryName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildManager
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeam
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserCustomCaseListEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserCaseListEntryEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCustomCaseListRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListEntryRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.expectApiResponse
@@ -37,14 +38,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_USER_CUSTOM_CASE_LIST
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_USER_CASE_LIST_ENTRY
 import java.time.LocalDate
 import java.util.UUID
 
 class CustomCaseListControllerIT : IntegrationTestBase() {
 
   @Autowired
-  private lateinit var userCustomCaseListRepository: UserCustomCaseListRepository
+  private lateinit var userCaseListEntryRepository: UserCaseListEntryRepository
 
   @Autowired
   private lateinit var caseRefreshRequestRepository: CaseRefreshRequestRepository
@@ -53,7 +54,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    databaseUtils.truncate(SAS_USER_CUSTOM_CASE_LIST, SAS_CASE)
+    databaseUtils.truncate(SAS_USER_CASE_LIST_ENTRY, SAS_CASE)
     deliusUser = createTestDataSetupUserAndDeliusUser().second
     HmppsAuthStubs.stubGrantToken()
   }
@@ -65,8 +66,9 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
 
     postCustomCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
 
-    val savedMappings = userCustomCaseListRepository.findAll()
+    val savedMappings = userCaseListEntryRepository.findAll()
     assertThat(savedMappings).hasSize(2)
+    assertThat(savedMappings.map { it.listType }).containsOnly(CaseListType.CUSTOM)
 
     val newCase = caseRepository.findByCrn("B654321")
     assertThat(newCase).isNotNull()
@@ -119,11 +121,11 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
   fun `replaces an existing custom case list on POST`() {
     val oldCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
     val newCase = caseRepository.save(buildCaseEntity { withCrn("B654321") })
-    userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = oldCase.id))
+    userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = oldCase.id))
 
     postCustomCaseList(listOf("B654321")).expectStatus().isCreated
 
-    val savedMappings = userCustomCaseListRepository.findAll()
+    val savedMappings = userCaseListEntryRepository.findAll()
     assertThat(savedMappings).hasSize(1)
     assertThat(savedMappings.single().sasCaseId).isEqualTo(newCase.id)
   }
@@ -133,13 +135,13 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
     val keptCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
     val droppedCase = caseRepository.save(buildCaseEntity { withCrn("B654321") })
     caseRepository.save(buildCaseEntity { withCrn("C111111") })
-    userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = keptCase.id))
-    userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = droppedCase.id))
+    userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = keptCase.id))
+    userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = droppedCase.id))
 
     postCustomCaseList(listOf("A123456", "C111111")).expectStatus().isCreated
 
     val addedCase = caseRepository.findByCrn("C111111")!!
-    val savedMappings = userCustomCaseListRepository.findAll()
+    val savedMappings = userCaseListEntryRepository.findAll()
     assertThat(savedMappings.map { it.sasCaseId }).containsExactlyInAnyOrder(keptCase.id, addedCase.id)
     assertThat(savedMappings.map { it.sasUserId }).containsOnly(deliusUser.id)
   }
@@ -152,19 +154,35 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
     postCustomCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
     postCustomCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
 
-    assertThat(userCustomCaseListRepository.findAll()).hasSize(2)
+    assertThat(userCaseListEntryRepository.findAll()).hasSize(2)
   }
 
   @Test
   fun `replacing one users list does not affect another users list`() {
     val user2 = userRepository.save(buildUserEntity(username = "user2"))
     val sharedCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
-    userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = user2.id, sasCaseId = sharedCase.id))
+    userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = user2.id, sasCaseId = sharedCase.id))
 
     postCustomCaseList(listOf("A123456")).expectStatus().isCreated
 
-    val otherUsersMappings = userCustomCaseListRepository.findAll().filter { it.sasUserId == user2.id }
+    val otherUsersMappings = userCaseListEntryRepository.findAll().filter { it.sasUserId == user2.id }
     assertThat(otherUsersMappings.map { it.sasCaseId }).containsExactly(sharedCase.id)
+  }
+
+  @Test
+  fun `replacing the custom case list does not affect the users search history list`() {
+    val historyCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    caseRepository.save(buildCaseEntity { withCrn("B654321") })
+    userCaseListEntryRepository.save(
+      buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = historyCase.id, listType = CaseListType.SEARCH_HISTORY),
+    )
+
+    postCustomCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
+
+    val savedMappings = userCaseListEntryRepository.findAll()
+    assertThat(savedMappings.filter { it.listType == CaseListType.SEARCH_HISTORY }.map { it.sasCaseId })
+      .containsExactly(historyCase.id)
+    assertThat(savedMappings.filter { it.listType == CaseListType.CUSTOM }).hasSize(2)
   }
 
   @Test
@@ -173,7 +191,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
 
     postCustomCaseList(listOf("A123456", "a123456", " A123456 ")).expectStatus().isCreated
 
-    assertThat(userCustomCaseListRepository.findAll()).hasSize(1)
+    assertThat(userCaseListEntryRepository.findAll()).hasSize(1)
   }
 
   @Test
@@ -193,7 +211,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
       .expectBody()
       .jsonPath("$.userMessage").isEqualTo("Validation failure: Enter a valid format for all CRNs. For example, D016821. $crn is not a valid CRN format")
 
-    assertThat(userCustomCaseListRepository.findAll()).isEmpty()
+    assertThat(userCaseListEntryRepository.findAll()).isEmpty()
   }
   companion object {
     private val allCrns = setOf("A111111", "B222222", "C333333", "D444444")
@@ -247,7 +265,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
       .expectBody()
       .jsonPath("$.userMessage").isEqualTo("Validation failure: Enter a valid format for all CRNs. For example, D016821. ${crnList.joinToString()} are not valid CRN formats")
 
-    assertThat(userCustomCaseListRepository.findAll()).isEmpty()
+    assertThat(userCaseListEntryRepository.findAll()).isEmpty()
   }
 
   @Test
@@ -263,7 +281,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
       .expectBody()
       .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: Enter 500 CRNs or fewer")
 
-    assertThat(userCustomCaseListRepository.findAll()).isEmpty()
+    assertThat(userCaseListEntryRepository.findAll()).isEmpty()
   }
 
   @Test
@@ -273,7 +291,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
 
     postCustomCaseList(crns).expectStatus().isCreated
 
-    assertThat(userCustomCaseListRepository.findAll()).hasSize(500)
+    assertThat(userCaseListEntryRepository.findAll()).hasSize(500)
   }
 
   @Test
@@ -285,7 +303,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
       .jsonPath("$.userMessage").isEqualTo("B654321, C111111")
 
     assertThat(caseRepository.findAll()).isEmpty()
-    assertThat(userCustomCaseListRepository.findAll()).isEmpty()
+    assertThat(userCaseListEntryRepository.findAll()).isEmpty()
     assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
   }
 
@@ -320,19 +338,19 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
 
     sasWiremock.verify(3, postRequestedFor(urlPathEqualTo("/probation-cases/summaries")))
     assertThat(caseRepository.findAll()).isEmpty()
-    assertThat(userCustomCaseListRepository.findAll()).isEmpty()
+    assertThat(userCaseListEntryRepository.findAll()).isEmpty()
     assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
   }
 
   @Test
   fun `leaves the existing custom case list untouched when a crn is invalid`() {
     val existingCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
-    userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = existingCase.id))
+    userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = existingCase.id))
     ProbationIntegrationDeliusStubs.postCaseSummariesForCrns()
 
     postCustomCaseList(listOf("B654321")).expectStatus().isBadRequest
 
-    val savedMappings = userCustomCaseListRepository.findAll()
+    val savedMappings = userCaseListEntryRepository.findAll()
     assertThat(savedMappings.map { it.sasCaseId }).containsExactly(existingCase.id)
     assertThat(caseRepository.findByCrn("B654321")).isNull()
   }
@@ -453,7 +471,23 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
       val myCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
       val theirCase = caseRepository.save(buildCaseEntity { withCrn("B654321") })
       addToCustomCaseList(myCase.id)
-      userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = user2.id, sasCaseId = theirCase.id))
+      userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = user2.id, sasCaseId = theirCase.id))
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
+
+      getCustomCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+    }
+
+    @Test
+    fun `does not return cases from the users search history list`() {
+      val myCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val historyCase = caseRepository.save(buildCaseEntity { withCrn("B654321") })
+      addToCustomCaseList(myCase.id)
+      userCaseListEntryRepository.save(
+        buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = historyCase.id, listType = CaseListType.SEARCH_HISTORY),
+      )
       ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
 
       getCustomCaseList().expectStatus().isOk
@@ -587,8 +621,8 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
       )
     }
 
-    private fun addToCustomCaseList(caseId: UUID) = userCustomCaseListRepository.save(
-      buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = caseId),
+    private fun addToCustomCaseList(caseId: UUID) = userCaseListEntryRepository.save(
+      buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = caseId),
     )
 
     private fun getCustomCaseList() = webTestClient.get().uri("/case-list/custom")
@@ -610,10 +644,10 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
     fun `returns the sorted crns in the users custom case list without LAO checks`() {
       val user2 = userRepository.save(buildUserEntity(username = "user2"))
       val theirCase = caseRepository.save(buildCaseEntity { withCrn("C111111") })
-      userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = user2.id, sasCaseId = theirCase.id))
+      userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = user2.id, sasCaseId = theirCase.id))
       listOf("B654321", "A123456").forEach {
         val case = caseRepository.save(buildCaseEntity { withCrn(it) })
-        userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = case.id))
+        userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = case.id))
       }
 
       getCustomCaseListCrns().expectStatus().isOk
@@ -633,11 +667,11 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
         },
       )
 
-      userCustomCaseListRepository.save(
-        buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = activeCase.id),
+      userCaseListEntryRepository.save(
+        buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = activeCase.id),
       )
-      userCustomCaseListRepository.save(
-        buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = archivedCase.id),
+      userCaseListEntryRepository.save(
+        buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = archivedCase.id),
       )
 
       getCustomCaseListCrns().expectStatus().isOk
@@ -645,6 +679,20 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
         .jsonPath("$.data").isEqualTo(listOf("A123456"))
 
       sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
+    }
+
+    @Test
+    fun `does not return crns from the users search history list`() {
+      val myCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val historyCase = caseRepository.save(buildCaseEntity { withCrn("B654321") })
+      userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = myCase.id))
+      userCaseListEntryRepository.save(
+        buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = historyCase.id, listType = CaseListType.SEARCH_HISTORY),
+      )
+
+      getCustomCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data").isEqualTo(listOf("A123456"))
     }
 
     @Test
