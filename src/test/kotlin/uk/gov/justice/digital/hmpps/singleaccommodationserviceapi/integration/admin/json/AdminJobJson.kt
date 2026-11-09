@@ -27,3 +27,17 @@ fun bulkRefreshCasesByCrnRequestBody(
   }
   """.trimIndent()
 }
+
+fun archiveCasesByCrnRequestBody(
+  crns: List<String>,
+  dryRun: Boolean? = null,
+): String {
+  val crnsJson = crns.joinToString(", ") { """"$it"""" }
+  val dryRunJson = dryRun?.let { """, "dryRun" : $it""" } ?: ""
+
+  return """
+  {
+    "crns" : [$crnsJson]$dryRunJson
+  }
+  """.trimIndent()
+}
