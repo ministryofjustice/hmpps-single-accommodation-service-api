@@ -19,7 +19,7 @@ class PersonEligibleRuleSet(
     hasSexualOffenceRegistrations,
   )
 
-  override val name: String = "Person Eligible"
+  override val name: String = "PASS if person is aged 18 or over, Tier A - G and has no sexual offence registrations"
 
   override fun getRules(): List<Rule> = rules
 }

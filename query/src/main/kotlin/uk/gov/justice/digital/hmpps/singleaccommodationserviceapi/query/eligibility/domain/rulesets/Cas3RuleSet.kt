@@ -22,7 +22,7 @@ class Cas3RuleSet(
     cas3AssessmentNotActive,
   )
 
-  override val name: String = "CAS3 Referral"
+  override val name: String = "PASS if person has an active referral"
 
   override fun getRules(): List<Rule> = rules
 }

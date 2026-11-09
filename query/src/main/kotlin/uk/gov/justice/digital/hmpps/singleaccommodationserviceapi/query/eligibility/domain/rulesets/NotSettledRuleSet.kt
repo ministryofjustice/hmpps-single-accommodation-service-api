@@ -13,7 +13,7 @@ class NotSettledRuleSet(
     isSettled,
   )
 
-  override val name: String = "Not Settled"
+  override val name: String = "PASS if person is not in settled accommodation"
 
   override fun getRules(): List<Rule> = rules
 }

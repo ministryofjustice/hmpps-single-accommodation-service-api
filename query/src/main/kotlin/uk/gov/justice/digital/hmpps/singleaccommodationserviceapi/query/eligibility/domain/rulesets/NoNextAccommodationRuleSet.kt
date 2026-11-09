@@ -13,7 +13,7 @@ class NoNextAccommodationRuleSet(
     hasNextAccommodation,
   )
 
-  override val name: String = "No Next Accommodation"
+  override val name: String = "PASS if person does not have a next accommodation"
 
   override fun getRules(): List<Rule> = rules
 }

@@ -10,6 +10,6 @@ class LiveCrsRuleSet(
   noLiveCrs: NoLiveCrsRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(noLiveCrs)
-  override val name: String = "Live CRS"
+  override val name: String = "PASS if person has a live CRS"
   override fun getRules(): List<Rule> = rules
 }

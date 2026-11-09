@@ -13,7 +13,7 @@ class Cas1ActiveRuleSet(
     cas1NotActive,
   )
 
-  override val name: String = "CAS1 Active Referral"
+  override val name: String = "PASS if person has an active referral"
 
   override fun getRules(): List<Rule> = rules
 }

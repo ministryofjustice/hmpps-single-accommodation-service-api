@@ -19,7 +19,7 @@ class CurrentAccommodationEligibleForCas2RuleSet(
     currentAccommodationTypeIsCommunity,
   )
 
-  override val name: String = "Current Accommodation Eligible For CAS2"
+  override val name: String = "PASS if person is in prison or CAS1"
 
   override fun getRules(): List<Rule> = rules
 }

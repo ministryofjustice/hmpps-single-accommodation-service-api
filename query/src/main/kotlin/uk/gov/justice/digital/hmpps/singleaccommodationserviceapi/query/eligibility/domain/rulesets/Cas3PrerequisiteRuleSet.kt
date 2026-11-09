@@ -14,6 +14,6 @@ class Cas3PrerequisiteRuleSet(
   crsSubmittedRuleNonMale: CrsSubmittedRuleNonMale,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(dtrExpired, crsSubmittedRuleMale, crsSubmittedRuleNonMale)
-  override val name: String = "Prerequisite"
+  override val name: String = "PASS if person has a valid DTR and CRS"
   override fun getRules(): List<Rule> = rules
 }

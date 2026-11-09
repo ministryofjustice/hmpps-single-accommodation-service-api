@@ -14,6 +14,6 @@ class DtrRuleSet(
   dtrExpired: DtrExpiredRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(dtrNotPresent, dtrWithdrawn, dtrExpired)
-  override val name: String = "DTR"
+  override val name: String = "PASS if person has a valid DTR"
   override fun getRules(): List<Rule> = rules
 }

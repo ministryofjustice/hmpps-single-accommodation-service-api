@@ -10,6 +10,6 @@ class ReleaseWithin12WeeksRuleSet(
   releaseOutside12Weeks: ReleaseOutside12WeeksRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(releaseOutside12Weeks)
-  override val name: String = "Release Within 12 Weeks"
+  override val name: String = "PASS if person can start referral"
   override fun getRules(): List<Rule> = rules
 }

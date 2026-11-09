@@ -13,7 +13,7 @@ class ReleaseDateEligibleRuleSet(
     inPrisonNoRelease,
   )
 
-  override val name: String = "Release Date Eligible"
+  override val name: String = "PASS if person is in prison and has a release date or is in other accommodation"
 
   override fun getRules(): List<Rule> = rules
 }

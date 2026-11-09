@@ -13,7 +13,7 @@ class Cas1NotSubmittedRuleSet(
     cas1Submitted,
   )
 
-  override val name: String = "CAS1 Not Submitted Referral"
+  override val name: String = "PASS if person has a draft referral"
 
   override fun getRules(): List<Rule> = rules
 }

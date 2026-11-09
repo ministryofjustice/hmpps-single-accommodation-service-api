@@ -13,7 +13,7 @@ class MaleTierEligibleForCas1RuleSet(
     maleRiskEligibility,
   )
 
-  override val name: String = "Male Tier Eligible For CAS1"
+  override val name: String = "PASS if person is Tier A, B or C"
 
   override fun getRules(): List<Rule> = rules
 }

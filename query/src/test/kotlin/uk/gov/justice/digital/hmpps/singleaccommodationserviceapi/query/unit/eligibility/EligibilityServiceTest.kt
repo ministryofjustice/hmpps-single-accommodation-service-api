@@ -85,7 +85,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas3UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.CrsStartContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.CrsUpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.DepartedPlacementContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.DtrActiveContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.NoPlacementContextUpdater
@@ -119,11 +118,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.IsSettledRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.MaleRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoArrivedPlacementRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoLiveCrsRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoPlacementRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoRequestForPlacementRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoRoshLevelRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoUpcomingPlacementRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NonMaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.ReleaseOutside12WeeksRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.ReleaseOutside15DaysRule
@@ -133,10 +134,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.WrongCurrentAccommodationForCas3TypeRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.WrongTierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ActivePlacementRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ArrivedPlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1ActiveRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotExpiredRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotSubmittedRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1RejectedRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3PrerequisiteRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3RuleSet
@@ -161,6 +163,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ReleaseWithin8WeeksRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.RequestForPlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.RoshEligibleRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.UpcomingPlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.Cas1EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.Cas2EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.Cas3EligibilityTreeProvider
@@ -202,14 +205,12 @@ class EligibilityServiceTest {
   var cas1ApplicationStartUrl = "CAS1_APPLICATION_START_URL"
   var noPlacementContextUpdater = NoPlacementContextUpdater()
   var activePlacementContextUpdater = ActivePlacementContextUpdater()
-  var departedPlacementContextUpdater = DepartedPlacementContextUpdater()
   var activePlacementRuleSet = ActivePlacementRuleSet(
     DepartedPlacementRule(),
   )
   var placementRuleSet = PlacementRuleSet(
     NoPlacementRule(),
   )
-  var cas1RuleSet = Cas1RuleSet(Cas1NotPresentRule(), Cas1ExpiredRule())
   var cas1ActiveRuleSet = Cas1ActiveRuleSet(Cas1NotActiveRule())
   var cas1RejectedContextUpdater = Cas1RejectedContextUpdater()
   var cas1RejectedRuleSet = Cas1RejectedRuleSet(
@@ -225,6 +226,16 @@ class EligibilityServiceTest {
   )
   var notMaleRuleSet = NotMaleRuleSet(
     MaleRule(),
+  )
+  var upcomingPlacementRuleSet = UpcomingPlacementRuleSet(
+    NoUpcomingPlacementRule(),
+  )
+  var notExpiredRuleSet = Cas1NotExpiredRuleSet(
+    Cas1ExpiredRule(),
+    Cas1NotPresentRule(),
+  )
+  var arrivedPlacementRuleSet = ArrivedPlacementRuleSet(
+    NoArrivedPlacementRule(),
   )
   val requestForPlacementRuleSet = RequestForPlacementRuleSet(
     NoRequestForPlacementRule(),
@@ -334,14 +345,15 @@ class EligibilityServiceTest {
     notSubmittedReferral = cas1SubmittedRuleSet,
     notSubmittedContextUpdater = cas1NotSubmittedContextUpdater,
     activeReferral = cas1ActiveRuleSet,
-    referral = cas1RuleSet,
     activePlacementContextUpdater = activePlacementContextUpdater,
-    departedPlacementContextUpdater = departedPlacementContextUpdater,
     activePlacement = activePlacementRuleSet,
     rejectedContextUpdater = cas1RejectedContextUpdater,
     rejected = cas1RejectedRuleSet,
     notMaleTierEligibleForCas1 = notMaleTierEligibleForCas1RuleSet,
     notMale = notMaleRuleSet,
+    upcomingPlacement = upcomingPlacementRuleSet,
+    arrivedPlacement = arrivedPlacementRuleSet,
+    notExpired = notExpiredRuleSet,
   )
 
   private val cas2Tree = Cas2EligibilityTreeProvider(

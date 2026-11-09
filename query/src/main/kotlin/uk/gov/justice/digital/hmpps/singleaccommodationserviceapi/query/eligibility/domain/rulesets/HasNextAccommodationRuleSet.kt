@@ -10,6 +10,6 @@ class HasNextAccommodationRuleSet(
   noNextAccommodation: NoNextAccommodationRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(noNextAccommodation)
-  override val name: String = "Has Next Accommodation"
+  override val name: String = "PASS if person has a next accommodation"
   override fun getRules(): List<Rule> = rules
 }

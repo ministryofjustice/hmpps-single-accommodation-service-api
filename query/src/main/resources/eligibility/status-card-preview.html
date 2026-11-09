@@ -1,0 +1,344 @@
+<!--
+Static adaptation of hmpps-single-accommodation-service-ui at c88972f14f43a96ac4918f1b23065b786ec921d9:
+server/views/components/macros/statusCard.njk, server/utils/{eligibility,statusTag,crs,dutyToRefer,actions}.ts,
+assets/scss/components/_card.scss. Example data is fictional; links are intentionally disabled.
+PA has no eligibility status card in that UI snapshot.
+
+MIT License
+
+Copyright (c) 2020-2024 Crown Copyright (Ministry of Justice)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<style>
+  .result .sas-card {
+    background: white;
+    border: 1px solid #ccc;
+    padding: 16px;
+    margin: 12px 0;
+    color: #0b0c0c;
+  }
+
+  .result .sas-card__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  #panel .sas-card__head h3 {
+    font-size: 19px;
+    margin: 0 0 12px;
+  }
+
+  .sas-card__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .sas-card__content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .sas-card__content p {
+    margin: 0;
+    white-space: pre-line;
+  }
+
+  .sas-card--inactive .sas-card__hint, .sas-card--inactive .sas-card__content {
+    color: #505a5f;
+  }
+
+  #panel .sas-card--inactive h3, #panel .sas-card--blocked h3 {
+    font-weight: normal;
+  }
+
+  #panel .govuk-tag {
+    display: inline-block;
+    font-size: 16px;
+    font-weight: normal;
+    padding: 2px 8px;
+  }
+
+  .sas-card .govuk-tag {
+    margin-bottom: 12px;
+  }
+
+  #panel .govuk-tag--grey {
+    color: #282d30;
+    background: #e5e6e7;
+  }
+
+  #panel .govuk-tag--yellow {
+    color: #594d00;
+    background: #fff7bf;
+  }
+
+  #panel .govuk-tag--orange {
+    color: #6e3619;
+    background: #fcd6c3;
+  }
+
+  #panel .govuk-tag--green {
+    color: #005a30;
+    background: #cce2d8;
+  }
+
+  .sas-card-summary-list {
+    display: grid;
+    grid-template-columns: fit-content(50%) 1fr;
+    gap: 4px 12px;
+    margin: 0;
+    font-size: 16px;
+  }
+
+  .sas-card-summary-list .govuk-summary-list__row {
+    display: contents;
+  }
+
+  .sas-card-summary-list dt {
+    font-weight: normal;
+    color: #505a5f;
+  }
+
+  .sas-card-summary-list dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .sas-card__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .sas-card__links a {
+    color: #1d70b8;
+    text-decoration: underline;
+    cursor: not-allowed;
+  }
+</style>
+<script>
+  function statusCardTag(outcome) {
+    const meta = data.statuses[outcome.status];
+    if (!meta) return esc(outcome.status);
+    const status = outcome.status.slice(meta.service.length + 1);
+    const grey = ['NOT_REQUIRED', 'NOT_ELIGIBLE', 'UNKNOWN', 'NOT_ACCEPTED', 'BOOKING_CANCELLED'];
+    const green = ['ARRIVED', 'PLACEMENT_BOOKED', 'BOOKING_CONFIRMED', 'ACCEPTED', 'AWAITING_ARRIVAL', 'COMPLETED'];
+    const yellow = ['SUBMITTED', 'PLACEMENT_REQUEST_SUBMITTED', 'AWAITING_DECISION', 'ON_WAITING_LIST', 'PLACE_OFFERED', 'OFFER_ACCEPTED'];
+    const colour = status.startsWith('CANNOT_START_YET') || grey.includes(status) ? 'grey' :
+      meta.upcoming || yellow.includes(status) ? 'yellow' : green.includes(status) ? 'green' : 'orange';
+    const text = meta.text.charAt(0) + meta.text.slice(1).toLowerCase();
+    return '<strong class="govuk-tag govuk-tag--' + colour + '">' + esc(text) + '</strong>';
+  }
+
+  function statusActionPreview(outcome) {
+    const meta = data.statuses[outcome.status];
+    const actions = {
+      ADD_AND_CONFIRM_PROPOSED_ADDRESS: 'Add and confirm proposed address',
+      ADD_DTR_OUTCOME: 'Add DTR referral outcome',
+      ADD_DTR_REFERRAL_DETAILS: 'Add DTR referral details',
+      CONTINUE_APPROVED_PREMISE_APPLICATION: 'Continue an approved premises (CAS1) application',
+      START_CAS2_REFERRAL: 'Start a CAS2 referral',
+      CONTINUE_A_CAS2_REFERRAL: 'Continue a CAS2 referral',
+      PROVIDE_MORE_INFORMATION_FOR_CAS2_REFERRAL: 'Provide more information for the CAS2 referral',
+      REPLY_TO_CAS2_PLACE_OFFER: 'Reply to CAS2 place offer',
+      CREATE_PLACEMENT: 'Create an approved premises (CAS1) placement request',
+      PROVIDE_INFORMATION: 'Provide further information on an approved premises (CAS1) application',
+      REPLY_TO_CAS3_BEDSPACE_OFFER: 'Reply to CAS3 bedspace offer',
+      START_APPROVED_PREMISE_APPLICATION: 'Start an approved premises (CAS1) application',
+      START_CAS3_REFERRAL: 'Start a CAS3 referral',
+      CONTINUE_CAS3_REFERRAL: 'Continue CAS3 referral',
+      SUBMIT_CRS_ACCOMMODATION_REFERRAL: 'Submit a CRS accommodation referral',
+      SUBMIT_CRS_REFERRAL: 'Submit a CRS referral',
+      SUBMIT_DTR_REFERRAL: 'Submit a DTR referral'
+    };
+    if (meta?.actionType && !actions[meta.actionType]) throw new Error('Missing UI action label: ' + meta.actionType);
+    const text = meta?.actionType ? actions[meta.actionType] + (meta.upcoming ? ' in 14 days' : '') : 'None';
+    return '<p class="card-action"><b>Action:</b> ' + esc(text) + '</p>';
+  }
+
+  function statusCardPreview(outcome, failureReasons) {
+    const meta = data.statuses[outcome.status];
+    if (!meta) return '<p>Card preview unavailable for status ' + esc(outcome.status) + '.</p>';
+    const service = meta.service;
+    if (service === 'PA') {
+      return '<p>Proposed address: <b>' + esc(meta.text) + '</b>. The UI has no corresponding eligibility card.</p>';
+    }
+    const status = outcome.status.slice(service.length + 1);
+    const reasons = [...new Set([...(outcome.failureReasons || []), ...failureReasons])];
+    if (service === 'CAS1' && status === 'NOT_ELIGIBLE' && reasons.includes('NOT_IN_PRISON_OR_CAS1_ACCOMMODATION')) {
+      return '<p class="muted">The UI hides the CAS1 card when person is not in prison or CAS1 accommodation.</p>';
+    }
+    const headings = {
+      CAS1: 'Approved premises (CAS1)', CAS2: 'Short-term accommodation (CAS2)',
+      CAS3: 'CAS3 (transitional accommodation)', DTR: 'Duty to Refer (DTR)',
+      CRS: 'Commissioned Rehabilitative Services (CRS)'
+    };
+    const inactive = status === 'NOT_ELIGIBLE' || (['CRS', 'DTR'].includes(service) && status === 'NOT_REQUIRED');
+    let hint = meta.upcoming ? 'Start referral from 18 November 2026 (in 14 days).' : '';
+    let content = '';
+    if (service === 'CAS1' && status === 'NOT_ELIGIBLE' &&
+      reasons.some(r => ['MALE_NOT_HIGH_RISK_TIER', 'NON_MALE_NOT_HIGH_RISK_TIER'].includes(r))) {
+      hint = 'Tier not eligible for this level of supervision.';
+    }
+    if (service === 'CAS2' && status === 'NOT_ELIGIBLE') {
+      const summaries = {
+        INVALID_TIER: 'Tier not eligible', UNDER_18: 'Age (applicant is under 18)',
+        SEXUAL_OFFENCE_REGISTRATIONS_PRESENT: 'Sexual offence history'
+      };
+      if (reasons.length >= 2) {
+        const bullets = reasons.map(r => summaries[r]).filter(Boolean);
+        if (bullets.length) content = '<p>Not eligible due to:</p><ul>' + bullets.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>';
+      } else {
+        const messages = {
+          INVALID_TIER: 'Tier not eligible.',
+          SEXUAL_OFFENCE_REGISTRATIONS_PRESENT: 'Not eligible due to sexual offence history.',
+          UNDER_18: 'Not eligible as applicant is under 18.',
+          IN_CAS3_ACCOMMODATION: 'Not eligible as applicant is currently in a CAS3 property.',
+          IN_PRISON_NO_RELEASE_DATE: 'Must have a conditional release date to start application.'
+        };
+        content = reasons.map(r => messages[r]).filter(Boolean).map(t => '<p>' + esc(t) + '</p>').join('');
+      }
+    }
+    if (service === 'CAS3') {
+      if (status === 'NOT_ELIGIBLE') hint = reasons.includes('INVALID_CURRENT_ACCOMMODATION_TYPE') ?
+        'Only for prison leavers, move on from Approved premises or CAS2.' : 'Not at risk of homelessness.';
+      if (status === 'BEDSPACE_OFFERED') hint = 'Bedspace details are sent by email';
+      const requirements = {
+        SUBMIT_CRS_BEFORE_CAS3: ['submit a CRS referral'],
+        SUBMIT_DTR_BEFORE_CAS3: ['add DTR referral details'],
+        SUBMIT_DTR_AND_CRS_BEFORE_CAS3: ['Add DTR referral details', 'Submit a CRS referral'],
+        SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3: ['submit a CRS accommodation referral'],
+        SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3: ['Add DTR referral details', 'Submit a CRS accommodation referral']
+      }[outcome.blockingReason];
+      if (requirements) content = requirements.length === 1 ?
+        '<p>You need to ' + esc(requirements[0]) + ' before you can make a CAS3 referral.</p>' :
+        '<p>Before you can make a CAS3 referral, you need to:</p><ul>' + requirements.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>';
+    }
+    if (service === 'CRS') {
+      if (status === 'NOT_ELIGIBLE') hint = 'No referral needed for accommodation.\nYou can still complete a CRS for other requirements.';
+      if (status.startsWith('NOT_STARTED')) hint = 'No open CRS accommodation referral.';
+    }
+    const rows = exampleCardDetails(service, status);
+    const details = rows.length ? '<dl class="sas-card-summary-list govuk-summary-list--no-border">' +
+      rows.map(row => '<div class="govuk-summary-list__row"><dt class="govuk-summary-list__key">' +
+        esc(row[0]) + '</dt><dd class="govuk-summary-list__value">' + esc(row[1]) + '</dd></div>').join('') + '</dl>' : '';
+    let linkText = meta.linkText;
+    if (service === 'CAS1' && status === 'PLACEMENT_REQUEST_NOT_STARTED') linkText = 'Create placement request';
+    if (service === 'CAS2' && status === 'MORE_INFORMATION_NEEDED') linkText = 'Continue application';
+    if (service === 'CRS') linkText = status.startsWith('NOT_STARTED') ? 'Start referral' : status === 'SUBMITTED' ? 'View referral' : null;
+    if (service === 'DTR') linkText = status === 'NOT_STARTED' ? 'Add referral details' :
+      ['SUBMITTED', 'ACCEPTED', 'NOT_ACCEPTED'].includes(status) ? 'View referral' : null;
+    const links = linkText ? '<div class="sas-card__links"><a role="link" aria-disabled="true" title="Example link only">' + esc(linkText) + '</a></div>' : '';
+    return '<article class="sas-card' + (inactive ? ' sas-card--inactive' : status.startsWith('CANNOT_START_YET') ? ' sas-card--blocked' : '') +
+      '" data-preview-status="' + esc(outcome.status) + '"><header class="sas-card__head"><h3 class="govuk-heading-m">' +
+      esc(headings[service]) + '</h3>' + statusCardTag(outcome) +
+      '</header><div class="sas-card__footer"><div class="sas-card__content">' +
+      (hint ? '<p class="sas-card__hint">' + esc(hint) + '</p>' : '') + details + content + '</div>' + links + '</div></article>';
+  }
+
+  function exampleCardDetails(service, status) {
+    const submitted = ['Submitted', '2 November 2026 (2 days ago)'];
+    const submittedBy = ['Submitted by', 'Example practitioner'];
+    const requestSubmitted = ['Request submitted', '2 November 2026 (2 days ago)'];
+    const requestBy = ['Request submitted by', 'Example practitioner'];
+    const expires = ['Application expires', '2 May 2027'];
+    const arrival = ['Expected arrival', '18 November 2026 (in 14 days)'];
+    if (service === 'CAS1') {
+      switch (status) {
+        case 'NOT_SUBMITTED':
+          return [['Application started', '1 November 2026 (3 days ago)'], ['Started by', 'Example practitioner']];
+        case 'SUBMITTED':
+        case 'INFO_REQUESTED':
+          return [submitted, submittedBy];
+        case 'APPLICATION_REJECTED':
+          return [['Decision', 'Reject'], submitted, submittedBy];
+        case 'PLACEMENT_BOOKED':
+          return [arrival, ['Duration', '12 weeks'], requestBy];
+        case 'ARRIVED':
+          return [['Arrival date', '2 November 2026 (2 days ago)'], ['Expected departure', '25 January 2027'], requestBy];
+        case 'NOT_ARRIVED':
+          return [arrival, requestBy, expires];
+        case 'PLACEMENT_CANCELLED':
+          return [['Cancellation reason', 'Their circumstances changed'], arrival, requestBy, expires];
+        case 'PLACEMENT_REQUEST_NOT_STARTED':
+          return [submittedBy, expires];
+        case 'PLACEMENT_REQUEST_SUBMITTED':
+          return [requestSubmitted, requestBy, expires];
+        case 'PLACEMENT_REQUEST_REJECTED':
+          return [['Rejection reason', 'Another provision has been identified'], requestSubmitted, requestBy, expires];
+        case 'PLACEMENT_REQUEST_WITHDRAWN':
+          return [['Withdrawal reason', 'Their circumstances changed'], requestSubmitted, requestBy, expires];
+        default:
+          return [];
+      }
+    }
+    if (service === 'CAS2') {
+      switch (status) {
+        case 'NOT_SUBMITTED':
+          return [['Application started', '1 November 2026 (3 days ago)'], ['Started by', 'Example practitioner']];
+        case 'MORE_INFORMATION_NEEDED':
+        case 'SUBMITTED':
+        case 'AWAITING_DECISION':
+        case 'ON_WAITING_LIST':
+        case 'PLACE_OFFERED':
+        case 'OFFER_ACCEPTED':
+        case 'AWAITING_ARRIVAL':
+        case 'WITHDRAWN':
+          return [submitted, submittedBy];
+        case 'OFFER_DECLINED_OR_WITHDRAWN':
+        case 'CANCELLED':
+          return [['Reason', 'Their circumstances changed'], submitted, submittedBy];
+        default:
+          return [];
+      }
+    }
+    if (service === 'CAS3') {
+      const referralBy = ['Referral submitted by', 'Example practitioner'];
+      switch (status) {
+        case 'SUBMITTED':
+          return [submitted, submittedBy];
+        case 'REJECTED':
+          return [['Rejection reason', 'Another provision has been identified'], submitted, submittedBy];
+        case 'BEDSPACE_OFFERED':
+          return [['Provisional offer sent', '3 November 2026 (1 day ago)'], referralBy];
+        case 'BOOKING_CONFIRMED':
+          return [['Address', '1 Example Road, Example Town, AB1 2CD'], ['Booking dates', '18 November 2026 to 10 February 2027 (12 weeks)'], referralBy];
+        case 'BOOKING_CANCELLED':
+          return [['Cancellation reason', 'Their circumstances changed'], ['Booking dates', '18 November 2026 to 10 February 2027'], referralBy];
+        case 'ARRIVED':
+          return [['Arrival date', '2 November 2026 (2 days ago)'], ['Expected departure date', '25 January 2027'], referralBy];
+        default:
+          return [];
+      }
+    }
+    if (service === 'DTR' && ['SUBMITTED', 'ACCEPTED', 'NOT_ACCEPTED'].includes(status)) {
+      return [['Submitted to', 'Example Council'], ['Reference', 'EXAMPLE-123'], submitted, submittedBy];
+    }
+    if (service === 'CRS' && status === 'SUBMITTED') return [submitted];
+    return [];
+  }
+</script>

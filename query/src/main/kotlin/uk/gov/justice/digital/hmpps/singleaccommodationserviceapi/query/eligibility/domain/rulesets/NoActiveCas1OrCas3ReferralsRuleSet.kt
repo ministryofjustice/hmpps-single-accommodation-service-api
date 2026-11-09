@@ -12,6 +12,6 @@ class NoActiveCas1OrCas3ReferralsRuleSet(
   cas3Active: Cas3ActiveRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(cas1Active, cas3Active)
-  override val name: String = "No Active CAS1 Or CAS3 Referrals"
+  override val name: String = "PASS if person does not have an active CAS1 or CAS3 referral"
   override fun getRules(): List<Rule> = rules
 }

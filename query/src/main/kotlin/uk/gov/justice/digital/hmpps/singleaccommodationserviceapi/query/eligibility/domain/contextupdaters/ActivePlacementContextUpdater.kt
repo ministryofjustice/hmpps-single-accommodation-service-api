@@ -11,20 +11,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class ActivePlacementContextUpdater : ContextUpdater() {
 
-  val arrived = "arrived"
   val notArrived = "notArrived"
-  val placementBooked = "placementBooked"
   val placementCancelled = "placementCancelled"
 
   override val outcomes = mapOf(
-    arrived to ServiceResultSpec(
-      serviceStatus = ServiceStatusNew.CAS1_ARRIVED,
-    ),
     notArrived to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_NOT_ARRIVED,
-    ),
-    placementBooked to ServiceResultSpec(
-      serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
     ),
     placementCancelled to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_CANCELLED,
@@ -36,10 +28,8 @@ class ActivePlacementContextUpdater : ContextUpdater() {
     val placementStatus = context.data.cas1Application?.placement?.status
 
     return when (placementStatus) {
-      Cas1PlacementStatus.ARRIVED -> outcome(arrived)
       Cas1PlacementStatus.NOT_ARRIVED -> outcome(notArrived)
-      Cas1PlacementStatus.CANCELLED -> outcome(placementCancelled)
-      else -> outcome(placementBooked)
+      else -> outcome(placementCancelled)
     }
   }
 }

@@ -13,7 +13,7 @@ class NotMaleRuleSet(
     isMale,
   )
 
-  override val name: String = "Not Male"
+  override val name: String = "PASS if person is not male"
 
   override fun getRules(): List<Rule> = rules
 }
