@@ -38,6 +38,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListEntryRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedAccessService
@@ -278,12 +279,49 @@ class UserCaseListQueryServiceTest {
 
   @Test
   fun `returns the crns in the users custom case list without checking access`() {
-    every { userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(user.id, CaseListType.CUSTOM) } returns listOf("A111111", "B222222")
+    every { userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(user.id, CaseListType.CUSTOM) } returns listOf(
+      userCaseListCrn("A111111"),
+      userCaseListCrn("B222222"),
+    )
 
     val result = userCaseListQueryService.getUserCaseListCrns(CaseListType.CUSTOM)
 
     assertThat(result.data).containsExactly("A111111", "B222222")
     verify(exactly = 0) { userCaseListOrchestrationService.getCaseAccessAndSummaries(any(), any()) }
+  }
+
+  @Test
+  fun `returns the crns in the users custom case list ordered by crn regardless of last updated at`() {
+    val now = Instant.parse("2026-10-01T00:00:00Z")
+    every { userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(user.id, CaseListType.CUSTOM) } returns listOf(
+      userCaseListCrn("C333333", lastUpdatedAt = now),
+      userCaseListCrn("A111111", lastUpdatedAt = now.minusSeconds(60)),
+      userCaseListCrn("B222222", lastUpdatedAt = now.plusSeconds(60)),
+    )
+
+    val result = userCaseListQueryService.getUserCaseListCrns(CaseListType.CUSTOM)
+
+    assertThat(result.data).containsExactly("A111111", "B222222", "C333333")
+  }
+
+  @Test
+  fun `returns the crns in the users search history ordered by most recently updated then by crn`() {
+    val now = Instant.parse("2026-10-01T00:00:00Z")
+    every { userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(user.id, CaseListType.SEARCH_HISTORY) } returns listOf(
+      userCaseListCrn("A111111", lastUpdatedAt = now.minusSeconds(60)),
+      userCaseListCrn("D444444", lastUpdatedAt = now),
+      userCaseListCrn("B222222", lastUpdatedAt = now.plusSeconds(60)),
+      userCaseListCrn("C333333", lastUpdatedAt = now),
+    )
+
+    val result = userCaseListQueryService.getUserCaseListCrns(CaseListType.SEARCH_HISTORY)
+
+    assertThat(result.data).containsExactly("B222222", "C333333", "D444444", "A111111")
+  }
+
+  private fun userCaseListCrn(crn: String, lastUpdatedAt: Instant = Instant.parse("2026-10-01T00:00:00Z")) = object : UserCaseListCrn {
+    override val crn = crn
+    override val lastUpdatedAt = lastUpdatedAt
   }
 
   @Nested

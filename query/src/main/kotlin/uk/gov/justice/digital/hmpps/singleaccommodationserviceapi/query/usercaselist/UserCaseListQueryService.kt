@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Us
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListEntryRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
@@ -87,6 +88,13 @@ class UserCaseListQueryService(
 
   fun getUserCaseListCrns(listType: CaseListType): ApiResponseDto<List<String>> {
     val user = userService.authorizeAndRetrieveUser()
-    return toApiResponseDto(data = userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(user.id, listType))
+    val entries = userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(user.id, listType)
+    val sortedEntries = when (listType) {
+      CaseListType.CUSTOM -> entries.sortedBy { it.crn }
+      CaseListType.SEARCH_HISTORY -> entries.sortedWith(
+        compareByDescending<UserCaseListCrn> { it.lastUpdatedAt }.thenBy { it.crn },
+      )
+    }
+    return toApiResponseDto(data = sortedEntries.map { it.crn })
   }
 }

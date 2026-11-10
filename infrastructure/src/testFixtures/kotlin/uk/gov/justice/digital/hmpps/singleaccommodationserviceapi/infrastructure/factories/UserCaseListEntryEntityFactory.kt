@@ -13,10 +13,12 @@ fun buildUserCaseListEntryEntity(
   sasCaseId: UUID = UUID.randomUUID(),
   listType: CaseListType = CaseListType.CUSTOM,
   createdAt: Instant = Instant.now(),
+  lastUpdatedAt: Instant = createdAt,
 ) = UserCaseListEntryEntity(
   id = id,
   sasUserId = sasUserId,
   sasCaseId = sasCaseId,
   listType = listType,
   createdAt = createdAt,
+  lastUpdatedAt = lastUpdatedAt,
 )

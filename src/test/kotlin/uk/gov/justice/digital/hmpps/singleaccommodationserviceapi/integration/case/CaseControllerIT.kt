@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -22,6 +23,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Arrival
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
@@ -43,12 +45,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserCaseListEntryEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListEntryRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
@@ -81,6 +87,12 @@ class CaseControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var caseRefreshRequestRepository: CaseRefreshRequestRepository
+
+  @Autowired
+  private lateinit var userCaseListEntryRepository: UserCaseListEntryRepository
+
+  @Autowired
+  private lateinit var clock: MutableTestClock
 
   @BeforeEach
   fun setup() {
@@ -816,6 +828,11 @@ class CaseControllerIT : IntegrationTestBase() {
 
   @Nested
   inner class SearchByCrn {
+    @AfterEach
+    fun teardown() {
+      clock.reset()
+    }
+
     @Test
     fun `should return a CaseDto for a case that exists`() {
       val crn = "a123456"
@@ -839,6 +856,137 @@ class CaseControllerIT : IntegrationTestBase() {
         getRequestedFor(WireMock.urlPathMatching("/case/$normalisedCrn")),
       )
     }
+
+    @Test
+    fun `should add the found case to the user's search history`() {
+      val crn = "F123456"
+      val now = Instant.parse("2026-11-09T10:00:00Z")
+      clock.freezeAt(now)
+      stubSearchableCase(crn)
+
+      searchByCrn(crn)
+
+      val entry = userCaseListEntryRepository.findAllBySasUserIdAndListType(deliusUser.id, CaseListType.SEARCH_HISTORY).single()
+      assertThat(entry.sasCaseId).isEqualTo(caseRepository.findByCrn(crn)!!.id)
+      assertThat(entry.createdAt).isEqualTo(now)
+      assertThat(entry.lastUpdatedAt).isEqualTo(now)
+      assertThat(userCaseListEntryRepository.findAllBySasUserIdAndListType(deliusUser.id, CaseListType.CUSTOM)).isEmpty()
+    }
+
+    @Test
+    fun `should update last updated at when a case already in the search history is searched again`() {
+      val crn = "G123456"
+      val firstSearchAt = Instant.parse("2026-11-09T10:00:00Z")
+      val secondSearchAt = firstSearchAt.plusSeconds(3600)
+      stubSearchableCase(crn)
+
+      clock.freezeAt(firstSearchAt)
+      searchByCrn(crn)
+      clock.freezeAt(secondSearchAt)
+      searchByCrn(crn)
+
+      val entry = userCaseListEntryRepository.findAllBySasUserIdAndListType(deliusUser.id, CaseListType.SEARCH_HISTORY).single()
+      assertThat(entry.createdAt).isEqualTo(firstSearchAt)
+      assertThat(entry.lastUpdatedAt).isEqualTo(secondSearchAt)
+    }
+
+    @Test
+    fun `should only keep the 10 most recently searched cases in the search history`() {
+      val now = Instant.parse("2026-11-09T10:00:00Z")
+      val existingCases = seedSearchHistory(cases = List(10) { buildCaseEntity() }, now = now)
+      val oldestCase = existingCases.last()
+
+      val crn = "H123456"
+      clock.freezeAt(now)
+      stubSearchableCase(crn)
+      searchByCrn(crn)
+
+      val searchHistoryCaseIds = searchHistoryCaseIds()
+      assertThat(searchHistoryCaseIds).hasSize(10)
+      assertThat(searchHistoryCaseIds).contains(caseRepository.findByCrn(crn)!!.id)
+      assertThat(searchHistoryCaseIds).doesNotContain(oldestCase.id)
+    }
+
+    @Test
+    fun `should not remove any entries when adding a case brings the search history up to the limit`() {
+      val now = Instant.parse("2026-11-09T10:00:00Z")
+      val existingCases = seedSearchHistory(cases = List(9) { buildCaseEntity() }, now = now)
+
+      val crn = "K123456"
+      clock.freezeAt(now)
+      stubSearchableCase(crn)
+      searchByCrn(crn)
+
+      assertThat(searchHistoryCaseIds()).containsExactlyInAnyOrderElementsOf(
+        existingCases.map { it.id } + caseRepository.findByCrn(crn)!!.id,
+      )
+    }
+
+    @Test
+    fun `should not remove any entries and make the case the most recent when re-searching a case in a full search history`() {
+      val now = Instant.parse("2026-11-09T10:00:00Z")
+      val oldestCrn = "L123456"
+      val existingCases = seedSearchHistory(
+        cases = List(9) { buildCaseEntity() } + buildCaseEntity { withCrn(oldestCrn) },
+        now = now,
+      )
+      val oldestCase = existingCases.last()
+
+      clock.freezeAt(now)
+      stubSearchableCase(oldestCrn)
+      searchByCrn(oldestCrn)
+
+      assertThat(searchHistoryCaseIds()).containsExactlyInAnyOrderElementsOf(existingCases.map { it.id })
+      val mostRecentEntry = userCaseListEntryRepository
+        .findAllBySasUserIdAndListType(deliusUser.id, CaseListType.SEARCH_HISTORY)
+        .maxBy { it.lastUpdatedAt }
+      assertThat(mostRecentEntry.sasCaseId).isEqualTo(oldestCase.id)
+      assertThat(mostRecentEntry.lastUpdatedAt).isEqualTo(now)
+    }
+
+    @Test
+    fun `should not add to the search history when delius returns NotFound error`() {
+      val crn = "J123456"
+      SasAndDeliusStubs.stubGetCaseNotFoundFailure(crn)
+
+      webTestClient.get().uri("/search/$crn")
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .isNotFound
+
+      assertThat(userCaseListEntryRepository.findAll()).isEmpty()
+    }
+
+    private fun stubSearchableCase(crn: String) {
+      SasAndDeliusStubs.stubGetCase(crn = crn, response = buildCase(crn = crn))
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(crn))
+    }
+
+    private fun searchByCrn(crn: String) {
+      webTestClient.get().uri("/search/$crn")
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+    }
+
+    private fun seedSearchHistory(cases: List<CaseEntity>, now: Instant): List<CaseEntity> {
+      caseRepository.saveAllAndFlush(cases)
+      userCaseListEntryRepository.saveAllAndFlush(
+        cases.mapIndexed { index, case ->
+          buildUserCaseListEntryEntity(
+            sasUserId = deliusUser.id,
+            sasCaseId = case.id,
+            listType = CaseListType.SEARCH_HISTORY,
+            createdAt = now.minusSeconds(3600L * (index + 1)),
+          )
+        },
+      )
+      return cases
+    }
+
+    private fun searchHistoryCaseIds() = userCaseListEntryRepository
+      .findAllBySasUserIdAndListType(deliusUser.id, CaseListType.SEARCH_HISTORY)
+      .map { it.sasCaseId }
 
     @ParameterizedTest
     @ValueSource(strings = ["123456", "AB12345", "A12345", "A1234567", "A12B456"])
