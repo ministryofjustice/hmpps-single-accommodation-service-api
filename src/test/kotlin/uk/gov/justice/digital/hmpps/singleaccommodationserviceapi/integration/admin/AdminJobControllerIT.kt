@@ -3,10 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.a
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.http.MediaType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArchiveCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedInboxEventsResponse
@@ -28,12 +30,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.admin.json.archiveCasesByCrnRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.admin.json.bulkLoadCasesRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.admin.json.bulkRefreshCasesByCrnRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.expectApiResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.time.Duration
@@ -45,9 +47,6 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var caseRefreshRequestRepository: CaseRefreshRequestRepository
-
-  @Autowired
-  private lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
   @Autowired
   private lateinit var inboxEventRepository: InboxEventRepository
@@ -84,28 +83,6 @@ class AdminJobControllerIT : IntegrationTestBase() {
   @AfterEach
   fun teardown() {
     clock.reset()
-  }
-
-  @Test
-  fun `should return 403 when the client does not have the admin role`() {
-    restTestClient.post().uri("/admin/bulk-load-cases")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkLoadCasesRequestBody(teamCodes = listOf(teamCode)))
-      .withClientCredentialsJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"))
-      .exchange()
-      .expectStatus().isForbidden
-  }
-
-  @Test
-  fun `should return 403 if called with Delius user JWT`() {
-    createDeliusUser()
-
-    restTestClient.post().uri("/admin/bulk-load-cases")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkLoadCasesRequestBody(teamCodes = listOf(teamCode)))
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus().isForbidden
   }
 
   @Test
@@ -174,9 +151,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
   fun `should skip a team whose cases could not be retrieved and report the upstream failure`() {
     SasAndDeliusStubs.stubGetCasesByTeamCodeFailure(teamCode)
 
-    val response = restTestClient.post().uri("/admin/bulk-load-cases")
+    val response = webTestClient.post().uri("/admin/bulk-load-cases")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkLoadCasesRequestBody(teamCodes = listOf(teamCode), dryRun = false))
+      .bodyValue(bulkLoadCasesRequestBody(teamCodes = listOf(teamCode), dryRun = false))
       .withClientCredentialsJwt(roles = adminRoles)
       .exchangeSuccessfully()
       .expectApiResponse<BulkLoadCasesResultDto>()
@@ -191,9 +168,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 400 when no usable team codes are supplied`() {
-    restTestClient.post().uri("/admin/bulk-load-cases")
+    webTestClient.post().uri("/admin/bulk-load-cases")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkLoadCasesRequestBody(teamCodes = listOf("", "  ")))
+      .bodyValue(bulkLoadCasesRequestBody(teamCodes = listOf("", "  ")))
       .withClientCredentialsJwt(roles = adminRoles)
       .exchange()
       .expectStatus().isBadRequest
@@ -203,34 +180,12 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 400 when an empty team code list is supplied`() {
-    restTestClient.post().uri("/admin/bulk-load-cases")
+    webTestClient.post().uri("/admin/bulk-load-cases")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkLoadCasesRequestBody(teamCodes = emptyList()))
+      .bodyValue(bulkLoadCasesRequestBody(teamCodes = emptyList()))
       .withClientCredentialsJwt(roles = adminRoles)
       .exchange()
       .expectStatus().isBadRequest
-  }
-
-  @Test
-  fun `should return 403 when refreshing cases by crn without the admin role`() {
-    restTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkRefreshCasesByCrnRequestBody(crns = listOf(refreshCrn)))
-      .withClientCredentialsJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"))
-      .exchange()
-      .expectStatus().isForbidden
-  }
-
-  @Test
-  fun `should return 403 when refreshing cases by crn with a Delius user JWT`() {
-    createDeliusUser()
-
-    restTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkRefreshCasesByCrnRequestBody(crns = listOf(refreshCrn)))
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus().isForbidden
   }
 
   @Test
@@ -448,9 +403,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 400 when no usable crns are supplied`() {
-    restTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
+    webTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(bulkRefreshCasesByCrnRequestBody(crns = listOf("", "  ")))
+      .bodyValue(bulkRefreshCasesByCrnRequestBody(crns = listOf("", "  ")))
       .withClientCredentialsJwt(roles = adminRoles)
       .exchange()
       .expectStatus().isBadRequest
@@ -458,9 +413,152 @@ class AdminJobControllerIT : IntegrationTestBase() {
     assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
   }
 
-  private fun bulkRefreshCasesByCrn(requestBody: String) = restTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
+  @Nested
+  inner class BulkRefreshAllCases {
+
+    @Test
+    fun `should return 200 when refreshing all cases and no cases are stored`() {
+      val result = bulkRefreshAllCases(bulkRefreshAllCasesRequestBody(dryRun = false))
+
+      assertThat(result.dryRun).isFalse()
+      assertThat(result.crnsRequested).isEqualTo(0)
+      assertThat(result.casesFound).isEqualTo(0)
+      assertThat(result.refreshesRequested).isEqualTo(0)
+      assertThat(result.crnsNotFound).isEmpty()
+    }
+
+    @Test
+    fun `should stage a bulk refresh for every case when refreshing all cases`() {
+      val firstCase = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+      val secondCase = caseRepository.save(buildCaseEntity { withCrn(otherRefreshCrn) })
+
+      val result = bulkRefreshAllCases(bulkRefreshAllCasesRequestBody(dryRun = false))
+
+      assertThat(result.dryRun).isFalse()
+      assertThat(result.crnsRequested).isEqualTo(2)
+      assertThat(result.casesFound).isEqualTo(2)
+      assertThat(result.refreshesRequested).isEqualTo(2)
+      assertThat(result.crnsNotFound).isEmpty()
+
+      val requests = caseRefreshRequestRepository.findAll()
+      assertThat(requests.map { it.caseId }).containsExactlyInAnyOrder(firstCase.id, secondCase.id)
+      assertThat(requests).allSatisfy {
+        assertThat(it.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
+        assertThat(it.priority).isEqualTo(CaseRefreshPriority.BULK)
+        assertThat(it.attemptCount).isZero()
+        assertThat(it.nextAttemptAt).isEqualTo(now)
+      }
+    }
+
+    @Test
+    fun `should report what a bulk refresh would do without staging anything when dry run is not specified`() {
+      caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+
+      val result = bulkRefreshAllCases(bulkRefreshAllCasesRequestBody())
+
+      assertThat(result.dryRun).isTrue()
+      assertThat(result.crnsRequested).isEqualTo(1)
+      assertThat(result.casesFound).isEqualTo(1)
+      assertThat(result.refreshesRequested).isZero()
+      assertThat(result.crnsNotFound).isEmpty()
+
+      assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+    }
+  }
+
+  @Nested
+  inner class ArchiveCasesByCrn {
+
+    @Test
+    fun `should archive the cases holding the crns and delete their refresh requests`() {
+      val case = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+      caseRepository.save(buildCaseEntity { withCrn(otherRefreshCrn) })
+      caseRefreshRequestService.requestBulkRefresh(listOf(case.id))
+
+      val result = archiveCasesByCrn(
+        archiveCasesByCrnRequestBody(crns = listOf(refreshCrn, " ${otherRefreshCrn.lowercase()} "), dryRun = false),
+      )
+
+      assertThat(result.dryRun).isFalse()
+      assertThat(result.crnsRequested).isEqualTo(2)
+      assertThat(result.casesFound).isEqualTo(2)
+      assertThat(result.casesArchived).isEqualTo(2)
+      assertThat(result.refreshRequestsDeleted).isEqualTo(1)
+      assertThat(result.crnsNotFound).isEmpty()
+
+      assertThat(caseRepository.findByCrns(listOf(refreshCrn, otherRefreshCrn))).isEmpty()
+      assertThat(caseRepository.findCaseForSubjectAccessRequest(refreshCrn, null)!!.archived).isTrue()
+      assertThat(caseRepository.findCaseForSubjectAccessRequest(otherRefreshCrn, null)!!.archived).isTrue()
+      assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+      assertThat(caseRepository.findAllCrns()).doesNotContain(refreshCrn, otherRefreshCrn)
+    }
+
+    @Test
+    fun `reports crns held by no case or already archived as not found`() {
+      caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+      caseRepository.save(buildCaseEntity(archived = true) { withCrn(otherRefreshCrn) })
+
+      val result = archiveCasesByCrn(
+        archiveCasesByCrnRequestBody(crns = listOf(refreshCrn, otherRefreshCrn, "X999999"), dryRun = false),
+      )
+
+      assertThat(result.casesFound).isEqualTo(1)
+      assertThat(result.casesArchived).isEqualTo(1)
+      assertThat(result.crnsNotFound).containsExactly(otherRefreshCrn, "X999999")
+    }
+
+    @Test
+    fun `should report what an archive would do without changing anything when dry run is not specified`() {
+      val case = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+      caseRefreshRequestService.requestBulkRefresh(listOf(case.id))
+
+      val result = archiveCasesByCrn(archiveCasesByCrnRequestBody(crns = listOf(refreshCrn, otherRefreshCrn)))
+
+      assertThat(result.dryRun).isTrue()
+      assertThat(result.crnsRequested).isEqualTo(2)
+      assertThat(result.casesFound).isEqualTo(1)
+      assertThat(result.casesArchived).isZero()
+      assertThat(result.refreshRequestsDeleted).isZero()
+      assertThat(result.crnsNotFound).containsExactly(otherRefreshCrn)
+
+      assertThat(caseRepository.findByCrn(refreshCrn)).isNotNull()
+      assertThat(caseRefreshRequestRepository.findAll().single().caseId).isEqualTo(case.id)
+    }
+
+    @Test
+    fun `should return 400 when no usable crns are supplied`() {
+      val case = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+
+      webTestClient.post().uri("/admin/archive-cases-by-crn")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(archiveCasesByCrnRequestBody(crns = listOf("", "  ")))
+        .withClientCredentialsJwt(roles = adminRoles)
+        .exchange()
+        .expectStatus().isBadRequest
+
+      assertThat(caseRepository.findByCrn(refreshCrn)?.id).isEqualTo(case.id)
+    }
+  }
+
+  private fun archiveCasesByCrn(requestBody: String) = webTestClient.post().uri("/admin/archive-cases-by-crn")
     .contentType(MediaType.APPLICATION_JSON)
-    .body(requestBody)
+    .bodyValue(requestBody)
+    .withClientCredentialsJwt(roles = adminRoles)
+    .exchangeSuccessfully()
+    .expectApiResponse<ArchiveCasesResultDto>()
+    .data
+
+  private fun bulkRefreshCasesByCrn(requestBody: String) = webTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
+    .contentType(MediaType.APPLICATION_JSON)
+    .bodyValue(requestBody)
+    .withClientCredentialsJwt(roles = adminRoles)
+    .exchangeSuccessfully()
+    .expectApiResponse<BulkRefreshCasesResultDto>()
+    .data
+
+  private fun bulkRefreshAllCases(requestBody: String) = webTestClient.post().uri("/admin/bulk-refresh-all-cases")
+    .contentType(MediaType.APPLICATION_JSON)
+    .bodyValue(requestBody)
     .withClientCredentialsJwt(roles = adminRoles)
     .exchangeSuccessfully()
     .expectApiResponse<BulkRefreshCasesResultDto>()
@@ -469,9 +567,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
   private fun buildReplayRequest(
     replayAll: Boolean = false,
     inboxEventIds: List<UUID> = emptyList(),
-  ) = restTestClient.put().uri("/admin/replay-failed-inbox-events?replayAll=$replayAll")
+  ) = webTestClient.put().uri("/admin/replay-failed-inbox-events?replayAll=$replayAll")
     .contentType(MediaType.APPLICATION_JSON)
-    .body(jsonMapper.writeValueAsString(inboxEventIds))
+    .bodyValue(jsonMapper.writeValueAsString(inboxEventIds))
     .withClientCredentialsJwt(roles = adminRoles)
 
   private fun replayFailedInboxEvents(
@@ -482,11 +580,13 @@ class AdminJobControllerIT : IntegrationTestBase() {
     .expectApiResponse<ReplayFailedInboxEventsResponse>()
     .data
 
-  private fun bulkLoadCases(requestBody: String) = restTestClient.post().uri("/admin/bulk-load-cases")
+  private fun bulkLoadCases(requestBody: String) = webTestClient.post().uri("/admin/bulk-load-cases")
     .contentType(MediaType.APPLICATION_JSON)
-    .body(requestBody)
+    .bodyValue(requestBody)
     .withClientCredentialsJwt(roles = adminRoles)
     .exchangeSuccessfully()
     .expectApiResponse<BulkLoadCasesResultDto>()
     .data
+
+  private fun bulkRefreshAllCasesRequestBody(dryRun: Boolean? = null): String = dryRun?.let { """{"dryRun": $it}""" } ?: "{}"
 }

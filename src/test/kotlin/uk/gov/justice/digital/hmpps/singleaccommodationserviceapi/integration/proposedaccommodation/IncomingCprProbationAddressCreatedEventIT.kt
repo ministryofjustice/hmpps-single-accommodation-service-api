@@ -9,8 +9,6 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.test.context.TestPropertySource
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
@@ -31,13 +29,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestInboxEventHelper.TestPersonIdentifier
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.UUID
 
-@TestPropertySource(properties = ["scheduling.enabled=true"])
+@EnableMessageProcessing
 class IncomingCprProbationAddressCreatedEventIT : DomainEventIntegrationTestBase() {
 
   @Autowired
@@ -48,9 +47,6 @@ class IncomingCprProbationAddressCreatedEventIT : DomainEventIntegrationTestBase
 
   @Autowired
   private lateinit var accommodationStatusRepository: AccommodationStatusRepository
-
-  @MockitoSpyBean
-  lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
   lateinit var crn: String
   private val eventType = "core-person-record.probation.address.created"
@@ -152,7 +148,7 @@ class IncomingCprProbationAddressCreatedEventIT : DomainEventIntegrationTestBase
     assertThat(newlyCreatedProposedAccommodation?.lastUpdatedByUserId).isIn(userIdOfDeliusSyncUser, userIdOfSasSystemUser)
 
     testInboxEventHelper.assertInboxEvent(
-      crn = crn,
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId),
       processedStatus = ProcessedStatus.PROCESSED,
@@ -273,7 +269,7 @@ class IncomingCprProbationAddressCreatedEventIT : DomainEventIntegrationTestBase
     assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfSasSystemUser)
 
     testInboxEventHelper.assertInboxEvent(
-      crn = crn,
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId),
       processedStatus = ProcessedStatus.PROCESSED,
@@ -296,7 +292,7 @@ class IncomingCprProbationAddressCreatedEventIT : DomainEventIntegrationTestBase
     assertThat(proposedAccommodationRepository.findByCprAddressId(cprAddressId)).isNull()
 
     testInboxEventHelper.assertInboxEvent(
-      crn = unmatchedCrn,
+      personIdentifier = TestPersonIdentifier.forCrn(unmatchedCrn),
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId, unmatchedCrn),
       processedStatus = ProcessedStatus.IGNORED,
@@ -328,7 +324,7 @@ class IncomingCprProbationAddressCreatedEventIT : DomainEventIntegrationTestBase
     assertThat(proposedAccommodationRepository.findByCprAddressId(cprAddressId)).isNull()
 
     testInboxEventHelper.assertInboxEvent(
-      crn = crn,
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId),
       processedStatus = ProcessedStatus.IGNORED,

@@ -4,15 +4,19 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.NullAndEmptySource
 import org.junit.jupiter.params.provider.ValueSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ARCHIVED_WITHDRAWAL_REASONS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.COMPLETED_WITHDRAWAL_REASONS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralOutcomeNoteNotApplicableException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralOutcomeReasonNotApplicableException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralOutcomeReasonRequiredException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.REJECTED_WITHDRAWAL_REASONS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralInvalidStatusTransitionException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralWithdrawalReasonOtherGreaterThanMaxLengthException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralWithdrawalReasonRequiredException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.time.LocalDate
@@ -172,10 +176,9 @@ class ExternalReferralAggregateTest {
   }
 
   @ParameterizedTest
-  @MethodSource("validOutcomeReasonScenarios")
-  fun `updateExternalReferral accepts a valid outcome reason for the given status`(
+  @EnumSource(value = ExternalReferralStatus::class, names = ["SUBMITTED", "ACCEPTED", "REJECTED"])
+  fun `updateExternalReferral accepts an outcome note without a reason for the given status`(
     status: ExternalReferralStatus,
-    outcomeReason: ExternalReferralOutcomeReason,
   ) {
     val aggregate = hydrateAndCreateReferral()
 
@@ -186,97 +189,92 @@ class ExternalReferralAggregateTest {
       organisationName = null,
       website = null,
       submissionNote = null,
-      outcomeReason = outcomeReason,
       outcomeNote = "An outcome note",
     )
 
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.status).isEqualTo(status)
-    assertThat(snapshot.outcomeReason).isEqualTo(outcomeReason)
+    assertThat(snapshot.withdrawalReason).isNull()
+    assertThat(snapshot.withdrawalNote).isNull()
     assertThat(snapshot.outcomeNote).isEqualTo("An outcome note")
   }
 
-  @Test
-  fun `updateExternalReferral throws exception when status is ACCEPTED and outcomeReason is missing`() {
-    val aggregate = hydrateAndCreateReferral()
+  @ParameterizedTest
+  @EnumSource(value = ExternalReferralStatus::class, names = ["SUBMITTED", "ACCEPTED", "REJECTED"])
+  fun `updateExternalReferral accepts statuses without a reason or outcome note`(status: ExternalReferralStatus) {
+    val aggregate = ExternalReferralAggregate.hydrateNew(caseId = UUID.randomUUID(), crn = "X123456")
 
-    assertThrows<ExternalReferralOutcomeReasonRequiredException> {
-      aggregate.updateExternalReferral(
-        submissionDate = submissionDate,
-        referenceNumber = "REF-001",
-        status = ExternalReferralStatus.ACCEPTED,
-        organisationName = null,
-        website = null,
-        submissionNote = null,
-        outcomeReason = null,
-      )
-    }
-  }
-
-  @Test
-  fun `updateExternalReferral throws exception when status is ACCEPTED with a REJECTED outcome reason`() {
-    val aggregate = hydrateAndCreateReferral()
-
-    assertThrows<ExternalReferralOutcomeReasonNotApplicableException> {
-      aggregate.updateExternalReferral(
-        submissionDate = submissionDate,
-        referenceNumber = "REF-001",
-        status = ExternalReferralStatus.ACCEPTED,
-        organisationName = null,
-        website = null,
-        submissionNote = null,
-        outcomeReason = ExternalReferralOutcomeReason.NO_CAPACITY,
-      )
-    }
-  }
-
-  @Test
-  fun `updateExternalReferral throws exception when status is SUBMITTED and an outcomeReason is provided`() {
-    val aggregate = hydrateAndCreateReferral()
-
-    assertThrows<ExternalReferralOutcomeReasonNotApplicableException> {
-      aggregate.updateExternalReferral(
-        submissionDate = submissionDate,
-        referenceNumber = "REF-001",
-        status = ExternalReferralStatus.SUBMITTED,
-        organisationName = null,
-        website = null,
-        submissionNote = null,
-        outcomeReason = ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
-      )
-    }
-  }
-
-  @Test
-  fun `updateExternalReferral throws exception when status is SUBMITTED and an outcomeNote is provided`() {
-    val aggregate = hydrateAndCreateReferral()
-
-    assertThrows<ExternalReferralOutcomeNoteNotApplicableException> {
-      aggregate.updateExternalReferral(
-        submissionDate = submissionDate,
-        referenceNumber = "REF-001",
-        status = ExternalReferralStatus.SUBMITTED,
-        organisationName = null,
-        website = null,
-        submissionNote = null,
-        outcomeNote = "An outcome note",
-      )
-    }
-  }
-
-  @Test
-  fun `updateExternalReferral clears outcomeReason and outcomeNote when moving back to SUBMITTED`() {
-    val aggregate = hydrateAndCreateReferral()
     aggregate.updateExternalReferral(
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
-      status = ExternalReferralStatus.REJECTED,
+      status = status,
       organisationName = null,
       website = null,
       submissionNote = null,
-      outcomeReason = ExternalReferralOutcomeReason.NO_CAPACITY,
-      outcomeNote = "An outcome note",
     )
+
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.status).isEqualTo(status)
+    assertThat(snapshot.withdrawalReason).isNull()
+    assertThat(snapshot.withdrawalNote).isNull()
+    assertThat(snapshot.outcomeNote).isNull()
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = ExternalReferralStatus::class, names = ["SUBMITTED", "ACCEPTED", "REJECTED"])
+  fun `updateExternalReferral preserves separately recorded withdrawal details`(status: ExternalReferralStatus) {
+    val aggregate = ExternalReferralAggregate.hydrateExisting(
+      id = UUID.randomUUID(),
+      caseId = UUID.randomUUID(),
+      crn = "X123456",
+      referenceNumber = "REF-001",
+      submissionDate = submissionDate,
+      status = status,
+      organisationName = null,
+      website = null,
+      submissionNote = null,
+      notes = emptyList(),
+      withdrawalReason = ExternalReferralWithdrawalReason.NO_CAPACITY,
+      withdrawalNote = "Existing withdrawal note",
+    )
+
+    aggregate.updateExternalReferral(
+      submissionDate = submissionDate,
+      referenceNumber = "REF-001",
+      status = status,
+      organisationName = null,
+      website = null,
+      submissionNote = null,
+    )
+
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.status).isEqualTo(status)
+    assertThat(snapshot.withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.NO_CAPACITY)
+    assertThat(snapshot.withdrawalNote).isEqualTo("Existing withdrawal note")
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = ExternalReferralStatus::class, names = ["SUBMITTED", "ACCEPTED", "REJECTED"])
+  fun `updateExternalReferral rejects outcome notes longer than 4000 characters`(status: ExternalReferralStatus) {
+    val aggregate = hydrateAndCreateReferral()
+
+    assertThrows<NoteIsGreaterThanMaxLengthException> {
+      aggregate.updateExternalReferral(
+        submissionDate = submissionDate,
+        referenceNumber = "REF-001",
+        status = status,
+        organisationName = null,
+        website = null,
+        submissionNote = null,
+        outcomeNote = "a".repeat(4001),
+      )
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
+  fun `updateExternalReferral normalises blank outcome notes to null`(note: String) {
+    val aggregate = hydrateAndCreateReferral()
 
     aggregate.updateExternalReferral(
       submissionDate = submissionDate,
@@ -285,17 +283,248 @@ class ExternalReferralAggregateTest {
       organisationName = null,
       website = null,
       submissionNote = null,
+      outcomeNote = note,
+    )
+
+    assertThat(aggregate.snapshot().outcomeNote).isNull()
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = ExternalReferralStatus::class, names = ["SUBMITTED", "ACCEPTED", "REJECTED"])
+  fun `updateExternalReferral accepts outcome notes at the maximum length`(status: ExternalReferralStatus) {
+    val aggregate = hydrateAndCreateReferral()
+    val note = "a".repeat(4000)
+
+    aggregate.updateExternalReferral(
+      submissionDate = submissionDate,
+      referenceNumber = "REF-001",
+      status = status,
+      organisationName = null,
+      website = null,
+      submissionNote = null,
+      outcomeNote = note,
+    )
+
+    assertThat(aggregate.snapshot().outcomeNote).isEqualTo(note)
+  }
+
+  @Test
+  fun `updateExternalReferral clears an omitted outcomeNote when moving from REJECTED to ACCEPTED`() {
+    val aggregate = hydrateAndCreateReferral()
+    aggregate.updateExternalReferral(
+      submissionDate = submissionDate,
+      referenceNumber = "REF-001",
+      status = ExternalReferralStatus.REJECTED,
+      organisationName = null,
+      website = null,
+      submissionNote = null,
+      outcomeNote = "An outcome note",
+    )
+
+    aggregate.updateExternalReferral(
+      submissionDate = submissionDate,
+      referenceNumber = "REF-001",
+      status = ExternalReferralStatus.ACCEPTED,
+      organisationName = null,
+      website = null,
+      submissionNote = null,
     )
 
     val snapshot = aggregate.snapshot()
-    assertThat(snapshot.outcomeReason).isNull()
+    assertThat(snapshot.status).isEqualTo(ExternalReferralStatus.ACCEPTED)
+    assertThat(snapshot.withdrawalReason).isNull()
     assertThat(snapshot.outcomeNote).isNull()
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = ExternalReferralStatus::class, names = ["SUBMITTED"], mode = EnumSource.Mode.EXCLUDE)
+  fun `updateExternalReferral rejects moving back to SUBMITTED without changing the referral`(status: ExternalReferralStatus) {
+    val aggregate = ExternalReferralAggregate.hydrateExisting(
+      id = UUID.randomUUID(),
+      caseId = UUID.randomUUID(),
+      crn = "X123456",
+      referenceNumber = "REF-001",
+      submissionDate = submissionDate,
+      status = status,
+      organisationName = "An organisation",
+      website = "https://www.charity.org",
+      submissionNote = "A submission note",
+      notes = emptyList(),
+      withdrawalReason = ExternalReferralWithdrawalReason.NO_CAPACITY,
+      withdrawalNote = "A withdrawal note",
+      outcomeNote = "An outcome note",
+    )
+    val originalSnapshot = aggregate.snapshot()
+
+    assertThrows<ExternalReferralInvalidStatusTransitionException> {
+      aggregate.updateExternalReferral(
+        submissionDate = submissionDate.plusDays(1),
+        referenceNumber = "REF-002",
+        status = ExternalReferralStatus.SUBMITTED,
+        organisationName = null,
+        website = null,
+        submissionNote = null,
+      )
+    }
+
+    assertThat(aggregate.snapshot()).isEqualTo(originalSnapshot)
   }
 
   private fun shouldSuccessfullyAddNote(note: String) {
     val aggregate = hydrateAndCreateReferral()
     aggregate.addNote(note)
     assertThat(aggregate.snapshot().notes.first().note).isEqualTo(note)
+  }
+
+  @ParameterizedTest
+  @MethodSource("completedWithdrawalReasons")
+  fun `updateExternalReferralWithdrawal sets status to COMPLETED for completed withdrawal reasons`(
+    withdrawalReason: ExternalReferralWithdrawalReason,
+  ) {
+    val aggregate = hydrateAndCreateReferral()
+
+    aggregate.updateExternalReferralWithdrawal(withdrawalReason = withdrawalReason)
+
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.status).isEqualTo(ExternalReferralStatus.COMPLETED)
+    assertThat(snapshot.withdrawalReason).isEqualTo(withdrawalReason)
+  }
+
+  @ParameterizedTest
+  @MethodSource("archivedWithdrawalReasons")
+  fun `updateExternalReferralWithdrawal sets status to ARCHIVED for archived withdrawal reasons`(
+    withdrawalReason: ExternalReferralWithdrawalReason,
+  ) {
+    val aggregate = hydrateAndCreateReferral()
+
+    aggregate.updateExternalReferralWithdrawal(
+      withdrawalReason = withdrawalReason,
+      otherReason = "Some other reason",
+    )
+
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.status).isEqualTo(ExternalReferralStatus.ARCHIVED)
+    assertThat(snapshot.withdrawalReason).isEqualTo(withdrawalReason)
+  }
+
+  @ParameterizedTest
+  @MethodSource("rejectedWithdrawalReasons")
+  fun `updateExternalReferralWithdrawal sets status to REJECTED for rejected withdrawal reasons`(
+    withdrawalReason: ExternalReferralWithdrawalReason,
+  ) {
+    val aggregate = hydrateAndCreateReferral()
+
+    aggregate.updateExternalReferralWithdrawal(withdrawalReason = withdrawalReason)
+
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.status).isEqualTo(ExternalReferralStatus.REJECTED)
+    assertThat(snapshot.withdrawalReason).isEqualTo(withdrawalReason)
+  }
+
+  @Test
+  fun `updateExternalReferralWithdrawal records a withdrawal note`() {
+    val aggregate = hydrateAndCreateReferral()
+
+    aggregate.updateExternalReferralWithdrawal(
+      withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
+      withdrawalNote = "A withdrawal note",
+    )
+
+    assertThat(aggregate.snapshot().withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE)
+    assertThat(aggregate.snapshot().withdrawalNote).isEqualTo("A withdrawal note")
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
+  fun `updateExternalReferralWithdrawal normalises a blank withdrawal note to null`(note: String) {
+    val aggregate = hydrateAndCreateReferral()
+
+    aggregate.updateExternalReferralWithdrawal(
+      withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
+      withdrawalNote = note,
+    )
+
+    assertThat(aggregate.snapshot().withdrawalNote).isNull()
+  }
+
+  @Test
+  fun `updateExternalReferralWithdrawal throws exception when the withdrawal note exceeds the maximum length`() {
+    val aggregate = hydrateAndCreateReferral()
+
+    assertThrows<NoteIsGreaterThanMaxLengthException> {
+      aggregate.updateExternalReferralWithdrawal(
+        withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
+        withdrawalNote = "a".repeat(4001),
+      )
+    }
+  }
+
+  @Test
+  fun `updateExternalReferralWithdrawal record with other reason`() {
+    val aggregate = hydrateAndCreateReferral()
+
+    aggregate.updateExternalReferralWithdrawal(
+      withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON,
+      otherReason = "Some other reason",
+    )
+
+    assertThat(aggregate.snapshot().withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.ANOTHER_REASON)
+    assertThat(aggregate.snapshot().otherReason).isEqualTo("Some other reason")
+  }
+
+  @Test
+  fun `updateExternalReferralWithdrawal ignores other reason when the reason is not ANOTHER_REASON`() {
+    val aggregate = hydrateAndCreateReferral()
+
+    aggregate.updateExternalReferralWithdrawal(
+      withdrawalReason = ExternalReferralWithdrawalReason.NO_CAPACITY,
+      otherReason = "Some other reason",
+    )
+
+    assertThat(aggregate.snapshot().otherReason).isNull()
+  }
+
+  @Test
+  fun `updateExternalReferralWithdrawal clears a previously set other reason when the reason changes from ANOTHER_REASON`() {
+    val aggregate = hydrateAndCreateReferral()
+    aggregate.updateExternalReferralWithdrawal(
+      withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON,
+      otherReason = "Some other reason",
+    )
+    assertThat(aggregate.snapshot().otherReason).isEqualTo("Some other reason")
+
+    aggregate.updateExternalReferralWithdrawal(
+      withdrawalReason = ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE,
+    )
+
+    assertThat(aggregate.snapshot().withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.PLACEMENT_COMPLETE)
+    assertThat(aggregate.snapshot().otherReason).isNull()
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = [" ", "   "])
+  fun `updateExternalReferralWithdrawal throws exception when ANOTHER_REASON has a missing or blank other reason`(otherReason: String?) {
+    val aggregate = hydrateAndCreateReferral()
+
+    assertThrows<ExternalReferralWithdrawalReasonRequiredException> {
+      aggregate.updateExternalReferralWithdrawal(
+        withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON,
+        otherReason = otherReason,
+      )
+    }
+  }
+
+  @Test
+  fun `updateExternalReferralWithdrawal throws exception when the other reason exceeds the maximum length`() {
+    val aggregate = hydrateAndCreateReferral()
+
+    assertThrows<ExternalReferralWithdrawalReasonOtherGreaterThanMaxLengthException> {
+      aggregate.updateExternalReferralWithdrawal(
+        withdrawalReason = ExternalReferralWithdrawalReason.ANOTHER_REASON,
+        otherReason = "a".repeat(4001),
+      )
+    }
   }
 
   private fun hydrateAndCreateReferral(): ExternalReferralAggregate {
@@ -311,14 +540,14 @@ class ExternalReferralAggregateTest {
     return aggregate
   }
 
-  companion object {
+  private companion object {
     @JvmStatic
-    fun validOutcomeReasonScenarios(): Stream<Arguments> = Stream.of(
-      Arguments.of(ExternalReferralStatus.ACCEPTED, ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION),
-      Arguments.of(ExternalReferralStatus.ACCEPTED, ExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT),
-      Arguments.of(ExternalReferralStatus.REJECTED, ExternalReferralOutcomeReason.PERSON_NOT_SUITABLE),
-      Arguments.of(ExternalReferralStatus.REJECTED, ExternalReferralOutcomeReason.NO_CAPACITY),
-      Arguments.of(ExternalReferralStatus.REJECTED, ExternalReferralOutcomeReason.ANOTHER_REASON),
-    )
+    fun completedWithdrawalReasons(): Stream<ExternalReferralWithdrawalReason> = COMPLETED_WITHDRAWAL_REASONS.stream()
+
+    @JvmStatic
+    fun archivedWithdrawalReasons(): Stream<ExternalReferralWithdrawalReason> = ARCHIVED_WITHDRAWAL_REASONS.stream()
+
+    @JvmStatic
+    fun rejectedWithdrawalReasons(): Stream<ExternalReferralWithdrawalReason> = REJECTED_WITHDRAWAL_REASONS.stream()
   }
 }

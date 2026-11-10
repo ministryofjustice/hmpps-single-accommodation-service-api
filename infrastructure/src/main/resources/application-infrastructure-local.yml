@@ -7,6 +7,8 @@ spring:
 service:
   sas-and-delius:
     base-url: https://single-accommodation-and-delius-dev.hmpps.service.justice.gov.uk
+  probation-access-control:
+    base-url: https://probation-access-control-dev.hmpps.service.justice.gov.uk
   approved-premises-and-delius:
     base-url: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
   approved-premises-api:
@@ -19,8 +21,6 @@ service:
     base-url: https://hmpps-interventions-service-dev.apps.live-1.cloud-platform.service.justice.gov.uk
   tier:
     base-url: https://hmpps-tier-dev.hmpps.service.justice.gov.uk
-  accommodation-data-domain:
-    base-url: https://accommodation-data-domain-api-dev.hmpps.service.justice.gov.uk
   nomis-user-roles:
     base-url: https://nomis-user-roles-api-dev.prison.service.justice.gov.uk
 

@@ -21,20 +21,20 @@ fun expectedGetEligibilityResponse(
   submittedAt: String,
   requestSubmittedAt: String,
   expectedArrivalDate: String,
+  expectedDepartureDate: String,
   expiresAt: String,
   cas1ApplicationStartedAt: String,
   startDate: String,
   endDate: String,
-  dateApplied: String,
 ): String = """
 {
   "data": {
     "crn": "$crn",
     "cas1": {
       "serviceResult": {
-        "serviceStatus": "PLACEMENT_BOOKED",
-        "action": null,
-        "link": "View application",
+        "serviceStatus": "PLACEMENT_CANCELLED",
+        "action": {"type":"CREATE_PLACEMENT","startDate":null,"service":"CAS1"},
+        "link": "Create new placement request",
         "url": "$cas1ApplicationUrl",
         "linkType": "CAS1_VIEW_APPLICATION",
         "failureReasons": [],
@@ -74,10 +74,11 @@ fun expectedGetEligibilityResponse(
           "durationDays": 12
         },
         "placement": {
-          "status": "UPCOMING",
+          "status": "CANCELLED",
           "actualArrivalDate": null,
           "actualDepartureDate": null,
-          "cancellationReason": null,
+          "expectedDepartureDate": "$expectedDepartureDate",
+          "cancellationReason": "Oops",
           "premises": {
             "startDate": "$startDate",
             "endDate": "$endDate",
@@ -87,44 +88,11 @@ fun expectedGetEligibilityResponse(
             "postcode": "Test Postcode"
           }
         },
-        "placementHistory": [
-          {
-            "requestForPlacement": {
-              "status": "PLACEMENT_BOOKED",
-              "decision": "ACCEPTED",
-              "rejectionReason": null,
-              "submittedBy": {
-                "name": "Bob",
-                "username": "Bob123",
-                "staffCode": "123"
-              },
-              "submittedAt": "$requestSubmittedAt",
-              "withdrawalReason": null,
-              "withdrawalDate": null,
-              "expectedArrivalDate": "$expectedArrivalDate",
-              "durationDays": 12
-            },
-            "placement": {
-              "status": "CANCELLED",
-              "actualArrivalDate": null,
-              "actualDepartureDate": null,
-              "cancellationReason": "Oops",
-              "premises": {
-                "startDate": "$startDate",
-                "endDate": "$endDate",
-                "addressLine1": "Test House",
-                "addressLine2": "Test Road",
-                "town": "Test Town",
-                "postcode": "Test Postcode"
-              }
-            },
-            "dateApplied": "$dateApplied"
-          }
-        ],
+        "placementHistory": [],
         "id": "$cas1ApplicationId",
         "applicationStatus": "PLACEMENT_ALLOCATED",
         "requestForPlacementStatus": "PLACEMENT_BOOKED",
-        "placementStatus": "UPCOMING"
+        "placementStatus": "CANCELLED"
       }
     },
     "cas2": {
@@ -152,14 +120,15 @@ fun expectedGetEligibilityResponse(
           "latestAssessmentStatus": "CANCELLED",
           "offerDeclinedReason": null,
           "cancelledReason": "cancelled reason",
-          "submittedAt": "2024-01-02T12:00:00Z"
+          "submittedAt": "2024-01-02T12:00:00Z",
+          "markedAsArrivedDateTime": null
         },
         "cohort":"INTENSIVE_SUPERVISION_COURTS"
       }
     },
     "cas3": {
       "serviceResult": {
-        "serviceStatus": "BOOKING_CONFIRMED",
+        "serviceStatus": "BOOKING_CANCELLED",
         "action": null,
         "link": "View referral",
         "url": "$cas3ReferralUrl",
@@ -178,7 +147,11 @@ fun expectedGetEligibilityResponse(
         },
         "applicationRejectedReason": "Oops",
         "assessmentStatus": "REJECTED",
-        "bookingStatus": "CONFIRMED",
+        "bookingStatus": "CANCELLED",
+        "cancellation": {
+              "cancellationDate": "2023-01-03",
+              "cancellationReason": "Mistake"
+        },
         "bookingProvisionalOfferSentDate": "2023-01-02",
         "previousBookings": [
           {
@@ -246,17 +219,18 @@ fun expectedGetEligibilityResponse(
       },
       "pa":{
          "serviceResult":{
-            "serviceStatus":"COMPLETED",
+            "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[],
+            "failureReasons":["SUITABLE_CAS1_APPLICATION","SUITABLE_CAS3_APPLICATION"],
             "blockingStatusReason": null
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type":"CREATE_PLACEMENT","startDate":null, "service": "CAS1"}
       ]
    }
 }
@@ -345,7 +319,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
    },
    "upstreamFailures":[
       {
-         "endpoint":"getTierByCrn",
+         "endpoint":"getTierV3ByCrn",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
          "message": "500 Internal Server Error from GET $upstreamUrl",
@@ -353,6 +327,111 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
       }
    ]
 }
+""".trimIndent()
+
+fun expectedGetEligibilityCasApplicationsNotFoundResponse(crn: String): String = """
+  {
+   "data":{
+      "crn":"$crn",
+      "cas1":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "cas1Application":null
+      },
+      "cas2":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "cas2Application":null
+      },
+      "cas3":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "cas3Application":null
+      },
+      "dtr":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "caseId":null,
+         "submission":null
+      },
+      "crs":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "commissionedRehabilitativeServices":null
+      },
+      "pa":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         }
+      },
+      "caseActions":[]
+   },
+   "upstreamFailures":[
+      {
+         "endpoint":"getCas1Application",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"404 NOT_FOUND",
+         "message":"404 Not Found: [no body]",
+         "identifier":null
+      },
+      {
+         "endpoint":"getCas2Application",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"404 NOT_FOUND",
+         "message":"404 Not Found: [no body]",
+         "identifier":null
+      },
+      {
+         "endpoint":"getCas3Application",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"404 NOT_FOUND",
+         "message":"404 Not Found: [no body]",
+         "identifier":null
+      }
+   ]
+}
+  
 """.trimIndent()
 
 fun expectedGetEligibilityResponseTierNotFound(
@@ -372,6 +451,10 @@ fun expectedGetEligibilityResponseTierNotFound(
   cas3ReferralUrl: String,
   crsUrl: String,
   cas1ApplicationStartedAt: String,
+  cas1ApplicationSubmittedAt: String,
+  cas1RequestForPlacementExpectedArrivalDate: String,
+  cas1PlacementExpectedDepartureDate: String,
+  cas1SubmittedAt: String,
 ): String = """
 {
   "data": {
@@ -397,7 +480,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "username": "testTester",
             "staffCode": "1234"
           },
-          "submittedAt": null,
+          "submittedAt": "$cas1ApplicationSubmittedAt",
           "expiresAt": null
         },
         "assessment": null,
@@ -405,19 +488,27 @@ fun expectedGetEligibilityResponseTierNotFound(
           "status": "PLACEMENT_BOOKED",
           "decision": null,
           "rejectionReason": null,
-          "submittedBy": null,
-          "submittedAt": null,
+          "submittedBy":{"name":"Test Tester","username":"testTester","staffCode":"1234"},
+          "submittedAt": "$cas1SubmittedAt",
           "withdrawalReason": null,
           "withdrawalDate": null,
-          "expectedArrivalDate": null,
+          "expectedArrivalDate": "$cas1RequestForPlacementExpectedArrivalDate",
           "durationDays": null
         },
         "placement": {
           "status": "ARRIVED",
           "actualArrivalDate": null,
           "actualDepartureDate": null,
+          "expectedDepartureDate": "$cas1PlacementExpectedDepartureDate",
           "cancellationReason": null,
-          "premises": null
+          "premises": {
+            "startDate": "2025-01-01",
+            "endDate": "2025-07-01",
+            "addressLine1": "TEST HOUSE",
+            "addressLine2": null,
+            "town": null,
+            "postcode": "TEST POSTCODE"
+          }
         },
         "placementHistory": [],
         "id": "$cas1ApplicationId",
@@ -427,20 +518,18 @@ fun expectedGetEligibilityResponseTierNotFound(
       }
     },
     "cas2": {
-      "serviceResult": {
-        "serviceStatus": "NOT_STARTED",
-        "action": {
-          "type": "START_CAS2_REFERRAL",
-          "startDate": null,
-          "service": "CAS2"
+        "serviceResult": {
+            "serviceStatus": "NOT_ELIGIBLE",
+            "action": null,
+            "link": null,
+            "url": null,
+            "linkType": null,
+            "failureReasons": [
+                "INVALID_TIER"
+            ],
+            "blockingStatusReason": null
         },
-        "link": "Start application",
-        "url": null,
-        "linkType": "CAS2_START_APPLICATION",
-        "failureReasons": [],
-        "blockingStatusReason": null
-      },
-      "cas2Application": null
+        "cas2Application": null
     },
     "cas3": {
       "serviceResult": {
@@ -464,6 +553,7 @@ fun expectedGetEligibilityResponseTierNotFound(
         "applicationRejectedReason": null,
         "assessmentStatus": "UNALLOCATED",
         "bookingStatus": null,
+        "cancellation": null,
         "bookingProvisionalOfferSentDate": null,
         "previousBookings": [],
         "premises": null,
@@ -528,8 +618,7 @@ fun expectedGetEligibilityResponseTierNotFound(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
-         {"type": "START_CAS2_REFERRAL", "startDate": null, "service": "CAS2"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
       ]
    }
 }
@@ -593,11 +682,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
     "cas2": {
       "serviceResult": {
         "serviceStatus": "NOT_STARTED",
-        "action": {
-          "type": "START_CAS2_REFERRAL",
-          "startDate": null,
-          "service": "CAS2"
-        },
+        "action": {"type":"START_CAS2_REFERRAL","startDate":null,"service":"CAS2"},
         "link": "Start application",
         "url": null,
         "linkType": "CAS2_START_APPLICATION",
@@ -628,6 +713,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
         "applicationRejectedReason": null,
         "assessmentStatus": "UNALLOCATED",
         "bookingStatus": null,
+        "cancellation": null,
         "bookingProvisionalOfferSentDate": null,
         "previousBookings": [],
         "premises": null,
@@ -692,7 +778,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       },
       "caseActions":[
          {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
-         {"type": "START_CAS2_REFERRAL", "startDate": null, "service": "CAS2"}
+         {"type":"START_CAS2_REFERRAL","startDate":null,"service":"CAS2"}
       ]
    }
 }
@@ -723,12 +809,11 @@ fun expectedGetEligibilityResponseCannotStartYet(
       "cas2": {
         "serviceResult": {
           "serviceStatus": "NOT_STARTED",
-          "action": {
-            "type": "START_CAS2_REFERRAL",
-            "startDate": null,
-            "service": "CAS2"
+          "action":{
+          "type":"START_CAS2_REFERRAL",
+          "startDate":null,"service":"CAS2"
           },
-          "link": "Start application",
+          "link":"Start application",
           "url": null,
           "linkType": "CAS2_START_APPLICATION",
           "failureReasons": [],
@@ -760,6 +845,7 @@ fun expectedGetEligibilityResponseCannotStartYet(
         "applicationRejectedReason": null,
         "assessmentStatus": null,
         "bookingStatus": null,
+        "cancellation": null,
         "bookingProvisionalOfferSentDate": null,
         "previousBookings": [],
         "premises": null,

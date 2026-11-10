@@ -9,15 +9,19 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import jakarta.persistence.Version
 import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.annotations.SQLRestriction
 import org.hibernate.type.SqlTypes
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import java.time.LocalDate
 import java.util.UUID
 
 @Entity
 @Table(name = "sas_case")
+@SQLRestriction(value = "archived = false")
 class CaseEntity(
 
   @Id
@@ -27,6 +31,9 @@ class CaseEntity(
   var firstName: String? = null,
   var lastName: String? = null,
   var dateOfBirth: LocalDate? = null,
+  var archived: Boolean = false,
+  @Version
+  var version: Long = 0,
 
   @Column(columnDefinition = "jsonb")
   @JdbcTypeCode(SqlTypes.JSON)
@@ -43,6 +50,10 @@ class CaseEntity(
 
   var roshLevelCode: String? = null,
 
+  var assignedToForename: String? = null,
+  var assignedToSurname: String? = null,
+  var assignedToUsername: String? = null,
+
   @OneToMany(
     mappedBy = "caseEntity",
     fetch = FetchType.LAZY,
@@ -54,6 +65,13 @@ class CaseEntity(
 ) {
   fun latestCrn() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.CRN }.maxBy { it.createdAt }
     .identifier
+
   fun latestPrisonNumber() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.PRISON_NUMBER }.maxByOrNull { it.createdAt }
     ?.identifier
+}
+
+fun CaseEntity.toAssignedToDto(): AssignedToDto? {
+  val forename = assignedToForename ?: return null
+  val surname = assignedToSurname ?: return null
+  return AssignedToDto(forename = forename, surname = surname, username = assignedToUsername)
 }

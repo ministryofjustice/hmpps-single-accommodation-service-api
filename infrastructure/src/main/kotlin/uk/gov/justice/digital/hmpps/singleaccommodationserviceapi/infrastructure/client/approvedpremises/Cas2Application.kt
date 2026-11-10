@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.util.requireXor
+import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -26,6 +27,7 @@ data class Cas2SubmittedApplicationSummary(
   val offerDeclinedReason: String?,
   val cancelledReason: String?,
   val submittedAt: OffsetDateTime,
+  val markedAsArrivedDateTime: Instant?,
 ) {
   init {
     requireXor(
@@ -42,6 +44,14 @@ data class Cas2SubmittedApplicationSummary(
       offerDeclinedReason == null,
     ) {
       "Offer declined reason is required when status is `offerDeclined` and forbidden otherwise"
+    }
+  }
+
+  init {
+    require(
+      latestAssessmentStatus == Cas2AssessmentStatus.AWAITING_ARRIVAL || markedAsArrivedDateTime == null,
+    ) {
+      "Marked as arrived date time can only be provided when status is `awaitingArrival`"
     }
   }
 }

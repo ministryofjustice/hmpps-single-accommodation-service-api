@@ -17,11 +17,8 @@ data class EligibilityDtoNew(
 data class ServiceResultNew(
   val serviceStatus: ServiceStatusNew,
   val actionStartDate: LocalDate? = null,
-  val link: String? = null,
   val url: String? = null,
-  val linkType: LinkType? = null,
   val failureReasons: List<FailureReason> = emptyList(),
-  val blockingStatusReason: BlockingReason? = null,
 ) {
   init {
     requireXor(
@@ -35,19 +32,13 @@ data class ServiceResultNew(
 
 data class ServiceResultSpec(
   val serviceStatus: ServiceStatusNew,
-  val link: String? = null,
   val url: String? = null,
-  val linkType: LinkType? = null,
-  val blockingStatusReason: BlockingReason? = null,
   val failureReasons: List<FailureReason> = emptyList(),
 ) {
   fun toResult(actionStartDate: LocalDate? = null) = ServiceResultNew(
     serviceStatus = serviceStatus,
     actionStartDate = actionStartDate,
-    link = link,
     url = url,
-    linkType = linkType,
-    blockingStatusReason = blockingStatusReason,
     failureReasons = failureReasons,
   )
 }
@@ -93,256 +84,407 @@ data class CrsServiceResultWrapper(
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServicesDto?,
 ) : ServiceResultWrapper
 
+data class Link(
+  val text: String,
+  val type: LinkType? = null,
+)
+
+object EligibilityKeys {
+  // CAS1/CAS2
+  const val CREATE_NEW_PLACEMENT_REQUEST = "Create new placement request" // LINK TEXT
+  const val CREATE_PLACEMENT_REQUEST = "Create placement request" // LINK TEXT
+  const val START_NEW_APPLICATION = "Start new application" // LINK TEXT
+  const val START_APPLICATION = "Start application" // LINK TEXT
+  const val CONTINUE_APPLICATION = "Continue application" // LINK TEXT
+  const val VIEW_APPLICATION = "View application" // LINK TEXT
+
+  // CAS3
+  const val START_REFERRAL = "Start referral" // LINK TEXT
+  const val START_NEW_REFERRAL = "Start new referral" // LINK TEXT
+  const val VIEW_REFERRAL = "View referral" // LINK TEXT
+  const val CONTINUE_REFERRAL = "Continue referral" // LINK TEXT
+
+  // DTR
+  const val ADD_REFERRAL_DETAILS = "Add referral details" // LINK TEXT
+  const val ADD_OUTCOME = "Add outcome" // LINK TEXT
+
+  // CRS
+  const val VIEW_REFER_AND_MONITOR = "View refer and monitor" // LINK TEXT
+}
+
 enum class ServiceStatusNew(
-  val service: AccommodationService,
-  val proposedAction: CaseActionType?,
+  val service: ServiceType,
+  val proposedAction: CaseActionType? = null,
+  val link: Link? = null,
   val isUpcoming: Boolean = false,
+  val blockingStatusReason: BlockingReason? = null,
+  val uiStatusName: String,
 ) {
 
   // CAS1 Service Statuses
   CAS1_PLACEMENT_BOOKED(
-    service = AccommodationService.CAS1,
-    proposedAction = null,
+    service = ServiceType.CAS1,
+    link = Link(
+      text = EligibilityKeys.VIEW_APPLICATION,
+      type = LinkType.CAS1_VIEW_APPLICATION,
+    ),
+    uiStatusName = "Placement Booked",
   ),
   CAS1_UPCOMING(
-    service = AccommodationService.CAS1,
+    service = ServiceType.CAS1,
     proposedAction = CaseActionType.START_APPROVED_PREMISE_APPLICATION,
     isUpcoming = true,
+    uiStatusName = "Upcoming",
   ),
   CAS1_NOT_STARTED(
-    service = AccommodationService.CAS1,
+    service = ServiceType.CAS1,
     proposedAction = CaseActionType.START_APPROVED_PREMISE_APPLICATION,
+    link = Link(text = EligibilityKeys.START_APPLICATION, type = LinkType.CAS1_START_APPLICATION),
+    uiStatusName = "Not Started",
   ),
   CAS1_NOT_SUBMITTED(
-    service = AccommodationService.CAS1,
+    service = ServiceType.CAS1,
     proposedAction = CaseActionType.CONTINUE_APPROVED_PREMISE_APPLICATION,
+    link = Link(text = EligibilityKeys.CONTINUE_APPLICATION, type = LinkType.CAS1_VIEW_APPLICATION),
+    uiStatusName = "Not Submitted",
   ),
   CAS1_INFO_REQUESTED(
-    service = AccommodationService.CAS1,
+    service = ServiceType.CAS1,
     proposedAction = CaseActionType.PROVIDE_INFORMATION,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS1_VIEW_APPLICATION),
+    uiStatusName = "Information Requested",
   ),
   CAS1_SUBMITTED(
-    service = AccommodationService.CAS1,
-    proposedAction = null,
+    service = ServiceType.CAS1,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS1_VIEW_APPLICATION),
+    uiStatusName = "Submitted",
   ),
   CAS1_NOT_ARRIVED(
-    service = AccommodationService.CAS1,
+    service = ServiceType.CAS1,
     proposedAction = CaseActionType.CREATE_PLACEMENT,
+    link = Link(text = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST, type = LinkType.CAS1_VIEW_APPLICATION),
+    uiStatusName = "Not Arrived",
   ),
   CAS1_PLACEMENT_CANCELLED(
-    service = AccommodationService.CAS1,
+    service = ServiceType.CAS1,
     proposedAction = CaseActionType.CREATE_PLACEMENT,
+    link = Link(text = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST, type = LinkType.CAS1_VIEW_APPLICATION),
+    uiStatusName = "Placement Cancelled",
   ),
   CAS1_PLACEMENT_REQUEST_NOT_STARTED(
-    service = AccommodationService.CAS1,
+    service = ServiceType.CAS1,
     proposedAction = CaseActionType.CREATE_PLACEMENT,
+    link = Link(text = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST, type = LinkType.CAS1_VIEW_APPLICATION),
+    uiStatusName = "Placement Request Not Started",
+  ),
+  CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED(
+    service = ServiceType.CAS1,
+    proposedAction = CaseActionType.CREATE_PLACEMENT,
+    link = Link(text = EligibilityKeys.CREATE_PLACEMENT_REQUEST, type = LinkType.CAS1_VIEW_APPLICATION),
+    uiStatusName = "Placement Request Not Started",
   ),
   CAS1_PLACEMENT_REQUEST_WITHDRAWN(
-    service = AccommodationService.CAS1,
+    service = ServiceType.CAS1,
     proposedAction = CaseActionType.CREATE_PLACEMENT,
+    link = Link(text = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST, type = LinkType.CAS1_VIEW_APPLICATION),
+    uiStatusName = "Placement Request Withdrawn",
   ),
   CAS1_PLACEMENT_REQUEST_SUBMITTED(
-    service = AccommodationService.CAS1,
-    proposedAction = null,
+    service = ServiceType.CAS1,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS1_VIEW_APPLICATION),
+    uiStatusName = "Placement Request Submitted",
   ),
   CAS1_PLACEMENT_REQUEST_REJECTED(
-    service = AccommodationService.CAS1,
+    service = ServiceType.CAS1,
     proposedAction = CaseActionType.CREATE_PLACEMENT,
+    link = Link(text = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST, type = LinkType.CAS1_VIEW_APPLICATION),
+    uiStatusName = "Placement Request Rejected",
   ),
   CAS1_APPLICATION_REJECTED(
-    service = AccommodationService.CAS1,
+    service = ServiceType.CAS1,
     proposedAction = CaseActionType.START_APPROVED_PREMISE_APPLICATION,
+    link = Link(text = EligibilityKeys.START_NEW_APPLICATION, type = LinkType.CAS1_START_APPLICATION),
+    uiStatusName = "Application Rejected",
   ),
   CAS1_ARRIVED(
-    service = AccommodationService.CAS1,
-    proposedAction = null,
+    service = ServiceType.CAS1,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS1_VIEW_APPLICATION),
+    uiStatusName = "Arrived",
   ),
   CAS1_NOT_ELIGIBLE(
-    service = AccommodationService.CAS1,
-    proposedAction = null,
+    service = ServiceType.CAS1,
+    uiStatusName = "Not Eligible",
   ),
 
   // CAS2 Service Statuses
   CAS2_UNKNOWN(
-    service = AccommodationService.CAS2,
-    proposedAction = null,
+    service = ServiceType.CAS2,
+    uiStatusName = "Unknown",
   ),
   CAS2_OFFER_DECLINED_OR_WITHDRAWN(
-    service = AccommodationService.CAS2,
-    proposedAction = null,
+    service = ServiceType.CAS2,
+    link = Link(text = EligibilityKeys.START_NEW_APPLICATION, type = LinkType.CAS2_START_APPLICATION),
+    uiStatusName = "Offer Declined or Withdrawn",
   ),
   CAS2_SUBMITTED(
-    service = AccommodationService.CAS2,
-    proposedAction = null,
+    service = ServiceType.CAS2,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS2_VIEW_APPLICATION),
+    uiStatusName = "Submitted",
   ),
   CAS2_NOT_STARTED(
-    service = AccommodationService.CAS2,
+    service = ServiceType.CAS2,
     proposedAction = CaseActionType.START_CAS2_REFERRAL,
+    link = Link(text = EligibilityKeys.START_APPLICATION, type = LinkType.CAS2_START_APPLICATION),
+    uiStatusName = "Not Started",
   ),
   CAS2_NOT_SUBMITTED(
-    service = AccommodationService.CAS2,
+    service = ServiceType.CAS2,
     proposedAction = CaseActionType.CONTINUE_A_CAS2_REFERRAL,
+    link = Link(text = EligibilityKeys.CONTINUE_APPLICATION, type = LinkType.CAS2_VIEW_APPLICATION),
+    uiStatusName = "Not Submitted",
   ),
   CAS2_UPCOMING(
-    service = AccommodationService.CAS2,
+    service = ServiceType.CAS2,
     proposedAction = CaseActionType.START_CAS2_REFERRAL,
     isUpcoming = true,
+    uiStatusName = "Upcoming",
   ),
   CAS2_MORE_INFORMATION_NEEDED(
-    service = AccommodationService.CAS2,
+    service = ServiceType.CAS2,
     proposedAction = CaseActionType.PROVIDE_MORE_INFORMATION_FOR_CAS2_REFERRAL,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS2_VIEW_APPLICATION),
+    uiStatusName = "More Information Needed",
   ),
   CAS2_AWAITING_DECISION(
-    service = AccommodationService.CAS2,
-    proposedAction = null,
+    service = ServiceType.CAS2,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS2_VIEW_APPLICATION),
+    uiStatusName = "Awaiting Decision",
   ),
   CAS2_ON_WAITING_LIST(
-    service = AccommodationService.CAS2,
-    proposedAction = null,
+    service = ServiceType.CAS2,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS2_VIEW_APPLICATION),
+    uiStatusName = "On Waiting List",
   ),
   CAS2_PLACE_OFFERED(
-    service = AccommodationService.CAS2,
+    service = ServiceType.CAS2,
     proposedAction = CaseActionType.REPLY_TO_CAS2_PLACE_OFFER,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS2_VIEW_APPLICATION),
+    uiStatusName = "Place Offered",
   ),
   CAS2_OFFER_ACCEPTED(
-    service = AccommodationService.CAS2,
-    proposedAction = null,
+    service = ServiceType.CAS2,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS2_VIEW_APPLICATION),
+    uiStatusName = "Offer Accepted",
   ),
   CAS2_CANCELLED(
-    service = AccommodationService.CAS2,
-    proposedAction = null,
+    service = ServiceType.CAS2,
+    link = Link(text = EligibilityKeys.START_NEW_APPLICATION, type = LinkType.CAS2_START_APPLICATION),
+    uiStatusName = "Cancelled",
   ),
   CAS2_AWAITING_ARRIVAL(
-    service = AccommodationService.CAS2,
-    proposedAction = null,
+    service = ServiceType.CAS2,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS2_VIEW_APPLICATION),
+    uiStatusName = "Awaiting Arrival",
+  ),
+  CAS2_ARRIVED(
+    service = ServiceType.CAS2,
+    link = Link(text = EligibilityKeys.VIEW_APPLICATION, type = LinkType.CAS2_VIEW_APPLICATION),
+    uiStatusName = "Arrived",
   ),
   CAS2_WITHDRAWN(
-    service = AccommodationService.CAS2,
-    proposedAction = null,
+    service = ServiceType.CAS2,
+    link = Link(text = EligibilityKeys.START_NEW_APPLICATION, type = LinkType.CAS2_START_APPLICATION),
+    uiStatusName = "Withdrawn",
   ),
   CAS2_NOT_ELIGIBLE(
-    service = AccommodationService.CAS2,
-    proposedAction = null,
+    service = ServiceType.CAS2,
+    uiStatusName = "Not Eligible",
   ),
 
   // CAS3 Service Statuses
   CAS3_NOT_ARRIVED(
-    service = AccommodationService.CAS3,
-    proposedAction = null,
+    service = ServiceType.CAS3,
+    link = Link(text = EligibilityKeys.VIEW_REFERRAL, type = LinkType.CAS3_VIEW_REFERRAL),
+    uiStatusName = "Not Arrived",
   ),
   CAS3_SUBMITTED(
-    service = AccommodationService.CAS3,
-    proposedAction = null,
+    service = ServiceType.CAS3,
+    link = Link(text = EligibilityKeys.VIEW_REFERRAL, type = LinkType.CAS3_VIEW_REFERRAL),
+    uiStatusName = "Submitted",
+  ),
+  CAS3_UPCOMING(
+    service = ServiceType.CAS3,
+    proposedAction = CaseActionType.START_CAS3_REFERRAL,
+    isUpcoming = true,
+    uiStatusName = "Upcoming",
   ),
   CAS3_NOT_STARTED(
-    service = AccommodationService.CAS3,
+    service = ServiceType.CAS3,
     proposedAction = CaseActionType.START_CAS3_REFERRAL,
+    link = Link(text = EligibilityKeys.START_REFERRAL, type = LinkType.CAS3_START_REFERRAL),
+    uiStatusName = "Not Started",
+  ),
+  CAS3_NOT_STARTED_NEW(
+    service = ServiceType.CAS3,
+    proposedAction = CaseActionType.START_CAS3_REFERRAL,
+    link = Link(text = EligibilityKeys.START_NEW_REFERRAL, type = LinkType.CAS3_START_REFERRAL),
+    uiStatusName = "Not Started",
   ),
   CAS3_NOT_SUBMITTED(
-    service = AccommodationService.CAS3,
+    service = ServiceType.CAS3,
     proposedAction = CaseActionType.CONTINUE_CAS3_REFERRAL,
+    link = Link(text = EligibilityKeys.CONTINUE_REFERRAL, type = LinkType.CAS3_VIEW_REFERRAL),
+    uiStatusName = "Not Submitted",
   ),
   CAS3_REJECTED(
-    service = AccommodationService.CAS3,
+    service = ServiceType.CAS3,
     proposedAction = CaseActionType.START_CAS3_REFERRAL,
+    link = Link(text = EligibilityKeys.START_NEW_REFERRAL, type = LinkType.CAS3_START_REFERRAL),
+    uiStatusName = "Rejected",
   ),
   CAS3_BEDSPACE_OFFERED(
-    service = AccommodationService.CAS3,
+    service = ServiceType.CAS3,
     proposedAction = CaseActionType.REPLY_TO_CAS3_BEDSPACE_OFFER,
+    link = Link(text = EligibilityKeys.VIEW_REFERRAL, type = LinkType.CAS3_VIEW_REFERRAL),
+    uiStatusName = "Bedspace Offered",
   ),
   CAS3_BOOKING_CONFIRMED(
-    service = AccommodationService.CAS3,
-    proposedAction = null,
+    service = ServiceType.CAS3,
+    link = Link(text = EligibilityKeys.VIEW_REFERRAL, type = LinkType.CAS3_VIEW_REFERRAL),
+    uiStatusName = "Booking Confirmed",
+  ),
+  CAS3_ARRIVED(
+    service = ServiceType.CAS3,
+    link = Link(text = EligibilityKeys.VIEW_REFERRAL, type = LinkType.CAS3_VIEW_REFERRAL),
+    uiStatusName = "Arrived",
   ),
   CAS3_BOOKING_CANCELLED(
-    service = AccommodationService.CAS3,
-    proposedAction = null,
+    service = ServiceType.CAS3,
+    link = Link(text = EligibilityKeys.VIEW_REFERRAL, type = LinkType.CAS3_VIEW_REFERRAL),
+    uiStatusName = "Booking Cancelled",
   ),
-  CAS3_CANNOT_START_YET(
-    service = AccommodationService.CAS3,
-    proposedAction = null,
+  CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION(
+    service = ServiceType.CAS3,
+    blockingStatusReason = BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3,
+    uiStatusName = "Cannot Start Yet",
+  ),
+  CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS(
+    service = ServiceType.CAS3,
+    blockingStatusReason = BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3,
+    uiStatusName = "Cannot Start Yet",
+  ),
+  CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION(
+    service = ServiceType.CAS3,
+    blockingStatusReason = BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3,
+    uiStatusName = "Cannot Start Yet",
+  ),
+  CAS3_CANNOT_START_YET_SUBMIT_CRS(
+    service = ServiceType.CAS3,
+    blockingStatusReason = BlockingReason.SUBMIT_CRS_BEFORE_CAS3,
+    uiStatusName = "Cannot Start Yet",
+  ),
+  CAS3_CANNOT_START_YET_SUBMIT_DTR(
+    service = ServiceType.CAS3,
+    blockingStatusReason = BlockingReason.SUBMIT_DTR_BEFORE_CAS3,
+    uiStatusName = "Cannot Start Yet",
   ),
   CAS3_NOT_ELIGIBLE(
-    service = AccommodationService.CAS3,
-    proposedAction = null,
+    service = ServiceType.CAS3,
+    uiStatusName = "Not Eligible",
   ),
 
   // CRS Service Statuses
   CRS_NOT_STARTED_REFERRAL(
-    service = AccommodationService.CRS,
+    service = ServiceType.CRS,
     proposedAction = CaseActionType.SUBMIT_CRS_REFERRAL,
+    link = Link(text = EligibilityKeys.VIEW_REFER_AND_MONITOR),
+    uiStatusName = "Not Started",
   ),
   CRS_NOT_STARTED_ACCOMMODATION_REFERRAL(
-    service = AccommodationService.CRS,
+    service = ServiceType.CRS,
     proposedAction = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL,
+    link = Link(text = EligibilityKeys.VIEW_REFER_AND_MONITOR),
+    uiStatusName = "Not Started",
   ),
   CRS_UPCOMING_ACCOMMODATION_REFERRAL(
-    service = AccommodationService.CRS,
+    service = ServiceType.CRS,
     proposedAction = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL,
     isUpcoming = true,
+    uiStatusName = "Upcoming",
   ),
   CRS_UPCOMING_REFERRAL(
-    service = AccommodationService.CRS,
+    service = ServiceType.CRS,
     proposedAction = CaseActionType.SUBMIT_CRS_REFERRAL,
     isUpcoming = true,
+    uiStatusName = "Upcoming",
   ),
   CRS_SUBMITTED(
-    service = AccommodationService.CRS,
-    proposedAction = null,
+    service = ServiceType.CRS,
+    link = Link(text = EligibilityKeys.VIEW_REFER_AND_MONITOR),
+    uiStatusName = "Submitted",
   ),
   CRS_NOT_REQUIRED(
-    service = AccommodationService.CRS,
-    proposedAction = null,
+    service = ServiceType.CRS,
+    uiStatusName = "Not Required",
   ),
   CRS_NOT_ELIGIBLE(
-    service = AccommodationService.CRS,
-    proposedAction = null,
+    service = ServiceType.CRS,
+    uiStatusName = "Not Eligible",
   ),
 
   // DTR Service Statuses
   DTR_SUBMITTED(
-    service = AccommodationService.DTR,
+    service = ServiceType.DTR,
     proposedAction = CaseActionType.ADD_DTR_OUTCOME,
+    link = Link(text = EligibilityKeys.ADD_OUTCOME),
+    uiStatusName = "Submitted",
   ),
   DTR_UPCOMING(
-    service = AccommodationService.DTR,
+    service = ServiceType.DTR,
     proposedAction = CaseActionType.SUBMIT_DTR_REFERRAL,
     isUpcoming = true,
+    uiStatusName = "Upcoming",
   ),
   DTR_NOT_STARTED(
-    service = AccommodationService.DTR,
+    service = ServiceType.DTR,
     proposedAction = CaseActionType.ADD_DTR_REFERRAL_DETAILS,
+    link = Link(text = EligibilityKeys.ADD_REFERRAL_DETAILS),
+    uiStatusName = "Not Started",
   ),
   DTR_ACCEPTED(
-    service = AccommodationService.DTR,
-    proposedAction = null,
+    service = ServiceType.DTR,
+    uiStatusName = "Accepted",
   ),
   DTR_NOT_ACCEPTED(
-    service = AccommodationService.DTR,
-    proposedAction = null,
+    service = ServiceType.DTR,
+    uiStatusName = "Not Accepted",
   ),
   DTR_NOT_REQUIRED(
-    service = AccommodationService.DTR,
-    proposedAction = null,
+    service = ServiceType.DTR,
+    uiStatusName = "Not Required",
   ),
   DTR_NOT_ELIGIBLE(
-    service = AccommodationService.DTR,
-    proposedAction = null,
+    service = ServiceType.DTR,
+    uiStatusName = "Not Eligible",
   ),
 
   // PA Service Statuses
   PA_NOT_STARTED(
-    service = AccommodationService.PA,
+    service = ServiceType.PA,
     proposedAction = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS,
+    uiStatusName = "Not Started",
   ),
   PA_NOT_ELIGIBLE(
-    service = AccommodationService.PA,
-    proposedAction = null,
+    service = ServiceType.PA,
+    uiStatusName = "Not Eligible",
   ),
   PA_COMPLETED(
-    service = AccommodationService.PA,
-    proposedAction = null,
+    service = ServiceType.PA,
+    uiStatusName = "Completed",
   ),
+  ;
+
+  override fun toString(): String = "ServiceStatusNew(name=${this.name}, service=$service, proposedAction=$proposedAction, link=$link, isUpcoming=$isUpcoming, blockingStatusReason=$blockingStatusReason, uiStatusName='$uiStatusName')"
 }
 
 enum class LinkType {
@@ -355,12 +497,11 @@ enum class LinkType {
 }
 
 enum class FailureReason {
-  S_TIER,
   MALE_NOT_HIGH_RISK_TIER,
   NON_MALE_NOT_HIGH_RISK_TIER,
-  SEX_DATA_NOT_AVAILABLE,
+  NOT_IN_PRISON_OR_CAS1_ACCOMMODATION,
   INVALID_CURRENT_ACCOMMODATION_TYPE,
-  CRS_NOT_SUBMITTED,
+  INVALID_TIER,
   CRS_NOT_SUBMITTED_MALE,
   CRS_NOT_SUBMITTED_NON_MALE,
   HAS_NEXT_ACCOMMODATION,
@@ -368,6 +509,13 @@ enum class FailureReason {
   SUITABLE_CAS1_APPLICATION,
   SUITABLE_CAS3_APPLICATION,
   IS_SETTLED,
+  UNDER_18,
+  IN_CAS2_ACCOMMODATION,
+  IN_CAS3_ACCOMMODATION,
+  IN_COMMUNITY,
+  SEXUAL_OFFENCE_REGISTRATIONS_PRESENT,
+  IN_PRISON_NO_RELEASE_DATE,
+  HAS_NO_ROSH_LEVEL,
 }
 
 enum class BlockingReason {
@@ -377,4 +525,13 @@ enum class BlockingReason {
   SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3,
   SUBMIT_DTR_AND_CRS_BEFORE_CAS3,
   SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3,
+}
+
+enum class ServiceType {
+  CAS1,
+  CAS2,
+  CAS3,
+  DTR,
+  CRS,
+  PA,
 }

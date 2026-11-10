@@ -9,21 +9,14 @@ import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isTimeout
-import java.net.http.HttpTimeoutException
 import java.time.LocalDateTime
-
-data class CallsPerIdentifier(
-  val calls: Map<String, (String) -> Any>,
-  val identifiersToIterate: List<String>,
-)
 
 data class AggregatorResult(
   val standardCallsNoIterationResults: Map<String, Any>?,
-  val callsPerIdentifierResults: Map<String, Map<String, Any>>?,
 )
 
 @Service
@@ -36,11 +29,10 @@ class AggregatorService(
 
   fun orchestrateAsyncCalls(
     standardCallsNoIteration: Map<String, () -> Any?> = emptyMap(),
-    callsPerIdentifier: CallsPerIdentifier? = null,
   ): AggregatorResult = runBlocking {
-    if (standardCallsNoIteration.isEmpty() && callsPerIdentifier == null) {
+    if (standardCallsNoIteration.isEmpty()) {
       log.debug("No API calls to execute")
-      return@runBlocking AggregatorResult(emptyMap(), emptyMap())
+      return@runBlocking AggregatorResult(emptyMap())
     }
 
     log.debug("Starting async calls: {}", LocalDateTime.now())
@@ -48,39 +40,17 @@ class AggregatorService(
     val standardCallsSuspend: Map<String, suspend () -> Any?> =
       standardCallsNoIteration.mapValues { (_, f) -> suspend { f() } }
 
-    val perIdentifierCallsSuspend: Map<String, suspend (String) -> Any>? =
-      callsPerIdentifier?.calls?.mapValues { (_, f) -> f.asSuspend() }
-
     val standardDeferred = async(Dispatchers.IO) {
-      if (standardCallsSuspend.isNotEmpty()) {
-        orchestrateAsyncCalls(standardCallsSuspend, semaphore)
-      } else {
-        null
-      }
-    }
-
-    val perIdentifierDeferred = async(Dispatchers.IO) {
-      if (perIdentifierCallsSuspend != null) {
-        orchestrateAsyncCalls(
-          identifiers = callsPerIdentifier.identifiersToIterate,
-          functionCalls = perIdentifierCallsSuspend,
-          semaphore = semaphore,
-        )
-      } else {
-        null
-      }
+      orchestrateAsyncCalls(standardCallsSuspend, semaphore)
     }
 
     val result = AggregatorResult(
       standardCallsNoIterationResults = standardDeferred.await(),
-      callsPerIdentifierResults = perIdentifierDeferred.await(),
     )
     log.debug("Finished async calls at: {}. ", LocalDateTime.now())
 
     result
   }
-
-  private fun <T, R> ((T) -> R).asSuspend(): suspend (T) -> R = { t: T -> this(t) }
 
   private suspend fun orchestrateAsyncCalls(
     functionCalls: Map<String, suspend () -> Any?>,
@@ -99,85 +69,38 @@ class AggregatorService(
     }.mapValues { (_, deferred) -> deferred.await() }
   }
 
-  private suspend fun orchestrateAsyncCalls(
-    identifiers: List<String>,
-    functionCalls: Map<String, suspend (String) -> Any>,
-    semaphore: Semaphore,
-  ): Map<String, Map<String, Any>> = coroutineScope {
-    identifiers.associateWith { identifier ->
-      async(Dispatchers.IO) {
-        functionCalls.mapValues { (key, supplier) ->
-          async(Dispatchers.IO) {
-            semaphore.withPermit {
-              try {
-                AggregatorCallOutcome.Success(supplier(identifier))
-              } catch (e: Exception) {
-                classifyAndWrap(key, e, identifier = identifier)
-              }
-            }
-          }
-        }.mapValues { (_, deferred) -> deferred.await() }
-      }
-    }.mapValues { (_, deferred) -> deferred.await() }
-  }
-
-  private fun classifyAndWrap(key: String, exception: Exception, identifier: String? = null): AggregatorCallOutcome.Failure {
-    val logPrefix = if (identifier != null) "'$key' [identifier=$identifier]" else "'$key'"
+  private fun classifyAndWrap(key: String, exception: Exception): AggregatorCallOutcome.Failure {
     val failure = when (exception) {
       is WebClientResponseException -> {
-        log.error("Upstream HTTP error for call {}: {} {}", logPrefix, exception.statusCode, exception.message)
+        log.error("Upstream HTTP error for call '{}': {} {}", key, exception.statusCode, exception.message)
         AggregatorCallOutcome.Failure(
           FailureType.UPSTREAM_HTTP_ERROR,
           ErrorDetail(
             httpStatus = HttpStatus.resolve(exception.statusCode.value()),
             message = exception.message,
           ),
-          identifier = identifier,
         )
       }
       is WebClientRequestException -> {
-        val isTimeout = exception.isTimeout()
-        if (isTimeout) {
-          log.error("Timeout for call {}: {}", logPrefix, exception.message)
+        if (exception.isTimeout()) {
+          log.error("Timeout for call '{}': {}", key, exception.message)
           AggregatorCallOutcome.Failure(
             FailureType.TIMEOUT,
             ErrorDetail(httpStatus = null, message = exception.message ?: "Request timed out"),
-            identifier = identifier,
           )
         } else {
-          log.error("Unknown error for call {}: {}", logPrefix, exception.message, exception)
+          log.error("Unknown error for call '{}': {}", key, exception.message, exception)
           AggregatorCallOutcome.Failure(
             FailureType.UNKNOWN_ERROR,
             ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
-            identifier = identifier,
-          )
-        }
-      }
-      // TODO: Once we have completed the switch to WebClient, we should remove this
-      is ResourceAccessException -> {
-        val isTimeout = exception.cause is HttpTimeoutException
-        if (isTimeout) {
-          log.error("Timeout for call {}: {}", logPrefix, exception.message)
-          AggregatorCallOutcome.Failure(
-            FailureType.TIMEOUT,
-            ErrorDetail(httpStatus = null, message = exception.message ?: "Request timed out"),
-            identifier = identifier,
-          )
-        } else {
-          log.error("Unknown error for call {}: {}", logPrefix, exception.message, exception)
-          AggregatorCallOutcome.Failure(
-            FailureType.UNKNOWN_ERROR,
-            ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
-            identifier = identifier,
           )
         }
       }
       else -> {
-        log.error("Unknown error for call {}: {}", logPrefix, exception.message, exception)
+        log.error("Unknown error for call '{}': {}", key, exception.message, exception)
         AggregatorCallOutcome.Failure(
           FailureType.UNKNOWN_ERROR,
           ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
-          identifier = identifier,
         )
       }
     }
@@ -187,4 +110,28 @@ class AggregatorService(
     }
     return failure
   }
+}
+
+inline fun <reified R : Any, T> AggregatorService.fetchAllPages(
+  callKeyForPage: (Long) -> String,
+  crossinline fetchPage: (Long) -> R,
+  pageMetadata: (R) -> PageMetadata,
+  content: (R) -> List<T>,
+): OrchestrationResultDto<List<T>> {
+  val firstPageKey = callKeyForPage(0)
+  val firstPageResults = orchestrateAsyncCalls(
+    standardCallsNoIteration = mapOf(firstPageKey to { fetchPage(0) }),
+  ).standardCallsNoIterationResults!!
+  val firstPage = firstPageResults.getResult<R>(firstPageKey)
+
+  val remainingPageNumbers = firstPage?.let { 1 until pageMetadata(it).totalPages } ?: LongRange.EMPTY
+  val remainingPageResults = orchestrateAsyncCalls(
+    standardCallsNoIteration = remainingPageNumbers.associate { number -> callKeyForPage(number) to { fetchPage(number) } },
+  ).standardCallsNoIterationResults!!
+  val remainingPages = remainingPageNumbers.mapNotNull { number -> remainingPageResults.getResult<R>(callKeyForPage(number)) }
+
+  return OrchestrationResultDto(
+    data = (listOfNotNull(firstPage) + remainingPages).flatMap { content(it) },
+    upstreamFailures = firstPageResults.getFailures() + remainingPageResults.getFailures(),
+  )
 }

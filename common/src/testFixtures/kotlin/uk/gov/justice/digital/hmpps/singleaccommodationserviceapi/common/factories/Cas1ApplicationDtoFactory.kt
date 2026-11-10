@@ -68,6 +68,7 @@ fun buildCas1PlacementSummaryDto(
   status: Cas1PlacementStatus? = null,
   cancellationReason: String? = null,
   actualDepartureDate: LocalDate? = null,
+  expectedDepartureDate: LocalDate? = null,
   actualArrivalDate: LocalDate? = null,
   premises: Cas1PremisesSummaryDto? = null,
 ) = Cas1PlacementSummaryDto(
@@ -76,6 +77,7 @@ fun buildCas1PlacementSummaryDto(
   actualDepartureDate = actualDepartureDate,
   cancellationReason = cancellationReason,
   premises = premises,
+  expectedDepartureDate = expectedDepartureDate,
 )
 
 fun buildCas1RequestForPlacementSummaryDto(

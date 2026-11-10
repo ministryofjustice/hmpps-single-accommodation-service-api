@@ -9,13 +9,17 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArchiveCasesByCrnCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArchiveCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshAllCasesCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesByCrnCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedInboxEventsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminArchiveCasesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkLoadCasesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkRefreshCasesService
 import java.util.UUID
@@ -25,6 +29,7 @@ class AdminJobController(
   private val adminBulkLoadCasesService: AdminBulkLoadCasesService,
   private val adminBulkRefreshCasesService: AdminBulkRefreshCasesService,
   private val inboxEventService: InboxEventService,
+  private val adminArchiveCasesService: AdminArchiveCasesService,
 ) {
 
   @PreAuthorize("hasRole('ROLE_SAS_ADMIN_RW')")
@@ -37,6 +42,18 @@ class AdminJobController(
   @PostMapping("/admin/bulk-refresh-cases-by-crn")
   fun bulkRefreshCasesByCrn(@RequestBody request: BulkRefreshCasesByCrnCommand): ResponseEntity<ApiResponseDto<BulkRefreshCasesResultDto>> = ResponseEntity.ok(
     adminBulkRefreshCasesService.bulkRefreshCasesByCrn(crns = request.crns, dryRun = request.dryRun),
+  )
+
+  @PreAuthorize("hasRole('ROLE_SAS_ADMIN_RW')")
+  @PostMapping("/admin/bulk-refresh-all-cases")
+  fun bulkRefreshAllCases(@RequestBody request: BulkRefreshAllCasesCommand): ResponseEntity<ApiResponseDto<BulkRefreshCasesResultDto>> = ResponseEntity.ok(
+    adminBulkRefreshCasesService.buildRefreshAllCases(dryRun = request.dryRun),
+  )
+
+  @PreAuthorize("hasRole('ROLE_SAS_ADMIN_RW')")
+  @PostMapping("/admin/archive-cases-by-crn")
+  fun archiveCasesByCrn(@RequestBody request: ArchiveCasesByCrnCommand): ResponseEntity<ApiResponseDto<ArchiveCasesResultDto>> = ResponseEntity.ok(
+    adminArchiveCasesService.archiveCasesByCrn(crns = request.crns, dryRun = request.dryRun),
   )
 
   @PreAuthorize("hasRole('ROLE_SAS_ADMIN_RW')")

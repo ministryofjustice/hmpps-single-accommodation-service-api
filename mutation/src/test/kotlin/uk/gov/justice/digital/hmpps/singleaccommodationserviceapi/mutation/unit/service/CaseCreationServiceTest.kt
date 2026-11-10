@@ -6,19 +6,26 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.runs
 import io.mockk.verify
+import io.mockk.verifyOrder
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.ErrorDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.FailureType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER_V3
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseSnapshotAssembler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseToCreate
 import java.time.LocalDate
@@ -42,7 +49,16 @@ class CaseCreationServiceTest {
     @MockK(relaxed = true)
     lateinit var caseSnapshotAssembler: CaseSnapshotAssembler
 
+    @MockK(relaxed = true)
+    lateinit var caseRefreshRequestService: CaseRefreshRequestService
+
     private val caseMapper = CaseMapper()
+
+    private val tierFailure = UpstreamFailure(
+      callKey = GET_TIER_V3,
+      type = FailureType.UPSTREAM_HTTP_ERROR,
+      errorDetail = ErrorDetail(httpStatus = HttpStatus.INTERNAL_SERVER_ERROR, message = "Internal Server Error"),
+    )
 
     private lateinit var caseCreationService: CaseCreationService
 
@@ -54,10 +70,11 @@ class CaseCreationServiceTest {
         caseRepository = caseRepository,
         caseMapper = caseMapper,
         entityManager = entityManager,
+        caseRefreshRequestService = caseRefreshRequestService,
       )
     }
 
-    private fun stubOrchestrationResult(crn: String) {
+    private fun stubOrchestrationResult(crn: String, upstreamFailures: List<UpstreamFailure> = emptyList()) {
       every { caseOrchestrationService.getCurrentCaseResult(crn = crn, prisonNumber = any()) } returns
         OrchestrationResultDto(
           data = CaseMutationOrchestrationDto(
@@ -71,6 +88,7 @@ class CaseCreationServiceTest {
             cas3Application = null,
             case = null,
           ),
+          upstreamFailures = upstreamFailures,
         )
     }
 
@@ -156,20 +174,31 @@ class CaseCreationServiceTest {
     @Nested
     inner class SaveUnpersistedCases {
 
+      private val saved = mutableListOf<CaseEntity>()
+
+      @BeforeEach
+      fun stubSave() {
+        saved.clear()
+        every { caseRepository.save(capture(saved)) } answers { firstArg() }
+      }
+
       @Test
       fun `persists only unpersisted Crns and populates all data on the record`() {
-        val caseToCreate =
-          CaseToCreate(crn = UUID.randomUUID().toString(), prisonNumber = UUID.randomUUID().toString())
+        val first = CaseToCreate(crn = "A111111", prisonNumber = "A1234BC")
+        val second = CaseToCreate(crn = "B222222", prisonNumber = "B1234BC")
+        val third = CaseToCreate(crn = "C333333", prisonNumber = "C1234BC")
 
-        every { caseRepository.findByIdentifiers(crns = any(), prisonNumbers = any()) } returns null
-        every { caseRepository.findUnpersistedCrns(any()) } returns listOf(caseToCreate.crn)
-        every { caseRepository.save(any<CaseEntity>()) } answers { firstArg() }
+        every { caseRepository.findUnpersistedCrns(any()) } returns listOf(first.crn, third.crn)
+        stubOrchestrationResult(first.crn)
+        stubOrchestrationResult(third.crn)
 
-        stubOrchestrationResult(caseToCreate.crn)
+        caseCreationService.saveUnpersistedCases(listOf(first, second, third))
 
-        caseCreationService.saveUnpersistedCases(listOf(caseToCreate))
-
-        verify(exactly = 1) { caseSnapshotAssembler.upsertCase(any(), any()) }
+        val entities = saved.toList()
+        assertThat(entities.map { it.latestCrn() }).containsExactly(first.crn, third.crn)
+        assertThat(entities.map { it.latestPrisonNumber() }).containsExactly(first.prisonNumber, third.prisonNumber)
+        verify(exactly = 2) { caseRepository.save(any()) }
+        verify(exactly = 0) { caseOrchestrationService.getCurrentCaseResult(crn = second.crn, prisonNumber = any()) }
       }
 
       @Test
@@ -187,8 +216,55 @@ class CaseCreationServiceTest {
 
         verify(exactly = 1) { caseRepository.findUnpersistedCrns(any()) }
         verify(exactly = 0) { caseOrchestrationService.getCurrentCaseResult(any(), any()) }
-        verify(exactly = 0) { entityManager.merge(any<CaseEntity>()) }
+        verify(exactly = 0) { caseRepository.save(any()) }
         verify(exactly = 0) { caseSnapshotAssembler.upsertCase(any(), any()) }
+        verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
+      }
+
+      @Test
+      fun `saves the partial data and requests a refresh only for cases with upstream failures`() {
+        val failing = CaseToCreate(crn = "A111111", prisonNumber = "A1234BC")
+        val healthy = CaseToCreate(crn = "B222222", prisonNumber = "B1234BC")
+
+        every { caseRepository.findUnpersistedCrns(any()) } returns listOf(failing.crn, healthy.crn)
+        stubOrchestrationResult(failing.crn, upstreamFailures = listOf(tierFailure))
+        stubOrchestrationResult(healthy.crn)
+
+        caseCreationService.saveUnpersistedCases(listOf(failing, healthy))
+
+        val entities = saved.toList()
+        assertThat(entities).hasSize(2)
+        val failingEntity = entities.single { it.latestCrn() == failing.crn }
+        verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(failingEntity.id) }
+        verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(any()) }
+      }
+
+      @Test
+      fun `does not request a refresh when there are no upstream failures`() {
+        val caseToCreate = CaseToCreate(crn = "A111111", prisonNumber = "A1234BC")
+
+        every { caseRepository.findUnpersistedCrns(any()) } returns listOf(caseToCreate.crn)
+        stubOrchestrationResult(caseToCreate.crn)
+
+        caseCreationService.saveUnpersistedCases(listOf(caseToCreate))
+
+        verify(exactly = 1) { caseRepository.save(any()) }
+        verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
+      }
+
+      @Test
+      fun `requests refreshes after the cases have been saved`() {
+        val caseToCreate = CaseToCreate(crn = "A111111", prisonNumber = "A1234BC")
+
+        every { caseRepository.findUnpersistedCrns(any()) } returns listOf(caseToCreate.crn)
+        stubOrchestrationResult(caseToCreate.crn, upstreamFailures = listOf(tierFailure))
+
+        caseCreationService.saveUnpersistedCases(listOf(caseToCreate))
+
+        verifyOrder {
+          caseRepository.save(any())
+          caseRefreshRequestService.requestLiveRefresh(any())
+        }
       }
     }
   }

@@ -127,7 +127,7 @@ fun buildProbationCreateAddress(
   county = county,
   comment = comment,
   statusCode = statusCode,
-  usages = listOf(usage),
+  usage = usage,
   uprn = uprn,
   contacts = contacts,
 )

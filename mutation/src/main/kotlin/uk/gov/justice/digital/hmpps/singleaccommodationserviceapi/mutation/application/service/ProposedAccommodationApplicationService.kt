@@ -143,14 +143,12 @@ class ProposedAccommodationApplicationService(
           uprn = aggregateSnapshot.address.uprn,
           comment = null,
           statusCode = AddressStatusCode.valueOf(aggregateSnapshot.accommodationStatus!!.code),
-          usages = aggregateSnapshot.accommodationType?.let {
-            listOf(
-              AddressUsage(
-                usageCode = AddressUsageCode.valueOf(aggregateSnapshot.accommodationType.code),
-                isActive = true,
-              ),
+          usage = aggregateSnapshot.accommodationType?.let {
+            AddressUsage(
+              usageCode = AddressUsageCode.valueOf(aggregateSnapshot.accommodationType.code),
+              isActive = true,
             )
-          } ?: emptyList(),
+          },
           contacts = emptyList(),
         ),
       )

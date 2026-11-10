@@ -18,6 +18,6 @@ data class ProbationCreateAddress(
   val county: String?,
   val comment: String?,
   val statusCode: AddressStatusCode,
-  val usages: List<AddressUsage>,
+  val usage: AddressUsage?,
   val contacts: List<AddressContact>,
 )

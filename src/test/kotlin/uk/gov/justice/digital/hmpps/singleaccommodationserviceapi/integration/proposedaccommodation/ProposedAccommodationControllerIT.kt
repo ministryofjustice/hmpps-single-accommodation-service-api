@@ -11,19 +11,16 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
-import org.springframework.test.context.TestPropertySource
-import org.springframework.test.web.servlet.client.expectBody
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArrivalMethod
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
@@ -31,29 +28,21 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProbationCreateAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -63,7 +52,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_NOMIS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationByIdResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationTimelineResponse
@@ -72,14 +60,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAccommodationArrivalRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAccommodationNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -89,7 +74,6 @@ import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
-@TestPropertySource(properties = ["scheduling.enabled=true"])
 class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
 
   @Autowired
@@ -188,7 +172,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
       )
 
-      restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}", crn, entity.id)
+      webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}", crn, entity.id)
         .withDeliusUserJwt()
         .exchangeSuccessfully()
         .expectBody<String>()
@@ -282,7 +266,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         uprn = "100023336956",
       )
 
-      val response = restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+      val response = webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
         .withDeliusUserJwt()
         .exchangeSuccessfully()
         .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
@@ -448,7 +432,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       )
 
       val response =
-        restTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=true", crn)
+        webTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=true", crn)
           .withDeliusUserJwt()
           .exchangeSuccessfully()
           .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
@@ -595,7 +579,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       )
 
       val response =
-        restTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=false", crn)
+        webTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=false", crn)
           .withDeliusUserJwt()
           .exchangeSuccessfully()
           .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
@@ -782,7 +766,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       )
 
       val response =
-        restTestClient.get().uri("/cases/{crn}/proposed-accommodations?confirmedOnly=true", crn)
+        webTestClient.get().uri("/cases/{crn}/proposed-accommodations?confirmedOnly=true", crn)
           .withDeliusUserJwt()
           .exchangeSuccessfully()
           .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
@@ -876,7 +860,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       )
 
       val response =
-        restTestClient.get().uri("/cases/{crn}/proposed-accommodations?confirmedOnly=false", crn)
+        webTestClient.get().uri("/cases/{crn}/proposed-accommodations?confirmedOnly=false", crn)
           .withDeliusUserJwt()
           .exchangeSuccessfully()
           .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
@@ -903,86 +887,23 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     }
 
     @Test
+    fun `should return 404 when requested case does not exist for proposed-accommodations`() {
+      val missingCrn = "X000000"
+      webTestClient.get().uri("/cases/{crn}/proposed-accommodations", missingCrn)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
     fun `should return empty list when no proposed-accommodations exist for crn`() {
-      restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+      webTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
         .withDeliusUserJwt()
         .exchangeSuccessfully()
         .expectBody<String>()
         .value {
           assertThatJson(it!!).matchesExpectedJson("""{"data":[]}""")
         }
-    }
-
-    @Test
-    fun `should create a case when it is missing, hydrating upstream data`() {
-      val newCrn = UUID.randomUUID().toString()
-      val nomsNumber = "newlyDiscoveredNomsNumber"
-      stubCurrentAccommodationIsCas1(newCrn)
-      SasAndDeliusStubs.stubGetCase(
-        deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-        crn = newCrn,
-        response = buildCase(crn = newCrn, nomsNumber = nomsNumber),
-      )
-      SasAndDeliusStubs.stubGetCase(
-        crn = newCrn,
-        response = buildCase(crn = newCrn, nomsNumber = nomsNumber),
-      )
-      TierStubs.getTierOKResponse(newCrn, buildTier(tierScore = "A2"))
-      PrisonerSearchStubs.getPrisonerOKResponse(
-        prisonNumber = nomsNumber,
-        response = buildPrisoner(
-          prisonNumber = nomsNumber,
-          inOutStatus = InOutStatus.IN,
-          prisonName = "HMP Test Prison",
-          releaseDate = LocalDate.of(2027, 1, 1),
-        ),
-      )
-      ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
-        crn = newCrn,
-        response = buildCas1Application(
-          placement = buildCas1PlacementSummary(
-            status = Cas1PlacementStatus.UPCOMING,
-            premises = buildCas1PremisesSummary(
-              postcode = "AP1 1AP",
-              addressLine1 = "AP House",
-              addressLine2 = "AP Area",
-              town = "AP Town",
-              startDate = LocalDate.of(2026, 6, 1),
-              endDate = null,
-            ),
-          ),
-        ),
-      )
-
-      assertThat(caseRepository.findByCrn(newCrn)).isNull()
-
-      restTestClient.get().uri("/cases/{crn}/proposed-accommodations", newCrn)
-        .withDeliusUserJwt()
-        .exchangeSuccessfully()
-
-      val createdCase = caseRepository.findByCrn(newCrn)!!
-      assertThat(createdCase.tierScore).isEqualTo("A2")
-      assertThat(createdCase.firstName).isEqualTo("First")
-      assertThat(createdCase.lastName).isEqualTo("Last")
-      assertThat(createdCase.roshLevelCode).isEqualTo("RVHR")
-
-      val currentAccommodation = createdCase.currentAccommodation!!
-      assertThat(currentAccommodation.type?.code).isEqualTo("HMP")
-      assertThat(currentAccommodation.status?.code).isEqualTo("C")
-      assertThat(currentAccommodation.status?.description).isEqualTo("Custody")
-      assertThat(currentAccommodation.address.buildingName).isEqualTo("HMP Test Prison")
-
-      val nextAccommodation = createdCase.nextAccommodation!!
-      assertThat(nextAccommodation.type?.code).isEqualTo("A02")
-      assertThat(nextAccommodation.type?.description).isEqualTo("Approved Premises")
-      assertThat(nextAccommodation.status?.code).isEqualTo("PR1")
-      assertThat(nextAccommodation.status?.description).isEqualTo("Proposed for Resettlement")
-      assertThat(nextAccommodation.address.postcode).isEqualTo("AP1 1AP")
-      assertThat(nextAccommodation.address.thoroughfareName).isEqualTo("AP House")
-      assertThat(nextAccommodation.address.dependentLocality).isEqualTo("AP Area")
-      assertThat(nextAccommodation.address.postTown).isEqualTo("AP Town")
-
-      assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
     }
 
     @Test
@@ -1061,9 +982,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       contacts = emptyList(),
     )
     CorePersonRecordStubs.postAddress(crn, request = expectedCprRequestBody, response = buildProbationCreateAddressResponse(crn, cprAddressId))
-    val createProposedAccommodationResponseBody = restTestClient.post().uri("/cases/$crn/proposed-accommodations")
+    val createProposedAccommodationResponseBody = webTestClient.post().uri("/cases/$crn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = addressUsageCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1096,10 +1017,10 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       cacheValue = buildCorePersonRecord(),
     )
     val addressUsageCode = AddressUsageCode.A01A
-    val createdProposedAccommodation = restTestClient.post()
+    val createdProposedAccommodation = webTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations", crn)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           subBuildingName = "test sub building name",
           buildingName = "test building name",
@@ -1158,9 +1079,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should receive Bad Request when create proposed-accommodation with null accommodation-type`() {
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = null,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1187,9 +1108,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun `should receive 5xx Error for create proposed-accommodation when current accommodation has 5xx upstream failure`() {
     val currentAccommodation5xxWireMockedCrn = "X123"
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn = currentAccommodation5xxWireMockedCrn)
-    restTestClient.post().uri("/cases/$currentAccommodation5xxWireMockedCrn/proposed-accommodations")
+    webTestClient.post().uri("/cases/$currentAccommodation5xxWireMockedCrn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1215,9 +1136,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun `should receive NOT_FOUND Error for create proposed-accommodation when current accommodation has NOT_FOUND upstream failure`() {
     val currentAccommodation4xxWireMockedCrn = "X123"
     CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crn = currentAccommodation4xxWireMockedCrn)
-    restTestClient.post().uri("/cases/$currentAccommodation4xxWireMockedCrn/proposed-accommodations")
+    webTestClient.post().uri("/cases/$currentAccommodation4xxWireMockedCrn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1277,9 +1198,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     )
     CorePersonRecordStubs.postAddress(crn, request = expectedCprRequestBody, response = buildProbationCreateAddressResponse(crn, cprAddressId))
 
-    val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = addressUsageCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1338,6 +1259,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should update address details on 'Confirmed' proposed-accommodation and so should publish sas-address-updated event and should not POST to CPR`() {
     cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
@@ -1357,6 +1279,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should update accommodation type on 'Confirmed' proposed-accommodation and so should publish sas-address-updated event and should not POST to CPR`() {
     cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     val proposedAccommodationPersistedResult = shouldUpdateConfirmedProposedAccommodation(
@@ -1399,9 +1322,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         startDate = LocalDate.now(),
       ),
     )
-    val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = newAccommodationTypeCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1491,6 +1414,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  @EnableMessageProcessing
   fun `should downgrade 'Confirmed' proposed-accommodation to 'Unconfirmed' and so should publish sas-address-deleted event and should not POST to CPR`() {
     cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     val confirmedStatus = EntityNextAccommodationStatus.YES
@@ -1517,9 +1441,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
     val addressUsageCode = AddressUsageCode.A01A
-    val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    val result = webTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           nextAccommodationStatus = unconfirmedStatus.name,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1594,9 +1518,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun `should receive 5xx Error for update proposed-accommodation when current accommodation has upstream failures`() {
     val noCurrentAccommodationWireMockedCrn = "X123"
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn = noCurrentAccommodationWireMockedCrn)
-    restTestClient.put().uri("/cases/$noCurrentAccommodationWireMockedCrn/proposed-accommodations/${UUID.randomUUID()}")
+    webTestClient.put().uri("/cases/$noCurrentAccommodationWireMockedCrn/proposed-accommodations/${UUID.randomUUID()}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.PASSED.name,
@@ -1621,9 +1545,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    webTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET.name,
@@ -1641,9 +1565,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   fun `should return 404 when updating nonexistent proposed-accommodation`() {
     val nonExistentId = UUID.randomUUID()
 
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/$nonExistentId")
+    webTestClient.put().uri("/cases/$crn/proposed-accommodations/$nonExistentId")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.PASSED.name,
@@ -1677,9 +1601,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
 
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/${otherEntity.id}")
+    webTestClient.put().uri("/cases/$crn/proposed-accommodations/${otherEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A07B",
           verificationStatus = EntityVerificationStatus.PASSED.name,
@@ -1694,10 +1618,10 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   @Test
   fun `should return proposed accommodation timeline when single 'Unconfirmed' proposed accommodation created`() {
     val accommodationTypeCode = "A01A"
-    val createdProposedAccommodation = restTestClient.post()
+    val createdProposedAccommodation = webTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations", crn)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           subBuildingName = null,
           accommodationTypeCode = accommodationTypeCode,
@@ -1718,7 +1642,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     assertThat(commitTimesAsc).hasSize(1)
 
     val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(accommodationTypeCode)
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -1746,10 +1670,10 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       .readTree(createProposedAccommodationResponseBody)
       .get("id").asText()
 
-    restTestClient.post()
+    webTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations/{id}/notes", crn, createdProposedAccommodationId)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = "Test note",
         ),
@@ -1757,16 +1681,13 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
 
-    NomisUserRolesStubs.stubMe(
-      jwt = jwtAuthHelper.createJwtAccessToken(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        roles = listOf("ROLE_POM", "ROLE_PRISON"),
-        authSource = AuthSource.NOMIS.source,
-      ),
-      response = buildNomisUserDetail(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        primaryEmail = USERNAME_OF_LOGGED_IN_NOMIS_USER,
-      ),
+    val nomisUser = buildNomisUserDetail(
+      USERNAME_OF_LOGGED_IN_NOMIS_USER,
+      primaryEmail = USERNAME_OF_LOGGED_IN_NOMIS_USER,
+    )
+    NomisUserRolesStubs.stubNomisUserDetailsResponse(
+      username = nomisUser.username,
+      response = nomisUser,
     )
 
     val usernameOfNewDeliusUser = "newDeliusUser@justice.gov.uk"
@@ -1782,9 +1703,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       deliusUsername = usernameOfNewDeliusUser,
       response = newDeliusUserStaffDetail,
     )
-    restTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
+    webTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           subBuildingName = "another sub building name",
           buildingName = expectedCprRequestBody.buildingName!!,
@@ -1803,9 +1724,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       .withDeliusUserJwt(username = usernameOfNewDeliusUser)
       .exchangeSuccessfully()
 
-    restTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
+    webTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAddressesRequestBody(
           subBuildingName = null,
           buildingName = expectedCprRequestBody.buildingName!!,
@@ -1828,7 +1749,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     val createNoteCommitTime = proposedAccommodationRepository.findAllWithNotesByCrnOrderByCreatedAtDesc(crn).first()
       .notes.first().createdAt
 
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -1877,9 +1798,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     )
     val note1Value = "Test note 1"
     val note2Value = "Test note 2"
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = note1Value,
         ),
@@ -1890,9 +1811,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     var proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllWithNotesByCrnOrderByCreatedAtDesc(crn).first()
     assertThat(proposedAccommodationPersistedResult.notes.first().note).isEqualTo(note1Value)
 
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = note2Value,
         ),
@@ -1908,9 +1829,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should not create a note for proposed-accommodation when accommodation not found`() {
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${UUID.randomUUID()}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${UUID.randomUUID()}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = "Test note",
         ),
@@ -1934,9 +1855,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
       ),
     )
-    restTestClient.post().uri("/cases/$unknownCrn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$unknownCrn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(
           note = "Test note",
         ),
@@ -1959,9 +1880,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
     val note = ""
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(note),
       )
       .withDeliusUserJwt()
@@ -1982,9 +1903,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       ),
     )
     val note = "a".repeat(4001)
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+    webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
-      .body(
+      .bodyValue(
         proposedAccommodationNoteRequestBody(note),
       )
       .withDeliusUserJwt()
@@ -1995,6 +1916,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   @Nested
   inner class PostProposedAccommodationArrival {
     @Test
+    @EnableMessageProcessing
     fun `should arrive a 'Confirmed' proposed-accommodation and publish a sas-address-person-arrived event and transition database record appropriately`() {
       cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
       val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
@@ -2035,9 +1957,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         ),
       )
 
-      restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+      webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(
+        .bodyValue(
           proposedAccommodationArrivalRequestBody(
             arrivalDate = fixedInstant.toString(),
           ),
@@ -2129,9 +2051,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         ),
       )
 
-      restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+      webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(
+        .bodyValue(
           proposedAccommodationArrivalRequestBody(
             arrivalDate = fixedInstant.toString(),
           ),
@@ -2145,6 +2067,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     }
 
     @Test
+    @EnableMessageProcessing
     fun `should arrive a 'Unconfirmed' proposed-accommodation and publish event and transition database record appropriately when WITHOUT_VERIFICATION`() {
       cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
       val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
@@ -2185,9 +2108,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         ),
       )
 
-      restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+      webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(
+        .bodyValue(
           proposedAccommodationArrivalRequestBody(
             arrivalDate = fixedInstant.toString(),
             arrivalMethod = ArrivalMethod.WITHOUT_VERIFICATION,
@@ -2280,9 +2203,9 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         ),
       )
 
-      restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+      webTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(
+        .bodyValue(
           proposedAccommodationArrivalRequestBody(
             arrivalDate = fixedInstant.toString(),
             arrivalMethod = ArrivalMethod.WITHOUT_VERIFICATION,

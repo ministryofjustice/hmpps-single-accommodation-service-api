@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationTransformer.toAccommodationSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
@@ -49,7 +49,7 @@ class AccommodationSummaryCalculator(
     prisoner: Prisoner?,
     cas1CurrentPremises: Cas1PremisesSummary?,
     cas3CurrentPremises: Cas3BookingPremises?,
-    cas1Application: Cas1Application?,
+    cas1Application: Cas1ApplicationV2?,
     cas3Application: Cas3Application?,
   ): AccommodationSummariesDto {
     val currentAccommodation = calculateCurrentAccommodation(
@@ -118,16 +118,24 @@ class AccommodationSummaryCalculator(
   fun calculateNextAccommodations(
     crn: String,
     addresses: List<CanonicalAddress>?,
-    cas1Application: Cas1Application?,
+    cas1Application: Cas1ApplicationV2?,
     cas3Application: Cas3Application?,
     currentAccommodation: AccommodationSummaryDto?,
   ): List<AccommodationSummaryDto> {
-    val cas1NextAccommodation = cas1Application?.placement
+    val cas1NextAccommodation = cas1Application?.submittedApplication?.upcomingRequestForPlacement?.placement
       ?.takeIf { it.status == Cas1PlacementStatus.UPCOMING }
-      ?.premises?.let {
-        toAccommodationSummary(crn, premises = it, currentAccommodation)
-      }
+      ?.let { toAccommodationSummary(crn, placement = it, currentAccommodation) }
 
+    return calculateNextAccommodations(crn, addresses, cas1NextAccommodation, cas3Application, currentAccommodation)
+  }
+
+  private fun calculateNextAccommodations(
+    crn: String,
+    addresses: List<CanonicalAddress>?,
+    cas1NextAccommodation: AccommodationSummaryDto?,
+    cas3Application: Cas3Application?,
+    currentAccommodation: AccommodationSummaryDto?,
+  ): List<AccommodationSummaryDto> {
     val cas3LatestBooking = cas3Application?.submittedApplication?.latestBooking
     val cas3NextAccommodation = cas3LatestBooking?.takeIf { it.status == Cas3BookingStatus.CONFIRMED }
       ?.premises?.let {
@@ -174,7 +182,7 @@ class AccommodationSummaryCalculator(
     addresses: List<CanonicalAddress>?,
   ): LocalDate? = when (caseAccommodationStatus) {
     CaseAccommodationStatus.NO_FIXED_ABODE ->
-      addresses
+      currentAccommodation?.startDate ?: addresses
         ?.mapNotNull { it.endDate?.let(LocalDate::parse) }
         ?.maxOrNull()
 
@@ -200,8 +208,8 @@ class AccommodationSummaryCalculator(
   ) = isSettledType(nextAccommodation) ||
     (isSettledType(currentAccommodation) && !currentAccommodation.hasEndDate() && nextAccommodation == null)
 
-  private fun isTransient(currentAccommodation: AccommodationSummaryDto?, nextAccommodation: AccommodationSummaryDto?) = (isTransientNotHomelessType(nextAccommodation)) ||
-    (isTransientNotHomelessType(currentAccommodation) && !isMissingHomelessOrUnknown(nextAccommodation))
+  private fun isTransient(currentAccommodation: AccommodationSummaryDto?, nextAccommodation: AccommodationSummaryDto?) = isTransientNotHomelessType(nextAccommodation) ||
+    (isTransientNotHomelessType(currentAccommodation) && !currentAccommodation.hasEndDate() && nextAccommodation == null)
 
   private fun isRiskOfNoFixedAbode(
     currentAccommodation: AccommodationSummaryDto?,

@@ -17,12 +17,16 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.retry.RetryCallback
 import org.springframework.retry.RetryContext
+import org.springframework.security.oauth2.core.OAuth2AuthorizationException
+import org.springframework.security.oauth2.core.OAuth2Error
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import reactor.netty.http.client.PrematureCloseException
 import java.net.ConnectException
+import java.net.SocketException
 import java.net.URI
 import java.net.UnknownHostException
 import java.nio.charset.StandardCharsets
@@ -76,14 +80,7 @@ class RetryConfigTest {
 
     @JvmField
     val retryableExceptions = listOf(
-      ResourceAccessException("socket timeout"),
-      HttpServerErrorException.create(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        "Internal Server Error",
-        HttpHeaders.EMPTY,
-        ByteArray(0),
-        StandardCharsets.UTF_8,
-      ),
+      OAuth2AuthorizationException(OAuth2Error("invalid_token_response")),
       WebClientRequestException(
         ReadTimeoutException.INSTANCE,
         HttpMethod.GET,
@@ -108,6 +105,24 @@ class RetryConfigTest {
         URI.create("https://example.com/api/test"),
         HttpHeaders.EMPTY,
       ),
+      WebClientRequestException(
+        SocketException("Connection reset by peer"),
+        HttpMethod.GET,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
+      WebClientRequestException(
+        PrematureCloseException.TEST_EXCEPTION,
+        HttpMethod.GET,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
+      WebClientRequestException(
+        SocketException("Connection reset by peer"),
+        HttpMethod.POST,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
       WebClientResponseException.create(
         HttpStatus.INTERNAL_SERVER_ERROR.value(),
         "Internal Server Error",
@@ -120,6 +135,14 @@ class RetryConfigTest {
 
     @JvmField
     val nonRetryableExceptions = listOf(
+      ResourceAccessException("socket timeout"),
+      HttpServerErrorException.create(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "Internal Server Error",
+        HttpHeaders.EMPTY,
+        ByteArray(0),
+        StandardCharsets.UTF_8,
+      ),
       HttpClientErrorException.create(
         HttpStatus.NOT_FOUND,
         "Not Found",

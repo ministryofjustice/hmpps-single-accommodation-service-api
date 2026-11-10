@@ -13,7 +13,7 @@ fun expectedGetCaseResponse(): String = """
     "crn": "FAKECRN1",
     "prisonNumber": "PRI1",
     "photoUrl": null,
-    "tierScore": "A1",
+    "tierScore": "A",
     "riskLevel": "VERY_HIGH",
     "pncReference": "Some PNC Reference",
     "assignedTo": {
@@ -23,7 +23,9 @@ fun expectedGetCaseResponse(): String = """
     },
     "userAccess": "FULL",
     "limitedAccess": false,
-    "accommodationSummaries": null
+    "sexualOffenceRegistrations": ["ARSO"],
+    "accommodationSummaries": null,
+    "teamCode": null
   }
 }
 """.trimIndent()
@@ -41,7 +43,7 @@ fun expectedGetCaseResponseSearch(): String = """
     "photoUrl": null,
     "tierScore": "A1",
     "riskLevel": "VERY_HIGH",
-    "pncReference": "Some PNC Reference",
+    "pncReference": null,
     "assignedTo": {
       "forename": "First",
       "surname": "Last",
@@ -49,6 +51,7 @@ fun expectedGetCaseResponseSearch(): String = """
     },
     "userAccess": "FULL",
     "limitedAccess": false,
+    "sexualOffenceRegistrations": [],
     "accommodationSummaries": {
       "caseAccommodationStatus": "SETTLED",
       "caseAccommodationStatusDate": null,

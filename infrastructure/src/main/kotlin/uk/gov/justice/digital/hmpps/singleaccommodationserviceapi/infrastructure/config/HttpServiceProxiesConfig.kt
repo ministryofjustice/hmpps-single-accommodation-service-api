@@ -3,22 +3,27 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.support.WebClientAdapter
 import org.springframework.web.service.invoker.HttpServiceProxyFactory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.AccommodationDataDomainClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServicesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.ProbationAccessControlClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import uk.gov.justice.hmpps.kotlin.auth.authorisedWebClient
 import java.time.Duration
 import kotlin.reflect.KClass
 
+// HttpResources.set(...) disposes the previous Reactor Netty default resources, so the shared pool must be
+// installed before any WebClient (or the OAuth token client) captures the defaults.
+@DependsOn("defaultHttpConnectionProvider")
 @Configuration
 class HttpServiceProxiesConfig(
   private val clientManager: OAuth2AuthorizedClientManager,
@@ -110,14 +115,26 @@ class HttpServiceProxiesConfig(
   )
 
   @Bean
-  fun accommodationDataDomainClient(
+  fun probationAccessControlClient(
     webClientBuilder: WebClient.Builder,
-    @Value($$"${service.accommodation-data-domain.base-url}") baseUrl: String,
-    @Value($$"${service.accommodation-data-domain.read-timeout}") readTimeout: Duration,
+    @Value($$"${service.probation-access-control.base-url}") baseUrl: String,
+    @Value($$"${service.probation-access-control.read-timeout}") readTimeout: Duration,
   ) = createClient(
     webClientBuilder,
     baseUrl,
-    AccommodationDataDomainClient::class,
+    ProbationAccessControlClient::class,
+    readTimeout,
+  )
+
+  @Bean
+  fun nomisUserRolesClient(
+    webClientBuilder: WebClient.Builder,
+    @Value($$"${service.nomis-user-roles.base-url}") baseUrl: String,
+    @Value($$"${service.nomis-user-roles.read-timeout}") readTimeout: Duration,
+  ) = createClient(
+    webClientBuilder,
+    baseUrl,
+    NomisUserRolesClient::class,
     readTimeout,
   )
 

@@ -29,7 +29,7 @@ class ResourceSecurityIT : IntegrationTestBase() {
 
   @Test
   fun `@PreAuthorise smoke test()`() {
-    restTestClient
+    webTestClient
       .get()
       .uri("/case-list")
       .withClientCredentialsJwt(roles = emptyList())
@@ -116,17 +116,26 @@ class ResourceSecurityIT : IntegrationTestBase() {
 
 private val defaultRoles = setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER")
 
-private val userControllerMap: Map<String, Set<String>> = mapOf("GET /user/teams" to defaultRoles)
+private val userControllerMap: Map<String, Set<String>> =
+  mapOf(
+    "GET /user/teams" to defaultRoles,
+    "GET /users/me" to defaultRoles,
+    "GET /users/me/team-members" to defaultRoles,
+  )
 
 private val dutyToReferControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /cases/{crn}/dtr/{id}" to defaultRoles,
     "GET /cases/{crn}/dtr/{id}/timeline" to defaultRoles,
-    "GET /duty-to-refers/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
     "GET /cases/{crn}/dtr" to defaultRoles,
     "PUT /cases/{crn}/dtr/{id}" to defaultRoles,
     "POST /cases/{crn}/dtr" to defaultRoles,
     "POST /cases/{crn}/dtr/{id}/notes" to defaultRoles,
+  )
+
+private val eventDetailsControllerMap: Map<String, Set<String>> =
+  mapOf(
+    "GET /event-details/duty-to-refers/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__PROBATION_INTEGRATION"),
   )
 
 private val eligibilityControllerMap: Map<String, Set<String>> =
@@ -164,20 +173,15 @@ private val caseControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /case-list" to defaultRoles,
     "GET /cases/{crn}" to defaultRoles,
+    "POST /cases/{crn}/applications/{applicationId}/arrival" to defaultRoles,
     "GET /search/{crn}" to defaultRoles,
   )
 
 private val customCaseListControllerMap: Map<String, Set<String>> =
   mapOf(
+    "GET /case-list/custom" to defaultRoles,
+    "GET /case-list/custom/crns" to defaultRoles,
     "POST /case-list/custom" to defaultRoles,
-  )
-
-private val accommodationDataDomainControllerMap: Map<String, Set<String>> =
-  mapOf(
-    "GET /accommodation-data-domain/health" to setOf(
-      "SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER",
-      "ACCOMMODATION_DATA_DOMAIN__SINGLE_ACCOMMODATION_SERVICE",
-    ),
   )
 
 private val referenceDataControllerMap: Map<String, Set<String>> =
@@ -189,6 +193,8 @@ private val adminJobControllerMap: Map<String, Set<String>> =
   mapOf(
     "POST /admin/bulk-load-cases" to setOf("SAS_ADMIN_RW"),
     "POST /admin/bulk-refresh-cases-by-crn" to setOf("SAS_ADMIN_RW"),
+    "POST /admin/bulk-refresh-all-cases" to setOf("SAS_ADMIN_RW"),
+    "POST /admin/archive-cases-by-crn" to setOf("SAS_ADMIN_RW"),
     "PUT /admin/replay-failed-inbox-events" to setOf("SAS_ADMIN_RW"),
   )
 
@@ -200,12 +206,14 @@ private val externalReferralControllerMap: Map<String, Set<String>> =
     "PUT /cases/{crn}/external-referral/{id}" to defaultRoles,
     "POST /cases/{crn}/external-referral/{id}/notes" to defaultRoles,
     "GET /cases/{crn}/external-referral/{id}/timeline" to defaultRoles,
+    "POST /cases/{crn}/external-referral/{id}/withdrawal" to defaultRoles,
   )
 
 private val controllerMap: Map<String, Map<String, Set<String>>> =
   mapOf(
     "UserController" to userControllerMap,
     "DutyToReferController" to dutyToReferControllerMap,
+    "EventDetailsController" to eventDetailsControllerMap,
     "EligibilityController" to eligibilityControllerMap,
     "ProposedAccommodationController" to proposedAccommodationControllerMap,
     "AccommodationController" to accommodationControllerMap,
@@ -213,7 +221,6 @@ private val controllerMap: Map<String, Map<String, Set<String>>> =
     "AccommodationHistoryController" to accommodationHistoryControllerMap,
     "CaseController" to caseControllerMap,
     "CustomCaseListController" to customCaseListControllerMap,
-    "AccommodationDataDomainController" to accommodationDataDomainControllerMap,
     "ReferenceDataController" to referenceDataControllerMap,
     "AdminJobController" to adminJobControllerMap,
     "ExternalReferralController" to externalReferralControllerMap,

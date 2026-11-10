@@ -2,10 +2,15 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.SexualOffenceRegistrationCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import java.time.LocalDate
@@ -13,19 +18,37 @@ import java.time.LocalDate
 object CaseTransformer {
   fun toCaseDto(
     crn: String,
-    person: PersonDto?,
+    case: Case?,
     cpr: CorePersonRecord?,
     tier: Tier?,
-  ) = when (person) {
-    is LimitedPersonDto -> person.toLimitedCaseDto()
-    is FullPersonDto -> person.toOrchestratedCaseDto(person, cpr, tier)
-    null -> CaseDto(crn = crn, userAccess = UserAccess.UNKNOWN, limitedAccess = null)
+    sexualOffenceRegistrations: SexualOffenceRegistrations?,
+    userAccess: UserAccess?,
+  ) = when {
+    case == null -> CaseDto(crn = crn, userAccess = UserAccess.UNKNOWN, limitedAccess = null)
+
+    userAccess == UserAccess.FULL -> case.toOrchestratedCaseDto(
+      cpr = cpr,
+      tier = tier,
+      sexualOffenceRegistrations = sexualOffenceRegistrations,
+    )
+
+    else -> toLimitedCaseDto(
+      crn = case.crn,
+      teamCode = case.team.code,
+      assignedTo = case.toAssignedToDto(),
+    )
   }
 
-  private fun FullPersonDto.toOrchestratedCaseDto(
-    person: FullPersonDto,
+  fun Case.toAssignedToDto() = AssignedToDto(
+    forename = this.staff.name.forename,
+    surname = this.staff.name.surname,
+    username = this.staff.username,
+  )
+
+  private fun Case.toOrchestratedCaseDto(
     cpr: CorePersonRecord?,
     tier: Tier?,
+    sexualOffenceRegistrations: SexualOffenceRegistrations?,
   ) = CaseDto(
     forename = cpr?.firstName,
     middleNames = cpr?.middleNames,
@@ -34,47 +57,44 @@ object CaseTransformer {
     crn = this.crn,
     prisonNumber = this.nomsNumber,
     tierScore = tier?.tierScore,
-    riskLevel = person.riskLevel,
+    riskLevel = this.roshLevel?.let { RiskLevel.findByCode(it.code) },
     pncReference = cpr?.identifiers?.pncs?.firstOrNull(),
-    assignedTo = person.assignedTo,
-    photoUrl = null,
+    assignedTo = this.toAssignedToDto(),
     userAccess = UserAccess.FULL,
-    limitedAccess = this.limitedAccess,
+    limitedAccess = this.limitedAccess ?: false,
+    sexualOffenceRegistrations = sexualOffenceRegistrations
+      ?.sexualOffenceRegistrations
+      ?.map { SexualOffenceRegistrationCode.valueOf(it.type.code.name) }
+      .orEmpty(),
   )
 
-  fun PersonDto.toCaseDto(
+  fun toCaseDto(
     caseEntity: CaseEntity?,
-    currentAccommodation: AccommodationSummaryDto?,
-    nextAccommodation: AccommodationSummaryDto?,
-  ): CaseDto = when (this) {
-    is FullPersonDto -> {
-      CaseDto(
-        forename = caseEntity?.firstName,
-        middleNames = null,
-        surname = caseEntity?.lastName,
-        dateOfBirth = caseEntity?.dateOfBirth,
-        crn = crn,
-        prisonNumber = nomsNumber,
-        riskLevel = riskLevel,
-        pncReference = pncNumber,
-        assignedTo = assignedTo,
-        photoUrl = null,
-        tierScore = caseEntity?.tierScore,
-        userAccess = UserAccess.FULL,
-        limitedAccess = this.limitedAccess,
-        accommodationSummaries = caseEntity?.let {
-          toAccommodationSummariesDto(
-            accommodationStatus = it.accommodationStatus,
-            accommodationStatusDate = it.accommodationStatusDate,
-            currentAccommodation = currentAccommodation,
-            nextAccommodation = nextAccommodation,
-          )
-        },
+    crn: String,
+    assignedTo: AssignedToDto?,
+    limitedAccess: Boolean?,
+    teamCode: String?,
+  ) = CaseDto(
+    forename = caseEntity?.firstName,
+    surname = caseEntity?.lastName,
+    dateOfBirth = caseEntity?.dateOfBirth,
+    crn = crn,
+    prisonNumber = caseEntity?.latestPrisonNumber(),
+    riskLevel = caseEntity?.roshLevelCode?.let { RiskLevel.findByCode(it) },
+    assignedTo = assignedTo,
+    tierScore = caseEntity?.tierScore,
+    userAccess = UserAccess.FULL,
+    limitedAccess = limitedAccess,
+    accommodationSummaries = caseEntity?.let {
+      toAccommodationSummariesDto(
+        accommodationStatus = it.accommodationStatus,
+        accommodationStatusDate = it.accommodationStatusDate,
+        currentAccommodation = it.currentAccommodation,
+        nextAccommodation = it.nextAccommodation,
       )
-    }
-
-    is LimitedPersonDto -> toLimitedCaseDto()
-  }
+    },
+    teamCode = teamCode,
+  )
 
   fun toAccommodationSummariesDto(
     accommodationStatus: CaseAccommodationStatus?,
@@ -88,9 +108,11 @@ object CaseTransformer {
     nextAccommodation = nextAccommodation,
   )
 
-  fun PersonDto.toLimitedCaseDto() = CaseDto(
+  fun toLimitedCaseDto(crn: String, teamCode: String?, assignedTo: AssignedToDto?) = CaseDto(
     crn = crn,
     userAccess = UserAccess.LIMITED,
     limitedAccess = true,
+    teamCode = teamCode,
+    assignedTo = assignedTo,
   )
 }

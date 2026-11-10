@@ -2,71 +2,105 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.junit.jupiter.SpringExtension
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1ApplicationCompletionRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.MaleRiskEligibilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.NonMaleRiskEligibilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.STierEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSetStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.AlwaysFailRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.AlwaysPassRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.FixedOutcomeRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.StubRuleSet
 
-@ExtendWith(SpringExtension::class)
-@ContextConfiguration(
-  classes = [
-    Cas1EligibilityRuleSet::class,
-    Cas1CompletionRuleSet::class,
-    STierEligibilityRule::class,
-    Cas1ApplicationCompletionRule::class,
-    MaleRiskEligibilityRule::class,
-    NonMaleRiskEligibilityRule::class,
-    ClockConfig::class,
-  ],
-)
 class RulesEngineTest {
   private val defaultRulesEngine = RulesEngine(DefaultRuleSetEvaluator())
-  private val crn = "ABC234"
-
-  @Autowired
-  private lateinit var cas1EligibilityRuleSet: Cas1EligibilityRuleSet
 
   @Test
-  fun `rules engine passes cas1Eligibility rules`() {
-    val data = buildDomainData(
-      crn = crn,
-      tierScore = "A1",
-      sex = SexCode.M,
-      currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(7)),
-    )
+  fun `rules engine passes if all rules pass`() {
+    val data = buildDomainData()
 
-    val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)
+    val result = defaultRulesEngine.execute(
+      ruleset = StubRuleSet(
+        listOf(
+          AlwaysPassRule(),
+          AlwaysPassRule(),
+        ),
+      ),
+      data = data,
+    )
 
     assertThat(result.status).isEqualTo(RuleSetStatus.PASS)
     assertThat(result.failureReasons).isEmpty()
   }
 
   @Test
-  fun `rules engine fails some cas1Eligibility rules`() {
-    val data = buildDomainData(
-      crn = crn,
-      tierScore = "C1S",
-      sex = SexCode.F,
-      currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(7)),
+  fun `rules engine fails if one rule fails`() {
+    val data = buildDomainData()
+
+    val result = defaultRulesEngine.execute(
+      ruleset = StubRuleSet(
+        listOf(
+          AlwaysPassRule(),
+          AlwaysPassRule(),
+          AlwaysFailRule(),
+          AlwaysPassRule(),
+        ),
+      ),
+      data = data,
     )
 
-    val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)
+    assertThat(result.status).isEqualTo(RuleSetStatus.FAIL)
+    assertThat(result.failureReasons).containsExactly(
+      FailureReason.IS_SETTLED,
+    )
+  }
+
+  @Test
+  fun `rules engine passes for an empty rule set`() {
+    val result = execute()
+
+    assertThat(result.status).isEqualTo(RuleSetStatus.PASS)
+    assertThat(result.failureReasons).isEmpty()
+  }
+
+  @Test
+  fun `rules engine retains all failed rule reasons in evaluation order`() {
+    val result = execute(
+      FixedOutcomeRule("First failure", RuleStatus.FAIL, FailureReason.UNDER_18),
+      FixedOutcomeRule("Failure without a reason", RuleStatus.FAIL, null),
+      AlwaysPassRule(),
+      FixedOutcomeRule("Second failure", RuleStatus.FAIL, FailureReason.IN_COMMUNITY),
+    )
 
     assertThat(result.status).isEqualTo(RuleSetStatus.FAIL)
-    assertThat(result.failureReasons).isNotEmpty()
+    assertThat(result.failureReasons).containsExactly(FailureReason.UNDER_18, FailureReason.IN_COMMUNITY)
   }
+
+  @Test
+  fun `passing rules do not contribute failure reasons`() {
+    val result = execute(
+      FixedOutcomeRule("Passing rule with a reason", RuleStatus.PASS, FailureReason.UNDER_18),
+      AlwaysFailRule(),
+    )
+
+    assertThat(result.status).isEqualTo(RuleSetStatus.FAIL)
+    assertThat(result.failureReasons).containsExactly(FailureReason.IS_SETTLED)
+  }
+
+  @Test
+  fun `rules engine fails without throwing when a failed rule has no reason`() {
+    val result = execute(
+      FixedOutcomeRule("Failure without a reason", RuleStatus.FAIL, null),
+    )
+
+    assertThat(result.status).isEqualTo(RuleSetStatus.FAIL)
+    assertThat(result.failureReasons).isEmpty()
+  }
+
+  private fun execute(vararg rules: Rule) = defaultRulesEngine.execute(
+    ruleset = StubRuleSet(rules.toList()),
+    data = buildDomainData(),
+  )
 }

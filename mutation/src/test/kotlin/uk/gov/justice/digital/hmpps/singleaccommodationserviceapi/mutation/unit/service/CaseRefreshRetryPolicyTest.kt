@@ -87,7 +87,7 @@ class CaseRefreshRetryPolicyTest {
         upstreamFailure(
           type = FailureType.UPSTREAM_HTTP_ERROR,
           status = HttpStatus.NOT_FOUND,
-          callKey = ApiCallKeys.GET_TIER,
+          callKey = ApiCallKeys.GET_TIER_V3,
         ),
       ),
     )
@@ -98,7 +98,7 @@ class CaseRefreshRetryPolicyTest {
   private fun upstreamFailure(
     type: FailureType,
     status: HttpStatus? = null,
-    callKey: String = ApiCallKeys.GET_TIER,
+    callKey: String = ApiCallKeys.GET_TIER_V3,
   ) = UpstreamFailure(
     callKey = callKey,
     type = type,

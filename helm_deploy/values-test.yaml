@@ -21,19 +21,21 @@ generic-service:
     HMPPS_SQS_ENABLED: true
     HMPPS_AUTH_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
     SERVICE_SAS-AND-DELIUS_BASE-URL: https://single-accommodation-and-delius-dev.hmpps.service.justice.gov.uk
+    SERVICE_PROBATION-ACCESS-CONTROL_BASE-URL: https://probation-access-control-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-AND-DELIUS_BASE-URL: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
-    SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api-test.hmpps.service.justice.gov.uk
+    SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api-dev.hmpps.service.justice.gov.uk
     SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-UI_BASE-URL: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk
     SERVICE_CORE-PERSON-RECORD_BASE-URL: https://hmpps-person-record-dev.hmpps.service.justice.gov.uk
     SERVICE_PRISONER-SEARCH_BASE-URL: https://prisoner-search-dev.prison.service.justice.gov.uk
     SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-API_BASE-URL: https://hmpps-interventions-service-dev.apps.live-1.cloud-platform.service.justice.gov.uk
     SERVICE_TIER_BASE-URL: https://hmpps-tier-dev.hmpps.service.justice.gov.uk
-    SERVICE_ACCOMMODATION-DATA-DOMAIN_BASE-URL: https://accommodation-data-domain-api-dev.hmpps.service.justice.gov.uk
     SERVICE_NOMIS-USER-ROLES_BASE-URL: https://nomis-user-roles-api-dev.prison.service.justice.gov.uk
     EVENT_DETAILS-URL_PROPOSED-ACCOMMODATION-UPDATED: https://single-accommodation-service-api-test.hmpps.service.justice.gov.uk/accommodations/#id
-    EVENT_DETAILS-URL_DUTY-TO-REFER-UPDATED: https://single-accommodation-service-api-test.hmpps.service.justice.gov.uk/duty-to-refers/#id
+    EVENT_DETAILS-URL_DUTY-TO-REFER: https://single-accommodation-service-api-test.hmpps.service.justice.gov.uk/event-details/duty-to-refers/#id
+
+    FRONTEND_DUTY-TO-REFER_VIEW: https://single-accommodation-service-test.hmpps.service.justice.gov.uk/cases/#crn/dtr/#dtrId/details
+
     SCHEDULING_ENABLED: true
-    TIER_V3-ENABLED: false
 
   namespace_secrets:
     hmpps-envoy-https-proxy-env:
@@ -45,7 +47,6 @@ generic-service:
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
-  alertSeverity: hmpps-approved-premises-nonprod
   elastiCacheAlertsClusterIds:
     cp-74a472d88f514b65: "SAS Redis - Test"
   rdsAlertsDatabases:

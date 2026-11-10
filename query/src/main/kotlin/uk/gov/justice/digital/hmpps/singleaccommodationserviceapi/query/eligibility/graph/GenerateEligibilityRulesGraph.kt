@@ -2,35 +2,51 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.beans.BeansException
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
   if (args.isEmpty()) {
-    System.err.println("Usage: generateEligibilityRulesGraph <output-markdown-path>")
+    System.err.println("Usage: generateEligibilityRulesGraph <output-folder>")
     exitProcess(1)
   }
-  val target = Path.of(args[0])
+  val outputFolder = Path.of(args[0])
 
   try {
-    val result = bootAndGenerate()
-    writeGenerationResult(result, target)
+    bootAndGenerate(
+      renderPaths = listOf(
+        RenderPath(
+          path = outputFolder.resolve("eligibility-rules-graph.md"),
+          renderer = RulesGraphMarkdownRenderer,
+        ),
+        RenderPath(
+          path = outputFolder.resolve("eligibility-rules-graph.html"),
+          renderer = RulesGraphHtmlRenderer,
+        ),
+      ),
+    )
   } catch (ex: GraphContextStartupException) {
     System.err.println(ex.message)
     exitProcess(1)
   }
 }
 
-fun bootAndGenerate(): GenerationResult {
+fun bootAndGenerate(
+  renderPaths: List<RenderPath>,
+) {
   val context = AnnotationConfigApplicationContext()
   context.environment.setActiveProfiles(ELIGIBILITY_GRAPH_PROFILE)
   context.register(EligibilityRulesGraphConfiguration::class.java)
   try {
     context.refresh()
     val providers = context.getBeansOfType(EligibilityTreeProvider::class.java).values
-    return EligibilityRulesGraphGenerator.generate(providers)
+
+    renderPaths.forEach {
+      val result = EligibilityRulesGraphGenerator.generate(providers, it.renderer)
+      writeGenerationResult(result, it.path)
+    }
   } catch (ex: BeansException) {
     throw GraphContextStartupException(formatGraphContextFailure(ex), ex)
   } finally {
@@ -44,3 +60,8 @@ fun writeGenerationResult(result: GenerationResult, target: Path) {
   Files.writeString(tmp, result.text)
   println("Wrote $target")
 }
+
+data class RenderPath(
+  val renderer: RulesGraphRenderer,
+  val path: Path,
+)

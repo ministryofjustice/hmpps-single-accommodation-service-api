@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.d
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -11,9 +10,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.EnableMessageProcessing
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestInboxEventHelper.TestPersonIdentifier
 import java.util.UUID
 
-@TestPropertySource(properties = ["scheduling.enabled=true"])
+@EnableMessageProcessing
 class CprProbationRecordUpdatedEventIT : DomainEventIntegrationTestBase() {
 
   lateinit var crn: String
@@ -34,12 +35,12 @@ class CprProbationRecordUpdatedEventIT : DomainEventIntegrationTestBase() {
 
     testInboxEventHelper.publish(
       messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
-      crn = crn,
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       detailUrl = eventDetailUrl,
     )
 
     testInboxEventHelper.assertMessageProcessed()
-    testInboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl, ProcessedStatus.PROCESSED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier.forCrn(crn), eventType, eventDetailUrl, ProcessedStatus.PROCESSED)
 
     waitFor { assertThat(caseRefreshRequestRepository.findAll()).hasSize(1) }
   }
@@ -51,7 +52,7 @@ class CprProbationRecordUpdatedEventIT : DomainEventIntegrationTestBase() {
     repeat(3) {
       testInboxEventHelper.publish(
         messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
-        crn = crn,
+        personIdentifier = TestPersonIdentifier.forCrn(crn),
         detailUrl = eventDetailUrl,
       )
     }
@@ -69,11 +70,11 @@ class CprProbationRecordUpdatedEventIT : DomainEventIntegrationTestBase() {
     assertThat(caseRepository.findAll()).hasSize(0)
     testInboxEventHelper.publish(
       messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
-      crn = crn,
+      personIdentifier = TestPersonIdentifier.forCrn(crn),
       detailUrl = eventDetailUrl,
     )
 
-    testInboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl, ProcessedStatus.IGNORED)
+    testInboxEventHelper.assertInboxEvent(TestPersonIdentifier.forCrn(crn), eventType, eventDetailUrl, ProcessedStatus.IGNORED)
     assertThat(caseRefreshRequestRepository.findAll()).hasSize(0)
   }
 }

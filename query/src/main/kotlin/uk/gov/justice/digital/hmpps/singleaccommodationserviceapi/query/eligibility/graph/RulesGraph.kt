@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSet
 
 enum class GraphNodeKind {
   RULE_SET,
+  CONTEXT_UPDATER,
   OUTCOME,
 }
 
@@ -12,14 +14,21 @@ data class RuleInfo(
   val className: String,
   val description: String,
   val sourcePath: String? = null,
+  val failureReason: FailureReason? = null,
 )
 
 data class ContextUpdaterInfo(
   val name: String,
   val description: String,
   val outcomes: Map<String, ServiceResultSpec> = emptyMap(),
+  val kind: ContextUpdaterKind,
   val sourcePath: String? = null,
 )
+
+enum class ContextUpdaterKind {
+  ON_PASS,
+  ON_FAIL,
+}
 
 data class GraphNode(
   val id: String,
@@ -27,7 +36,8 @@ data class GraphNode(
   val kind: GraphNodeKind,
   val rules: List<RuleInfo> = emptyList(),
   val ruleSet: RuleSet? = null,
-  val contextUpdater: ContextUpdaterInfo? = null,
+  val onPassContextUpdater: ContextUpdaterInfo? = null,
+  val onFailContextUpdater: ContextUpdaterInfo? = null,
 )
 
 data class GraphEdge(

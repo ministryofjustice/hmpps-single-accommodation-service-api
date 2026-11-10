@@ -28,7 +28,9 @@ private fun caseJson(
   "assignedTo": $assignedTo,
   "userAccess": "FULL",
   "limitedAccess": false,
-  "accommodationSummaries": null
+  "sexualOffenceRegistrations": [],
+  "accommodationSummaries": null,
+  "teamCode": null
 }
 """.trimIndent()
 
@@ -49,7 +51,7 @@ private fun failureJson(
 """.trimIndent()
 
 private fun tierServerErrorFailure(upstreamUrl: String) = failureJson(
-  endpoint = "getTierByCrn",
+  endpoint = "getTierV3ByCrn",
   failureType = "UPSTREAM_HTTP_ERROR",
   httpResponseStatus = "500 INTERNAL_SERVER_ERROR",
   message = "500 Internal Server Error from GET $upstreamUrl",
@@ -57,7 +59,7 @@ private fun tierServerErrorFailure(upstreamUrl: String) = failureJson(
 )
 
 private fun tierTimeoutFailure() = failureJson(
-  endpoint = "getTierByCrn",
+  endpoint = "getTierV3ByCrn",
   failureType = "TIMEOUT",
   message = "Request timed out",
   identifierCrn = null,

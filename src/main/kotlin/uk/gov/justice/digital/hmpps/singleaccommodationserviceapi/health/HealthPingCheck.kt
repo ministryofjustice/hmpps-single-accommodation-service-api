@@ -2,72 +2,67 @@
 
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.health
 
+import io.netty.channel.ChannelOption
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.health.contributor.Health
 import org.springframework.boot.health.contributor.HealthIndicator
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.client.JdkClientHttpRequestFactory
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
+import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.stereotype.Component
-import org.springframework.web.client.HttpStatusCodeException
-import org.springframework.web.client.RestClient
-import org.springframework.web.client.RestClientException
-import org.springframework.web.client.toEntity
-import java.net.http.HttpClient
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientRequestException
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import org.springframework.web.reactive.function.client.toEntity
+import reactor.netty.http.client.HttpClient
 import java.time.Duration
 
 @Configuration
 class HealthPingClientConfig(
-  private val restClientBuilder: RestClient.Builder,
-  private val clientManager: OAuth2AuthorizedClientManager,
   @param:Value("\${hmpps-auth.url}") val hmppsAuthBaseUri: String,
 ) {
 
   // HMPPS Auth health ping is required if your service calls HMPPS Auth to get a token to call other services.
   @Bean
-  fun hmppsAuthHealthRestClient(builder: RestClient.Builder): RestClient = builder.healthRestClient(hmppsAuthBaseUri, Duration.ofSeconds(2))
+  fun hmppsAuthHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(hmppsAuthBaseUri, Duration.ofSeconds(2))
 
-  fun RestClient.Builder.healthRestClient(
+  fun WebClient.Builder.healthWebClient(
     url: String,
     healthTimeout: Duration = Duration.ofSeconds(2),
-  ): RestClient {
-    val httpClient = HttpClient.newBuilder()
-      .connectTimeout(healthTimeout)
-      .build()
-
-    val requestFactory = JdkClientHttpRequestFactory(httpClient).apply {
-      setReadTimeout(healthTimeout)
-    }
+  ): WebClient {
+    val httpClient = HttpClient.create()
+      .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, healthTimeout.toMillis().toInt())
+      .responseTimeout(healthTimeout)
 
     return this
       .baseUrl(url)
-      .requestFactory(requestFactory)
+      .clientConnector(ReactorClientHttpConnector(httpClient))
       .build()
   }
 }
 
 @Component("hmppsAuth")
-class HmppsAuthHealthPing(hmppsAuthHealthRestClient: RestClient) : HealthPingCheck(hmppsAuthHealthRestClient)
+class HmppsAuthHealthPing(hmppsAuthHealthWebClient: WebClient) : HealthPingCheck(hmppsAuthHealthWebClient)
 
-abstract class HealthPingCheck(private val restClient: RestClient) : HealthIndicator {
-  override fun health(): Health = restClient.ping()
+abstract class HealthPingCheck(private val webClient: WebClient) : HealthIndicator {
+  override fun health(): Health = webClient.ping()
 }
 
-private fun RestClient.ping(): Health = try {
+private fun WebClient.ping(): Health = try {
   val response = get()
     .uri("/health/ping")
     .retrieve()
     .toEntity<String>()
+    .block()
 
   Health.up()
-    .withDetail("HttpStatus", response.statusCode)
+    .withDetail("HttpStatus", response?.statusCode ?: "UNKNOWN")
     .build()
-} catch (ex: HttpStatusCodeException) {
+} catch (ex: WebClientResponseException) {
   Health.down(ex)
     .withDetail("HttpStatus", ex.statusCode)
     .withDetail("body", ex.responseBodyAsString)
     .build()
-} catch (ex: RestClientException) {
+} catch (ex: WebClientRequestException) {
   Health.down(ex).build()
 }

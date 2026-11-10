@@ -18,10 +18,7 @@ data class Case(
   val team: Team,
   val gender: String,
   val roshLevel: RoshLevel?,
-  val userExcluded: Boolean?,
-  val userRestricted: Boolean?,
-  val exclusionMessage: String?,
-  val restrictionMessage: String?,
+  // this flag shows if there are any restrictions or exclusions on the case, regardless of the users access.
   val limitedAccess: Boolean?,
 )
 

@@ -20,6 +20,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":null,
          "userAccess":"LIMITED",
          "limitedAccess":true,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":null
       },
       {
@@ -36,6 +37,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":null,
          "userAccess":"LIMITED",
          "limitedAccess":true,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":null
       },
       {
@@ -48,7 +50,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"MEDIUM",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -56,6 +58,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -68,7 +71,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -76,6 +79,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -88,7 +92,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"B3",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -96,6 +100,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -108,7 +113,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"B3",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -116,6 +121,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -128,7 +134,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"B3",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -136,6 +142,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -148,7 +155,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"B3",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -156,6 +163,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -168,7 +176,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -176,6 +184,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -188,7 +197,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"D3",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -196,6 +205,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -208,7 +218,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -216,6 +226,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -228,7 +239,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -236,6 +247,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -248,7 +260,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -256,6 +268,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -268,7 +281,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -276,6 +289,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -288,7 +302,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -296,6 +310,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -308,7 +323,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -316,6 +331,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -328,7 +344,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"A1",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -336,6 +352,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -348,7 +365,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"A1S",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -356,6 +373,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -368,7 +386,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"C1",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -376,6 +394,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       },
       {
@@ -388,7 +407,7 @@ fun expectedGetCaseListResponse(): String = """
          "photoUrl":null,
          "tierScore":"B3",
          "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
+         "pncReference":null,
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
@@ -396,6 +415,7 @@ fun expectedGetCaseListResponse(): String = """
          },
          "userAccess":"FULL",
          "limitedAccess":false,
+         "sexualOffenceRegistrations":[],
          "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
       }
    ]

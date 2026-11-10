@@ -4,7 +4,7 @@ hmpps-auth:
 event:
   details-url:
     proposed-accommodation-updated: http://localhost:8080/proposed-accommodations/#id
-    duty-to-refer-updated: http://localhost:8080/duty-to-refers/#id
+    duty-to-refer: http://localhost:8080/duty-to-refers/#id
 
 service:
   commissioned-rehabilitative-services-ui:
@@ -32,6 +32,7 @@ hmpps.sqs:
             "core-person-record.probation.address.deleted",
             "core-person-record.probation.record.updated",
             "core-person-record.probation.record.merged",
+            "core-person-record.probation.record.deleted",
             "prisoner-offender-search.prisoner.released",
             "prisoner-offender-search.prisoner.received",
             "prisoner-offender-search.prisoner.updated",
@@ -64,6 +65,7 @@ logging:
     org.hibernate.SQL: INFO
     org.hibernate.orm.jdbc.bind: INFO # TRACE - shows what parameters are bound to queries
     org.hibernate.session.metrics: INFO
+    uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService: DEBUG
 
 scheduling:
   enabled: true
@@ -75,3 +77,7 @@ sentry:
 case-list:
   onboarded-prison-codes:
     - SAS
+
+frontend:
+  duty-to-refer:
+    view: https://single-accommodation-service-dev.hmpps.service.justice.gov.uk/cases/#crn/dtr/#dtrId/details

@@ -19,6 +19,7 @@ import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingQueueException
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
+import java.time.Duration.ZERO
 import java.time.Duration.ofMillis
 import java.time.Duration.ofSeconds
 import java.time.OffsetDateTime
@@ -54,7 +55,8 @@ class TestInboxEventHelper(
   fun awaitNoMessagesInFlight() {
     await
       .atMost(ofSeconds(5))
-      .pollInterval(ofMillis(100))
+      .pollDelay(ZERO)
+      .pollInterval(ofMillis(20))
       .untilAsserted {
         val messageCount = sasDomainEventsQueue.sqsClient
           .countAllMessagesOnQueue(sasDomainEventsQueue.queueUrl)
@@ -71,7 +73,8 @@ class TestInboxEventHelper(
   fun assertExpectedInboxEvents(processedStatus: ProcessedStatus, count: Int) {
     await
       .atMost(ofSeconds(10))
-      .pollInterval(ofMillis(100))
+      .pollDelay(ZERO)
+      .pollInterval(ofMillis(20))
       .untilAsserted {
         assertThat(
           inboxEventRepository.findAllByProcessedStatus(processedStatus, Pageable.unpaged()),
@@ -99,17 +102,26 @@ class TestInboxEventHelper(
     publish(message, domainEvent.eventType)
   }
 
+  data class TestPersonIdentifier(
+    val name: String,
+    val value: String,
+  ) {
+    companion object {
+      fun forCrn(crn: String) = TestPersonIdentifier("CRN", crn)
+    }
+  }
+
   fun publish(
     messageType: IncomingHmppsDomainEventType,
-    crn: String?,
+    personIdentifier: TestPersonIdentifier?,
     detailUrl: String?,
     additionalInformation: Map<String, Any?>? = null,
   ) {
-    val personReference = crn?.let { PersonReference(listOf(PersonIdentifier("CRN", it))) } ?: PersonReference()
+    val personReference = personIdentifier?.let { PersonReference(listOf(PersonIdentifier(personIdentifier.name, personIdentifier.value))) } ?: PersonReference()
     val snsDomainEvent = SnsDomainEvent(
       eventType = messageType.typeName,
       version = 1,
-      description = "Test ${messageType.typeName} event for $crn",
+      description = "Test ${messageType.typeName} event for ${personIdentifier?.value}",
       detailUrl = detailUrl,
       occurredAt = OffsetDateTime.now(),
       personReference = personReference,
@@ -119,20 +131,21 @@ class TestInboxEventHelper(
   }
 
   fun assertInboxEvent(
-    crn: String,
+    personIdentifier: TestPersonIdentifier,
     eventType: String,
     eventDetailUrl: String?,
     processedStatus: ProcessedStatus,
   ) {
     await
       .atMost(ofSeconds(10))
-      .pollInterval(ofMillis(100))
+      .pollDelay(ZERO)
+      .pollInterval(ofMillis(20))
       .untilAsserted {
         val inboxEvents = inboxEventRepository.findAll()
         assertThat(inboxEvents).hasSize(1)
         val inboxEvent = inboxEvents.first()
         val event = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-        assertThat(event.personReference.findCrn()).isEqualTo(crn)
+        assertThat(event.personReference[personIdentifier.name]).isEqualTo(personIdentifier.value)
         assertThat(inboxEvent.eventType).isEqualTo(eventType)
         assertThat(inboxEvent.eventDetailUrl).isEqualTo(eventDetailUrl)
         assertThat(inboxEvent.processedStatus).isEqualTo(processedStatus)

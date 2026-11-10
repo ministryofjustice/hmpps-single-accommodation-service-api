@@ -64,7 +64,7 @@ class CaseApplicationService(
   }
 
   private fun validateUnpersistedCrns(crns: List<String>): Map<String, CaseSummary> {
-    val unpersistedCrns = caseRepository.findUnpersistedCrns(crns.distinct().toTypedArray())
+    val unpersistedCrns = caseRepository.findUnpersistedCrns(crns.distinct().toTypedArray()).sortedBy { crns.indexOf(it) }
     if (unpersistedCrns.isEmpty()) return emptyMap()
 
     val caseSummariesByCrn = approvedPremisesAndDeliusCachingService.postCaseSummaries(unpersistedCrns).cases

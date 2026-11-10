@@ -7,6 +7,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.transaction.PlatformTransactionManager
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -23,11 +24,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshCompletionService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailure
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.CaseRefreshWorker
 import java.time.Duration
 import java.time.Instant
@@ -38,9 +38,6 @@ import java.util.concurrent.TimeUnit
 class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Autowired
-  lateinit var caseRefreshRequestService: CaseRefreshRequestService
-
-  @Autowired
   lateinit var caseRefreshWorker: CaseRefreshWorker
 
   @Autowired
@@ -48,6 +45,9 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Autowired
   lateinit var clock: MutableTestClock
+
+  @Autowired
+  lateinit var transactionManager: PlatformTransactionManager
 
   private lateinit var crn: String
   private val now = Instant.parse("2026-07-23T10:00:00Z")
@@ -71,22 +71,22 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     val prisonNumber = "A1234AA"
     val case = caseRepository.save(
       buildCaseEntity(
-        tierScore = "A1",
+        tierScore = "B",
       ) {
         withCrn(crn)
         withPrisonNumber(prisonNumber)
       },
     )
     caseRefreshRequestService.requestLiveRefresh(case.id)
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A"))
     PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber, buildPrisoner(prisonNumber))
 
     caseRefreshWorker.process()
 
     val refreshedCase = caseRepository.findByCrn(crn)!!
-    assertThat(refreshedCase.tierScore).isEqualTo("A3")
+    assertThat(refreshedCase.tierScore).isEqualTo("A")
     assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
-    sasWiremock.verify(1, getRequestedFor(urlPathEqualTo("/v2/crn/$crn/tier")))
+    sasWiremock.verify(1, getRequestedFor(urlPathEqualTo("/v3/crn/$crn/tier")))
     sasWiremock.verify(1, getRequestedFor(urlPathEqualTo("/person/probation/$crn")))
     sasWiremock.verify(1, getRequestedFor(urlPathEqualTo("/prisoner/$prisonNumber")))
   }
@@ -95,17 +95,17 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
   fun `retains the previous projection and refresh request when an upstream service fails`() {
     val case = caseRepository.save(
       buildCaseEntity(
-        tierScore = "A1",
+        tierScore = "A",
       ) { withCrn(crn) },
     )
     caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierServerErrorResponse(crn)
-    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationServerErrorResponse(crn)
 
     val result = caseRefreshWorker.process()
 
     val unchangedCase = caseRepository.findByCrn(crn)!!
-    assertThat(unchangedCase.tierScore).isEqualTo("A1")
+    assertThat(unchangedCase.tierScore).isEqualTo("A")
     assertThat(caseRefreshRequestRepository.findAll()).hasSize(1)
     assertThat(result.refreshedCount).isZero()
     assertThat(result.failedCount).isEqualTo(1)
@@ -123,9 +123,9 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `retains a newer refresh request that arrives while Tier is loading`() {
-    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"), delayMs = 200)
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"), delayMs = 200)
 
     val workerRun = CompletableFuture.runAsync { caseRefreshWorker.process() }
     waitFor {
@@ -137,38 +137,36 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     workerRun.get(5, TimeUnit.SECONDS)
 
     val retainedRequest = caseRefreshRequestRepository.findAll().single()
-    assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("A3")
+    assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("B")
     assertThat(retainedRequest.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
     assertThat(retainedRequest.generation).isEqualTo(2)
   }
 
   @Test
   fun `refreshes all supported fields when the Case changes during upstream loading`() {
-    val case = caseRepository.save(
-      buildCaseEntity(
-        tierScore = "A1",
-      ) { withCrn(crn) },
-    )
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"), delayMs = 200)
-    ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"), delayMs = 200)
+
+    ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn)
 
     val workerRun = CompletableFuture.runAsync { caseRefreshWorker.process() }
     waitFor {
       assertThat(caseRefreshRequestRepository.findAll().single().status)
         .isEqualTo(CaseRefreshRequestStatus.PROCESSING)
     }
+
     val concurrentlyUpdatedCase = caseRepository.findByCrn(crn)!!
     caseRepository.saveAndFlush(concurrentlyUpdatedCase)
     workerRun.get(5, TimeUnit.SECONDS)
 
     val refreshedCase = caseRepository.findByCrn(crn)!!
-    assertThat(refreshedCase.tierScore).isEqualTo("A3")
+    assertThat(refreshedCase.tierScore).isEqualTo("B")
   }
 
   @Test
   fun `atomically coalesces concurrent refresh requests`() {
-    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
 
     val requests = (1..5).map {
       CompletableFuture.runAsync { caseRefreshRequestService.requestLiveRefresh(case.id) }
@@ -182,7 +180,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `allows only one concurrent worker to claim a Case`() {
-    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
 
     val claimAttempts = (1..2).map {
@@ -198,7 +196,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `moves repeatedly failing work to terminal failure and reopens it for a new event`() {
-    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierServerErrorResponse(crn)
 
@@ -232,7 +230,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `retains the backoff and attempt count when a new event arrives for failing work`() {
-    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierServerErrorResponse(crn)
 
@@ -262,7 +260,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `clears the failure history when a refresh succeeds while a newer event is waiting`() {
-    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
 
     val failedClaim = caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
@@ -276,8 +274,8 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     assertThat(caseRefreshRequestRepository.findAll().single().attemptCount).isEqualTo(1)
 
     clock.freezeAt(now.plus(Duration.ofMinutes(1)))
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"), delayMs = 200)
-    ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"), delayMs = 200)
+    ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn)
 
     val workerRun = CompletableFuture.runAsync { caseRefreshWorker.process() }
     waitFor {
@@ -289,7 +287,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     workerRun.get(5, TimeUnit.SECONDS)
 
     val retainedRequest = caseRefreshRequestRepository.findAll().single()
-    assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("A3")
+    assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("B")
     assertThat(retainedRequest.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
     assertThat(retainedRequest.generation).isEqualTo(2)
     assertThat(retainedRequest.attemptCount).isZero()
@@ -300,12 +298,12 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
   @Test
   fun `claims live work ahead of bulk work that has been waiting longer`() {
     val bulkCase = caseRepository.save(
-      buildCaseEntity(tierScore = "A1") { withCrn(UUID.randomUUID().toString()) },
+      buildCaseEntity(tierScore = "A") { withCrn(UUID.randomUUID().toString()) },
     )
     caseRefreshRequestService.requestBulkRefresh(listOf(bulkCase.id))
 
     clock.freezeAt(now.plus(Duration.ofMinutes(1)))
-    val liveCase = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    val liveCase = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(liveCase.id)
 
     clock.freezeAt(now.plus(Duration.ofMinutes(2)))
@@ -318,7 +316,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `bulk preload leaves an existing refresh request untouched`() {
-    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
 
     clock.freezeAt(now.plus(Duration.ofMinutes(1)))
@@ -333,7 +331,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `bulk preload does not reopen terminally failed work`() {
-    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierServerErrorResponse(crn)
 
@@ -353,7 +351,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `reclaims abandoned work with a new token and rejects the original claimant`() {
-    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
     val originalClaim = caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
 
@@ -367,7 +365,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
         CaseMutationOrchestrationDto(
           crn = crn,
           cpr = null,
-          tier = buildTier(tierScore = "A9"),
+          tier = buildTier(tierScore = "B"),
           prisoner = null,
           cas1CurrentPremises = null,
           cas3CurrentPremises = null,
@@ -381,6 +379,58 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     val request = caseRefreshRequestRepository.findAll().single()
     assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PROCESSING)
     assertThat(request.claimId).isEqualTo(replacementClaim.claimId)
-    assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("A1")
+    assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("A")
   }
+
+  @Test
+  fun `refresh completion is ignored when the case was archived before completion`() {
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
+    val claim = caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
+    caseRepository.archiveById(case.id)
+
+    val result = caseRefreshCompletionService.completeRefresh(claim, projection())
+
+    assertThat(result).isEqualTo(CaseRefreshCompletionService.Result.IGNORED_CASE_NOT_FOUND)
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)!!.tierScore).isEqualTo("A")
+  }
+
+  @Test
+  fun `archiving a case twice only archives it once`() {
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+
+    assertThat(caseRepository.archiveById(case.id)).isEqualTo(1)
+    assertThat(caseRepository.archiveById(case.id)).isZero()
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)!!.version).isEqualTo(case.version + 1)
+  }
+
+  @Test
+  fun `removes a refresh request enqueued after the case was archived`() {
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+    caseRepository.archiveById(case.id)
+
+    // e.g. a concurrent bulk refresh that read the case id before archival
+    caseRefreshRequestService.requestBulkRefresh(listOf(case.id))
+    assertThat(caseRefreshRequestRepository.findAll()).hasSize(1)
+
+    val result = caseRefreshWorker.process()
+
+    assertThat(result.refreshedCount).isZero()
+    assertThat(result.failedCount).isZero()
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+    assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)!!.tierScore).isEqualTo("A")
+  }
+
+  private fun projection() = CaseMutationOrchestrationDto(
+    crn = crn,
+    cpr = null,
+    tier = buildTier(tierScore = "B"),
+    prisoner = null,
+    cas1CurrentPremises = null,
+    cas3CurrentPremises = null,
+    cas1Application = null,
+    cas3Application = null,
+    case = null,
+  )
 }

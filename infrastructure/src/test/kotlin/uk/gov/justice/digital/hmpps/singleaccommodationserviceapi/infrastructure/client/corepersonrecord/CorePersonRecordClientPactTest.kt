@@ -162,11 +162,9 @@ class CorePersonRecordClientPactTest {
         addAddressLocationMatchers(address)
         address.stringType("comment", "Created by SAS")
         address.stringType("statusCode", "PR")
-        address.array("usages") { usages ->
-          usages.`object` { usage ->
-            usage.stringType("usageCode", "A01A")
-            usage.booleanType("isActive", true)
-          }
+        address.`object`("usage") { usage ->
+          usage.stringType("usageCode", "A01A")
+          usage.booleanType("isActive", true)
         }
         address.array("contacts") { contacts ->
           contacts.`object` { contact ->

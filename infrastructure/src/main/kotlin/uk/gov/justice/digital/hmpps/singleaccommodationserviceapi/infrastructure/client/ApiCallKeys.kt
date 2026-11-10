@@ -2,26 +2,35 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 object ApiCallKeys {
   // probation-integration AP and Delius service
-  const val GET_CASE = "getCaseByCrn"
   const val GET_STAFF_DETAIL = "getStaffDetailByUsername"
+  const val POST_CASE_SUMMARIES = "postCaseSummaries"
 
   // probation-integration SAS and Delius service
+  const val GET_CASE = "getCaseByCrn"
+  const val GET_CASE_IF_EXISTS = "getCaseByCrnIfExists"
   const val GET_CASE_LIST = "getCaseListByUsername"
   const val FULL_CASE_LIST = "fullCaseListByUsername"
   const val GET_CASES_BY_TEAM = "getCasesByTeamCode"
-  const val GET_CASE_WITHOUT_LAO = "getCaseByCrnWithoutLAO"
+  const val GET_STAFF_FOR_TEAMS = "getStaffForTeams"
+  const val GET_SEXUAL_OFFENCE_REGISTRATIONS = "getSexualOffenceRegistrations"
 
   // core-person-record service
   const val GET_CORE_PERSON_RECORD_BY_CRN = "getCorePersonRecordByCrn"
   const val GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER = "getCorePersonRecordByPrisonNumber"
 
+  // probation-access-control service
+  const val GET_USER_ACCESS = "getUserAccess"
+
+  // nomis user roles
+  const val GET_NOMIS_USER_DETAIL = "getUserDetails"
+
   // tier service
-  const val GET_TIER = "getTierByCrn"
+  const val GET_TIER_V3 = "getTierV3ByCrn"
 
   // Approved Premises service
   const val GET_CAS_1_CURRENT_PREMISES = "getCas1CurrentPremises"
   const val GET_CAS_3_CURRENT_PREMISES = "getCas3CurrentPremises"
-  const val GET_CAS_1_APPLICATION = "getCas1Application"
+  const val GET_CAS_1_CURRENT_APPLICATION = "getCas1CurrentApplication"
   const val GET_CAS_2_APPLICATION = "getCas2Application"
   const val GET_CAS_3_APPLICATION = "getCas3Application"
   const val GET_CAS_1_URL_TEMPLATES = "getCas1UrlTemplates"
@@ -43,12 +52,7 @@ object ApiCallKeys {
     GET_CAS1_REFERRAL,
     GET_CAS2_REFERRAL,
     GET_CAS3_REFERRAL,
-    GET_CAS_1_CURRENT_PREMISES,
-    GET_CAS_3_CURRENT_PREMISES,
-    GET_CAS_1_APPLICATION,
-    GET_CAS_2_APPLICATION,
-    GET_CAS_3_APPLICATION,
     GET_PRISONER,
-    GET_CASE_WITHOUT_LAO,
+    GET_CASE_IF_EXISTS,
   )
 }

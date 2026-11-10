@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2CohortDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2SubmittedApplicationSummaryDto
+import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -29,11 +30,13 @@ fun buildCas2SubmittedApplicationSummaryDto(
   submittedAt: OffsetDateTime = OffsetDateTime.now(),
   offerDeclinedReason: String? = null,
   cancelledReason: String? = null,
+  markedAsArrivedDateTime: Instant? = null,
 ) = Cas2SubmittedApplicationSummaryDto(
   submittedAt = submittedAt,
   latestAssessmentStatus = latestAssessmentStatus,
   offerDeclinedReason = offerDeclinedReason,
   cancelledReason = cancelledReason,
+  markedAsArrivedDateTime = markedAsArrivedDateTime,
 )
 
 fun buildCas2StaffDto(

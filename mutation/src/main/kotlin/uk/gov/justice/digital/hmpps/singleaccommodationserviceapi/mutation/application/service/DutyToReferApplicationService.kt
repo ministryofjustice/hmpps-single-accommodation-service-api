@@ -37,8 +37,8 @@ class DutyToReferApplicationService(
     val user = userService.authorizeAndRetrieveUser()
     val case = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
     withdrawExistingSubmittedReferral(case.id)
-    val aggregate = DutyToReferAggregate.hydrateNew(caseId = case.id)
-    aggregate.updateDutyToRefer(
+    val aggregate = DutyToReferAggregate.create(
+      caseId = case.id,
       localAuthorityAreaId = command.localAuthorityAreaId,
       submissionDate = command.submissionDate,
       referenceNumber = command.referenceNumber,

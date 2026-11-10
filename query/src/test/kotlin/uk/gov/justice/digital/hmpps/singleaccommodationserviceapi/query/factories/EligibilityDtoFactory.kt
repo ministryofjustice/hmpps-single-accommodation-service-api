@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDtoNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
@@ -39,16 +38,12 @@ fun buildEligibilityDtoNew(
 
 fun buildServiceResultNew(
   serviceStatus: ServiceStatusNew = ServiceStatusNew.CAS1_NOT_ELIGIBLE,
-  link: String? = null,
   url: String? = null,
-  linkType: LinkType? = null,
   failureReasons: List<FailureReason> = emptyList(),
   actionStartDate: LocalDate? = null,
 ) = ServiceResultNew(
   serviceStatus = serviceStatus,
-  link = link,
   url = url,
-  linkType = linkType,
   failureReasons = failureReasons,
   actionStartDate = actionStartDate,
 )

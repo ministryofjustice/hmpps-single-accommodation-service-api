@@ -1,13 +1,13 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine
 
 import org.slf4j.LoggerFactory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 
 interface RuleSetEvaluator {
-  fun evaluate(ruleset: RuleSet, data: DomainData): List<RuleResult>
+  fun evaluate(
+    ruleset: RuleSet,
+    data: DomainData,
+  ): List<RuleResult>
 }
 
 class DefaultRuleSetEvaluator : RuleSetEvaluator {
@@ -22,17 +22,4 @@ class DefaultRuleSetEvaluator : RuleSetEvaluator {
         log.debug("Rule result: {}", it.ruleStatus)
       }
     }
-}
-
-class CircuitBreakRuleSetEvaluator : RuleSetEvaluator {
-  override fun evaluate(ruleset: RuleSet, data: DomainData): List<RuleResult> {
-    ruleset.getRules()
-      .map { rule ->
-        val result = rule.evaluate(data)
-        if (result.ruleStatus == RuleStatus.FAIL) {
-          return listOf(result)
-        }
-      }
-    return listOf()
-  }
 }

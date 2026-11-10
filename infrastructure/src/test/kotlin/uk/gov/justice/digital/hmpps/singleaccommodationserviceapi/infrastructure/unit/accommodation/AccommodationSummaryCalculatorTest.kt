@@ -31,9 +31,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalPremisesV2Dto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummaryV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
@@ -79,6 +83,7 @@ class AccommodationSummaryCalculatorTest {
     isPrison = false,
     isCas1 = false,
     isCas2 = false,
+    isCas3 = false,
     isHomeless = isHomeless,
   )
 
@@ -420,59 +425,23 @@ class AccommodationSummaryCalculatorTest {
 
   @Nested
   inner class CalculateNextAccommodations {
-    @Test
-    fun `returns CAS1 next accommodation when application placement status is UPCOMING`() {
-      val cas1Application = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = Cas1PlacementStatus.UPCOMING,
-          premises = buildCas1PremisesSummary(),
+    private fun buildCas1ApplicationWithPlacement(
+      status: Cas1PlacementStatus,
+      postcode: String = "TE1 1ST",
+    ) = buildCas1ApplicationV2(
+      submittedApplication = buildCas1SubmittedApplication(
+        upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+          placement = buildCas1PlacementV2(
+            status = status,
+            premises = buildCas1ExternalPremisesV2Dto(postcode = postcode),
+          ),
         ),
-      )
-
-      val result = calculator.calculateNextAccommodations(
-        crn = crn,
-        addresses = null,
-        cas1Application = cas1Application,
-        cas3Application = null,
-        currentAccommodation = null,
-      )
-
-      assertThat(result).hasSize(1)
-      assertThat(result.single().type?.code).isEqualTo(AddressUsageCode.A02.name)
-    }
-
-    @Test
-    fun `returns CAS1 next accommodation with PR1 status when current accommodation is prison`() {
-      val cas1Application = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = Cas1PlacementStatus.UPCOMING,
-          premises = buildCas1PremisesSummary(),
-        ),
-      )
-      val prisonCurrentAccommodation = buildAccommodationSummaryDto(
-        crn = crn,
-        type = buildAccommodationTypeDto(code = "HMP"),
-      )
-
-      val result = calculator.calculateNextAccommodations(
-        crn = crn,
-        addresses = null,
-        cas1Application = cas1Application,
-        cas3Application = null,
-        currentAccommodation = prisonCurrentAccommodation,
-      )
-
-      assertThat(result.single().status?.code).isEqualTo(AddressStatusCode.PR1.name)
-    }
+      ),
+    )
 
     @Test
     fun `returns CAS1 next accommodation with PR status when current accommodation is not prison`() {
-      val cas1Application = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = Cas1PlacementStatus.UPCOMING,
-          premises = buildCas1PremisesSummary(),
-        ),
-      )
+      val cas1Application = buildCas1ApplicationWithPlacement(Cas1PlacementStatus.UPCOMING)
       val nonPrisonCurrentAccommodation = buildAccommodationSummaryDto(
         crn = crn,
         type = buildAccommodationTypeDto(code = AddressUsageCode.A01A.name),
@@ -487,6 +456,91 @@ class AccommodationSummaryCalculatorTest {
       )
 
       assertThat(result.single().status?.code).isEqualTo(AddressStatusCode.PR.name)
+    }
+
+    @Test
+    fun `returns CAS1 next accommodation from upcoming placement using canonical dates`() {
+      val cas1Application = buildCas1ApplicationV2(
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+            placement = buildCas1PlacementV2(
+              status = Cas1PlacementStatus.UPCOMING,
+              canonicalArrivalDate = LocalDate.of(2026, 1, 10),
+              canonicalDepartureDate = LocalDate.of(2026, 2, 10),
+              premises = buildCas1ExternalPremisesV2Dto(addressLine1 = "1 Test Street", town = "Testville", postcode = "TE1 1ST"),
+            ),
+          ),
+        ),
+      )
+
+      val result = calculator.calculateNextAccommodations(
+        crn = crn,
+        addresses = null,
+        cas1Application = cas1Application,
+        cas3Application = null,
+        currentAccommodation = null,
+      )
+
+      val accommodation = result.single()
+      assertThat(accommodation.type?.code).isEqualTo(AddressUsageCode.A02.name)
+      assertThat(accommodation.status?.code).isEqualTo(AddressStatusCode.PR.name)
+      assertThat(accommodation.startDate).isEqualTo(LocalDate.of(2026, 1, 10))
+      assertThat(accommodation.endDate).isEqualTo(LocalDate.of(2026, 2, 10))
+      assertThat(accommodation.address.thoroughfareName).isEqualTo("1 Test Street")
+      assertThat(accommodation.address.postTown).isEqualTo("Testville")
+      assertThat(accommodation.address.postcode).isEqualTo("TE1 1ST")
+    }
+
+    @Test
+    fun `returns CAS1 next accommodation with PR1 status when current accommodation is prison`() {
+      val cas1Application = buildCas1ApplicationV2(
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+            placement = buildCas1PlacementV2(status = Cas1PlacementStatus.UPCOMING),
+          ),
+        ),
+      )
+
+      val result = calculator.calculateNextAccommodations(
+        crn = crn,
+        addresses = null,
+        cas1Application = cas1Application,
+        cas3Application = null,
+        currentAccommodation = buildAccommodationSummaryDto(crn = crn, type = buildAccommodationTypeDto(code = "HMP")),
+      )
+
+      assertThat(result.single().status?.code).isEqualTo(AddressStatusCode.PR1.name)
+    }
+
+    @Test
+    fun `ignores CAS1 upcoming request when placement is missing or not UPCOMING`() {
+      val noPlacement = buildCas1ApplicationV2(
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+            requestForPlacement = buildCas1RequestForPlacementSummaryV2(),
+            placement = null,
+          ),
+        ),
+      )
+      val arrived = buildCas1ApplicationV2(
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+            placement = buildCas1PlacementV2(status = Cas1PlacementStatus.ARRIVED),
+          ),
+        ),
+      )
+
+      listOf(noPlacement, arrived, buildCas1ApplicationV2(), null).forEach {
+        val result = calculator.calculateNextAccommodations(
+          crn = crn,
+          addresses = null,
+          cas1Application = it,
+          cas3Application = null,
+          currentAccommodation = null,
+        )
+
+        assertThat(result).isEmpty()
+      }
     }
 
     @Test
@@ -511,26 +565,6 @@ class AccommodationSummaryCalculatorTest {
 
       assertThat(result).hasSize(1)
       assertThat(result.single().type?.code).isEqualTo(AddressUsageCode.A17.name)
-    }
-
-    @Test
-    fun `ignores CAS1 application when placement status is not UPCOMING`() {
-      val cas1Application = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = null,
-          premises = buildCas1PremisesSummary(),
-        ),
-      )
-
-      val result = calculator.calculateNextAccommodations(
-        crn = crn,
-        addresses = null,
-        cas1Application = cas1Application,
-        cas3Application = null,
-        currentAccommodation = null,
-      )
-
-      assertThat(result).isEmpty()
     }
 
     @Test
@@ -609,12 +643,7 @@ class AccommodationSummaryCalculatorTest {
 
     @Test
     fun `prefers CAS1 or CAS3 next accommodation over a proposed CPR address`() {
-      val cas1Application = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = Cas1PlacementStatus.UPCOMING,
-          premises = buildCas1PremisesSummary(),
-        ),
-      )
+      val cas1Application = buildCas1ApplicationWithPlacement(Cas1PlacementStatus.UPCOMING)
       val proposedAddress = buildAddress(statusCode = AddressStatusCode.PR.name, postcode = "SW1A 1AA", endDate = null)
       val equivalentProposedAccommodationEntity = buildProposedAccommodationEntity()
 
@@ -643,12 +672,7 @@ class AccommodationSummaryCalculatorTest {
         buildAddress(statusCode = AddressStatusCode.M.name, usageCode = AddressUsageCode.A01A.name, postcode = "SW1A 1AA"),
         buildAddress(statusCode = AddressStatusCode.PR.name, postcode = "GL53 8GH", endDate = null).copy(cprAddressId = proposedAddressId.toString()),
       )
-      val cas1Application = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = Cas1PlacementStatus.UPCOMING,
-          premises = buildCas1PremisesSummary(postcode = "SW1A 1AB"),
-        ),
-      )
+      val cas1Application = buildCas1ApplicationWithPlacement(Cas1PlacementStatus.UPCOMING, postcode = "SW1A 1AB")
       val cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         submittedApplication = buildCas3SubmittedApplication(
@@ -687,12 +711,7 @@ class AccommodationSummaryCalculatorTest {
       val addresses = listOf(
         buildAddress(statusCode = AddressStatusCode.PR.name, postcode = "GL53 8GH", endDate = null).copy(cprAddressId = proposedAddressId.toString()),
       )
-      val cas1Application = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = Cas1PlacementStatus.ARRIVED,
-          premises = buildCas1PremisesSummary(postcode = "SW1A 1AB"),
-        ),
-      )
+      val cas1Application = buildCas1ApplicationWithPlacement(Cas1PlacementStatus.ARRIVED, postcode = "SW1A 1AB")
       val cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         submittedApplication = buildCas3SubmittedApplication(
@@ -728,12 +747,7 @@ class AccommodationSummaryCalculatorTest {
       val addresses = listOf(
         buildAddress(statusCode = AddressStatusCode.PR.name, postcode = "GL53 8GH", endDate = null).copy(cprAddressId = proposedAddressId.toString()),
       )
-      val cas1Application = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = Cas1PlacementStatus.UPCOMING,
-          premises = buildCas1PremisesSummary(postcode = "SW1A 1AB"),
-        ),
-      )
+      val cas1Application = buildCas1ApplicationWithPlacement(Cas1PlacementStatus.UPCOMING, postcode = "SW1A 1AB")
       val cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         submittedApplication = buildCas3SubmittedApplication(
@@ -769,12 +783,7 @@ class AccommodationSummaryCalculatorTest {
       val addresses = listOf(
         buildAddress(statusCode = AddressStatusCode.PR.name, postcode = "GL53 8GH", endDate = null).copy(cprAddressId = proposedAddressId.toString()),
       )
-      val cas1Application = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = Cas1PlacementStatus.ARRIVED,
-          premises = buildCas1PremisesSummary(postcode = "SW1A 1AB"),
-        ),
-      )
+      val cas1Application = buildCas1ApplicationWithPlacement(Cas1PlacementStatus.ARRIVED, postcode = "SW1A 1AB")
       val cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         submittedApplication = buildCas3SubmittedApplication(
@@ -857,7 +866,7 @@ class AccommodationSummaryCalculatorTest {
     }
 
     @Test
-    fun `should return most recent end date when status is NO_FIXED_ABODE`() {
+    fun `should return most recent end date when no current start date and status is NO_FIXED_ABODE`() {
       val result = calculator.calculateCaseAccommodationStatusDate(
         caseAccommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
         currentAccommodation = null,
@@ -869,6 +878,21 @@ class AccommodationSummaryCalculatorTest {
         ),
       )
       assertThat(result).isEqualTo(LocalDate.now().minusDays(1))
+    }
+
+    @Test
+    fun `should return most current start date when status is NO_FIXED_ABODE`() {
+      val result = calculator.calculateCaseAccommodationStatusDate(
+        caseAccommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
+        currentAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now(), type = buildAccommodationTypeDto(code = "A08")),
+        nextAccommodation = null,
+        addresses = listOf(
+          buildAddress(endDate = LocalDate.now().minusDays(4).toString()),
+          buildAddress(endDate = LocalDate.now().minusDays(1).toString()),
+          buildAddress(endDate = LocalDate.now().minusDays(2).toString()),
+        ),
+      )
+      assertThat(result).isEqualTo(LocalDate.now())
     }
   }
 

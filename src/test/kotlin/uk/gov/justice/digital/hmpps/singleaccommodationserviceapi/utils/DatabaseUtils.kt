@@ -18,8 +18,9 @@ class DatabaseUtils(
     INBOX_EVENT("inbox_event"),
     OUTBOX_EVENT("outbox_event"),
     PROPOSED_ACCOMMODATION("proposed_accommodation"),
+    PROPOSED_ACCOMMODATION_NOTE("proposed_accommodation_note"),
     SAS_CASE_REFRESH_REQUEST("sas_case_refresh_request"),
-    SAS_USER_CUSTOM_CASE_LIST("sas_user_custom_case_list"),
+    SAS_USER_CASE_LIST_ENTRY("sas_user_case_list_entry"),
     ONBOARDED_TEAM("onboarded_team"),
   }
 

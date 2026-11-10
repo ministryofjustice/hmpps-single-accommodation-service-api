@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import java.time.Instant
 import java.time.OffsetDateTime
 
 class Cas2ApplicationTest {
@@ -23,6 +24,7 @@ class Cas2ApplicationTest {
           offerDeclinedReason = null,
           cancelledReason = null,
           submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+          markedAsArrivedDateTime = null,
         )
       }
       assertThat(thrown).isNull()
@@ -41,6 +43,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = null,
             cancelledReason = "a reason",
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrivedDateTime = null,
           )
         }
         assertThat(thrown).hasMessage("Cancelled reason is required when status is `cancelled` and forbidden otherwise")
@@ -54,6 +57,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = null,
             cancelledReason = "a reason",
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrivedDateTime = null,
           )
         }
         assertThat(thrown).isNull()
@@ -67,6 +71,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = null,
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrivedDateTime = null,
           )
         }
         assertThat(thrown).hasMessage("Cancelled reason is required when status is `cancelled` and forbidden otherwise")
@@ -86,6 +91,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = "a reason",
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrivedDateTime = null,
           )
         }
         assertThat(thrown).hasMessage("Offer declined reason is required when status is `offerDeclined` and forbidden otherwise")
@@ -100,6 +106,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = "a reason",
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrivedDateTime = null,
           )
         }
         assertThat(thrown).hasMessage("Cancelled reason is required when status is `cancelled` and forbidden otherwise")
@@ -113,6 +120,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = "a reason",
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrivedDateTime = null,
           )
         }
         assertThat(thrown).isNull()
@@ -126,9 +134,92 @@ class Cas2ApplicationTest {
             offerDeclinedReason = null,
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrivedDateTime = null,
           )
         }
         assertThat(thrown).hasMessage("Offer declined reason is required when status is `offerDeclined` and forbidden otherwise")
+      }
+    }
+
+    @Nested
+    inner class MarkedAsArrivedDateTime {
+      @ParameterizedTest
+      @EnumSource(Cas2AssessmentStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["AWAITING_ARRIVAL", "OFFER_DECLINED", "CANCELLED"])
+      fun `Only an awaiting arrival status can include a marked as arrived timestamp - invalid`(
+        status: Cas2AssessmentStatus,
+      ) {
+        val thrown = catchThrowable {
+          Cas2SubmittedApplicationSummary(
+            latestAssessmentStatus = status,
+            offerDeclinedReason = null,
+            cancelledReason = null,
+            submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrivedDateTime = Instant.parse("2023-02-01T00:00:00.000Z"),
+          )
+        }
+        assertThat(thrown).hasMessage("Marked as arrived date time can only be provided when status is `awaitingArrival`")
+      }
+
+      @ParameterizedTest
+      @EnumSource(Cas2AssessmentStatus::class, mode = EnumSource.Mode.INCLUDE, names = ["OFFER_DECLINED"])
+      fun `An offer declined status cannot include a marked as arrived timestamp - invalid`(
+        status: Cas2AssessmentStatus,
+      ) {
+        val thrown = catchThrowable {
+          Cas2SubmittedApplicationSummary(
+            latestAssessmentStatus = status,
+            offerDeclinedReason = "a reason",
+            cancelledReason = null,
+            submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrivedDateTime = Instant.parse("2023-02-01T00:00:00.000Z"),
+          )
+        }
+        assertThat(thrown).hasMessage("Marked as arrived date time can only be provided when status is `awaitingArrival`")
+      }
+
+      @ParameterizedTest
+      @EnumSource(Cas2AssessmentStatus::class, mode = EnumSource.Mode.INCLUDE, names = ["CANCELLED"])
+      fun `A cancelled status cannot include a marked as arrived timestamp - invalid`(
+        status: Cas2AssessmentStatus,
+      ) {
+        val thrown = catchThrowable {
+          Cas2SubmittedApplicationSummary(
+            latestAssessmentStatus = status,
+            offerDeclinedReason = null,
+            cancelledReason = "a reason",
+            submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrivedDateTime = Instant.parse("2023-02-01T00:00:00.000Z"),
+          )
+        }
+        assertThat(thrown).hasMessage("Marked as arrived date time can only be provided when status is `awaitingArrival`")
+      }
+
+      @Test
+      fun `An awaiting arrival status can include a marked as arrived timestamp - valid`() {
+        val thrown = catchThrowable {
+          Cas2SubmittedApplicationSummary(
+            latestAssessmentStatus = Cas2AssessmentStatus.AWAITING_ARRIVAL,
+            offerDeclinedReason = null,
+            cancelledReason = null,
+            submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrivedDateTime = Instant.parse("2023-02-01T00:00:00.000Z"),
+          )
+        }
+        assertThat(thrown).isNull()
+      }
+
+      @Test
+      fun `An awaiting arrival status can include a null marked as arrived timestamp - valid`() {
+        val thrown = catchThrowable {
+          Cas2SubmittedApplicationSummary(
+            latestAssessmentStatus = Cas2AssessmentStatus.AWAITING_ARRIVAL,
+            offerDeclinedReason = null,
+            cancelledReason = null,
+            submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrivedDateTime = null,
+          )
+        }
+        assertThat(thrown).isNull()
       }
     }
   }

@@ -19,7 +19,6 @@ dependencies {
 
   implementation(libs.hmpps.starter)
   implementation(libs.spring.data.jpa)
-  implementation(libs.spring.restclient)
   implementation(libs.spring.webclient)
   implementation(libs.spring.flyway)
 
@@ -32,7 +31,6 @@ dependencies {
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.hmpps.sqs)
   testImplementation(libs.coroutines.core)
-  testImplementation(libs.spring.resttestclient)
 
   testImplementation(libs.wiremock)
   testImplementation(libs.mockk)
@@ -88,7 +86,19 @@ tasks.named("check") {
   dependsOn("validateFlywayFilenames")
 }
 
+val guavaDependency = libs.guava
+
 allprojects {
+  pluginManager.withPlugin("java") {
+    dependencies {
+      constraints {
+        add("implementation", guavaDependency.get()) {
+          because("Fix CVE-2026-102554")
+        }
+      }
+    }
+  }
+
   pluginManager.apply("org.owasp.dependencycheck")
   dependencyCheck {
     skipConfigurations.addAll(listOf("detekt", "detektPlugins"))
