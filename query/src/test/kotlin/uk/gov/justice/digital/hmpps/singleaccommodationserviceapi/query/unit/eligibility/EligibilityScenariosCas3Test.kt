@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
@@ -19,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBookingPremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
@@ -37,6 +39,56 @@ class EligibilityScenariosCas3Test : EligibilityScenarioTestBase() {
 
   @Autowired
   private lateinit var cas3Tree: Cas3EligibilityTreeProvider
+
+  @Test
+  fun `arrived CAS3 booking ending beyond 15 days returns not eligible for current accommodation type`() {
+    val referenceDate = LocalDate.of(2026, 11, 10)
+    val accommodationEndDate = LocalDate.of(2027, 2, 1)
+    clock.setNow(referenceDate)
+
+    val data = buildDomainData(
+      sex = SexCode.M,
+      currentAccommodation = buildAccommodationSummaryDto(
+        startDate = referenceDate,
+        endDate = accommodationEndDate,
+        type = buildAccommodationTypeDto(code = "A17"),
+      ),
+      currentAccommodationTypeEntity = buildAccommodationTypeEntity(code = "A17", isCas3 = true),
+      cas3Application = buildCas3Application(
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        submittedApplication = buildCas3SubmittedApplication(
+          submittedDate = LocalDate.of(2026, 11, 4),
+          assessmentStatus = Cas3AssessmentStatus.CLOSED,
+          latestBooking = buildCas3LatestBooking(
+            status = Cas3BookingStatus.ARRIVED,
+            premises = buildCas3LatestBookingPremisesDto().copy(
+              startDate = referenceDate,
+              endDate = accommodationEndDate,
+            ),
+          ),
+        ),
+      ),
+      dutyToRefer = buildDutyToReferDto(
+        submission = buildDtrSubmission(submissionDate = LocalDate.of(2026, 11, 2)),
+      ),
+      commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
+        sentAt = LocalDate.of(2026, 11, 4).atStartOfDay().atOffset(ZoneOffset.UTC),
+        status = CrsReferralStatus.LIVE,
+      ),
+      roshLevel = buildRoshLevel(code = RiskLevel.LOW.code),
+    )
+
+    // The end date is beyond 15 days, so the tree bypasses the active-referral check.
+    // Current CAS3 accommodation is not prison, CAS1 or CAS2, so it fails before DTR/CRS prerequisites.
+    val result = eligibilityService.evaluate(cas3Tree, data.toCas3DomainData())
+
+    assertThat(result).isEqualTo(
+      ServiceResultNew(
+        serviceStatus = ServiceStatusNew.CAS3_NOT_ELIGIBLE,
+        failureReasons = listOf(FailureReason.INVALID_CURRENT_ACCOMMODATION_TYPE),
+      ),
+    )
+  }
 
   fun loadCas3ApplicationScenarios(): List<Cas3ApplicationScenario> {
     val rows = CsvReader().read("/cas3-application-scenarios.csv")
@@ -164,7 +216,7 @@ class EligibilityScenariosCas3Test : EligibilityScenarioTestBase() {
         roshLevel = buildRoshLevel(code = RiskLevel.LOW.code),
       )
 
-      val result = eligibilityService.evaluate(cas3Tree, data)
+      val result = eligibilityService.evaluate(cas3Tree, data.toCas3DomainData())
 
       assertThat(result.serviceStatus)
         .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas3Status}")
@@ -246,7 +298,7 @@ class EligibilityScenariosCas3Test : EligibilityScenarioTestBase() {
         roshLevel = s.riskLevel?.let { buildRoshLevel(code = it.code) },
       )
 
-      val result = eligibilityService.evaluate(cas3Tree, data)
+      val result = eligibilityService.evaluate(cas3Tree, data.toCas3DomainData())
 
       assertThat(result.serviceStatus)
         .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas3Status}")

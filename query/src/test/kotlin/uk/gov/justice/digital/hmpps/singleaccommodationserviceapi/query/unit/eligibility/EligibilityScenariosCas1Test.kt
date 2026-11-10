@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Fa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
@@ -50,7 +51,7 @@ class EligibilityScenariosCas1Test : EligibilityScenarioTestBase() {
             referenceDate = row["referenceDate"]!!.toLocalDate(),
             riskLevel = row["RiskLevel"]?.let { RiskLevel.valueOf(it) },
             sex = row["sex"]?.let { SexCode.valueOf(it) },
-            tierScore = row["tierScore"],
+            tierScore = row["tierScore"]?.let(TierScore::valueOf),
             currentAccommodationType = accommodationType,
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatusNew.valueOf(it) },
@@ -122,7 +123,7 @@ class EligibilityScenariosCas1Test : EligibilityScenarioTestBase() {
         roshLevel = s.riskLevel?.let { buildRoshLevel(code = it.code) },
       )
 
-      val result = eligibilityService.evaluate(cas1Tree, data)
+      val result = eligibilityService.evaluate(cas1Tree, data.toCas1DomainData())
 
       assertThat(result.serviceStatus)
         .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas1Status}")
@@ -176,7 +177,7 @@ class EligibilityScenariosCas1Test : EligibilityScenarioTestBase() {
 
       val data = buildDomainData(
         crn = s.testCaseId,
-        tierScore = if (s.isEligible) "A" else "D",
+        tierScore = if (s.isEligible) TierScore.A else TierScore.D,
         sex = SexCode.M,
         currentAccommodation = buildAccommodationSummaryDto(
           type = buildAccommodationTypeDto(code = "A02"),
@@ -187,7 +188,7 @@ class EligibilityScenariosCas1Test : EligibilityScenarioTestBase() {
         roshLevel = buildRoshLevel(code = RiskLevel.LOW.code),
       )
 
-      val result = eligibilityService.evaluate(cas1Tree, data)
+      val result = eligibilityService.evaluate(cas1Tree, data.toCas1DomainData())
 
       assertThat(result.serviceStatus)
         .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas1Status}")
@@ -216,7 +217,7 @@ class EligibilityScenariosCas1Test : EligibilityScenarioTestBase() {
     val referenceDate: LocalDate,
     val riskLevel: RiskLevel?,
     val sex: SexCode?,
-    val tierScore: String?,
+    val tierScore: TierScore?,
     val currentAccommodationType: String?,
     val currentAccommodationEndDate: LocalDate?,
     val expectedCas1Status: ServiceStatusNew?,

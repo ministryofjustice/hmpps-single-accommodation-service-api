@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSetNodeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 
@@ -22,9 +23,9 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `ruleSet creates and returns RuleSetNodeBuilder`() {
-    val ruleSet: RuleSet = mockk()
+    val ruleSet: RuleSet<DomainData> = mockk()
     every { ruleSet.name } returns "TestRuleSet"
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
 
     val result = builder.ruleSet(ruleSet)
 
@@ -33,7 +34,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `named outcomes expose graph labels`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
     val expectedResult = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
 
     assertThat(builder.confirmed().name).isEqualTo("current status")
@@ -48,7 +49,7 @@ class DecisionTreeBuilderTest {
       buildServiceResultNew(
         serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
       )
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
 
     val result = builder.outcome(expectedResult)
 
@@ -65,7 +66,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `confirmed creates OutcomeNode returning current context ServiceResult`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
     val currentResult =
       buildServiceResultNew(
         serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
@@ -85,7 +86,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `confirmed returns different ServiceResult when context changes`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
     val initialResult = buildServiceResultNew()
     val updatedResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
     val initialContext =
@@ -107,7 +108,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `confirmed preserves failureReasons when status is NOT_ELIGIBLE`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
     val failureReasons = listOf(FailureReason.IS_SETTLED)
     val context = EvaluationContext(
       data = buildDomainData(),
@@ -122,7 +123,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `confirmed strips failureReasons when status is not NOT_ELIGIBLE`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_NOT_STARTED, failureReasons = listOf(FailureReason.IS_SETTLED)),
@@ -136,7 +137,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `notEligible creates OutcomeNode with NOT_ELIGIBLE status`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
 
     val result = builder.notEligible(ServiceType.CAS1)
 
@@ -152,7 +153,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `notEligible always returns same result regardless of context`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
     val context1 =
       EvaluationContext(
         data = buildDomainData(),
@@ -175,7 +176,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `notEligible carries failureReasons from current context`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
     val failureReasons = listOf(FailureReason.IS_SETTLED, FailureReason.MALE_NOT_HIGH_RISK_TIER)
     val context = EvaluationContext(
       data = buildDomainData(),
@@ -193,7 +194,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `notRequired creates OutcomeNode with NOT_REQUIRED status`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
 
     val result = builder.notRequired(ServiceType.DTR)
 
@@ -209,7 +210,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `notRequired always returns same result regardless of context`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
     val context1 =
       EvaluationContext(
         data = buildDomainData(),
@@ -232,7 +233,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `notRequired carries failureReasons from current context`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
     val failureReasons = listOf(FailureReason.HAS_NEXT_ACCOMMODATION)
     val context = EvaluationContext(
       data = buildDomainData(),
@@ -250,7 +251,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `confirmed throws a clear error when currentResult has not been set`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = null,
@@ -263,7 +264,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `notEligible defaults to no failureReasons when currentResult has not been set`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = null,
@@ -277,7 +278,7 @@ class DecisionTreeBuilderTest {
 
   @Test
   fun `notRequired defaults to no failureReasons when currentResult has not been set`() {
-    val builder = DecisionTreeBuilder(engine)
+    val builder = DecisionTreeBuilder<DomainData>(engine)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = null,

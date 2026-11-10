@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSetResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 
@@ -32,7 +33,7 @@ class DecisionNodeTest {
         buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
         )
-      val outcomeNode = OutcomeNode { _ -> expectedResult }
+      val outcomeNode = OutcomeNode<DomainData> { _ -> expectedResult }
       val context =
         EvaluationContext(
           data = buildDomainData(),
@@ -54,7 +55,7 @@ class DecisionNodeTest {
             serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
           ),
         )
-      val outcomeNode = OutcomeNode { context -> context.currentResult!! }
+      val outcomeNode = OutcomeNode<DomainData> { context -> context.currentResult!! }
 
       val result = outcomeNode.eval(context)
 
@@ -68,7 +69,7 @@ class DecisionNodeTest {
           data = buildDomainData(),
           currentResult = buildServiceResultNew(),
         )
-      val outcomeNode = OutcomeNode { _ ->
+      val outcomeNode = OutcomeNode<DomainData> { _ ->
         buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
         )
@@ -84,11 +85,11 @@ class DecisionNodeTest {
   inner class RuleSetNodeTests {
     @Test
     fun `RuleSetNode on PASS executes ruleset and evaluates onPass node with unchanged context`() {
-      val ruleSet: RuleSet = mockk()
+      val ruleSet: RuleSet<DomainData> = mockk()
       val engine: RulesEngine = mockk()
-      val onPassNode: DecisionNode = mockk()
-      val onFailNode: DecisionNode = mockk()
-      val onFailContextUpdater: ContextUpdater = mockk()
+      val onPassNode: DecisionNode<DomainData> = mockk()
+      val onFailNode: DecisionNode<DomainData> = mockk()
+      val onFailContextUpdater: ContextUpdater<DomainData> = mockk()
 
       val initialContext =
         EvaluationContext(
@@ -116,19 +117,19 @@ class DecisionNodeTest {
       assertThat(result).isEqualTo(expectedResult)
       verify { engine.execute(ruleSet, initialContext.data) }
       verify { onPassNode.eval(initialContext) }
-      verify(exactly = 0) { onFailContextUpdater.update(any(), any()) }
+      verify(exactly = 0) { onFailContextUpdater.update<DomainData>(any(), any()) }
       verify(exactly = 0) { onFailNode.eval(any()) }
     }
 
     @Test
     fun `RuleSetNode on FAIL without context updater passes context through with failure reasons`() {
-      val ruleSet: RuleSet = mockk()
+      val ruleSet: RuleSet<DomainData> = mockk()
       val engine: RulesEngine = mockk()
-      val onFailNode: DecisionNode = mockk()
+      val onFailNode: DecisionNode<DomainData> = mockk()
       val failureReasons = listOf(FailureReason.SUITABLE_CAS1_APPLICATION)
       val initialContext = EvaluationContext(data = buildDomainData(), currentResult = null)
       val expectedResult = buildServiceResultNew(ServiceStatusNew.PA_NOT_ELIGIBLE)
-      val contextSlot = slot<EvaluationContext>()
+      val contextSlot = slot<EvaluationContext<DomainData>>()
 
       every { engine.execute(ruleSet, initialContext.data) } returns RuleSetResult(RuleSetStatus.FAIL, failureReasons)
       every { onFailNode.eval(capture(contextSlot)) } returns expectedResult
@@ -150,11 +151,11 @@ class DecisionNodeTest {
 
     @Test
     fun `RuleSetNode on FAIL executes ruleset, updates context, and evaluates onFail node`() {
-      val ruleSet: RuleSet = mockk()
+      val ruleSet: RuleSet<DomainData> = mockk()
       val engine: RulesEngine = mockk()
-      val contextUpdater: ContextUpdater = mockk()
-      val onPassNode: DecisionNode = mockk()
-      val onFailNode: DecisionNode = mockk()
+      val contextUpdater: ContextUpdater<DomainData> = mockk()
+      val onPassNode: DecisionNode<DomainData> = mockk()
+      val onFailNode: DecisionNode<DomainData> = mockk()
 
       val initialContext =
         EvaluationContext(
@@ -194,11 +195,11 @@ class DecisionNodeTest {
 
     @Test
     fun `RuleSetNode passes correct parameters to RulesEngine execute`() {
-      val ruleSet: RuleSet = mockk()
+      val ruleSet: RuleSet<DomainData> = mockk()
       val engine: RulesEngine = mockk()
-      val contextUpdater: ContextUpdater = mockk()
-      val onPassNode: DecisionNode = mockk()
-      val onFailNode: DecisionNode = mockk()
+      val contextUpdater: ContextUpdater<DomainData> = mockk()
+      val onPassNode: DecisionNode<DomainData> = mockk()
+      val onFailNode: DecisionNode<DomainData> = mockk()
 
       val domainData = buildDomainData()
       val context =
@@ -207,7 +208,7 @@ class DecisionNodeTest {
           currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED),
         )
 
-      every { engine.execute(any(), any()) } returns RuleSetResult(RuleSetStatus.PASS, emptyList())
+      every { engine.execute<DomainData>(any(), any()) } returns RuleSetResult(RuleSetStatus.PASS, emptyList())
       every { onPassNode.eval(any()) } returns buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
 
       val ruleSetNode =
@@ -228,11 +229,11 @@ class DecisionNodeTest {
 
     @Test
     fun `RuleSetNode passes correct parameters to ContextUpdater on FAIL`() {
-      val ruleSet: RuleSet = mockk()
+      val ruleSet: RuleSet<DomainData> = mockk()
       val engine: RulesEngine = mockk()
-      val contextUpdater: ContextUpdater = mockk()
-      val onPassNode: DecisionNode = mockk()
-      val onFailNode: DecisionNode = mockk()
+      val contextUpdater: ContextUpdater<DomainData> = mockk()
+      val onPassNode: DecisionNode<DomainData> = mockk()
+      val onFailNode: DecisionNode<DomainData> = mockk()
 
       val context =
         EvaluationContext(
@@ -244,7 +245,7 @@ class DecisionNodeTest {
         currentResult = buildServiceResultNew(),
       )
 
-      every { engine.execute(any(), any()) } returns RuleSetResult(RuleSetStatus.FAIL, emptyList())
+      every { engine.execute<DomainData>(any(), any()) } returns RuleSetResult(RuleSetStatus.FAIL, emptyList())
       every { contextUpdater.update(context, emptyList()) } returns updatedContext
       every { onFailNode.eval(any()) } returns buildServiceResultNew()
 
@@ -266,13 +267,13 @@ class DecisionNodeTest {
 
     @Test
     fun `RuleSetNode on FAIL threads non-empty failure reasons through to onFail context`() {
-      val ruleSet: RuleSet = mockk()
+      val ruleSet: RuleSet<DomainData> = mockk()
       val engine: RulesEngine = mockk()
-      val onPassNode: DecisionNode = mockk()
-      val onFailNode: DecisionNode = mockk()
-      val contextUpdater = object : ContextUpdater() {
+      val onPassNode: DecisionNode<DomainData> = mockk()
+      val onFailNode: DecisionNode<DomainData> = mockk()
+      val contextUpdater = object : ContextUpdater<DomainData>() {
         override val propagatesFailureReasons = true
-        override fun toServiceResult(context: EvaluationContext): ServiceResultNew = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_ELIGIBLE)
+        override fun toServiceResult(context: EvaluationContext<DomainData>): ServiceResultNew = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_ELIGIBLE)
       }
 
       val initialContext = EvaluationContext(
@@ -280,7 +281,7 @@ class DecisionNodeTest {
         currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED),
       )
       val ruleFailureReasons = listOf(FailureReason.IS_SETTLED, FailureReason.MALE_NOT_HIGH_RISK_TIER)
-      val capturedContext = slot<EvaluationContext>()
+      val capturedContext = slot<EvaluationContext<DomainData>>()
 
       every { engine.execute(ruleSet, initialContext.data) } returns
         RuleSetResult(RuleSetStatus.FAIL, ruleFailureReasons)
@@ -307,12 +308,12 @@ class DecisionNodeTest {
 
     @Test
     fun `RuleSetNode on FAIL falls back to contextUpdater failure reasons when rules supply none`() {
-      val ruleSet: RuleSet = mockk()
+      val ruleSet: RuleSet<DomainData> = mockk()
       val engine: RulesEngine = mockk()
-      val onPassNode: DecisionNode = mockk()
-      val onFailNode: DecisionNode = mockk()
-      val contextUpdater = object : ContextUpdater() {
-        override fun toServiceResult(context: EvaluationContext): ServiceResultNew = buildServiceResultNew(
+      val onPassNode: DecisionNode<DomainData> = mockk()
+      val onFailNode: DecisionNode<DomainData> = mockk()
+      val contextUpdater = object : ContextUpdater<DomainData>() {
+        override fun toServiceResult(context: EvaluationContext<DomainData>): ServiceResultNew = buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS1_NOT_ELIGIBLE,
           failureReasons = listOf(FailureReason.IS_SETTLED),
         )
@@ -322,7 +323,7 @@ class DecisionNodeTest {
         data = buildDomainData(),
         currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED),
       )
-      val capturedContext = slot<EvaluationContext>()
+      val capturedContext = slot<EvaluationContext<DomainData>>()
 
       every { engine.execute(ruleSet, initialContext.data) } returns
         RuleSetResult(RuleSetStatus.FAIL, emptyList())

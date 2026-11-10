@@ -1,0 +1,33 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input
+
+/** Inputs that influence rule evaluation or context updates, excluding identifiers used only for links/logging. */
+enum class DomainDataField(val path: String) {
+  CURRENT_ACCOMMODATION_END_DATE("currentAccommodation.endDate"),
+  CURRENT_ACCOMMODATION_TYPE("currentAccommodationTypeEntity.code"),
+  ACCOMMODATION_SETTLED_TYPE("currentAccommodationTypeEntity.settledType"),
+  SEX("sex"),
+  TIER_SCORE("tierScore"),
+  ROSH_LEVEL("roshLevel"),
+  NEXT_ACCOMMODATIONS("nextAccommodations"),
+  DATE_OF_BIRTH("dob"),
+  SEXUAL_OFFENCE_REGISTRATIONS("sexualOffenceRegistrations.sexualOffenceRegistrations"),
+  CAS1_APPLICATION("cas1Application"),
+  CAS1_APPLICATION_STATUS("cas1Application.application.status"),
+  CAS1_CURRENT_OUTCOME("cas1Application.currentOutcome"),
+  CAS1_PLACEMENT("cas1Application.currentOutcome.placement"),
+  CAS1_PLACEMENT_STATUS("cas1Application.currentOutcome.placement.status"),
+  CAS1_REQUEST_FOR_PLACEMENT_STATUS("cas1Application.currentOutcome.requestForPlacement.status"),
+  CAS2_APPLICATION("cas2Application"),
+  CAS2_SUBMITTED_APPLICATION("cas2Application.submittedApplication"),
+  CAS2_SUBMITTED_AT("cas2Application.submittedApplication.submittedAt"),
+  CAS2_ASSESSMENT_STATUS("cas2Application.submittedApplication.latestAssessmentStatus"),
+  CAS2_MARKED_AS_ARRIVED("cas2Application.submittedApplication.markedAsArrivedDateTime"),
+  CAS3_APPLICATION("cas3Application"),
+  CAS3_APPLICATION_STATUS("cas3Application.applicationStatus"),
+  CAS3_ASSESSMENT_STATUS("cas3Application.submittedApplication.assessmentStatus"),
+  CAS3_LATEST_BOOKING("cas3Application.submittedApplication.latestBooking"),
+  CAS3_BOOKING_STATUS("cas3Application.submittedApplication.latestBooking.status"),
+  DTR_STATUS("dutyToRefer.status"),
+  DTR_SUBMISSION_DATE("dutyToRefer.submission.submissionDate"),
+  CRS_STATUS("commissionedRehabilitativeServices.status"),
+}

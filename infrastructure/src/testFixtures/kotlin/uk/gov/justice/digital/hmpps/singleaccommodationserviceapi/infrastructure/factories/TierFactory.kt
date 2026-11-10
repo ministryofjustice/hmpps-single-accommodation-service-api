@@ -1,10 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import java.time.LocalDateTime
 import java.util.UUID
 
-fun buildTier(tierScore: String = "A") = Tier(
+fun buildTier(tierScore: TierScore = TierScore.A) = Tier(
   tierScore = tierScore,
   calculationId = UUID.randomUUID(),
   calculationDate = LocalDateTime.now(),

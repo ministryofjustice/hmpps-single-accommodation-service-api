@@ -11,16 +11,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSetNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSetNodeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 
 class RuleSetNodeBuilderTest {
   private val ruleSetName = "TestRuleSet"
-  private val ruleSet: RuleSet = mockk()
+  private val ruleSet: RuleSet<DomainData> = mockk()
   private val engine: RulesEngine = mockk()
 
   @Test
   fun `onPass sets the onPass node and returns builder`() {
-    val onPassNode: DecisionNode = OutcomeNode { _ ->
+    val onPassNode: DecisionNode<DomainData> = OutcomeNode<DomainData> { _ ->
       buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
     }
 
@@ -32,7 +33,7 @@ class RuleSetNodeBuilderTest {
 
   @Test
   fun `onFail sets the onFail node and returns builder`() {
-    val onFailNode: DecisionNode = OutcomeNode { _ ->
+    val onFailNode: DecisionNode<DomainData> = OutcomeNode<DomainData> { _ ->
       buildServiceResultNew()
     }
 
@@ -44,10 +45,10 @@ class RuleSetNodeBuilderTest {
 
   @Test
   fun `builder can chain onPass and onFail`() {
-    val onPassNode: DecisionNode = OutcomeNode { _ ->
+    val onPassNode: DecisionNode<DomainData> = OutcomeNode<DomainData> { _ ->
       buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
     }
-    val onFailNode: DecisionNode = OutcomeNode { _ ->
+    val onFailNode: DecisionNode<DomainData> = OutcomeNode<DomainData> { _ ->
       buildServiceResultNew()
     }
 
@@ -59,7 +60,7 @@ class RuleSetNodeBuilderTest {
 
   @Test
   fun `continueWith sets both onPass and onFail`() {
-    val node: DecisionNode = OutcomeNode { _ ->
+    val node: DecisionNode<DomainData> = OutcomeNode<DomainData> { _ ->
       buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
     }
 
@@ -72,10 +73,10 @@ class RuleSetNodeBuilderTest {
 
   @Test
   fun `build creates RuleSetNode with correct properties`() {
-    val onPassNode: DecisionNode = OutcomeNode { _ ->
+    val onPassNode: DecisionNode<DomainData> = OutcomeNode<DomainData> { _ ->
       buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
     }
-    val onFailNode: DecisionNode = OutcomeNode { _ ->
+    val onFailNode: DecisionNode<DomainData> = OutcomeNode<DomainData> { _ ->
       buildServiceResultNew()
     }
 
@@ -91,7 +92,7 @@ class RuleSetNodeBuilderTest {
 
   @Test
   fun `build throws exception when onPass is not set`() {
-    val onFailNode: DecisionNode = OutcomeNode { _ ->
+    val onFailNode: DecisionNode<DomainData> = OutcomeNode<DomainData> { _ ->
       buildServiceResultNew()
     }
 
@@ -105,7 +106,7 @@ class RuleSetNodeBuilderTest {
 
   @Test
   fun `build throws exception when onFail is not set`() {
-    val onPassNode: DecisionNode = OutcomeNode { _ ->
+    val onPassNode: DecisionNode<DomainData> = OutcomeNode<DomainData> { _ ->
       buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
     }
 
@@ -128,7 +129,7 @@ class RuleSetNodeBuilderTest {
 
   @Test
   fun `build allows no failure context updater`() {
-    val nextNode: DecisionNode = OutcomeNode { _ ->
+    val nextNode: DecisionNode<DomainData> = OutcomeNode<DomainData> { _ ->
       buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
     }
 

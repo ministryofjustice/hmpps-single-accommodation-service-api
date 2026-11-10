@@ -5,14 +5,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Fa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.AccommodationData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 @Component
-class InPrisonNoReleaseRule : Rule {
+class InPrisonNoReleaseRule : Rule<AccommodationData> {
+  override val inputFields = setOf(DomainDataField.CURRENT_ACCOMMODATION_TYPE, DomainDataField.CURRENT_ACCOMMODATION_END_DATE)
   override val description = "FAIL if person is in prison and has no release date"
   override val failureReason = FailureReason.IN_PRISON_NO_RELEASE_DATE
 
-  override fun evaluate(data: DomainData): RuleResult {
+  override fun evaluate(data: AccommodationData): RuleResult {
     val isFail = data.currentAccommodationTypeEntity?.isPrison == true && data.currentAccommodation?.endDate == null
     return RuleResult(
       description = description,

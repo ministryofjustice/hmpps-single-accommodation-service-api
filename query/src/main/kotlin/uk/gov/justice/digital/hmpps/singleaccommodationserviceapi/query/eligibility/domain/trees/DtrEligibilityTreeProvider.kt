@@ -13,28 +13,30 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DtrDomainData
 
 @Component
 class DtrEligibilityTreeProvider(
-  private val builder: DecisionTreeBuilder,
+  engine: RulesEngine,
   private val releaseWithin8Weeks: ReleaseWithin8WeeksRuleSet,
   private val upcomingContextUpdater: DtrUpcomingContextUpdater,
   private val referral: DtrRuleSet,
   private val activeContextUpdater: DtrActiveContextUpdater,
   private val noNextAccommodation: NoNextAccommodationRuleSet,
-) : EligibilityTreeProvider {
+) : EligibilityTreeProvider<DtrDomainData> {
+  private val builder = DecisionTreeBuilder<DtrDomainData>(engine)
 
-  private val tree: DecisionNode by lazy { build() }
+  private val tree: DecisionNode<DtrDomainData> by lazy { build() }
 
-  override fun tree(): DecisionNode = tree
+  override fun tree(): DecisionNode<DtrDomainData> = tree
 
-  override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
+  override fun initialContext(data: DtrDomainData): EvaluationContext<DtrDomainData> = EvaluationContext(
     data = data,
     currentResult = null,
   )
 
-  private fun build(): DecisionNode {
+  private fun build(): DecisionNode<DtrDomainData> {
     val confirmed = builder.confirmed()
     val notRequired = builder.notRequired(ServiceType.DTR)
     val notStarted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_STARTED))

@@ -4,9 +4,9 @@ import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 
 /** All nodes are Decision Nodes **/
-sealed interface DecisionNode {
+sealed interface DecisionNode<in D> {
   /** Evaluates this node and returns the final ServiceResult. */
-  fun eval(context: EvaluationContext): ServiceResultNew
+  fun eval(context: EvaluationContext<D>): ServiceResultNew
 }
 
 /**
@@ -15,32 +15,32 @@ sealed interface DecisionNode {
  * [key] is a stable identifier (e.g. a status enum name) used for graph node ids; [name] is the human-readable label,
  * which may be shared by several distinct outcomes.
  **/
-class OutcomeNode(
+class OutcomeNode<in D>(
   val name: String = "unnamed",
   val key: String = name,
-  private val outcome: (EvaluationContext) -> ServiceResultNew,
-) : DecisionNode {
-  override fun eval(context: EvaluationContext): ServiceResultNew = outcome(context)
+  private val outcome: (EvaluationContext<D>) -> ServiceResultNew,
+) : DecisionNode<D> {
+  override fun eval(context: EvaluationContext<D>): ServiceResultNew = outcome(context)
 }
 
 /**
  * Node that executes a RuleSet and branches based on the result.
  */
-class RuleSetNode(
+class RuleSetNode<in D>(
   val ruleSetName: String,
-  val ruleSet: RuleSet,
+  val ruleSet: RuleSet<D>,
   private val engine: RulesEngine,
-  val onPass: DecisionNode,
-  val onPassContextUpdater: ContextUpdater?,
-  val onFail: DecisionNode,
-  val onFailContextUpdater: ContextUpdater?,
-) : DecisionNode {
+  val onPass: DecisionNode<D>,
+  val onPassContextUpdater: ContextUpdater<D>?,
+  val onFail: DecisionNode<D>,
+  val onFailContextUpdater: ContextUpdater<D>?,
+) : DecisionNode<D> {
 
   companion object {
     private val log = LoggerFactory.getLogger(RuleSetNode::class.java)
   }
 
-  override fun eval(context: EvaluationContext): ServiceResultNew {
+  override fun eval(context: EvaluationContext<D>): ServiceResultNew {
     log.debug("Executing RuleSet: $ruleSetName")
 
     val ruleSetResult = engine.execute(ruleSet, context.data).also {

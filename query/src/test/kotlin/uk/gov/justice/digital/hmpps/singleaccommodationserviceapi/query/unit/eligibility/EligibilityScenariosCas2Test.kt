@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Fa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
@@ -105,9 +106,9 @@ class EligibilityScenariosCas2Test : EligibilityScenarioTestBase() {
   }
 
   private fun String?.expandTierScore() = when (this) {
-    "A-G" -> listOf("A", "B", "C", "D", "E", "F", "G")
-    "MISSING-OR-NOT-SUPERVISED" -> listOf("MISSING", "NOT_SUPERVISED")
-    else -> listOf(this)
+    "A-G" -> TierScore.entries.filter { it.name.length == 1 }
+    "MISSING-OR-NOT-SUPERVISED" -> listOf(TierScore.MISSING, TierScore.NOT_SUPERVISED)
+    else -> listOf(this?.let(TierScore::valueOf))
   }
 
   @Test
@@ -166,7 +167,7 @@ class EligibilityScenariosCas2Test : EligibilityScenarioTestBase() {
         roshLevel = s.riskLevel?.let { buildRoshLevel(code = it.code) },
       )
 
-      val result = eligibilityService.evaluate(cas2Tree, data)
+      val result = eligibilityService.evaluate(cas2Tree, data.toCas2DomainData())
 
       assertThat(result.serviceStatus)
         .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas2Status}")
@@ -243,12 +244,12 @@ class EligibilityScenariosCas2Test : EligibilityScenarioTestBase() {
           isCas2 = !s.isEligible,
         ),
         dob = LocalDate.now(clock).minusYears(18),
-        tierScore = "A",
+        tierScore = TierScore.A,
         sexualOffenceRegistrations = null,
         roshLevel = buildRoshLevel(code = RiskLevel.LOW.code),
       )
 
-      val result = eligibilityService.evaluate(cas2Tree, data)
+      val result = eligibilityService.evaluate(cas2Tree, data.toCas2DomainData())
 
       assertThat(result.serviceStatus)
         .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas2Status}")
@@ -276,7 +277,7 @@ class EligibilityScenariosCas2Test : EligibilityScenarioTestBase() {
     val testCaseId: String,
     val description: String?,
     val hasNextAccommodation: String,
-    val tierScore: String?,
+    val tierScore: TierScore?,
     val referenceDate: LocalDate,
     val riskLevel: RiskLevel?,
     val currentAccommodationType: String?,

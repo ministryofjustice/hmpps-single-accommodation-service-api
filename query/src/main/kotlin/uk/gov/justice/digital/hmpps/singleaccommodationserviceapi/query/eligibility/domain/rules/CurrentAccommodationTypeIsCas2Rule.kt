@@ -5,14 +5,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Fa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.AccommodationTypeData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 @Component
-class CurrentAccommodationTypeIsCas2Rule : Rule {
+class CurrentAccommodationTypeIsCas2Rule : Rule<AccommodationTypeData> {
+  override val inputFields = setOf(DomainDataField.CURRENT_ACCOMMODATION_TYPE)
   override val description = "FAIL if person is in CAS2"
   override val failureReason = FailureReason.IN_CAS2_ACCOMMODATION
 
-  override fun evaluate(data: DomainData): RuleResult {
+  override fun evaluate(data: AccommodationTypeData): RuleResult {
     val isFail = data.currentAccommodationTypeEntity?.isCas2 == true
     return RuleResult(
       description = description,

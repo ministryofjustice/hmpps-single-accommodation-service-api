@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
@@ -165,7 +166,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get eligibility for crn`() {
-    val tier = buildTier("A")
+    val tier = buildTier(TierScore.A)
     ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
     val staff = Cas1Staff(
       name = "Bob",
@@ -335,7 +336,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
   @Test
   fun `should get eligibility for cas 3 blocking reason`() {
     // eligible for CAS2 but not CAS1
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "E"))
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = TierScore.E))
     ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
 
     val entity = buildCaseEntity(
@@ -470,7 +471,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
       createdAt = OffsetDateTime.parse("2023-01-01T12:00:00.000Z"),
     )
 
-    TierStubs.getTierOKResponse(crn = crn, buildTier("E"))
+    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.E))
     ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(
       crn = crn,
       response = cas1Application,
@@ -502,7 +503,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
   @Test
   fun `should succeed when prisoner search returns 404`() {
     PrisonerSearchStubs.getPrisonerNotFoundResponse(prisonNumber = prisonNumber)
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
+    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.A))
 
     val entity = buildCaseEntity(id = dutyToReferCaseId) {
       withCrn(crn)
@@ -517,7 +518,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should succeed when case has no prison number`() {
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
+    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.A))
 
     val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
     caseRepository.save(entity)
@@ -533,7 +534,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getCas2SuitableApplicationNotFoundResponse(crn = crn)
     ApprovedPremisesStubs.getCas3SuitableApplicationNotFoundResponse(crn = crn)
 
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.MISSING))
 
     webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
@@ -562,7 +563,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getCas2SuitableApplicationNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(crn = crn)
 
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.MISSING))
 
     webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
@@ -580,7 +581,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getCas1CurrentPremisesNotFoundResponse(crn = crn)
     ApprovedPremisesStubs.getCas3CurrentPremisesNotFoundResponse(crn = crn)
 
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.MISSING))
 
     webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()

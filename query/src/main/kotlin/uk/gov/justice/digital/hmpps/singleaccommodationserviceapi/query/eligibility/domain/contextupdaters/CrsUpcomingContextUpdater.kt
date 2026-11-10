@@ -7,9 +7,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.SexAndAccommodationData
 
 @Component
-class CrsUpcomingContextUpdater : ContextUpdater() {
+class CrsUpcomingContextUpdater : ContextUpdater<SexAndAccommodationData>() {
+  override val inputFields = setOf(DomainDataField.SEX, DomainDataField.CURRENT_ACCOMMODATION_END_DATE)
 
   val upcomingMale = "upcomingMale"
   val upcomingNonMale = "upcomingNonMale"
@@ -23,7 +26,7 @@ class CrsUpcomingContextUpdater : ContextUpdater() {
     ),
   )
 
-  override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
+  override fun toServiceResult(context: EvaluationContext<SexAndAccommodationData>): ServiceResultNew {
     val key = if (context.data.sex == SexCode.M) upcomingMale else upcomingNonMale
 
     return outcome(

@@ -21,7 +21,7 @@ class CaseSnapshotAssembler(
     )
 
     return aggregate.upsertCase(
-      tierScore = caseMutationOrchestrationDto.tier?.tierScore,
+      tierScore = caseMutationOrchestrationDto.tier?.tierScore?.name,
       firstName = caseMutationOrchestrationDto.cpr?.firstName,
       lastName = caseMutationOrchestrationDto.cpr?.lastName,
       dateOfBirth = caseMutationOrchestrationDto.cpr?.dateOfBirth,

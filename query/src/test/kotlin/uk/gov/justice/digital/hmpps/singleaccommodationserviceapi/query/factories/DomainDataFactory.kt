@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factori
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalRequestForPlacementOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
@@ -18,7 +19,7 @@ import java.time.LocalDate
 
 fun buildDomainData(
   crn: String = "CR12345N",
-  tierScore: String? = null,
+  tierScore: TierScore? = null,
   sex: SexCode? = null,
   dob: LocalDate? = null,
   roshLevel: RoshLevel? = null,

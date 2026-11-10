@@ -15,11 +15,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.CrsDomainData
 
 @Component
 class CrsEligibilityTreeProvider(
-  private val builder: DecisionTreeBuilder,
+  engine: RulesEngine,
   private val notSettledRuleSet: NotSettledRuleSet,
   private val noNextAccommodation: NoNextAccommodationRuleSet,
   private val liveCrs: LiveCrsRuleSet,
@@ -27,20 +28,21 @@ class CrsEligibilityTreeProvider(
   private val upcoming: ReleaseWithin12WeeksRuleSet,
   private val upcomingContextUpdater: CrsUpcomingContextUpdater,
   @Value($$"${service.commissioned-rehabilitative-services-ui.base-url}") crsUiBaseUrl: String,
-) : EligibilityTreeProvider {
+) : EligibilityTreeProvider<CrsDomainData> {
+  private val builder = DecisionTreeBuilder<CrsDomainData>(engine)
 
   val url = crsUiBaseUrl
 
-  private val tree: DecisionNode by lazy { build() }
+  private val tree: DecisionNode<CrsDomainData> by lazy { build() }
 
-  override fun tree(): DecisionNode = tree
+  override fun tree(): DecisionNode<CrsDomainData> = tree
 
-  override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
+  override fun initialContext(data: CrsDomainData): EvaluationContext<CrsDomainData> = EvaluationContext(
     data = data,
     currentResult = null,
   )
 
-  private fun build(): DecisionNode {
+  private fun build(): DecisionNode<CrsDomainData> {
     val confirmed = builder.confirmed()
     val notRequired = builder.notRequired(ServiceType.CRS)
     val submitted = builder.outcome(

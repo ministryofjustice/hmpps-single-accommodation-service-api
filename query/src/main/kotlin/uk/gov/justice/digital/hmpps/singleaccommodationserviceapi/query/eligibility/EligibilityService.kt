@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.EligibilityOrchestrationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.IdentifiedData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityNewToOldTransformer.toEligibilityDtoOld
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityTransformer.toFailedEligibilityDto
@@ -88,12 +89,12 @@ class EligibilityService(
       data.nextAccommodations.size,
     )
 
-    val cas1 = evaluate("CAS1", data, cas1Tree)
-    val cas2 = evaluate("CAS2", data, cas2Tree)
-    val cas3 = evaluate("CAS3", data, cas3Tree)
-    val crs = evaluate("CRS", data, crsTree)
-    val dtr = evaluate("DTR", data, dtrTree)
-    val pa = evaluate("PA", data, paTree)
+    val cas1 = evaluate("CAS1", data.toCas1DomainData(), cas1Tree)
+    val cas2 = evaluate("CAS2", data.toCas2DomainData(), cas2Tree)
+    val cas3 = evaluate("CAS3", data.toCas3DomainData(), cas3Tree)
+    val crs = evaluate("CRS", data.toCrsDomainData(), crsTree)
+    val dtr = evaluate("DTR", data.toDtrDomainData(), dtrTree)
+    val pa = evaluate("PA", data.toPaDomainData(), paTree)
 
     return EligibilityTransformer.toEligibilityDto(
       crn = data.crn,
@@ -107,12 +108,12 @@ class EligibilityService(
     ).also { log.debug("Eligibility result for CRN {}: {}", data.crn, it) }
   }
 
-  internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResultNew {
+  internal fun <D : IdentifiedData> evaluate(provider: EligibilityTreeProvider<D>, data: D): ServiceResultNew {
     val result = provider.tree().eval(provider.initialContext(data))
-    return deeplinkResolver.resolve(result, data)
+    return deeplinkResolver.resolve(result, data.crn, provider.applicationUrl(data))
   }
 
-  private fun evaluate(line: String, data: DomainData, provider: EligibilityTreeProvider): ServiceResultNew {
+  private fun <D : IdentifiedData> evaluate(line: String, data: D, provider: EligibilityTreeProvider<D>): ServiceResultNew {
     log.debug("Calculating {} eligibility for CRN: {}}", line, data.crn)
     return evaluate(provider, data).also {
       log.debug(

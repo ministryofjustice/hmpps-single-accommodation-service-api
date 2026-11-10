@@ -7,14 +7,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.CrsRequirementData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 @Component
-class CrsSubmittedRuleNonMale : Rule {
+class CrsSubmittedRuleNonMale : Rule<CrsRequirementData> {
+  override val inputFields = setOf(DomainDataField.CRS_STATUS, DomainDataField.SEX)
   override val description = "FAIL if person is not male and the referral is neither live nor completed"
   override val failureReason = FailureReason.CRS_NOT_SUBMITTED_NON_MALE
 
-  override fun evaluate(data: DomainData): RuleResult {
+  override fun evaluate(data: CrsRequirementData): RuleResult {
     val status = data.commissionedRehabilitativeServices?.status
     val isFail = status !in SUBMITTED_STATUSES && data.sex !== SexCode.M
     return RuleResult(

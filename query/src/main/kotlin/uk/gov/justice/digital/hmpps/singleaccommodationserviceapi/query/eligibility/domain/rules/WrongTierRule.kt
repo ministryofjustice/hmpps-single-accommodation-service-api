@@ -6,14 +6,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.TierData
 
 @Component
-class WrongTierRule : Rule {
+class WrongTierRule : Rule<TierData> {
+  override val inputFields = setOf(DomainDataField.TIER_SCORE)
   override val description = "FAIL if person is not Tier A through G"
   override val failureReason = FailureReason.INVALID_TIER
 
-  override fun evaluate(data: DomainData): RuleResult {
+  override fun evaluate(data: TierData): RuleResult {
     val isFail = !TierRiskScores.isSingleLetterTier(data.tierScore)
     return RuleResult(
       description = description,

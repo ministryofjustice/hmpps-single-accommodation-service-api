@@ -2,9 +2,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.NullAndEmptySource
-import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.NullSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
@@ -14,17 +15,17 @@ class MaleRiskEligibilityRuleTest {
   private val description = "FAIL if person is not Tier A, B or C"
 
   @ParameterizedTest
-  @ValueSource(strings = ["A", "B", "C"])
-  fun `high risk tier passes`(tierScore: String) {
+  @EnumSource(TierScore::class, names = ["A", "B", "C"])
+  fun `high risk tier passes`(tierScore: TierScore) {
     val result = MaleRiskEligibilityRule().evaluate(buildDomainData(tierScore = tierScore))
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.PASS))
   }
 
   @ParameterizedTest
-  @NullAndEmptySource
-  @ValueSource(strings = ["D", "E", "F", "G", "A1", "a", " A", "UNKNOWN"])
-  fun `low risk or invalid tier fails with reason`(tierScore: String?) {
+  @NullSource
+  @EnumSource(TierScore::class, names = ["A", "B", "C"], mode = EnumSource.Mode.EXCLUDE)
+  fun `low risk or unavailable tier fails with reason`(tierScore: TierScore?) {
     val result = MaleRiskEligibilityRule().evaluate(buildDomainData(tierScore = tierScore))
 
     assertThat(result).isEqualTo(

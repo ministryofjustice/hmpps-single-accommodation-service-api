@@ -4,13 +4,15 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas1ApplicationData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 @Component
-class Cas1NoReferralRule : Rule {
+class Cas1NoReferralRule : Rule<Cas1ApplicationData> {
+  override val inputFields = setOf(DomainDataField.CAS1_APPLICATION)
   override val description = "FAIL if person does not have a referral"
 
-  override fun evaluate(data: DomainData): RuleResult {
+  override fun evaluate(data: Cas1ApplicationData): RuleResult {
     val isFail = data.cas1Application == null
 
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS

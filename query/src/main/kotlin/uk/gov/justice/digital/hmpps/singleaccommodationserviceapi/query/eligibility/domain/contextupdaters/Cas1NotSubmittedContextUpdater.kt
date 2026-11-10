@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
 
 @Component
-class Cas1NotSubmittedContextUpdater : ContextUpdater() {
+class Cas1NotSubmittedContextUpdater : ContextUpdater<Any?>() {
 
   val notSubmitted = "notSubmitted"
 
@@ -17,5 +17,5 @@ class Cas1NotSubmittedContextUpdater : ContextUpdater() {
     ),
   )
 
-  override fun toServiceResult(context: EvaluationContext) = outcome(notSubmitted)
+  override fun toServiceResult(context: EvaluationContext<Any?>) = outcome(notSubmitted)
 }

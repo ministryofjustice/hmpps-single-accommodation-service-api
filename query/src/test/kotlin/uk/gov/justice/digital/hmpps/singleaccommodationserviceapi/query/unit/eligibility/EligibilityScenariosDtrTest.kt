@@ -91,7 +91,7 @@ class EligibilityScenariosDtrTest : EligibilityScenarioTestBase() {
         currentAccommodationTypeEntity = currentAccommodationTypeEntity,
       )
 
-      val result = eligibilityService.evaluate(dtrTree, data)
+      val result = eligibilityService.evaluate(dtrTree, data.toDtrDomainData())
 
       assertThat(result.serviceStatus)
         .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedDtrStatus}")

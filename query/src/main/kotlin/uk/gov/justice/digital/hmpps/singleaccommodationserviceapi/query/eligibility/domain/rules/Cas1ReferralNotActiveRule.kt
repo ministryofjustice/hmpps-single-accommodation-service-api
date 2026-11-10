@@ -5,13 +5,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas1ApplicationData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 @Component
-class Cas1ReferralNotActiveRule : Rule {
+class Cas1ReferralNotActiveRule : Rule<Cas1ApplicationData> {
+  override val inputFields = setOf(DomainDataField.CAS1_APPLICATION_STATUS)
   override val description = "FAIL if the referral is not active"
 
-  override fun evaluate(data: DomainData): RuleResult {
+  override fun evaluate(data: Cas1ApplicationData): RuleResult {
     val active = listOf(
       Cas1ApplicationStatus.AWAITING_ASSESSMENT,
       Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,

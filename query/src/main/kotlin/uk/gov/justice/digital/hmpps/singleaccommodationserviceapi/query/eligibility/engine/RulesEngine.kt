@@ -1,11 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
-
 class RulesEngine(
   private val evaluator: RuleSetEvaluator,
 ) {
-  fun execute(ruleset: RuleSet, data: DomainData): RuleSetResult {
+  fun <D> execute(ruleset: RuleSet<D>, data: D): RuleSetResult {
     val failedResults = evaluator.evaluate(ruleset, data)
       .filter { it.ruleStatus == RuleStatus.FAIL }
 

@@ -56,7 +56,7 @@ object CaseTransformer {
     dateOfBirth = cpr?.dateOfBirth,
     crn = this.crn,
     prisonNumber = this.nomsNumber,
-    tierScore = tier?.tierScore,
+    tierScore = tier?.tierScore?.name,
     riskLevel = this.roshLevel?.let { RiskLevel.findByCode(it.code) },
     pncReference = cpr?.identifiers?.pncs?.firstOrNull(),
     assignedTo = this.toAssignedToDto(),

@@ -6,14 +6,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.WrongTierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas2PersonData
 
 @Component
 class PersonEligibleRuleSet(
   under18: Under18Rule,
   wrongTier: WrongTierRule,
   hasSexualOffenceRegistrations: HasSexualOffenceRegistrationsRule,
-) : RuleSet {
-  private val rules: List<Rule> = listOf(
+) : RuleSet<Cas2PersonData> {
+  private val rules: List<Rule<Cas2PersonData>> = listOf(
     under18,
     wrongTier,
     hasSexualOffenceRegistrations,
@@ -21,5 +22,5 @@ class PersonEligibleRuleSet(
 
   override val name: String = "Person Eligible"
 
-  override fun getRules(): List<Rule> = rules
+  override fun getRules(): List<Rule<Cas2PersonData>> = rules
 }

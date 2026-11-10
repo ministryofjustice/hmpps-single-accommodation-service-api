@@ -9,9 +9,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas3ApplicationData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 @Component
-class Cas3StartContextUpdater : ContextUpdater() {
+class Cas3StartContextUpdater : ContextUpdater<Cas3ApplicationData>() {
+  override val inputFields = setOf(DomainDataField.CAS3_APPLICATION_STATUS, DomainDataField.CAS3_ASSESSMENT_STATUS, DomainDataField.CAS3_BOOKING_STATUS)
 
   val startNewReferral = "startNewReferral"
   val rejected = "rejected"
@@ -33,7 +36,7 @@ class Cas3StartContextUpdater : ContextUpdater() {
     ),
   )
 
-  override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
+  override fun toServiceResult(context: EvaluationContext<Cas3ApplicationData>): ServiceResultNew {
     val applicationStatus = context.data.cas3Application?.applicationStatus
     val assessmentStatus = context.data.cas3Application?.submittedApplication?.assessmentStatus
     val bookingStatus = context.data.cas3Application?.submittedApplication?.latestBooking?.status

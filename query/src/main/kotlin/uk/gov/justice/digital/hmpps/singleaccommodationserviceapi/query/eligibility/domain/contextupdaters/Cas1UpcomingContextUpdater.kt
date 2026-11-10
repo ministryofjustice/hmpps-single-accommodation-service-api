@@ -6,9 +6,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CAS1_UPCOMING_WEEKS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.CurrentAccommodationData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 @Component
-class Cas1UpcomingContextUpdater : ContextUpdater() {
+class Cas1UpcomingContextUpdater : ContextUpdater<CurrentAccommodationData>() {
+  override val inputFields = setOf(DomainDataField.CURRENT_ACCOMMODATION_END_DATE)
 
   val upcoming = "upcoming"
 
@@ -18,7 +21,7 @@ class Cas1UpcomingContextUpdater : ContextUpdater() {
     ),
   )
 
-  override fun toServiceResult(context: EvaluationContext) = outcome(
+  override fun toServiceResult(context: EvaluationContext<CurrentAccommodationData>) = outcome(
     key = upcoming,
     actionStartDate = context.data.currentAccommodation!!.endDate!!.minusWeeks(
       CAS1_UPCOMING_WEEKS,

@@ -16,11 +16,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas3DomainData
 
 @Component
 class Cas3EligibilityTreeProvider(
-  private val builder: DecisionTreeBuilder,
+  engine: RulesEngine,
   private val releaseWithin15DaysRuleSet: ReleaseWithin15DaysRuleSet,
   private val upcomingContextUpdater: Cas3UpcomingContextUpdater,
   private val referral: Cas3RuleSet,
@@ -31,18 +32,21 @@ class Cas3EligibilityTreeProvider(
   private val prerequisite: Cas3PrerequisiteRuleSet,
   private val cannotStartContextUpdater: Cas3CannotStartContextUpdater,
   private val roshEligible: RoshEligibleRuleSet,
-) : EligibilityTreeProvider {
+) : EligibilityTreeProvider<Cas3DomainData> {
+  private val builder = DecisionTreeBuilder<Cas3DomainData>(engine)
 
-  private val tree: DecisionNode by lazy { build() }
+  private val tree: DecisionNode<Cas3DomainData> by lazy { build() }
 
-  override fun tree(): DecisionNode = tree
+  override fun tree(): DecisionNode<Cas3DomainData> = tree
 
-  override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
+  override fun initialContext(data: Cas3DomainData): EvaluationContext<Cas3DomainData> = EvaluationContext(
     data = data,
     currentResult = null,
   )
 
-  private fun build(): DecisionNode {
+  override fun applicationUrl(data: Cas3DomainData): String? = data.cas3Application?.uiUrl
+
+  private fun build(): DecisionNode<Cas3DomainData> {
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS3)
 

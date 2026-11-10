@@ -1,17 +1,21 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas2ApplicationData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 @Component
 class Cas2StartContextUpdater(
   private val sentryService: SentryService,
-) : ContextUpdater() {
+) : ContextUpdater<Cas2ApplicationData>() {
+  override val inputFields = setOf(DomainDataField.CAS2_APPLICATION, DomainDataField.CAS2_SUBMITTED_AT, DomainDataField.CAS2_ASSESSMENT_STATUS)
 
   val notStarted = "notStarted"
   val notSubmitted = "notSubmitted"
@@ -41,17 +45,20 @@ class Cas2StartContextUpdater(
     ),
   )
 
-  override fun toServiceResult(context: EvaluationContext) = when {
-    context.data.cas2Application == null -> outcome(notStarted)
-    context.data.cas2Application.submittedApplication?.submittedAt == null -> outcome(notSubmitted)
-    context.data.cas2Application.submittedApplication?.latestAssessmentStatus == Cas2AssessmentStatus.OFFER_DECLINED -> outcome(offerDeclined)
-    context.data.cas2Application.submittedApplication?.latestAssessmentStatus == Cas2AssessmentStatus.CANCELLED -> outcome(cancelled)
-    context.data.cas2Application.submittedApplication?.latestAssessmentStatus == Cas2AssessmentStatus.WITHDRAWN -> outcome(withdrawn)
-    else -> outcome(unknown).also {
-      val latestAssessmentStatus = context.data.cas2Application.submittedApplication?.latestAssessmentStatus
-      sentryService.captureErrorMessage(
-        "CAS2 Service Status unknown because unexpected latest assessment status for ${context.data.crn}: $latestAssessmentStatus",
-      )
+  override fun toServiceResult(context: EvaluationContext<Cas2ApplicationData>): ServiceResultNew {
+    val application = context.data.cas2Application
+    return when {
+      application == null -> outcome(notStarted)
+      application.submittedApplication?.submittedAt == null -> outcome(notSubmitted)
+      application.submittedApplication?.latestAssessmentStatus == Cas2AssessmentStatus.OFFER_DECLINED -> outcome(offerDeclined)
+      application.submittedApplication?.latestAssessmentStatus == Cas2AssessmentStatus.CANCELLED -> outcome(cancelled)
+      application.submittedApplication?.latestAssessmentStatus == Cas2AssessmentStatus.WITHDRAWN -> outcome(withdrawn)
+      else -> outcome(unknown).also {
+        val latestAssessmentStatus = application.submittedApplication?.latestAssessmentStatus
+        sentryService.captureErrorMessage(
+          "CAS2 Service Status unknown because unexpected latest assessment status for ${context.data.crn}: $latestAssessmentStatus",
+        )
+      }
     }
   }
 }

@@ -7,11 +7,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.SexData
 
 @Component
 class CrsStartContextUpdater(
   @Value($$"${service.commissioned-rehabilitative-services-ui.base-url}") crsUiBaseUrl: String,
-) : ContextUpdater() {
+) : ContextUpdater<SexData>() {
+  override val inputFields = setOf(DomainDataField.SEX)
 
   val url = crsUiBaseUrl
 
@@ -29,7 +32,7 @@ class CrsStartContextUpdater(
     ),
   )
 
-  override fun toServiceResult(context: EvaluationContext) = if (context.data.sex == SexCode.M) {
+  override fun toServiceResult(context: EvaluationContext<SexData>) = if (context.data.sex == SexCode.M) {
     outcome(notStartedMale)
   } else {
     outcome(notStartedNonMale)

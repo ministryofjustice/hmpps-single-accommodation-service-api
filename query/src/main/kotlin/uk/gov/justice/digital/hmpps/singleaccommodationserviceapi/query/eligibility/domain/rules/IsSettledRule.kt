@@ -6,14 +6,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.AccommodationTypeData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 @Component
-class IsSettledRule : Rule {
+class IsSettledRule : Rule<AccommodationTypeData> {
+  override val inputFields = setOf(DomainDataField.ACCOMMODATION_SETTLED_TYPE)
   override val description = "FAIL if person is settled"
   override val failureReason = FailureReason.IS_SETTLED
 
-  override fun evaluate(data: DomainData): RuleResult {
+  override fun evaluate(data: AccommodationTypeData): RuleResult {
     val isFail = data.currentAccommodationTypeEntity?.settledType == AccommodationSettledType.SETTLED
     return RuleResult(
       description = description,

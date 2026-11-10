@@ -5,13 +5,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas2ApplicationData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 @Component
-class Cas2NotActiveRule : Rule {
+class Cas2NotActiveRule : Rule<Cas2ApplicationData> {
+  override val inputFields = setOf(DomainDataField.CAS2_ASSESSMENT_STATUS)
   override val description = "FAIL if assessment is present and inactive"
 
-  override fun evaluate(data: DomainData): RuleResult {
+  override fun evaluate(data: Cas2ApplicationData): RuleResult {
     val unsuitableStatuses = listOf(
       Cas2AssessmentStatus.WITHDRAWN,
       Cas2AssessmentStatus.CANCELLED,

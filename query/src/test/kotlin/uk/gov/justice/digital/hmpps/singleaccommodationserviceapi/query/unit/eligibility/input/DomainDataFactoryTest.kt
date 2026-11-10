@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
@@ -69,7 +70,7 @@ class DomainDataFactoryTest {
     @Test
     fun `returns correct DomainData`() {
       val endDate = LocalDate.now().plusDays(1)
-      val expectedTier = "A1"
+      val expectedTier = TierScore.A
       val caseId = UUID.randomUUID()
       val cas1Application = buildCas1ApplicationV2()
       val cas2Application = buildCas2Application()

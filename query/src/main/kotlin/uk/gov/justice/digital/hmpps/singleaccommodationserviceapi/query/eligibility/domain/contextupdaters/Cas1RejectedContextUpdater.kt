@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
 
 @Component
-class Cas1RejectedContextUpdater : ContextUpdater() {
+class Cas1RejectedContextUpdater : ContextUpdater<Any?>() {
 
   val applicationRejected = "applicationRejected"
 
@@ -19,5 +19,5 @@ class Cas1RejectedContextUpdater : ContextUpdater() {
 
   override val terminalNode = false
 
-  override fun toServiceResult(context: EvaluationContext) = outcome(applicationRejected)
+  override fun toServiceResult(context: EvaluationContext<Any?>) = outcome(applicationRejected)
 }

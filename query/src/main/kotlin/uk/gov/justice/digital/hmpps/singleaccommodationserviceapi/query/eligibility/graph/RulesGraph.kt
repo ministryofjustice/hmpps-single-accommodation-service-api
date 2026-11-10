@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 enum class GraphNodeKind {
   RULE_SET,
@@ -15,6 +16,7 @@ data class RuleInfo(
   val description: String,
   val sourcePath: String? = null,
   val failureReason: FailureReason? = null,
+  val inputFields: Set<DomainDataField> = emptySet(),
 )
 
 data class ContextUpdaterInfo(
@@ -23,6 +25,7 @@ data class ContextUpdaterInfo(
   val outcomes: Map<String, ServiceResultSpec> = emptyMap(),
   val kind: ContextUpdaterKind,
   val sourcePath: String? = null,
+  val inputFields: Set<DomainDataField> = emptySet(),
 )
 
 enum class ContextUpdaterKind {
@@ -35,7 +38,7 @@ data class GraphNode(
   val title: String,
   val kind: GraphNodeKind,
   val rules: List<RuleInfo> = emptyList(),
-  val ruleSet: RuleSet? = null,
+  val ruleSet: RuleSet<*>? = null,
   val onPassContextUpdater: ContextUpdaterInfo? = null,
   val onFailContextUpdater: ContextUpdaterInfo? = null,
 )
@@ -50,7 +53,14 @@ data class RulesGraph(
   val treeName: String,
   val nodes: List<GraphNode>,
   val edges: List<GraphEdge>,
-)
+) {
+  val inputFields: Set<DomainDataField>
+    get() = nodes.flatMap { node ->
+      node.rules.flatMap { it.inputFields } +
+        node.onPassContextUpdater?.inputFields.orEmpty() +
+        node.onFailContextUpdater?.inputFields.orEmpty()
+    }.toSet()
+}
 
 data class GenerationResult(
   val text: String,

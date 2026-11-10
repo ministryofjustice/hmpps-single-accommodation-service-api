@@ -10,7 +10,7 @@ import kotlin.reflect.KClass
 private const val QUERY_MAIN_KOTLIN = "../query/src/main/kotlin"
 
 /**
- * Produces a RulesGraph (nodes and edges) for a given EligibilityTreeProvider
+ * Produces a RulesGraph (nodes and edges) for a given EligibilityTreeProvider<*>
  */
 class RulesGraphWalker {
 
@@ -18,25 +18,25 @@ class RulesGraphWalker {
   val usedNodeIds = mutableMapOf<String, Any>()
   val edges = mutableListOf<GraphEdge>()
 
-  fun walk(provider: EligibilityTreeProvider): RulesGraph = walk(treeName(provider), provider.tree())
+  fun walk(provider: EligibilityTreeProvider<*>): RulesGraph = walk(treeName(provider), provider.tree())
 
-  fun walk(treeName: String, root: DecisionNode): RulesGraph {
+  fun walk(treeName: String, root: DecisionNode<*>): RulesGraph {
     visit(root)
     return RulesGraph(treeName, nodes.values.toList(), edges)
   }
 
-  fun visit(node: DecisionNode) {
-    val visitingStack = mutableSetOf<DecisionNode>()
+  fun visit(node: DecisionNode<*>) {
+    val visitingStack = mutableSetOf<DecisionNode<*>>()
 
     if (node in visitingStack || node in nodes) return
 
     visitingStack += node
     when (node) {
-      is OutcomeNode -> {
+      is OutcomeNode<*> -> {
         nodes[node] = node.toGraphNode()
       }
 
-      is RuleSetNode -> {
+      is RuleSetNode<*> -> {
         val graphNode = node.toGraphNode()
         nodes[node] = graphNode
 
@@ -60,8 +60,8 @@ class RulesGraphWalker {
 
   private fun addOutcomeEdge(
     fromGraphNode: GraphNode,
-    toNode: DecisionNode,
-    contextUpdater: ContextUpdater?,
+    toNode: DecisionNode<*>,
+    contextUpdater: ContextUpdater<*>?,
     edgeLabel: String,
   ) {
     if (contextUpdater == null || contextUpdater === ContextUpdater.identity()) {
@@ -87,13 +87,13 @@ class RulesGraphWalker {
     if (continuation !in edges) edges += continuation
   }
 
-  private fun OutcomeNode.toGraphNode() = GraphNode(
+  private fun OutcomeNode<*>.toGraphNode() = GraphNode(
     id = ensureUniqueId(slug(key), this),
     title = name,
     kind = GraphNodeKind.OUTCOME,
   )
 
-  private fun RuleSetNode.toGraphNode() = GraphNode(
+  private fun RuleSetNode<*>.toGraphNode() = GraphNode(
     id = ensureUniqueId(slug(ruleSetName), this),
     title = ruleSetName,
     kind = GraphNodeKind.RULE_SET,
@@ -104,6 +104,7 @@ class RulesGraphWalker {
         description = rule.description,
         sourcePath = sourceLinkPath(rule::class),
         failureReason = rule.failureReason,
+        inputFields = rule.inputFields,
       )
     },
     onPassContextUpdater = contextUpdaterInfo(onPassContextUpdater, ContextUpdaterKind.ON_PASS),
@@ -111,13 +112,13 @@ class RulesGraphWalker {
     ruleSet = ruleSet,
   )
 
-  private fun ContextUpdater.toOutcomeNode() = GraphNode(
+  private fun ContextUpdater<*>.toOutcomeNode() = GraphNode(
     id = ensureUniqueId("outcome_" + slug(graphKey()), this),
     title = description,
     kind = GraphNodeKind.OUTCOME,
   )
 
-  private fun ContextUpdater.toContextUpdaterNode(key: Any, destinationId: String) = GraphNode(
+  private fun ContextUpdater<*>.toContextUpdaterNode(key: Any, destinationId: String) = GraphNode(
     id = ensureUniqueId("updater_" + slug(graphKey()) + "_" + destinationId, key),
     title = description,
     kind = GraphNodeKind.CONTEXT_UPDATER,
@@ -127,11 +128,11 @@ class RulesGraphWalker {
 
   // Ids come from the class name, or for anonymous (e.g. constant) updaters the status enum names they set,
   // never from the description, because distinct statuses can share a UI label.
-  private fun ContextUpdater.graphKey(): String = this::class.simpleName
+  private fun ContextUpdater<*>.graphKey(): String = this::class.simpleName
     ?: outcomes.values.map { it.serviceStatus.name }.distinct().joinToString("_")
       .let { if (it.isEmpty()) "anonymous" else "constant_$it" }
 
-  fun treeName(provider: EligibilityTreeProvider): String = provider::class.simpleName
+  fun treeName(provider: EligibilityTreeProvider<*>): String = provider::class.simpleName
     ?.removeSuffix("EligibilityTreeProvider")
     ?.uppercase()
     ?: provider.javaClass.simpleName
@@ -152,15 +153,15 @@ internal fun slug(raw: String): String {
 }
 
 internal fun contextUpdaterInfo(
-  updater: ContextUpdater?,
+  updater: ContextUpdater<*>?,
   updaterKind: ContextUpdaterKind,
 ): ContextUpdaterInfo? {
   if (updater == null) return null
   val kClass = updater::class
   val simple = kClass.simpleName
   if (simple.isNullOrBlank()) {
-    if (updater.propagatesFailureReasons) return null
-    return ContextUpdaterInfo(name = "constant", description = updater.description, outcomes = updater.outcomes, kind = updaterKind)
+    if (updater.propagatesFailureReasons && updater.inputFields.isEmpty()) return null
+    return ContextUpdaterInfo(name = "constant", description = updater.description, outcomes = updater.outcomes, kind = updaterKind, inputFields = updater.inputFields)
   }
   return ContextUpdaterInfo(
     name = simple,
@@ -168,6 +169,7 @@ internal fun contextUpdaterInfo(
     outcomes = updater.outcomes,
     sourcePath = sourceLinkPath(kClass),
     kind = updaterKind,
+    inputFields = updater.inputFields,
   )
 }
 

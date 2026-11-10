@@ -2,49 +2,49 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 
-class RuleSetNodeBuilder(
+class RuleSetNodeBuilder<D>(
   private var name: String,
-  private val ruleSet: RuleSet,
+  private val ruleSet: RuleSet<D>,
   private val engine: RulesEngine,
 ) {
-  private var onFailContextUpdater: ContextUpdater? = null
-  private var onPassContextUpdater: ContextUpdater? = null
-  private var onPassNode: DecisionNode? = null
-  private var onFailNode: DecisionNode? = null
+  private var onFailContextUpdater: ContextUpdater<D>? = null
+  private var onPassContextUpdater: ContextUpdater<D>? = null
+  private var onPassNode: DecisionNode<D>? = null
+  private var onFailNode: DecisionNode<D>? = null
 
-  fun onPass(node: DecisionNode): RuleSetNodeBuilder {
+  fun onPass(node: DecisionNode<D>): RuleSetNodeBuilder<D> {
     onPassNode = node
     return this
   }
 
-  fun onFail(node: DecisionNode): RuleSetNodeBuilder {
+  fun onFail(node: DecisionNode<D>): RuleSetNodeBuilder<D> {
     onFailNode = node
     return this
   }
 
-  fun applyContextUpdaterOnPass(updater: ContextUpdater): RuleSetNodeBuilder {
+  fun applyContextUpdaterOnPass(updater: ContextUpdater<D>): RuleSetNodeBuilder<D> {
     onPassContextUpdater = updater
     return this
   }
 
-  fun applyContextUpdaterOnFailure(updater: ContextUpdater): RuleSetNodeBuilder {
+  fun applyContextUpdaterOnFailure(updater: ContextUpdater<D>): RuleSetNodeBuilder<D> {
     onFailContextUpdater = updater
     return this
   }
 
-  fun propagateContextOnFailure(): RuleSetNodeBuilder {
+  fun propagateContextOnFailure(): RuleSetNodeBuilder<D> {
     onFailContextUpdater = ContextUpdater.identity()
     return this
   }
 
-  fun setConstantServiceResultOnFailure(result: ServiceResultNew): RuleSetNodeBuilder {
+  fun setConstantServiceResultOnFailure(result: ServiceResultNew): RuleSetNodeBuilder<D> {
     onFailContextUpdater = ContextUpdater.constant(result)
     return this
   }
 
-  fun onPassAndFail(node: DecisionNode): RuleSetNodeBuilder = onPass(node).onFail(node)
+  fun onPassAndFail(node: DecisionNode<D>): RuleSetNodeBuilder<D> = onPass(node).onFail(node)
 
-  fun build(): RuleSetNode = RuleSetNode(
+  fun build(): RuleSetNode<D> = RuleSetNode(
     ruleSetName = name,
     ruleSet = ruleSet,
     engine = engine,

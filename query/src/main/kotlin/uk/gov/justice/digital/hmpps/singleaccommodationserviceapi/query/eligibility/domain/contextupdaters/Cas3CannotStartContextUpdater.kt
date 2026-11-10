@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
 
 @Component
-class Cas3CannotStartContextUpdater : ContextUpdater() {
+class Cas3CannotStartContextUpdater : ContextUpdater<Any?>() {
   override val terminalNode = true
 
   val dtrAndCrsAccommodation = "dtrAndCrsAccommodation"
@@ -36,7 +36,7 @@ class Cas3CannotStartContextUpdater : ContextUpdater() {
     ),
   )
 
-  override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
+  override fun toServiceResult(context: EvaluationContext<Any?>): ServiceResultNew {
     val currentFailureReasons = context.currentResult?.failureReasons ?: emptyList()
     val crsOutstandingMale = FailureReason.CRS_NOT_SUBMITTED_MALE in currentFailureReasons
     val crsOutstandingNonMale = FailureReason.CRS_NOT_SUBMITTED_NON_MALE in currentFailureReasons

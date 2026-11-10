@@ -30,8 +30,11 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
       )
     },
     "trees" to graphs.sortedBy { it.treeName }.map { graph ->
-      mapOf(
+      mapOf<String, Any?>(
         "name" to graph.treeName,
+        "domainData" to DomainDataFieldCatalog.fieldsFor(graph.inputFields).map { field ->
+          mapOf("path" to field.path, "label" to field.label, "options" to field.options)
+        },
         "nodes" to graph.nodes.map { node ->
           mapOf(
             "id" to node.id,
@@ -125,6 +128,12 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
   .trace-outcomes { background: ${RulesGraphColours.RULE_SET_FILL}; border: 1px solid ${RulesGraphColours.RULE_SET_BORDER}; border-radius: 6px; padding: 10px; }
   #panel .trace-update .govuk-tag { font-size: inherit; }
   .simulation-actions { display: flex; gap: 6px; margin-bottom: 12px; }
+  details.domain-data { margin-top: 16px; border-top: 1px solid #ddd; padding-top: 8px; }
+  details.domain-data summary { font-weight: bold; cursor: pointer; }
+  .domain-data table { table-layout: fixed; font-size: 11px; }
+  .domain-data th, .domain-data td { padding: 2px 4px; overflow-wrap: anywhere; }
+  .domain-data th:first-child, .domain-data td:first-child { width: 34%; }
+  .domain-data th:last-child, .domain-data td:last-child { width: 66%; }
 </style>
 </head>
 <body>
@@ -160,6 +169,16 @@ __STATUS_CARD_PREVIEW__
   const codeLink = (name, path) => path ? '<a href="' + esc(path) + '" target="_blank"><code>' + esc(name) + '</code></a>' : '<code>' + esc(name) + '</code>';
   const sourceTextLink = (text, path) => path ?
     '<a href="' + esc(path) + '" target="_blank" rel="noopener noreferrer">' + esc(text) + '</a>' : esc(text);
+  const domainDataHtml = () => {
+    const fields = currentTree.domainData || [];
+    return '<details class="domain-data" open><summary>Domain data affecting this service</summary>' +
+      '<p class="muted">Rule inputs and their possible values.</p>' +
+      (fields.length ? '<table><thead><tr><th>Field</th><th>Available options</th></tr></thead><tbody>' +
+        fields.map(field => '<tr><td>' + esc(field.label) + '</td><td>' +
+          field.options.map(option => esc(option)).join('<br>') +
+          '</td></tr>').join('') + '</tbody></table>' :
+        '<p class="muted">No domain data catalogued for this tree.</p>') + '</details>';
+  };
 
   function label(n) {
     return n.label;
@@ -207,7 +226,7 @@ __STATUS_CARD_PREVIEW__
       id: 'e' + i, source: e.from, target: e.to, label: e.label } })));
     runLayout();
     panel.innerHTML = '<h2>' + esc(name) + '</h2><p class="muted">' + currentTree.nodes.length + ' nodes, ' +
-      currentTree.edges.length + ' edges. Click a node for details.</p>';
+      currentTree.edges.length + ' edges. Click a node for details.</p>' + domainDataHtml();
   }
 
   function updaterHtml(title, u) {
@@ -230,7 +249,7 @@ __STATUS_CARD_PREVIEW__
     const out = node.outgoers('edge').map(e => '<b>' + esc(e.data('label')) + '</b> → ' + esc(e.target().data('title')));
     if (inc.length) html += '<h3>Reached from</h3><ul>' + inc.map(s => '<li>' + s + '</li>').join('') + '</ul>';
     if (out.length) html += '<h3>Leads to</h3><ul>' + out.map(s => '<li>' + s + '</li>').join('') + '</ul>';
-    panel.innerHTML = html;
+    panel.innerHTML = html + domainDataHtml();
   }
 
   function highlightPathsTo(node) {
@@ -369,7 +388,7 @@ __STATUS_CARD_PREVIEW__
       });
       html += '</div>';
     });
-    panel.innerHTML = html;
+    panel.innerHTML = html + domainDataHtml();
     updateUrl();
   }
 

@@ -43,6 +43,13 @@ docker compose up -d
 ```
 
 ## Coding Notes
+
+Tier scores use the shared `TierScore` enum throughout the API, upstream Tier client, case persistence
+and eligibility rules. Supported values are `A` through `G`, `MISSING` and `NOT_SUPERVISED`; unavailable
+data remains nullable. JSON and the existing `sas_case.tier_score` VARCHAR column store the enum names,
+not ordinals. Unsupported values (including legacy scores such as `A1`) are rejected rather than
+silently mapped; check existing database values before deploying this restriction.
+
 1. At the early stages of this project it's best to look at `CaseController.getCases()` endpoint as this follows the standards set out below implementing the correct `n-tier architecture` required (i.e. `CaseController -> CaseService -> CaseOrchestration - AggregatorService`)
 2. Best practice testing standards have been included for this endpoint (inc. unit tests / integration tests)
 

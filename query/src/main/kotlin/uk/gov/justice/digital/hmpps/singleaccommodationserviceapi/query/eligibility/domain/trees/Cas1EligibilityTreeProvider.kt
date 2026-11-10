@@ -33,11 +33,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas1DomainData
 
 @Component
 class Cas1EligibilityTreeProvider(
-  private val builder: DecisionTreeBuilder,
+  engine: RulesEngine,
   private val releaseWithin28Weeks: ReleaseWithin28WeeksRuleSet,
   private val upcomingContextUpdater: Cas1UpcomingContextUpdater,
   private val referral: Cas1RuleSet,
@@ -64,18 +65,21 @@ class Cas1EligibilityTreeProvider(
   private val moreInfoNotRequested: MoreInfoNotRequestedRuleSet,
   private val submitted: Cas1SubmittedRuleSet,
 
-) : EligibilityTreeProvider {
+) : EligibilityTreeProvider<Cas1DomainData> {
+  private val builder = DecisionTreeBuilder<Cas1DomainData>(engine)
 
-  private val tree: DecisionNode by lazy { build() }
+  private val tree: DecisionNode<Cas1DomainData> by lazy { build() }
 
-  override fun tree(): DecisionNode = tree
+  override fun tree(): DecisionNode<Cas1DomainData> = tree
 
-  override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
+  override fun initialContext(data: Cas1DomainData): EvaluationContext<Cas1DomainData> = EvaluationContext(
     data = data,
     currentResult = null,
   )
 
-  private fun build(): DecisionNode {
+  override fun applicationUrl(data: Cas1DomainData): String? = data.cas1Application?.application?.uiUrl
+
+  private fun build(): DecisionNode<Cas1DomainData> {
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS1)
     val placementBooked = builder.outcome(

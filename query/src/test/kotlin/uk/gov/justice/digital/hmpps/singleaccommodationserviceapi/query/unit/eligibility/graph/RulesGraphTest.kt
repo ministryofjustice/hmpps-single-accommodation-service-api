@@ -9,6 +9,9 @@ import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1StartContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NoReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.MaleRiskEligibilityRule
@@ -21,22 +24,76 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.DomainDataFieldCatalog
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphEdge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphNodeKind
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphHtmlRenderer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphMarkdownRenderer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphWalker
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.StubContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.StubRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.StubRuleSet
 
 class RulesGraphTest {
 
-  private val builder = DecisionTreeBuilder(RulesEngine(DefaultRuleSetEvaluator()))
+  private val builder = DecisionTreeBuilder<DomainData>(RulesEngine(DefaultRuleSetEvaluator()))
 
   @Nested
   inner class WalkerTests {
+    @Test
+    fun `adding and removing a rule updates the inputs without a service catalogue change`() {
+      val rules = mutableListOf<Rule<DomainData>>(MaleRiskEligibilityRule())
+      val root = builder
+        .ruleSet(StubRuleSet(rules))
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(ServiceType.CAS1))
+        .build()
+
+      fun inputs() = RulesGraphWalker().walk("NEW_SERVICE", root).inputFields
+
+      assertThat(inputs()).containsExactly(DomainDataField.TIER_SCORE)
+
+      val crsRule = NoLiveCrsRule()
+      rules += crsRule
+      assertThat(inputs()).containsExactlyInAnyOrder(DomainDataField.TIER_SCORE, DomainDataField.CRS_STATUS)
+
+      rules -= crsRule
+      assertThat(inputs()).containsExactly(DomainDataField.TIER_SCORE)
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `nested rulesets and updaters contribute deduplicated inputs on either branch`(onPass: Boolean) {
+      val confirmed = builder.confirmed()
+      val nested = builder
+        .ruleSet(StubRuleSet(listOf(MaleRiskEligibilityRule(), NoLiveCrsRule()), "Nested"))
+        .onPass(confirmed)
+        .onFail(confirmed)
+        .build()
+      val updater = object : ContextUpdater<DomainData>() {
+        override val inputFields = setOf(DomainDataField.SEX, DomainDataField.TIER_SCORE)
+        override val description = "Choose by sex"
+        override fun toServiceResult(context: EvaluationContext<DomainData>) = ServiceResultNew(ServiceStatusNew.CRS_SUBMITTED)
+      }
+      val rootBuilder = builder.ruleSet(StubRuleSet(listOf(MaleRiskEligibilityRule())))
+      val root = if (onPass) {
+        rootBuilder.onPass(nested).applyContextUpdaterOnPass(updater).onFail(confirmed).build()
+      } else {
+        rootBuilder.onPass(confirmed).onFail(nested).applyContextUpdaterOnFailure(updater).build()
+      }
+
+      val graph = RulesGraphWalker().walk("NEW_SERVICE", root)
+      assertThat(graph.inputFields).containsExactlyInAnyOrder(
+        DomainDataField.TIER_SCORE,
+        DomainDataField.CRS_STATUS,
+        DomainDataField.SEX,
+      )
+      assertThat(DomainDataFieldCatalog.fieldsFor(graph.inputFields).map { it.path })
+        .containsExactly("sex", "tierScore", "commissionedRehabilitativeServices.status")
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
     fun `shared updater has one continuation per destination`(sameDestination: Boolean) {
@@ -76,12 +133,17 @@ class RulesGraphTest {
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
     fun `terminal context updater ends its branch as an outcome`(onPass: Boolean) {
-      val updater = object : ContextUpdater() {
+      val updater = object : ContextUpdater<DomainData>() {
+        override val inputFields = setOf(DomainDataField.SEX)
         override val terminalNode = true
         override val description = "Terminal updater"
-        override fun toServiceResult(context: EvaluationContext) = ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED)
+        override fun toServiceResult(context: EvaluationContext<DomainData>) = ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED)
       }
-      val hidden = builder.notEligible(ServiceType.CAS1)
+      val hidden = builder
+        .ruleSet(StubRuleSet(listOf(MaleRiskEligibilityRule()), "Hidden"))
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(ServiceType.CAS1))
+        .build()
       val confirmed = builder.confirmed()
       val rootBuilder = builder
         .ruleSet(StubRuleSet(rules = listOf(StubRule("example"))))
@@ -99,6 +161,7 @@ class RulesGraphTest {
 
       val graph = RulesGraphWalker().walk("EXAMPLE", root)
 
+      assertThat(graph.inputFields).containsExactly(DomainDataField.SEX)
       val updaterNode = graph.nodes.single { it.title == updater.description }
       assertThat(updaterNode.kind).isEqualTo(GraphNodeKind.OUTCOME)
 
@@ -289,6 +352,118 @@ class RulesGraphTest {
   @Nested
   inner class
   RendererTests {
+    @Test
+    fun `every declared field has a catalogue entry`() {
+      val fields = DomainDataFieldCatalog.fieldsFor(DomainDataField.entries.toSet())
+
+      assertThat(fields.map { it.path }).containsExactlyElementsOf(DomainDataField.entries.map { it.path })
+      assertThat(fields).allSatisfy {
+        assertThat(it.label).isNotBlank()
+        assertThat(it.options).isNotEmpty()
+      }
+    }
+
+    @Test
+    fun `accommodation options list every reference data type`() {
+      val field = DomainDataFieldCatalog.fieldsFor(setOf(DomainDataField.CURRENT_ACCOMMODATION_TYPE)).single()
+
+      assertThat(field.options.first()).isEqualTo("Not available")
+      assertThat(field.options.drop(1).map { it.substringBefore(" — ") }).containsExactly(
+        "A01A", "A01C", "A01D", "A02", "A03", "A04", "A07A", "A07B", "A08", "A08A",
+        "A08C", "A10", "A11", "A12", "A13", "A14", "A15", "A16", "A17", "HMP",
+      )
+    }
+
+    @Test
+    fun `next accommodation options use confirmed label`() {
+      val field = DomainDataFieldCatalog.fieldsFor(setOf(DomainDataField.NEXT_ACCOMMODATIONS)).single()
+
+      assertThat(field.options).containsExactly("None", "Confirmed")
+    }
+
+    @Test
+    fun `nested inputs include their nullable parent availability rows once`() {
+      val fields = DomainDataFieldCatalog.fieldsFor(
+        setOf(DomainDataField.CAS3_BOOKING_STATUS, DomainDataField.CAS3_APPLICATION),
+      )
+
+      assertThat(fields.map { it.path }).containsExactly(
+        "cas3Application",
+        "cas3Application.submittedApplication.latestBooking",
+        "cas3Application.submittedApplication.latestBooking.status",
+      )
+      assertThat(DomainDataFieldCatalog.fieldsFor(emptySet())).isEmpty()
+    }
+
+    @Test
+    fun `catalogue uses existing enum values and descriptions`() {
+      val fields = DomainDataFieldCatalog.fieldsFor(DomainDataField.entries.toSet())
+      val accommodationOptions = fields.single { it.label == "Current accommodation type" }.options
+      AddressUsageCode.entries.filter { it.name.matches(Regex("A\\d+.*")) }.forEach {
+        assertThat(accommodationOptions).contains("${it.name} — ${it.description}")
+      }
+      val sexOptions = fields.single { it.path == "sex" }.options
+      assertThat(sexOptions.map { it.substringBefore(" — ") })
+        .containsExactlyInAnyOrderElementsOf(listOf("Not available") + SexCode.entries.map { it.name })
+      assertThat(sexOptions).containsExactlyElementsOf(
+        listOf("Not available") + SexCode.entries.map { "${it.name} — ${it.gender}" },
+      )
+      assertThat(fields.single { it.path == "roshLevel" }.options)
+        .containsExactly("Not available", "Low", "Medium", "High", "Very high")
+    }
+
+    @Test
+    fun `HTML lists domain data fields and options for the selected service`() {
+      val inputs = setOf(
+        DomainDataField.CAS2_ASSESSMENT_STATUS,
+        DomainDataField.TIER_SCORE,
+        DomainDataField.DATE_OF_BIRTH,
+        DomainDataField.SEXUAL_OFFENCE_REGISTRATIONS,
+        DomainDataField.CURRENT_ACCOMMODATION_END_DATE,
+      )
+      val fields = DomainDataFieldCatalog.fieldsFor(inputs)
+      val assessmentStatus = fields.single { it.path == "cas2Application.submittedApplication.latestAssessmentStatus" }
+      val tierScore = DomainDataFieldCatalog.fieldsFor(setOf(DomainDataField.TIER_SCORE)).single()
+
+      assertThat(assessmentStatus.options).contains("Not available", "Awaiting decision", "Cancelled")
+      assertThat(fields.single { it.path == "tierScore" }).isEqualTo(tierScore)
+      assertThat(tierScore.options.drop(1).map { it.substringBefore(" — ") })
+        .containsExactlyElementsOf(TierScore.entries.map { it.name })
+      assertThat(tierScore.options).containsExactly(
+        "Not available",
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "MISSING — Missing",
+        "NOT_SUPERVISED — Not supervised",
+      )
+      assertThat(fields.map { it.path }).contains(
+        "dob",
+        "sexualOffenceRegistrations.sexualOffenceRegistrations",
+        "currentAccommodation.endDate",
+      )
+
+      val root = builder
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("example", inputs))))
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(ServiceType.CAS2))
+        .build()
+      val html = RulesGraphHtmlRenderer.render(listOf(RulesGraphWalker().walk("CAS2", root)))
+
+      assertThat(html).contains(
+        "\"domainData\":",
+        "\"path\":\"dob\"",
+        "\"label\":\"Date of birth\"",
+        "\"Awaiting decision\"",
+        "Domain data affecting this service",
+        "Available options",
+      )
+    }
+
     @Test
     fun `render includes mermaid nodes, edges and rule catalogue`() {
       val root = builder
@@ -508,7 +683,8 @@ class RulesGraphTest {
 
     @Test
     fun `anonymous rules fail the walk`() {
-      val anonymous = object : Rule {
+      val anonymous = object : Rule<DomainData> {
+        override val inputFields: Set<DomainDataField> = emptySet()
         override val description = "anon"
         override fun evaluate(data: DomainData) = RuleResult(description, RuleStatus.PASS)
       }

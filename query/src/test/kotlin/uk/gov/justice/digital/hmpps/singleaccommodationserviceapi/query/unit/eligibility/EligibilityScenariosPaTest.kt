@@ -112,7 +112,7 @@ class EligibilityScenariosPaTest : EligibilityScenarioTestBase() {
         cas3Application = cas3Application,
       )
 
-      val result = eligibilityService.evaluate(paTree, data)
+      val result = eligibilityService.evaluate(paTree, data.toPaDomainData())
 
       assertThat(result.serviceStatus)
         .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedPaStatus}")

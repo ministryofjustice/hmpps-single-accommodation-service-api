@@ -10,25 +10,27 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.PaDomainData
 
 @Component
 class PaEligibilityTreeProvider(
-  private val builder: DecisionTreeBuilder,
+  engine: RulesEngine,
   private val noActiveCas1OrCas3Referrals: NoActiveCas1OrCas3ReferralsRuleSet,
   private val hasNextAccommodation: HasNextAccommodationRuleSet,
-) : EligibilityTreeProvider {
+) : EligibilityTreeProvider<PaDomainData> {
+  private val builder = DecisionTreeBuilder<PaDomainData>(engine)
 
-  private val tree: DecisionNode by lazy { build() }
+  private val tree: DecisionNode<PaDomainData> by lazy { build() }
 
-  override fun tree(): DecisionNode = tree
+  override fun tree(): DecisionNode<PaDomainData> = tree
 
-  override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
+  override fun initialContext(data: PaDomainData): EvaluationContext<PaDomainData> = EvaluationContext(
     data = data,
     currentResult = null,
   )
 
-  private fun build(): DecisionNode {
+  private fun build(): DecisionNode<PaDomainData> {
     val notEligible = builder.notEligible(ServiceType.PA)
     val completed = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.PA_COMPLETED))
     val notStarted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.PA_NOT_STARTED))

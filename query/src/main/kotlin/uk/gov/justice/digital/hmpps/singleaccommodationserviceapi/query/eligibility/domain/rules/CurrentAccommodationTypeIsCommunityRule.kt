@@ -5,14 +5,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Fa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.AccommodationTypeData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 @Component
-class CurrentAccommodationTypeIsCommunityRule : Rule {
+class CurrentAccommodationTypeIsCommunityRule : Rule<AccommodationTypeData> {
+  override val inputFields = setOf(DomainDataField.CURRENT_ACCOMMODATION_TYPE)
   override val description = "FAIL if person is in the community"
   override val failureReason = FailureReason.IN_COMMUNITY
 
-  override fun evaluate(data: DomainData): RuleResult {
+  override fun evaluate(data: AccommodationTypeData): RuleResult {
     val isFail = data.currentAccommodationTypeEntity?.isPrison != true &&
       data.currentAccommodationTypeEntity?.isCas1 != true &&
       data.currentAccommodationTypeEntity?.isCas2 != true &&

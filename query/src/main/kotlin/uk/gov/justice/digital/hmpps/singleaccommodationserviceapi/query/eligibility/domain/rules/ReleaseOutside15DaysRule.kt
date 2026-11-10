@@ -5,15 +5,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.CurrentAccommodationData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 import java.time.Clock
 import java.time.LocalDate
 
 @Component
-class ReleaseOutside15DaysRule(val clock: Clock) : Rule {
+class ReleaseOutside15DaysRule(val clock: Clock) : Rule<CurrentAccommodationData> {
+  override val inputFields = setOf(DomainDataField.CURRENT_ACCOMMODATION_END_DATE)
   override val description = "FAIL if release is more than 15 days from today"
 
-  override fun evaluate(data: DomainData): RuleResult {
+  override fun evaluate(data: CurrentAccommodationData): RuleResult {
     val today = LocalDate.now(clock)
 
     return RuleResult(

@@ -3,8 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.WrongTierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
@@ -14,8 +15,8 @@ class WrongTierRuleTest {
   private val description = "FAIL if person is not Tier A through G"
 
   @ParameterizedTest
-  @ValueSource(strings = ["A", "B", "C", "D", "E", "F", "G"])
-  fun `person passes when tier score is a valid A to G value`(tierScore: String) {
+  @EnumSource(TierScore::class, names = ["MISSING", "NOT_SUPERVISED"], mode = EnumSource.Mode.EXCLUDE)
+  fun `person passes when tier score is a valid A to G value`(tierScore: TierScore) {
     val data = buildDomainData(
       tierScore = tierScore,
     )
@@ -31,8 +32,8 @@ class WrongTierRuleTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["MISSING", "NOT_SUPERVISED"])
-  fun `person fails when tier score is missing or unsupervised`(tierScore: String) {
+  @EnumSource(TierScore::class, names = ["MISSING", "NOT_SUPERVISED"])
+  fun `person fails when tier score is missing or unsupervised`(tierScore: TierScore) {
     val data = buildDomainData(
       tierScore = tierScore,
     )

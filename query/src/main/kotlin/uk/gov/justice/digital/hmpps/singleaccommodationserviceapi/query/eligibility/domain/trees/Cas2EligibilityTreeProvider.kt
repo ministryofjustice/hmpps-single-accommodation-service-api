@@ -16,11 +16,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas2DomainData
 
 @Component
 class Cas2EligibilityTreeProvider(
-  private val builder: DecisionTreeBuilder,
+  engine: RulesEngine,
   private val releaseWithin15Days: ReleaseWithin15DaysRuleSet,
   private val upcomingContextUpdater: Cas2UpcomingContextUpdater,
   private val referral: Cas2RuleSet,
@@ -31,18 +32,21 @@ class Cas2EligibilityTreeProvider(
   private val currentAccommodationEligible: CurrentAccommodationEligibleForCas2RuleSet,
   private val noNextAccommodation: NoNextAccommodationRuleSet,
   private val roshEligible: RoshEligibleRuleSet,
-) : EligibilityTreeProvider {
+) : EligibilityTreeProvider<Cas2DomainData> {
+  private val builder = DecisionTreeBuilder<Cas2DomainData>(engine)
 
-  private val tree: DecisionNode by lazy { build() }
+  private val tree: DecisionNode<Cas2DomainData> by lazy { build() }
 
-  override fun tree(): DecisionNode = tree
+  override fun tree(): DecisionNode<Cas2DomainData> = tree
 
-  override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
+  override fun initialContext(data: Cas2DomainData): EvaluationContext<Cas2DomainData> = EvaluationContext(
     data = data,
     currentResult = null,
   )
 
-  private fun build(): DecisionNode {
+  override fun applicationUrl(data: Cas2DomainData): String? = data.cas2Application?.uiUrl
+
+  private fun build(): DecisionNode<Cas2DomainData> {
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS2)
 

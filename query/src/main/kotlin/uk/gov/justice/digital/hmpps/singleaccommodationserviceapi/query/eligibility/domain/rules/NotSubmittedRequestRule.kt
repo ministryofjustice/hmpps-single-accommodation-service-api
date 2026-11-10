@@ -5,13 +5,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas1ApplicationData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
 
 @Component
-class NotSubmittedRequestRule : Rule {
+class NotSubmittedRequestRule : Rule<Cas1ApplicationData> {
+  override val inputFields = setOf(DomainDataField.CAS1_REQUEST_FOR_PLACEMENT_STATUS)
   override val description = "FAIL if request for placement is unsubmitted"
 
-  override fun evaluate(data: DomainData): RuleResult {
+  override fun evaluate(data: Cas1ApplicationData): RuleResult {
     val isFail = data.cas1Application?.currentOutcome?.requestForPlacement?.status == Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 

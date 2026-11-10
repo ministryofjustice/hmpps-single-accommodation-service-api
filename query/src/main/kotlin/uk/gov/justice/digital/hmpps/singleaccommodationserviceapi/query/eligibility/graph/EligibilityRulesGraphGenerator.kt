@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 object EligibilityRulesGraphGenerator {
 
   fun generate(
-    providers: Collection<EligibilityTreeProvider>,
+    providers: Collection<EligibilityTreeProvider<*>>,
     render: RulesGraphRenderer,
   ): GenerationResult {
     val graphs = providers

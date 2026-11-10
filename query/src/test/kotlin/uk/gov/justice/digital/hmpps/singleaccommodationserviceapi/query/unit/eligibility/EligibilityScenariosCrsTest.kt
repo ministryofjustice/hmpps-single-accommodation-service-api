@@ -92,7 +92,7 @@ class EligibilityScenariosCrsTest : EligibilityScenarioTestBase() {
         currentAccommodationTypeEntity = currentAccommodationTypeEntity,
       )
 
-      val result = eligibilityService.evaluate(crsTree, data)
+      val result = eligibilityService.evaluate(crsTree, data.toCrsDomainData())
 
       assertThat(result.serviceStatus)
         .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCrsStatus}")

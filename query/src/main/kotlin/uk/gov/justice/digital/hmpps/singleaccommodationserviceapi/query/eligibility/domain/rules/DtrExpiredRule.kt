@@ -6,15 +6,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataField
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DtrReferralData
 import java.time.Clock
 
 @Component
-class DtrExpiredRule(val clock: Clock) : Rule {
+class DtrExpiredRule(val clock: Clock) : Rule<DtrReferralData> {
+  override val inputFields = setOf(DomainDataField.DTR_SUBMISSION_DATE)
   override val description = "FAIL if the DTR submission date is missing or more than 26 weeks ago"
   override val failureReason = FailureReason.DTR_REFERRAL_EXPIRED
 
-  override fun evaluate(data: DomainData): RuleResult {
+  override fun evaluate(data: DtrReferralData): RuleResult {
     val isFail = isDtrExpired(data.dutyToRefer?.submission?.submissionDate, clock)
     return RuleResult(
       description = description,
