@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.listener
 
 import au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody
+import au.com.dius.pact.consumer.dsl.LambdaDslObject
 import au.com.dius.pact.consumer.dsl.PactBuilder
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt
 import au.com.dius.pact.consumer.junit5.PactTestFor
@@ -46,69 +47,99 @@ class CorePersonRecordEventPactTest {
   private val addressDetailUrl = "$personDetailUrl/address/$cprAddressId"
 
   @Pact(consumer = CONSUMER, provider = PROVIDER)
-  fun probationAddressCreated(builder: PactBuilder): V4Pact = addressEvent(builder, CPR_PROBATION_ADDRESS_CREATED)
+  fun probationAddressCreated(builder: PactBuilder): V4Pact = event(builder, CPR_PROBATION_ADDRESS_CREATED) { body ->
+    body.stringType("description", "A probation address has been created for a person")
+    body.stringMatcher("detailUrl", "^https?://[^/\\s]+/person/probation/$CRN_PATTERN/address/$UUID_PATTERN$", addressDetailUrl)
+    personReference(body, "CRN")
+    addressInformation(body)
+  }
 
   @Pact(consumer = CONSUMER, provider = PROVIDER)
-  fun probationAddressUpdated(builder: PactBuilder): V4Pact = addressEvent(builder, CPR_PROBATION_ADDRESS_UPDATED)
+  fun probationAddressUpdated(builder: PactBuilder): V4Pact = event(builder, CPR_PROBATION_ADDRESS_UPDATED) { body ->
+    body.stringType("description", "A probation address has been updated for a person")
+    body.stringMatcher("detailUrl", "^https?://[^/\\s]+/person/probation/$CRN_PATTERN/address/$UUID_PATTERN$", addressDetailUrl)
+    personReference(body, "CRN")
+    addressInformation(body)
+  }
 
   @Pact(consumer = CONSUMER, provider = PROVIDER)
-  fun probationAddressDeleted(builder: PactBuilder): V4Pact = addressEvent(builder, CPR_PROBATION_ADDRESS_DELETED)
+  fun probationAddressDeleted(builder: PactBuilder): V4Pact = event(builder, CPR_PROBATION_ADDRESS_DELETED) { body ->
+    body.stringType("description", "A probation address has been deleted for a person")
+    personReference(body, "CRN")
+    addressInformation(body)
+  }
 
   @Pact(consumer = CONSUMER, provider = PROVIDER)
-  fun probationRecordUpdated(builder: PactBuilder): V4Pact = recordEvent(builder, CPR_PROBATION_RECORD_UPDATED)
+  fun probationRecordUpdated(builder: PactBuilder): V4Pact = event(builder, CPR_PROBATION_RECORD_UPDATED) { body ->
+    body.stringType("description", "A probation person record has been updated")
+    body.stringMatcher("detailUrl", "^https?://[^/\\s]+/person/probation/$CRN_PATTERN$", personDetailUrl)
+    personReference(body, "CRN")
+  }
 
   @Pact(consumer = CONSUMER, provider = PROVIDER)
-  fun probationRecordMerged(builder: PactBuilder): V4Pact = recordEvent(builder, CPR_PROBATION_RECORD_MERGED)
+  fun probationRecordMerged(builder: PactBuilder): V4Pact = event(builder, CPR_PROBATION_RECORD_MERGED) { body ->
+    body.stringType("description", "A probation person record has been merged")
+    body.stringMatcher("detailUrl", "^https?://[^/\\s]+/person/probation/$CRN_PATTERN$", personDetailUrl)
+    personReference(body, "fromCRN")
+  }
 
   @Test
   @PactTestFor(pactMethod = "probationAddressCreated")
   fun `consume probation address created event`(pact: V4Pact) {
-    assertConsumed(pact, CPR_PROBATION_ADDRESS_CREATED, addressDetailUrl, cprAddressId)
+    val event = consume(pact)
+
+    assertThat(event.eventType).isEqualTo(CPR_PROBATION_ADDRESS_CREATED.typeName)
+    assertThat(event.detailUrl).isEqualTo(addressDetailUrl)
+    assertThat(event.personReference["CRN"]).isEqualTo(crn)
+    assertThat(UUID.fromString(event.additionalInformation?.get("cprAddressId").toString())).isEqualTo(cprAddressId)
   }
 
   @Test
   @PactTestFor(pactMethod = "probationAddressUpdated")
   fun `consume probation address updated event`(pact: V4Pact) {
-    assertConsumed(pact, CPR_PROBATION_ADDRESS_UPDATED, addressDetailUrl, cprAddressId)
+    val event = consume(pact)
+
+    assertThat(event.eventType).isEqualTo(CPR_PROBATION_ADDRESS_UPDATED.typeName)
+    assertThat(event.detailUrl).isEqualTo(addressDetailUrl)
+    assertThat(event.personReference["CRN"]).isEqualTo(crn)
+    assertThat(UUID.fromString(event.additionalInformation?.get("cprAddressId").toString())).isEqualTo(cprAddressId)
   }
 
   @Test
   @PactTestFor(pactMethod = "probationAddressDeleted")
   fun `consume probation address deleted event without a detail URL`(pact: V4Pact) {
-    assertConsumed(pact, CPR_PROBATION_ADDRESS_DELETED, null, cprAddressId)
+    val event = consume(pact)
+
+    assertThat(event.eventType).isEqualTo(CPR_PROBATION_ADDRESS_DELETED.typeName)
+    assertThat(event.detailUrl).isNull()
+    assertThat(event.personReference["CRN"]).isEqualTo(crn)
+    assertThat(UUID.fromString(event.additionalInformation?.get("cprAddressId").toString())).isEqualTo(cprAddressId)
   }
 
   @Test
   @PactTestFor(pactMethod = "probationRecordUpdated")
   fun `consume probation record updated event`(pact: V4Pact) {
-    assertConsumed(pact, CPR_PROBATION_RECORD_UPDATED, personDetailUrl)
+    val event = consume(pact)
+
+    assertThat(event.eventType).isEqualTo(CPR_PROBATION_RECORD_UPDATED.typeName)
+    assertThat(event.detailUrl).isEqualTo(personDetailUrl)
+    assertThat(event.personReference["CRN"]).isEqualTo(crn)
   }
 
   @Test
   @PactTestFor(pactMethod = "probationRecordMerged")
-  fun `consume probation record merged event with the CRN required by SAS`(pact: V4Pact) {
-    assertConsumed(pact, CPR_PROBATION_RECORD_MERGED, personDetailUrl)
+  fun `consume probation record merged event with the fromCRN required by SAS`(pact: V4Pact) {
+    val event = consume(pact)
+
+    assertThat(event.eventType).isEqualTo(CPR_PROBATION_RECORD_MERGED.typeName)
+    assertThat(event.detailUrl).isEqualTo(personDetailUrl)
+    assertThat(event.personReference["fromCRN"]).isEqualTo(crn)
   }
-
-  private fun addressEvent(builder: PactBuilder, eventType: IncomingHmppsDomainEventType): V4Pact = event(
-    builder,
-    eventType,
-    address = true,
-    detailUrl = addressDetailUrl.takeUnless { eventType == CPR_PROBATION_ADDRESS_DELETED },
-  )
-
-  private fun recordEvent(builder: PactBuilder, eventType: IncomingHmppsDomainEventType): V4Pact = event(
-    builder,
-    eventType,
-    address = false,
-    detailUrl = personDetailUrl,
-  )
 
   private fun event(
     builder: PactBuilder,
     eventType: IncomingHmppsDomainEventType,
-    address: Boolean,
-    detailUrl: String?,
+    content: (LambdaDslObject) -> Unit,
   ): V4Pact = builder
     .usingLegacyMessageDsl()
     .hasPactWith(PROVIDER)
@@ -119,47 +150,34 @@ class CorePersonRecordEventPactTest {
       newJsonBody { body ->
         body.stringValue("eventType", eventType.typeName)
         body.numberValue("version", 1)
-        val description = when (eventType) {
-          CPR_PROBATION_ADDRESS_CREATED -> "A probation address has been created for a person"
-          CPR_PROBATION_ADDRESS_UPDATED -> "A probation address has been updated for a person"
-          CPR_PROBATION_ADDRESS_DELETED -> "A probation address has been deleted for a person"
-          CPR_PROBATION_RECORD_UPDATED -> "A probation person record has been updated"
-          CPR_PROBATION_RECORD_MERGED -> "A probation person record has been merged"
-          else -> error("Unsupported CPR event type: $eventType")
-        }
-        body.stringType("description", description)
         body.stringMatcher(
           "occurredAt",
           "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$",
           occurredAt,
         )
-        if (detailUrl != null) {
-          val path = "/person/probation/$CRN_PATTERN" + if (address) "/address/$UUID_PATTERN" else ""
-          body.stringMatcher("detailUrl", "^https?://[^/\\s]+$path$", detailUrl)
-        }
-        body.`object`("personReference") { personReference ->
-          personReference.arrayContaining("identifiers") { identifiers ->
-            identifiers.`object` { identifier ->
-              identifier.stringValue("type", "CRN")
-              identifier.stringMatcher("value", "^$CRN_PATTERN$", crn)
-            }
-          }
-        }
-        if (address) {
-          body.`object`("additionalInformation") { additionalInformation ->
-            additionalInformation.uuid("cprAddressId", cprAddressId)
-          }
-        }
+        content(body)
       }.build(),
     )
     .toPact()
 
-  private fun assertConsumed(
-    pact: V4Pact,
-    eventType: IncomingHmppsDomainEventType,
-    detailUrl: String?,
-    expectedAddressId: UUID? = null,
-  ) {
+  private fun personReference(body: LambdaDslObject, type: String) {
+    body.`object`("personReference") { personReference ->
+      personReference.arrayContaining("identifiers") { identifiers ->
+        identifiers.`object` { identifier ->
+          identifier.stringValue("type", type)
+          identifier.stringMatcher("value", "^$CRN_PATTERN$", crn)
+        }
+      }
+    }
+  }
+
+  private fun addressInformation(body: LambdaDslObject) {
+    body.`object`("additionalInformation") { additionalInformation ->
+      additionalInformation.uuid("cprAddressId", cprAddressId)
+    }
+  }
+
+  private fun consume(pact: V4Pact): SnsDomainEvent {
     val message = requireNotNull(pact.interactions.single().asAsynchronousMessage()).contents.contents.valueAsString()
     val savedEvent = slot<InboxEventEntity>()
     val inboxEventService = mockk<InboxEventService>()
@@ -172,19 +190,15 @@ class CorePersonRecordEventPactTest {
 
     verify(exactly = 1) { inboxEventService.saveInboxEvent(any()) }
     verify(exactly = 0) { sentryService.captureException(any()) }
-    assertThat(savedEvent.captured.eventType).isEqualTo(eventType.typeName)
-    assertThat(savedEvent.captured.eventDetailUrl).isEqualTo(detailUrl)
+    val domainEvent = jsonMapper.readValue(savedEvent.captured.payload, SnsDomainEvent::class.java)
+    assertThat(savedEvent.captured.eventType).isEqualTo(domainEvent.eventType)
+    assertThat(savedEvent.captured.eventDetailUrl).isEqualTo(domainEvent.detailUrl)
     assertThat(savedEvent.captured.eventOccurredAt).isEqualTo(OffsetDateTime.parse(occurredAt))
     assertThat(savedEvent.captured.processedStatus).isEqualTo(ProcessedStatus.PENDING)
     assertThat(savedEvent.captured.payload).isEqualTo(message)
 
-    val domainEvent = jsonMapper.readValue(savedEvent.captured.payload, SnsDomainEvent::class.java)
     assertThat(domainEvent.version).isEqualTo(1)
     assertThat(domainEvent.description).isNotBlank()
-    assertThat(domainEvent.personReference["CRN"]).isEqualTo(crn)
-    if (expectedAddressId != null) {
-      val addressId = requireNotNull(domainEvent.additionalInformation?.get("cprAddressId")).toString()
-      assertThat(UUID.fromString(addressId)).isEqualTo(expectedAddressId)
-    }
+    return domainEvent
   }
 }
