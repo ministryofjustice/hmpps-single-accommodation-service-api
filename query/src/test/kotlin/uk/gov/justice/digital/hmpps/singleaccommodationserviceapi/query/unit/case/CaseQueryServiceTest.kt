@@ -101,7 +101,7 @@ class CaseQueryServiceTest {
 
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 
-      every { caseOrchestrationService.getCaseList(username, username, "testTeam") } returns caseList
+      every { caseOrchestrationService.getCaseList(viewerUsername = username, caseloadUsername = username, teamCode = "testTeam") } returns caseList
       every { limitedAccessService.getCrnToUserAccess(any()) } answers { callOriginal() }
 
       val result = caseQueryService.getCaseList("testTeam", null)
@@ -117,7 +117,7 @@ class CaseQueryServiceTest {
       val assignedToUsername = "user2"
       val case = buildCase(crn = crnOne)
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
-      every { caseOrchestrationService.getCaseList(username, assignedToUsername, null) } returns OrchestrationResultDto(
+      every { caseOrchestrationService.getCaseList(viewerUsername = username, caseloadUsername = assignedToUsername, teamCode = null) } returns OrchestrationResultDto(
         data = buildCaseListOrchestrationDto(cases = listOf(case)),
       )
       every { limitedAccessService.getCrnToUserAccess(any()) } answers { callOriginal() }
@@ -168,7 +168,7 @@ class CaseQueryServiceTest {
       val case = buildCase(crn = crnOne)
       val dto = buildCaseListOrchestrationDto(cases = listOf(case), caseAccess = emptyList())
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
-      every { caseOrchestrationService.getCaseList(username, username, null) } returns OrchestrationResultDto(data = dto)
+      every { caseOrchestrationService.getCaseList(viewerUsername = username, caseloadUsername = username, teamCode = null) } returns OrchestrationResultDto(data = dto)
       every { limitedAccessService.getCrnToUserAccess(any()) } answers { callOriginal() }
 
       val result = caseQueryService.getCaseList(null, null)
@@ -191,7 +191,7 @@ class CaseQueryServiceTest {
       val dto = buildCaseListOrchestrationDto(cases = cases)
       val caseListOrchestrationDto = dto.copy(caseAccess = dto.caseAccess.excludingCrns(limitedCrns))
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
-      every { caseOrchestrationService.getCaseList(username, username, null) } returns OrchestrationResultDto(
+      every { caseOrchestrationService.getCaseList(viewerUsername = username, caseloadUsername = username, teamCode = null) } returns OrchestrationResultDto(
         data = caseListOrchestrationDto,
         upstreamFailures = upstreamFailures,
       )
