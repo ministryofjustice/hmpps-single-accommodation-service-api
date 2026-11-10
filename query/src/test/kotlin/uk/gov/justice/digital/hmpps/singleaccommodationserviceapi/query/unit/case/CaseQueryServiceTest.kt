@@ -101,15 +101,30 @@ class CaseQueryServiceTest {
 
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 
-      every { caseOrchestrationService.getCaseList(username, "testTeam") } returns caseList
+      every { caseOrchestrationService.getCaseList(username, username, "testTeam") } returns caseList
       every { limitedAccessService.getCrnToUserAccess(any()) } answers { callOriginal() }
 
-      val result = caseQueryService.getCaseList("testTeam")
+      val result = caseQueryService.getCaseList("testTeam", null)
 
       assertThat(result.data).containsExactly(
         CaseWithUserAccess(case1, UserAccess.FULL),
         CaseWithUserAccess(case2, UserAccess.FULL),
       )
+    }
+
+    @Test
+    fun `should get the case list for the assigned user while checking access as the current user`() {
+      val assignedToUsername = "user2"
+      val case = buildCase(crn = crnOne)
+      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
+      every { caseOrchestrationService.getCaseList(username, assignedToUsername, null) } returns OrchestrationResultDto(
+        data = buildCaseListOrchestrationDto(cases = listOf(case)),
+      )
+      every { limitedAccessService.getCrnToUserAccess(any()) } answers { callOriginal() }
+
+      val result = caseQueryService.getCaseList(null, assignedToUsername)
+
+      assertThat(result.data).containsExactly(CaseWithUserAccess(case, UserAccess.FULL))
     }
 
     @Test
@@ -119,7 +134,7 @@ class CaseQueryServiceTest {
         limitedCrns = setOf(crnTwo),
       )
 
-      val result = caseQueryService.getCaseList(null)
+      val result = caseQueryService.getCaseList(null, null)
 
       assertThat(result.data.single { it.case.crn == crnOne }.userAccess).isEqualTo(UserAccess.FULL)
       assertThat(result.data.single { it.case.crn == crnTwo }.userAccess).isEqualTo(UserAccess.LIMITED)
@@ -131,7 +146,7 @@ class CaseQueryServiceTest {
       stubCaseList(cases = listOf(buildCase(crn = crnOne)), upstreamFailures = listOf(failure))
       every { limitedAccessService.throwIfUserAccessFailed(listOf(failure)) } throws UpstreamFailureException(toUpstreamFailureDto(failure))
 
-      assertThatThrownBy { caseQueryService.getCaseList(null) }
+      assertThatThrownBy { caseQueryService.getCaseList(null, null) }
         .isInstanceOf(UpstreamFailureException::class.java)
     }
 
@@ -142,7 +157,7 @@ class CaseQueryServiceTest {
         upstreamFailures = listOf(buildUpstreamFailure(callKey = GET_CASE_LIST + username + 1)),
       )
 
-      val result = caseQueryService.getCaseList(null)
+      val result = caseQueryService.getCaseList(null, null)
 
       assertThat(result.data).hasSize(1)
       assertThat(result.upstreamFailures).hasSize(1)
@@ -153,10 +168,10 @@ class CaseQueryServiceTest {
       val case = buildCase(crn = crnOne)
       val dto = buildCaseListOrchestrationDto(cases = listOf(case), caseAccess = emptyList())
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
-      every { caseOrchestrationService.getCaseList(username, null) } returns OrchestrationResultDto(data = dto)
+      every { caseOrchestrationService.getCaseList(username, username, null) } returns OrchestrationResultDto(data = dto)
       every { limitedAccessService.getCrnToUserAccess(any()) } answers { callOriginal() }
 
-      val result = caseQueryService.getCaseList(null)
+      val result = caseQueryService.getCaseList(null, null)
 
       assertThat(result.data.single().userAccess).isNull()
     }
@@ -165,7 +180,7 @@ class CaseQueryServiceTest {
     fun `should return an empty list when there are no cases`() {
       stubCaseList(cases = emptyList())
 
-      assertThat(caseQueryService.getCaseList(null).data).isEmpty()
+      assertThat(caseQueryService.getCaseList(null, null).data).isEmpty()
     }
 
     private fun stubCaseList(
@@ -176,7 +191,7 @@ class CaseQueryServiceTest {
       val dto = buildCaseListOrchestrationDto(cases = cases)
       val caseListOrchestrationDto = dto.copy(caseAccess = dto.caseAccess.excludingCrns(limitedCrns))
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
-      every { caseOrchestrationService.getCaseList(username, null) } returns OrchestrationResultDto(
+      every { caseOrchestrationService.getCaseList(username, username, null) } returns OrchestrationResultDto(
         data = caseListOrchestrationDto,
         upstreamFailures = upstreamFailures,
       )
