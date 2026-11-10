@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedCaseRefreshResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.CrnsRequiredException
 
@@ -55,6 +56,22 @@ class AdminBulkRefreshCasesService(
         it.data.casesFound,
         it.data.refreshesRequested,
         it.data.crnsNotFound.size,
+      )
+    }
+  }
+
+  fun replayFailedRefreshRequests(): ApiResponseDto<ReplayFailedCaseRefreshResultDto> {
+    val refreshesRequested = caseRefreshRequestService.replayFailedRequests()
+
+    return ApiResponseDto(
+      data = ReplayFailedCaseRefreshResultDto(
+        refreshesRequested = refreshesRequested,
+      ),
+    ).also {
+      log.info(
+        "Replay failed Case Refresh requests finished: refreshesRequested={}. " +
+          "Refreshes (if any) are processed asynchronously by CaseRefreshWorker",
+        it.data.refreshesRequested,
       )
     }
   }
