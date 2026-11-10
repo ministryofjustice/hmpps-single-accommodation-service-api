@@ -2,10 +2,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedCaseRefreshResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedCaseRefreshDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.CrnsRequiredException
 
@@ -61,22 +60,18 @@ class AdminBulkRefreshCasesService(
     }
   }
 
-  @Transactional
-  fun replayFailedRefreshRequests(): ApiResponseDto<ReplayFailedCaseRefreshResultDto> {
-    val refreshRequestsDeleted = caseRefreshRequestService.deleteRequestsForMissingCorePersonRecords()
+  fun replayFailedRefreshRequests(): ApiResponseDto<ReplayFailedCaseRefreshDto> {
     val refreshRequestsReplayed = caseRefreshRequestService.replayFailedRequests()
 
     return ApiResponseDto(
-      data = ReplayFailedCaseRefreshResultDto(
+      data = ReplayFailedCaseRefreshDto(
         refreshRequestsReplayed = refreshRequestsReplayed,
-        refreshRequestsDeleted = refreshRequestsDeleted,
       ),
     ).also {
       log.info(
-        "Replay failed Case Refresh requests finished: refreshRequestsReplayed={}, refreshRequestsDeleted={}. " +
+        "Replay failed Case Refresh requests finished: refreshRequestsReplayed={}. " +
           "Refreshes (if any) are processed asynchronously by CaseRefreshWorker",
         it.data.refreshRequestsReplayed,
-        it.data.refreshRequestsDeleted,
       )
     }
   }

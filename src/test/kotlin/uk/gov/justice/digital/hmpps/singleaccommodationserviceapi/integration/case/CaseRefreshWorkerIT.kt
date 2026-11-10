@@ -10,28 +10,20 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.PlatformTransactionManager
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.*
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshFailureCategory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.*
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkRefreshCasesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshCompletionService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.CaseRefreshWorker
 import java.time.Duration
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
@@ -39,6 +31,9 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Autowired
   lateinit var caseRefreshWorker: CaseRefreshWorker
+
+  @Autowired
+  lateinit var adminBulkRefreshCasesService: AdminBulkRefreshCasesService
 
   @Autowired
   lateinit var caseRefreshCompletionService: CaseRefreshCompletionService
@@ -64,6 +59,51 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
   @AfterEach
   fun teardown() {
     clock.reset()
+  }
+
+  @Test
+  fun `replays only failed refresh requests and clears their retry and claim metadata`() {
+    val requests = CaseRefreshRequestStatus.entries.associateWith { status ->
+      val case = caseRepository.save(buildCaseEntity())
+      caseRefreshRequestService.requestLiveRefresh(case.id)
+      val request = caseRefreshRequestRepository.findById(case.id).orElseThrow().apply {
+        this.status = status
+        attemptCount = 5
+        nextAttemptAt = now.plusSeconds(3600)
+        failedAt = now
+        lastFailureCategory = CaseRefreshFailureCategory.UPSTREAM_TIMEOUT
+        lastFailureDetail = "Tier timed out"
+        processingGeneration = generation
+        claimedAt = now
+        claimId = UUID.randomUUID()
+      }
+      caseRefreshRequestRepository.saveAndFlush(request)
+    }
+    val beforeReplay = Instant.now()
+
+    val result = adminBulkRefreshCasesService.replayFailedRefreshRequests().data
+
+    assertThat(result.refreshRequestsReplayed).isEqualTo(1)
+    requests.forEach { (status, original) ->
+      val request = caseRefreshRequestRepository.findById(original.caseId).orElseThrow()
+      if (status == CaseRefreshRequestStatus.FAILED) {
+        assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
+        assertThat(request.nextAttemptAt).isBetween(beforeReplay, Instant.now())
+        assertThat(request.attemptCount).isZero()
+        assertThat(request.failedAt).isNull()
+        assertThat(request.lastFailureCategory).isNull()
+        assertThat(request.lastFailureDetail).isNull()
+        assertThat(request.processingGeneration).isNull()
+        assertThat(request.claimedAt).isNull()
+        assertThat(request.claimId).isNull()
+        assertThat(request.generation).isEqualTo(original.generation)
+        assertThat(request.priority).isEqualTo(original.priority)
+        assertThat(request.requestedAt).isEqualTo(original.requestedAt)
+      } else {
+        assertThat(request).usingRecursiveComparison().isEqualTo(original)
+      }
+    }
+    assertThat(adminBulkRefreshCasesService.replayFailedRefreshRequests().data.refreshRequestsReplayed).isZero()
   }
 
   @Test

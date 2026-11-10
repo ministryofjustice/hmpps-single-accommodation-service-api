@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @Service
 class CaseRefreshRequestService(
@@ -52,10 +52,7 @@ class CaseRefreshRequestService(
   }
 
   @Transactional
-  fun replayFailedRequests(): Int = caseRefreshRequestRepository.replayFailedRequests(nextAttemptAt = Instant.now(clock))
-
-  @Transactional
-  fun deleteRequestsForMissingCorePersonRecords(): Int = caseRefreshRequestRepository.deleteRequestsForMissingCorePersonRecords()
+  fun replayFailedRequests(): Int = caseRefreshRequestRepository.replayFailedRequests()
 
   @Transactional
   fun claimPending(maxRequests: Int, abandonedClaimTimeout: Duration): List<Claim> {

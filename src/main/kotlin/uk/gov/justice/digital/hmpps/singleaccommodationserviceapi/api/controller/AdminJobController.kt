@@ -3,27 +3,14 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controlle
 import jakarta.validation.ValidationException
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArchiveCasesByCrnCommand
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArchiveCasesResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesCommand
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshAllCasesCommand
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesByCrnCommand
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedCaseRefreshResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedInboxEventsResponse
+import org.springframework.web.bind.annotation.*
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.*
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminArchiveCasesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkLoadCasesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkRefreshCasesService
-import java.util.UUID
+import java.util.*
 
 @RestController
 class AdminJobController(
@@ -93,7 +80,7 @@ class AdminJobController(
 
   @PreAuthorize("hasRole('ROLE_SAS_ADMIN_RW')")
   @PostMapping("/admin/replay-failed-refresh-requests")
-  fun replayFailedRefreshRequests(): ResponseEntity<ApiResponseDto<ReplayFailedCaseRefreshResultDto>> = ResponseEntity.ok(
+  fun replayFailedRefreshRequests(): ResponseEntity<ApiResponseDto<ReplayFailedCaseRefreshDto>> = ResponseEntity.ok(
     adminBulkRefreshCasesService.replayFailedRefreshRequests(),
   )
 }

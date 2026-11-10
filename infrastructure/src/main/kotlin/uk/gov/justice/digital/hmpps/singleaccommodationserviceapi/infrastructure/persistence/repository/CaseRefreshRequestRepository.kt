@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity, UUID> {
 
@@ -111,7 +111,7 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
     value = """
       UPDATE sas_case_refresh_request
       SET status = 'PENDING',
-          next_attempt_at = :nextAttemptAt,
+          next_attempt_at = now(),
           attempt_count = 0,
           failed_at = NULL,
           last_failure_category = NULL,
@@ -120,24 +120,9 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
           claimed_at = NULL,
           claim_id = NULL
       WHERE status = 'FAILED'
-        AND (
-          last_failure_detail IS NULL
-          OR last_failure_detail NOT LIKE '%getCorePersonRecordByCrn: 404 Not Found%'
-        )
     """,
   )
-  fun replayFailedRequests(nextAttemptAt: Instant): Int
-
-  @Modifying
-  @Query(
-    nativeQuery = true,
-    value = """
-      DELETE FROM sas_case_refresh_request
-      WHERE status = 'FAILED'
-        AND last_failure_detail LIKE '%getCorePersonRecordByCrn: 404 Not Found%'
-    """,
-  )
-  fun deleteRequestsForMissingCorePersonRecords(): Int
+  fun replayFailedRequests(): Int
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(
