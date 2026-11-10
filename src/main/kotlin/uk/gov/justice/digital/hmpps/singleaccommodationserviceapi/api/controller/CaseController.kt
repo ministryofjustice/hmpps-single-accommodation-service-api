@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controlle
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import jakarta.validation.ValidationException
 import jakarta.validation.constraints.Pattern
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -37,7 +38,8 @@ class CaseController(
   @Operation(
     summary = "Get list of cases for the current user or selected team",
     description = """Returns the case list for the authenticated user. By default, returns cases allocated to the 
-      current user. Supplying the teamCode parameter returns cases allocated to all users in that team. 
+      current user. Supplying the teamCode parameter returns cases allocated to all users in that team.
+      Supplying the assignedToUsername parameter returns cases allocated to that staff member.
       Supplying the peopleType parameter returns cases filtered by the selected tab (support needed or housing secured).
       Results can be further filtered by risk level and a free-text search term.""",
   )
@@ -52,9 +54,16 @@ class CaseController(
     @RequestParam(required = false) teamCode: String?,
     @Parameter(description = "People type to filter based on tabs")
     @RequestParam(required = false) peopleType: PeopleType?,
+    @Parameter(description = "Username of a staff member to retrieve their cases rather than the current user. Cannot be combined with teamCode.")
+    @RequestParam(required = false) assignedToUsername: String?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     val normalizedTeamCode = teamCode?.trim()?.takeIf { it.isNotEmpty() }
-    val casesWithUserAccess = caseQueryService.getCaseList(normalizedTeamCode)
+    val normalizedAssignedToUsername = assignedToUsername?.trim()?.takeIf { it.isNotEmpty() }
+    if (normalizedTeamCode != null && normalizedAssignedToUsername != null) {
+      throw ValidationException("teamCode and assignedToUsername cannot both be provided")
+    }
+
+    val casesWithUserAccess = caseQueryService.getCaseList(normalizedTeamCode, normalizedAssignedToUsername)
     caseApplicationService.createCases(
       casesWithUserAccess.data.map { CrnToPrisonNumber(it.case.crn, it.case.nomsNumber) },
     )
@@ -65,7 +74,7 @@ class CaseController(
       riskLevel,
       normalizedTeamCode,
       peopleType,
-      userService.getUsername().value,
+      normalizedAssignedToUsername ?: userService.getUsername().value,
     )
 
     return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = casesWithUserAccess.upstreamFailures))

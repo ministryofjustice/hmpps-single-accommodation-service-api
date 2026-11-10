@@ -9,13 +9,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.util.UUID
 
 @Service
-class CustomCaseListApplicationService(
+class UserCaseListApplicationService(
   private val userRepository: UserRepository,
   private val caseRepository: CaseRepository,
   private val userCaseListEntryRepository: UserCaseListEntryRepository,
 ) {
   @Transactional
-  fun createCustomCaseList(userId: UUID, listType: CaseListType, crns: List<String>) {
+  fun createUserCaseList(userId: UUID, listType: CaseListType, crns: List<String>) {
     val distinctCrns = crns.distinct()
 
     val caseIds = caseRepository.findByCrns(distinctCrns).map { it.id }.distinct()
