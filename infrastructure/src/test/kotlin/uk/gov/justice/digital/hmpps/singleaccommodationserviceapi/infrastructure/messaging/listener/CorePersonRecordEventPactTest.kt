@@ -181,7 +181,7 @@ class CorePersonRecordEventPactTest {
     val domainEvent = jsonMapper.readValue(savedEvent.captured.payload, SnsDomainEvent::class.java)
     assertThat(domainEvent.version).isEqualTo(1)
     assertThat(domainEvent.description).isNotBlank()
-    assertThat(domainEvent.personReference.findCrn()).isEqualTo(crn)
+    assertThat(domainEvent.personReference["CRN"]).isEqualTo(crn)
     if (expectedAddressId != null) {
       val addressId = requireNotNull(domainEvent.additionalInformation?.get("cprAddressId")).toString()
       assertThat(UUID.fromString(addressId)).isEqualTo(expectedAddressId)
