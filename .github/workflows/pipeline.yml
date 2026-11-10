@@ -83,9 +83,6 @@ jobs:
             }
           }
         ]
-      webhook_name: hmpps-person-record
-      webhook_id: ctNyAoj2Rx6pJYuJSpYChw
-      webhook_provider_repository: hmpps-person-record
     secrets: inherit
   unit_test:
     permissions:
