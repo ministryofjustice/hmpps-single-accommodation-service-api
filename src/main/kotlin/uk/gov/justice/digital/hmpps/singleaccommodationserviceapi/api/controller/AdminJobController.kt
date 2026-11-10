@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Bu
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshAllCasesCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesByCrnCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedCaseRefreshResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedInboxEventsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
@@ -89,4 +90,10 @@ class AdminJobController(
       ),
     )
   }
+
+  @PreAuthorize("hasRole('ROLE_SAS_ADMIN_RW')")
+  @PostMapping("/admin/replay-failed-refresh-requests")
+  fun replayFailedRefreshRequests(): ResponseEntity<ApiResponseDto<ReplayFailedCaseRefreshResultDto>> = ResponseEntity.ok(
+    adminBulkRefreshCasesService.replayFailedRefreshRequests(),
+  )
 }

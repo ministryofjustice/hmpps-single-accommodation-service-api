@@ -52,6 +52,11 @@ This keeps the alerting simple and avoids sending one alert per failed row.
 - Sends an alert if any failed case refresh requests are found
 - Implementation: `CaseRefreshFailureMonitor`
 
+Failed case refresh requests can be replayed through `AdminBulkRefreshCasesService.replayFailedRefreshRequests()`.
+This resets only `FAILED` requests to `PENDING`, makes them immediately eligible for processing, and clears retry and claim metadata.
+The response reports the number of requests reset; `CaseRefreshWorker` processes them asynchronously.
+Pending and processing requests are unchanged.
+
 ## Scheduling
 
 The monitors are currently configured to run **daily at midday UTC**:
@@ -111,4 +116,3 @@ Relevant settings live in `src/main/resources/application.yml`:
 - [CaseRefreshFailureMonitor.kt](/mutation/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/mutation/domain/processor/CaseRefreshFailureMonitor.kt)
 - [application.yml](/src/main/resources/application.yml)
 - [InboxEventDispatcher.md](/docs/components/InboxEventDispatcher.md)
-
