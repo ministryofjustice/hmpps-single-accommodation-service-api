@@ -71,16 +71,14 @@ jobs:
       webhooks: |
         [
           {
-            {
-              "name": "hmpps-person-record",
-              "id": "ctNyAoj2Rx6pJYuJSpYChw",
-              "repository": "hmpps-person-record"
-            },
-            {
-              "name": "hmpps-person-record-events",
-              "id": "tJsy92jJfy4DjrusFSs73a",
-              "repository": "hmpps-person-record"
-            }
+            "name": "hmpps-person-record",
+            "id": "ctNyAoj2Rx6pJYuJSpYChw",
+            "repository": "hmpps-person-record"
+          },
+          {
+            "name": "hmpps-person-record-events",
+            "id": "tJsy92jJfy4DjrusFSs73a",
+            "repository": "hmpps-person-record"
           }
         ]
     secrets: inherit
