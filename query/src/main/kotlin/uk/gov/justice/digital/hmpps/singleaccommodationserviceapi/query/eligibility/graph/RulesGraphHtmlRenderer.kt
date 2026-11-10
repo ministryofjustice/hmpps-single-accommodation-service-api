@@ -2,22 +2,33 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 
 /**
  * Renders the eligibility rules graphs as a standalone, interactive HTML page using Cytoscape.js.
  *
  * The graph model is embedded as JSON; Cytoscape.js, dagre and cytoscape-dagre are loaded from a CDN.
  */
-object RulesGraphHtmlRenderer {
+object RulesGraphHtmlRenderer : RulesGraphRenderer {
 
   private val jsonMapper = JsonMapper.builder().build()
+  private val cardPreview = requireNotNull(javaClass.getResource("/eligibility/status-card-preview.html")).readText()
 
-  fun render(graphs: List<RulesGraph>): String {
+  override fun render(graphs: List<RulesGraph>): String {
     val json = jsonMapper.writeValueAsString(toJson(graphs)).replace("</", "<\\/")
-    return TEMPLATE.replace(DATA_PLACEHOLDER, json)
+    return TEMPLATE.replace("__STATUS_CARD_PREVIEW__", cardPreview).replace(DATA_PLACEHOLDER, json)
   }
 
   internal fun toJson(graphs: List<RulesGraph>): Map<String, Any?> = mapOf(
+    "statuses" to ServiceStatusNew.entries.associate { status ->
+      status.name to mapOf(
+        "service" to status.service.name,
+        "text" to status.uiStatusName,
+        "linkText" to status.link?.text,
+        "upcoming" to status.isUpcoming,
+        "actionType" to status.proposedAction?.name,
+      )
+    },
     "trees" to graphs.sortedBy { it.treeName }.map { graph ->
       mapOf(
         "name" to graph.treeName,
@@ -27,6 +38,7 @@ object RulesGraphHtmlRenderer {
             "title" to node.title,
             "label" to RulesGraphMarkdownRenderer.nodeLabel(node),
             "kind" to node.kind.name,
+            "sourcePath" to node.ruleSet?.let { githubSourceUrl(sourceLinkPath(it::class)) },
             "rules" to node.rules.map { rule ->
               mapOf(
                 "className" to rule.className,
@@ -63,6 +75,7 @@ object RulesGraphHtmlRenderer {
     "action" to result.serviceStatus.proposedAction?.let { "${it.name} (${result.serviceStatus.service.name})" },
     "linkType" to result.serviceStatus.link?.type?.name,
     "blockingReason" to result.serviceStatus.blockingStatusReason?.name,
+    "failureReasons" to result.failureReasons.map { it.name },
   )
 
   private const val DATA_PLACEHOLDER = "__GRAPH_DATA__"
@@ -84,7 +97,7 @@ object RulesGraphHtmlRenderer {
   #toolbar { padding: 8px 12px; border-bottom: 1px solid #ddd; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: #f7f7f7; }
   #toolbar label { font-size: 13px; }
   #cy { flex: 1; }
-  #panel { width: 420px; border-left: 1px solid #ddd; overflow-y: auto; padding: 12px 16px; font-size: 14px; }
+  #panel { width: 546px; border-left: 1px solid #ddd; overflow-y: auto; padding: 12px 16px; font-size: 14px; }
   #panel h2 { margin-top: 0; font-size: 18px; word-break: break-word; }
   #panel h3 { font-size: 15px; margin-bottom: 4px; }
   table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; }
@@ -105,33 +118,29 @@ object RulesGraphHtmlRenderer {
   .badge { font-size: 11px; padding: 1px 6px; border-radius: 8px; }
   .badge.pass { background: #d9f2d9; color: #1e6b1e; }
   .badge.fail { background: #f8d7d3; color: #a02a1e; }
+  .badge.update { background: ${RulesGraphColours.UPDATER_FILL}; color: #594d00; }
   .badge.na { background: #eee; color: #666; }
   ol.trace { padding-left: 20px; font-size: 13px; }
   ol.trace li { margin: 4px 0; }
-  .result { background: #eef5ff; border: 1px solid #3b73c4; border-radius: 6px; padding: 6px 8px; }
+  .trace-outcomes { background: ${RulesGraphColours.RULE_SET_FILL}; border: 1px solid ${RulesGraphColours.RULE_SET_BORDER}; border-radius: 6px; padding: 10px; }
+  #panel .trace-update .govuk-tag { font-size: inherit; }
+  .simulation-actions { display: flex; gap: 6px; margin-bottom: 12px; }
 </style>
 </head>
 <body>
 <div id="main">
   <div id="toolbar">
     <label>Tree <select id="tree"></select></label>
-    <label>Search <input id="search" placeholder="rule, status, class..." size="28"></label>
-    <label>Layout
-      <select id="layout">
-        <option value="TB">Top → bottom</option>
-        <option value="LR">Left → right</option>
-      </select>
-    </label>
     <button id="fit">Fit</button>
     <button id="reset">Clear highlight</button>
     <label><input type="checkbox" id="simulate"> <b>Simulate</b></label>
     <span class="legend">
-      <span style="background:#dbe9ff;border:1px solid #3b73c4">RuleSet</span>
-      <span style="background:#fff2cc;border:1px solid #c99a00">Context updater</span>
-      <span style="background:#d9f2d9;border:1px solid #2e8b2e">Outcome</span>
-      <span style="color:#2e8b2e">━ PASS</span>
-      <span style="color:#c0392b">━ FAIL</span>
-      <span style="color:#000">━ CONTINUE</span>
+      <span style="background:${RulesGraphColours.RULE_SET_FILL};border:1px solid ${RulesGraphColours.RULE_SET_BORDER}">RuleSet</span>
+      <span style="background:${RulesGraphColours.UPDATER_FILL};border:1px solid ${RulesGraphColours.UPDATER_BORDER}">Context updater</span>
+      <span style="background:${RulesGraphColours.OUTCOME_FILL};border:1px solid ${RulesGraphColours.OUTCOME_BORDER}">Outcome</span>
+      <span style="color:${RulesGraphColours.PASS}">━ PASS</span>
+      <span style="color:${RulesGraphColours.FAIL}">━ FAIL</span>
+      <span style="color:${RulesGraphColours.CONTINUE}">━ CONTINUE</span>
     </span>
   </div>
   <div id="cy"></div>
@@ -140,6 +149,7 @@ object RulesGraphHtmlRenderer {
 Clicking a node also highlights every path from the root to it.</p></div>
 
 <script type="application/json" id="graph-data">$DATA_PLACEHOLDER</script>
+__STATUS_CARD_PREVIEW__
 <script>
   const data = JSON.parse(document.getElementById('graph-data').textContent);
   const treeSelect = document.getElementById('tree');
@@ -148,19 +158,11 @@ Clicking a node also highlights every path from the root to it.</p></div>
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const codeLink = (name, path) => path ? '<a href="' + esc(path) + '" target="_blank"><code>' + esc(name) + '</code></a>' : '<code>' + esc(name) + '</code>';
+  const sourceTextLink = (text, path) => path ?
+    '<a href="' + esc(path) + '" target="_blank" rel="noopener noreferrer">' + esc(text) + '</a>' : esc(text);
 
   function label(n) {
     return n.label;
-  }
-
-  function searchText(n) {
-    const parts = [n.title, n.kind];
-    n.rules.forEach(r => parts.push(r.className, r.description));
-    [n.onPass, n.onFail].filter(Boolean).forEach(u => {
-      parts.push(u.name, u.description);
-      u.outcomes.forEach(o => parts.push(o.status, o.action, o.linkType, o.blockingReason));
-    });
-    return parts.filter(Boolean).join(' ').toLowerCase();
   }
 
   const cy = cytoscape({
@@ -169,31 +171,30 @@ Clicking a node also highlights every path from the root to it.</p></div>
     style: [
       { selector: 'node', style: {
         'label': 'data(label)', 'text-wrap': 'wrap', 'text-max-width': 360, 'font-size': 12,
-        'text-valign': 'center', 'text-halign': 'center', 'width': 380, 'height': 'label', 'padding': 12,
-        'shape': 'round-rectangle', 'border-width': 2 } },
-      { selector: 'node[kind = "RULE_SET"]', style: { 'background-color': '#dbe9ff', 'border-color': '#3b73c4', 'text-justification': 'left' } },
-      { selector: 'node[kind = "CONTEXT_UPDATER"]', style: { 'background-color': '#fff2cc', 'border-color': '#c99a00', 'font-size': 11 } },
-      { selector: 'node[kind = "OUTCOME"]', style: { 'background-color': '#d9f2d9', 'border-color': '#2e8b2e' } },
+        'text-valign': 'center', 'text-halign': 'center', 'width': 'label', 'height': 'label', 'padding': 12,
+        'shape': 'round-rectangle', 'border-width': 2, 'color': '${RulesGraphColours.TEXT}' } },
+      { selector: 'node[kind = "RULE_SET"]', style: { 'background-color': '${RulesGraphColours.RULE_SET_FILL}', 'border-color': '${RulesGraphColours.RULE_SET_BORDER}', 'text-justification': 'left' } },
+      { selector: 'node[kind = "CONTEXT_UPDATER"]', style: { 'background-color': '${RulesGraphColours.UPDATER_FILL}', 'border-color': '${RulesGraphColours.UPDATER_BORDER}', 'font-size': 11 } },
+      { selector: 'node[kind = "OUTCOME"]', style: { 'background-color': '${RulesGraphColours.OUTCOME_FILL}', 'border-color': '${RulesGraphColours.OUTCOME_BORDER}' } },
       { selector: 'edge', style: {
         'curve-style': 'bezier', 'target-arrow-shape': 'triangle', 'width': 2, 'label': 'data(label)',
-        'font-size': 10, 'text-background-color': '#fff', 'text-background-opacity': 1, 'text-background-padding': 2 } },
-      { selector: 'edge[label = "PASS"]', style: { 'line-color': '#2e8b2e', 'target-arrow-color': '#2e8b2e', 'color': '#2e8b2e' } },
-      { selector: 'edge[label = "FAIL"]', style: { 'line-color': '#c0392b', 'target-arrow-color': '#c0392b', 'color': '#c0392b' } },
-      { selector: 'edge[label = "CONTINUE"]', style: { 'line-color': '#000', 'target-arrow-color': '#000', 'color': '#000' } },
+        'font-size': 10, 'text-background-color': '${RulesGraphColours.EDGE_LABEL_BACKGROUND}', 'text-background-opacity': 1, 'text-background-padding': 2 } },
+      { selector: 'edge[label = "PASS"]', style: { 'line-color': '${RulesGraphColours.PASS}', 'target-arrow-color': '${RulesGraphColours.PASS}', 'color': '${RulesGraphColours.PASS}' } },
+      { selector: 'edge[label = "FAIL"]', style: { 'line-color': '${RulesGraphColours.FAIL}', 'target-arrow-color': '${RulesGraphColours.FAIL}', 'color': '${RulesGraphColours.FAIL}' } },
+      { selector: 'edge[label = "CONTINUE"]', style: { 'line-color': '${RulesGraphColours.CONTINUE}', 'target-arrow-color': '${RulesGraphColours.CONTINUE}', 'color': '${RulesGraphColours.CONTINUE}' } },
       { selector: '.faded', style: { 'opacity': 0.15 } },
-      { selector: '.match', style: { 'border-width': 5, 'border-color': '#8e44ad' } },
-      { selector: 'node:selected', style: { 'border-width': 5, 'border-color': '#000' } },
-      { selector: 'node.onpath', style: { 'border-width': 6, 'border-color': '#8e44ad' } },
+      { selector: 'node:selected', style: { 'border-width': 5, 'border-color': '${RulesGraphColours.SELECTED}' } },
+      { selector: 'node.onpath', style: { 'border-width': 6, 'border-color': '${RulesGraphColours.HIGHLIGHT}' } },
       { selector: 'edge.onpath', style: { 'width': 6, 'z-index': 10 } },
-      { selector: 'node.sim-fail', style: { 'background-color': '#f8d7d3' } },
-      { selector: 'node.sim-pass', style: { 'background-color': '#c8ecc8' } },
+      { selector: 'node.sim-fail', style: { 'background-color': '${RulesGraphColours.SIMULATION_FAIL}' } },
+      { selector: 'node.sim-pass', style: { 'background-color': '${RulesGraphColours.SIMULATION_PASS}' } },
     ],
   });
 
   let currentTree;
 
   function runLayout() {
-    cy.layout({ name: 'dagre', rankDir: document.getElementById('layout').value, nodeSep: 40, rankSep: 70, edgeSep: 20 }).run();
+    cy.layout({ name: 'dagre', rankDir: 'TB', nodeSep: 40, rankSep: 70, edgeSep: 20 }).run();
     cy.fit(undefined, 30);
   }
 
@@ -201,13 +202,12 @@ Clicking a node also highlights every path from the root to it.</p></div>
     currentTree = data.trees.find(t => t.name === name);
     cy.elements().remove();
     cy.add(currentTree.nodes.map(n => ({ group: 'nodes', data: {
-      id: n.id, label: label(n), title: n.title, kind: n.kind, search: searchText(n) } })));
+      id: n.id, label: label(n), title: n.title, kind: n.kind } })));
     cy.add(currentTree.edges.map((e, i) => ({ group: 'edges', data: {
       id: 'e' + i, source: e.from, target: e.to, label: e.label } })));
     runLayout();
     panel.innerHTML = '<h2>' + esc(name) + '</h2><p class="muted">' + currentTree.nodes.length + ' nodes, ' +
       currentTree.edges.length + ' edges. Click a node for details.</p>';
-    document.getElementById('search').value = '';
   }
 
   function updaterHtml(title, u) {
@@ -240,7 +240,7 @@ Clicking a node also highlights every path from the root to it.</p></div>
   }
 
   function clearHighlight() {
-    cy.elements().removeClass('faded match onpath sim-pass sim-fail');
+    cy.elements().removeClass('faded onpath sim-pass sim-fail');
     cy.$(':selected').unselect();
   }
 
@@ -294,75 +294,78 @@ Clicking a node also highlights every path from the root to it.</p></div>
   function resultHtml(res) {
     const last = res.steps[res.steps.length - 1];
     if (!last || last.node.kind !== 'OUTCOME') return '<div class="result">No outcome reached</div>';
-    let html = '<div class="result"><b>Outcome:</b> ' + esc(last.node.title);
-    const updater = res.lastUpdater;
-    // outcome produced by a terminal context updater: show the statuses it can set
-    if (updater && updater.description === last.node.title) {
-      if (updater.outcomes.length > 1) {
-        html += '<br><span class="muted">One of the following; which one depends on data the simulator does not model.</span>';
-      }
-      return html + '</div>';
+    const fixedStatus = data.statuses[last.node.id];
+    const outcomes = fixedStatus ? [{ status: last.node.id }] : (res.lastUpdater?.outcomes || []);
+    let html = '<div class="result">';
+    if (!outcomes.length) return html + '<p>No status was set, so a card cannot be previewed.</p></div>';
+    if (outcomes.length > 1) {
+      html;
     }
-    if (/current status/i.test(last.node.title)) {
-      if (res.lastUpdater && res.lastUpdater.outcomes.length) {
-        html += '<br><b>Status set by</b> ' + esc(res.lastUpdater.name === 'constant' ? res.lastUpdater.description : res.lastUpdater.name);
-        if (res.lastUpdater.outcomes.length > 1) {
-          html += '<br><span class="muted">One of the following; which one depends on data the simulator does not model.</span>';
-        }
-        html;
-      } else {
-        html += '<br><span class="muted">No context updater ran, so the status is the initial status from the context.</span>';
-      }
-    }
-    return html + '</div>';
+    const previousRuleSet = res.steps.filter(s => s.node.kind === 'RULE_SET').pop();
+    const reasons = (previousRuleSet?.failed || []).map(r => r.failureReason).filter(Boolean);
+    return html + outcomes.map(o => statusCardPreview(o, reasons) + statusActionPreview(o)).join('') + '</div>';
   }
 
-  function traceOutcomeHtml(step, steps) {
-    let html = '<li><span class="muted">outcome:</span> <b>' + esc(step.node.title) + '</b>';
-    if (['Not Required', 'Cannot Start Yet', 'Not Eligible'].includes(step.node.title)) {
-      const previousRuleSet = steps.filter(s => s.node.kind === 'RULE_SET').pop();
-      const reasons = (previousRuleSet?.failed || []).filter(rule => rule.failureReason)
-        .map(rule => '<code>' + esc(rule.failureReason) + '</code>');
-      if (reasons.length) html += '<br><b>Reasons for failure:</b> ' + reasons.join(', ');
+  function failureDescription(rules) {
+    return 'Failed because ' + rules.map(rule => rule.description.replace(/^FAIL if\s+/i, '')).join('; ');
+  }
+
+  function traceStepHtml(step, res) {
+    if (step.node.kind === 'RULE_SET') {
+      if (step.failed.length) return step.failed.map(rule =>
+        '<li>' + sourceTextLink(failureDescription([rule]), rule.sourcePath) + ' ' + badge('FAIL') + '</li>').join('');
+      const description = 'Passed because ' + step.node.title.replace(/^PASS if\s+/i, '');
+      return '<li>' + sourceTextLink(description, step.node.sourcePath) + ' ' + badge('PASS') + '</li>';
     }
-    return html + '</li>';
+    if (step.node.kind === 'CONTEXT_UPDATER') {
+      const updater = res.steps.filter(s => s.node.kind === 'RULE_SET')
+        .map(s => s.status === 'PASS' ? s.node.onPass : s.node.onFail)
+        .find(u => u?.description === step.node.title);
+      let description = esc(step.node.title);
+      if (updater) {
+        const statuses = [...new Map(updater.outcomes.map(o => [data.statuses[o.status]?.text, o])).entries()]
+          .filter(([text]) => text).sort((a, b) => b[0].length - a[0].length);
+        const labels = new Map(statuses.map(([text, outcome]) => [esc(text), statusCardTag(outcome)]));
+        if (labels.size) {
+          const pattern = [...labels.keys()].map(text => text.replace(/[.*+?^${'$'}{}()|[\]\\]/g, '\\${'$'}&')).join('|');
+          description = description.replace(new RegExp(pattern, 'g'), match => labels.get(match));
+        }
+      }
+      return '<li class="trace-update">' + description + ' ' + badge('UPDATE') + '</li>';
+    }
+    const outcomeCount = data.statuses[step.node.id] ? 1 : (res.lastUpdater?.outcomes.length || 0);
+    return '<li><div class="trace-outcomes"><b>' + (outcomeCount > 1 ? 'Outcomes' : 'Outcome') + '</b>' +
+      resultHtml(res) + '</div></li>';
   }
 
   function renderSim() {
     const res = simulate();
     const statusById = new Map(res.steps.filter(s => s.status).map(s => [s.node.id, s.status]));
 
-    cy.elements().removeClass('faded match onpath sim-pass sim-fail');
+    cy.elements().removeClass('faded onpath sim-pass sim-fail');
     cy.$(':selected').unselect();
     cy.elements().addClass('faded');
     res.steps.forEach(s => cy.getElementById(s.node.id).removeClass('faded').addClass('onpath'));
     res.pathEdges.forEach(e => cy.getElementById('e' + currentTree.edges.indexOf(e)).removeClass('faded').addClass('onpath'));
     statusById.forEach((status, nodeId) => cy.getElementById(nodeId).addClass(status === 'PASS' ? 'sim-pass' : 'sim-fail'));
 
-    let html = '<h2>Simulate ' + esc(currentTree.name) + '</h2>' +
-      '<p class="muted">Set each rule to PASS or FAIL. The highlighted path shows where the result goes.</p>' +
-      '<p><button data-sim="all-pass">All PASS</button> <button data-sim="all-fail">All FAIL</button> ' +
-      '<button data-sim="copy">Copy link</button></p>' +
-      resultHtml(res) +
-      '<h3>Trace</h3><ol class="trace">' + res.steps.map(s => {
-        if (s.node.kind === 'RULE_SET') {
-          const why = s.failed.length ? ' – failed: ' + s.failed.map(r => '<code>' + esc(r.className) + '</code>').join(', ') : '';
-          return '<li><b>' + esc(s.node.title) + '</b> ' + badge(s.status) + why + '</li>';
-        }
-        if (s.node.kind === 'CONTEXT_UPDATER') return '<li><span class="muted">update:</span> ' + esc(s.node.title) + '</li>';
-        return traceOutcomeHtml(s, res.steps);
-      }).join('') + '</ol>' +
-      '<h3>Rule inputs</h3>';
+    let html = '<div class="simulation-actions"><button data-sim="all-pass">All PASS</button>' +
+      '<button data-sim="all-fail">All FAIL</button><button data-sim="copy">Copy link</button></div>' +
+      '<h2>Trace</h2><ol class="trace">' +
+      res.steps.map(s => traceStepHtml(s, res)).join('') + '</ol>' +
+      '<h2>Rules</h2>';
 
     currentTree.nodes.filter(n => n.kind === 'RULE_SET').forEach(n => {
       const status = statusById.get(n.id);
       html += '<div class="sim-group ' + (status ? 'visited' : 'skipped') + '" id="sim-' + esc(n.id) + '">' +
-        '<h4><span>' + esc(n.title) + '</span>' + badge(status) + '</h4>';
+        '<h4><span>' + sourceTextLink(n.title, n.sourcePath) + '</span>' + badge(status) + '</h4>';
       if (n.rules.length === 0) html += '<div class="muted" style="font-size:12px">(no rules – always PASS)</div>';
       n.rules.forEach(r => {
         const fail = failing.has(r.className);
         html += '<div class="sim-rule"><button class="' + (fail ? 'fail' : 'pass') + '" data-rule="' + esc(r.className) + '">' +
-          (fail ? 'FAIL' : 'PASS') + '</button><span><code>' + esc(r.className) + '</code><br>' + esc(r.description) + '</span></div>';
+          (fail ? 'FAIL' : 'PASS') + '</button><span>' +
+          (r.sourcePath ? '<a href="' + esc(r.sourcePath) + '" target="_blank" rel="noopener noreferrer">' +
+            esc(r.description) + '</a>' : esc(r.description)) + '</span></div>';
       });
       html += '</div>';
     });
@@ -382,7 +385,7 @@ Clicking a node also highlights every path from the root to it.</p></div>
     history.replaceState(null, '', location.pathname + '#' + params.toString());
   }
 
-  panel.addEventListener('click', evt => {
+  function handleSimulationClick(evt) {
     const ruleBtn = evt.target.closest('[data-rule]');
     if (ruleBtn) {
       const rule = ruleBtn.getAttribute('data-rule');
@@ -392,13 +395,15 @@ Clicking a node also highlights every path from the root to it.</p></div>
     }
     const action = evt.target.closest('[data-sim]');
     if (!action) return;
+    evt.preventDefault();
     const kind = action.getAttribute('data-sim');
     if (kind === 'all-pass') { failing.clear(); renderSim(); }
     if (kind === 'all-fail') { allRuleClasses().forEach(r => failing.add(r)); renderSim(); }
     if (kind === 'copy') {
       navigator.clipboard.writeText(location.href).then(() => { action.textContent = 'Copied!'; });
     }
-  });
+  }
+  panel.addEventListener('click', handleSimulationClick);
 
   function setSimMode(on) {
     simMode = on;
@@ -416,27 +421,19 @@ Clicking a node also highlights every path from the root to it.</p></div>
   cy.on('tap', 'node', evt => {
     if (simMode) {
       const group = document.getElementById('sim-' + evt.target.id());
-      if (group) group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (group) {
+        group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
     clearHighlight(); evt.target.select(); highlightPathsTo(evt.target); showNode(evt.target.id());
   });
   cy.on('tap', evt => { if (evt.target === cy && !simMode) clearHighlight(); });
 
-  document.getElementById('search').addEventListener('input', evt => {
-    if (simMode) return;
-    const q = evt.target.value.trim().toLowerCase();
-    cy.elements().removeClass('faded match');
-    if (!q) return;
-    const matches = cy.nodes().filter(n => n.data('search').includes(q));
-    cy.elements().addClass('faded');
-    matches.removeClass('faded').addClass('match');
-  });
   treeSelect.addEventListener('change', evt => {
     showTree(evt.target.value);
     if (simMode) renderSim(); else updateUrl();
   });
-  document.getElementById('layout').addEventListener('change', runLayout);
   document.getElementById('fit').addEventListener('click', () => cy.fit(undefined, 30));
   document.getElementById('reset').addEventListener('click', () => { if (simMode) setSimMode(false); else clearHighlight(); });
 
