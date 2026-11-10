@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -31,10 +32,9 @@ import java.time.ZoneOffset
 @Component
 class OutboxEventPublisher(
   private val jsonMapper: JsonMapper,
-  private val hmppsDomainEventUrlConfig: HmppsDomainEventUrlConfig,
   private val outboxEventRepository: OutboxEventRepository,
   private val hmppsQueueService: HmppsQueueService,
-  private val objectMapper: ObjectMapper,
+  private val domainEventBuilder: HmppsDomainEventBuilder,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -68,18 +68,7 @@ class OutboxEventPublisher(
     outboxEventEntity: OutboxEventEntity,
     eventType: SingleAccommodationServiceDomainEventType,
   ): PublishResponse {
-    val detailUrl = hmppsDomainEventUrlConfig.getUrlForDomainEventId(eventType, outboxEventEntity.aggregateId)
-    val corePersonAddressId = getCprAddressIdFromOutboxEventPayload(outboxEventEntity, eventType)
-    val snsEvent = HmppsDomainEvent(
-      eventType = eventType.typeName,
-      detailUrl = detailUrl,
-      version = 1,
-      description = eventType.typeDescription,
-      occurredAt = outboxEventEntity.createdAt.atOffset(ZoneOffset.UTC),
-      additionalInformation = corePersonAddressId?.let {
-        mapOf("corePersonAddressId" to corePersonAddressId.toString())
-      } ?: emptyMap(),
-    )
+    val snsEvent = domainEventBuilder.build(outboxEventEntity, eventType)
 
     return domainTopic.snsClient.publish(
       PublishRequest.builder()
@@ -91,6 +80,34 @@ class OutboxEventPublisher(
           ),
         ).build(),
     ).get()
+  }
+}
+
+@Service
+class HmppsDomainEventBuilder(
+  private val hmppsDomainEventUrlConfig: HmppsDomainEventUrlConfig,
+  private val objectMapper: ObjectMapper,
+) {
+
+  fun build(
+    outboxEventEntity: OutboxEventEntity,
+    eventType: SingleAccommodationServiceDomainEventType,
+  ): HmppsDomainEvent {
+    val detailUrl = hmppsDomainEventUrlConfig.getUrlForDomainEventId(eventType, outboxEventEntity.aggregateId)
+    val corePersonAddressId = getCprAddressIdFromOutboxEventPayload(outboxEventEntity, eventType)
+    return HmppsDomainEvent(
+      eventType = eventType.typeName,
+      detailUrl = detailUrl,
+      version = 1,
+      description = eventType.typeDescription,
+      occurredAt = outboxEventEntity.createdAt.atOffset(ZoneOffset.UTC),
+      additionalInformation = buildMap {
+        put("messageId", outboxEventEntity.id.toString())
+        corePersonAddressId?.let {
+          put("corePersonAddressId", it.toString())
+        }
+      },
+    )
   }
 
   private fun getCprAddressIdFromOutboxEventPayload(

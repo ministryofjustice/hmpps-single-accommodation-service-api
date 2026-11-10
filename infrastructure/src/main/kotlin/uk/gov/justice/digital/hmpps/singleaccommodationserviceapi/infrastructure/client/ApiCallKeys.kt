@@ -11,6 +11,7 @@ object ApiCallKeys {
   const val GET_CASE_LIST = "getCaseListByUsername"
   const val FULL_CASE_LIST = "fullCaseListByUsername"
   const val GET_CASES_BY_TEAM = "getCasesByTeamCode"
+  const val GET_STAFF_FOR_TEAMS = "getStaffForTeams"
   const val GET_SEXUAL_OFFENCE_REGISTRATIONS = "getSexualOffenceRegistrations"
 
   // core-person-record service
@@ -29,7 +30,7 @@ object ApiCallKeys {
   // Approved Premises service
   const val GET_CAS_1_CURRENT_PREMISES = "getCas1CurrentPremises"
   const val GET_CAS_3_CURRENT_PREMISES = "getCas3CurrentPremises"
-  const val GET_CAS_1_APPLICATION = "getCas1Application"
+  const val GET_CAS_1_CURRENT_APPLICATION = "getCas1CurrentApplication"
   const val GET_CAS_2_APPLICATION = "getCas2Application"
   const val GET_CAS_3_APPLICATION = "getCas3Application"
   const val GET_CAS_1_URL_TEMPLATES = "getCas1UrlTemplates"
@@ -51,11 +52,6 @@ object ApiCallKeys {
     GET_CAS1_REFERRAL,
     GET_CAS2_REFERRAL,
     GET_CAS3_REFERRAL,
-    GET_CAS_1_CURRENT_PREMISES,
-    GET_CAS_3_CURRENT_PREMISES,
-    GET_CAS_1_APPLICATION,
-    GET_CAS_2_APPLICATION,
-    GET_CAS_3_APPLICATION,
     GET_PRISONER,
     GET_CASE_IF_EXISTS,
   )

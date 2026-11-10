@@ -28,7 +28,7 @@ A decision tree is composed of two types of nodes:
 
 ### Evaluation Context
 
-`EvalContext` carries state through tree traversal:
+`EvaluationContext` carries state through tree traversal:
 
 - `data`: The domain data (prisoner info, applications, etc.)
 - `current`: The current best-known `ServiceResult` (status, actions, application ID) etc

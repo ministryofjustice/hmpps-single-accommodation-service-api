@@ -9,24 +9,24 @@ import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligible.rules.MaleRiskEligibilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.Cas1StartContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.referral.rules.Cas1NotPresentRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.referral.rules.NoLiveCrsRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1StartContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NoReferralRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.MaleRiskEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoLiveCrsRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphEdge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphNodeKind
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphHtmlRenderer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphMarkdownRenderer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphWalker
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.StubContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.StubRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.StubRuleSet
@@ -37,6 +37,42 @@ class RulesGraphTest {
 
   @Nested
   inner class WalkerTests {
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `shared updater has one continuation per destination`(sameDestination: Boolean) {
+      val updater = StubContextUpdater()
+      val confirmed = builder.confirmed()
+      val fail = if (sameDestination) confirmed else builder.notEligible(ServiceType.CAS1)
+      val root = builder
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("example"))))
+        .onPass(confirmed).applyContextUpdaterOnPass(updater)
+        .onFail(fail).applyContextUpdaterOnFailure(updater)
+        .build()
+
+      val graph = RulesGraphWalker().walk("EXAMPLE", root)
+      val updaterNodes = graph.nodes.filter { it.kind == GraphNodeKind.CONTEXT_UPDATER }
+      assertThat(updaterNodes).hasSize(if (sameDestination) 1 else 2)
+      updaterNodes.forEach { node ->
+        val outgoing = graph.edges.filter { it.from == node.id }
+        assertThat(outgoing).hasSize(1)
+        assertThat(outgoing.single().label).isEqualTo("CONTINUE")
+      }
+      assertThat(graph.edges.filter { it.to in updaterNodes.map { node -> node.id } }.map { it.label })
+        .containsExactlyInAnyOrder("PASS", "FAIL")
+      assertThat(graph.edges.filter { it.label == "CONTINUE" }.map { it.to })
+        .containsExactlyInAnyOrderElementsOf(if (sameDestination) listOf("confirmed") else listOf("confirmed", "CAS1_NOT_ELIGIBLE"))
+
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
+      val continuationIndexes = graph.edges.withIndex().filter { it.value.label == "CONTINUE" }.map { it.index }
+      assertThat(markdown).contains("linkStyle ${continuationIndexes.joinToString(",")} stroke:#0088ff,stroke-width:2px")
+      graph.edges.filter { it.label == "CONTINUE" }.forEach { edge ->
+        assertThat(markdown).contains("${edge.from} -->|CONTINUE| ${edge.to}")
+      }
+      val html = RulesGraphHtmlRenderer.render(listOf(graph))
+      assertThat(html).contains("edge[label = \"CONTINUE\"]")
+      assertThat(html).contains("'line-color': '#0088ff', 'target-arrow-color': '#0088ff', 'color': '#0088ff'")
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
     fun `terminal context updater ends its branch as an outcome`(onPass: Boolean) {
@@ -110,7 +146,7 @@ class RulesGraphTest {
     fun `walk records source paths from each class package`() {
       val root = builder
         .ruleSet(
-          StubRuleSet(rules = listOf(Cas1NotPresentRule(), NoLiveCrsRule())),
+          StubRuleSet(rules = listOf(Cas1NoReferralRule(), NoLiveCrsRule())),
         )
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1StartContextUpdater())
@@ -120,11 +156,11 @@ class RulesGraphTest {
       val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
 
       assertThat(ruleSetNode.rules.map { it.sourcePath }).containsExactly(
-        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/rules/Cas1NotPresentRule.kt",
-        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/referral/rules/NoLiveCrsRule.kt",
+        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1NoReferralRule.kt",
+        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/NoLiveCrsRule.kt",
       )
       assertThat(ruleSetNode.onFailContextUpdater?.sourcePath).isEqualTo(
-        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/Cas1StartContextUpdater.kt",
+        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/contextupdaters/Cas1StartContextUpdater.kt",
       )
     }
 
@@ -205,7 +241,7 @@ class RulesGraphTest {
         GraphEdge(
           contextUpdaterId,
           confirmedId,
-          "PASS",
+          "CONTINUE",
         ),
         GraphEdge(
           upcomingId,
@@ -244,7 +280,7 @@ class RulesGraphTest {
         GraphEdge(
           contextUpdaterId,
           confirmedId,
-          "FAIL",
+          "CONTINUE",
         ),
       )
     }
@@ -268,12 +304,12 @@ class RulesGraphTest {
       assertThat(markdown).contains("ExampleEligibility(\"<div style='text-align:left'>FAIL if example</div>\")")
       assertThat(markdown).contains("ExampleEligibility -->|PASS| confirmed")
       assertThat(markdown).contains("ExampleEligibility -->|FAIL| CAS1_NOT_ELIGIBLE")
-      assertThat(markdown).contains("linkStyle 0 stroke:green,stroke-width:2px")
-      assertThat(markdown).contains("linkStyle 1 stroke:red,stroke-width:2px")
+      assertThat(markdown).contains("linkStyle 0 stroke:#2e8b2e,stroke-width:2px")
+      assertThat(markdown).contains("linkStyle 1 stroke:#c0392b,stroke-width:2px")
       assertThat(markdown).contains("CAS1_NOT_ELIGIBLE[\"<b>Not Eligible</b>\"]")
-      assertThat(markdown).contains("classDef ruleSetNode fill:#FFF8E1")
-      assertThat(markdown).contains("classDef outcomeNode fill:#DCEEFB")
-      assertThat(markdown).contains("classDef updaterNode fill:#EDE7F6")
+      assertThat(markdown).contains("classDef ruleSetNode fill:#dbe9ff")
+      assertThat(markdown).contains("classDef outcomeNode fill:#d9f2d9")
+      assertThat(markdown).contains("classDef updaterNode fill:#fff2cc")
       assertThat(markdown).contains("class ExampleEligibility ruleSetNode")
       assertThat(markdown).contains("class confirmed,CAS1_NOT_ELIGIBLE outcomeNode")
       assertThat(markdown).doesNotContain("_onFail")
@@ -287,7 +323,7 @@ class RulesGraphTest {
     fun `render links to source files using each class package`() {
       val root = builder
         .ruleSet(
-          StubRuleSet(rules = listOf(Cas1NotPresentRule(), NoLiveCrsRule())),
+          StubRuleSet(rules = listOf(Cas1NoReferralRule(), NoLiveCrsRule())),
         )
         .onPass(builder.confirmed())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(Cas1StartContextUpdater())
@@ -295,18 +331,83 @@ class RulesGraphTest {
       val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker().walk("EXAMPLE", root)))
 
       assertThat(markdown).contains(
-        "[`Cas1NotPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/rules/Cas1NotPresentRule.kt)",
+        "[`Cas1NoReferralRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/Cas1NoReferralRule.kt)",
       )
       assertThat(markdown).contains(
-        "[`NoLiveCrsRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/referral/rules/NoLiveCrsRule.kt)",
+        "[`NoLiveCrsRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/NoLiveCrsRule.kt)",
       )
       assertThat(markdown).contains(
-        "[`Cas1StartContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/referral/Cas1StartContextUpdater.kt)",
+        "[`Cas1StartContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/contextupdaters/Cas1StartContextUpdater.kt)",
       )
     }
 
     @Test
-    fun `HTML exposes rule failure reasons for the outcome trace`() {
+    fun `HTML and markdown use the same node and edge colours`() {
+      val root = builder
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("example"))))
+        .onPass(builder.confirmed()).applyContextUpdaterOnPass(StubContextUpdater())
+        .onFail(builder.notEligible(ServiceType.CAS1))
+        .build()
+      val graphs = listOf(RulesGraphWalker().walk("EXAMPLE", root))
+      val html = RulesGraphHtmlRenderer.render(graphs)
+      val markdown = RulesGraphMarkdownRenderer.render(graphs)
+
+      Regex("""classDef \w+ fill:(#[0-9a-f]+),stroke:(#[0-9a-f]+),color:(#[0-9a-f]+)""")
+        .findAll(markdown).forEach { match ->
+          assertThat(html).contains(
+            "'background-color': '${match.groupValues[1]}'",
+            "'border-color': '${match.groupValues[2]}'",
+            "'color': '${match.groupValues[3]}'",
+          )
+        }
+      Regex("""linkStyle [\d,]+ stroke:(#[0-9a-f]+),""").findAll(markdown).forEach { match ->
+        assertThat(html).contains(
+          "'line-color': '${match.groupValues[1]}'",
+          "'target-arrow-color': '${match.groupValues[1]}'",
+        )
+      }
+    }
+
+    @Test
+    fun `HTML simulation rule descriptions link to their source`() {
+      val root = builder
+        .ruleSet(StubRuleSet(rules = listOf(StubRule("FAIL if example"))))
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(ServiceType.CAS1))
+        .build()
+
+      val html = RulesGraphHtmlRenderer.render(listOf(RulesGraphWalker().walk("EXAMPLE", root)))
+      val simulationRules = html.substringAfter("n.rules.forEach(r => {").substringBefore("html += '</div>';")
+
+      assertThat(simulationRules).contains(
+        """data-rule="' + esc(r.className) + '">""",
+        """(r.sourcePath ? '<a href="' + esc(r.sourcePath) + '" target="_blank" rel="noopener noreferrer">' +""",
+        """esc(r.description) + '</a>' : esc(r.description))""",
+      )
+      assertThat(simulationRules).doesNotContain("<code>", "<br>", "data-source")
+    }
+
+    @Test
+    fun `HTML embeds standalone example status cards for simulation outcomes`() {
+      val html = RulesGraphHtmlRenderer.render(emptyList())
+
+      assertThat(html).contains(
+        "function statusCardPreview(outcome, failureReasons)",
+        "function exampleCardDetails(service, status)",
+        "outcomes.map(o => statusCardPreview(o, reasons) + statusActionPreview(o))",
+        "Start an approved premises (CAS1) application",
+        "<b>Action:</b>",
+        "\"actionType\":\"START_APPROVED_PREMISE_APPLICATION\"",
+        "Approved premises (CAS1)",
+        "aria-disabled=\"true\"",
+        "\"CAS1_NOT_STARTED\"",
+        "\"CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS\"",
+      )
+      assertThat(html).doesNotContain("__STATUS_CARD_PREVIEW__", "__GRAPH_DATA__")
+    }
+
+    @Test
+    fun `HTML shows failures and outcome cards in a flat trace above the rules`() {
       val root = builder
         .ruleSet(StubRuleSet(name = "Tier", rules = listOf(MaleRiskEligibilityRule())))
         .onPass(builder.confirmed())
@@ -316,14 +417,24 @@ class RulesGraphTest {
       val html = RulesGraphHtmlRenderer.render(listOf(RulesGraphWalker().walk("EXAMPLE", root)))
 
       assertThat(html).contains("\"failureReason\":\"MALE_NOT_HIGH_RISK_TIER\"")
-      assertThat(html).contains("Reasons for failure:")
-      assertThat(html).contains("return traceOutcomeHtml(s, res.steps)")
+      assertThat(html).contains(
+        "return 'Failed because '",
+        "sourceTextLink(failureDescription([rule]), rule.sourcePath) + ' ' + badge('FAIL')",
+        "'Passed because ' + step.node.title.replace",
+        "sourceTextLink(description, step.node.sourcePath)",
+        "sourceTextLink(n.title, n.sourcePath)",
+        "resultHtml(res) + '</div></li>'",
+        """(outcomeCount > 1 ? 'Outcomes' : 'Outcome')""",
+        "<h2>Trace</h2><ol",
+        "<h2>Rules</h2>",
+      )
+      assertThat(html).doesNotContain("data-section", "Reasons for failure:", "<b>Outcome:</b>")
     }
 
     @Test
     fun `HTML links rules and PASS and FAIL context updaters to GitHub source`() {
       val root = builder
-        .ruleSet(StubRuleSet(rules = listOf(Cas1NotPresentRule())))
+        .ruleSet(StubRuleSet(rules = listOf(Cas1NoReferralRule())))
         .onPass(builder.confirmed()).applyContextUpdaterOnPass(Cas1StartContextUpdater())
         .onFail(builder.notEligible(ServiceType.CAS1)).applyContextUpdaterOnFailure(StubContextUpdater())
         .build()
@@ -356,7 +467,7 @@ class RulesGraphTest {
       val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
 
       assertThat(markdown).contains("Upcoming -->|PASS| updater_StubContextUpdater")
-      assertThat(markdown).contains("class updater_StubContextUpdater updaterNode")
+      assertThat(markdown).contains("class updater_StubContextUpdater_confirmed updaterNode")
       assertThat(markdown).doesNotContain(")onPass")
       assertThat(markdown).doesNotContain("[`StubContextUpdater`](#stubcontextupdater)")
       assertThat(markdown).contains("Used by: Upcoming (EXAMPLE)")
@@ -448,14 +559,14 @@ class RulesGraphTest {
       val updaters = graph.nodes.filter { it.kind == GraphNodeKind.CONTEXT_UPDATER }
       assertThat(updaters.map { it.title }).containsOnly("Set current status to Not Started").hasSize(2)
       assertThat(updaters.map { it.id }).containsExactly(
-        "updater_constant_CAS3_NOT_STARTED",
-        "updater_constant_CAS3_NOT_STARTED_NEW",
+        "updater_constant_CAS3_NOT_STARTED_confirmed",
+        "updater_constant_CAS3_NOT_STARTED_NEW_confirmed",
       )
       assertThat(graph.edges).containsExactlyInAnyOrder(
-        GraphEdge("ExampleEligibility", "updater_constant_CAS3_NOT_STARTED", "PASS"),
-        GraphEdge("updater_constant_CAS3_NOT_STARTED", "confirmed", "PASS"),
-        GraphEdge("ExampleEligibility", "updater_constant_CAS3_NOT_STARTED_NEW", "FAIL"),
-        GraphEdge("updater_constant_CAS3_NOT_STARTED_NEW", "confirmed", "FAIL"),
+        GraphEdge("ExampleEligibility", "updater_constant_CAS3_NOT_STARTED_confirmed", "PASS"),
+        GraphEdge("updater_constant_CAS3_NOT_STARTED_confirmed", "confirmed", "CONTINUE"),
+        GraphEdge("ExampleEligibility", "updater_constant_CAS3_NOT_STARTED_NEW_confirmed", "FAIL"),
+        GraphEdge("updater_constant_CAS3_NOT_STARTED_NEW_confirmed", "confirmed", "CONTINUE"),
       )
     }
 

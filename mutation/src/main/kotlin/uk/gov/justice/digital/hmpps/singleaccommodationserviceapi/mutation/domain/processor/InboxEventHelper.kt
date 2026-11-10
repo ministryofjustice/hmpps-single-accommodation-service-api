@@ -10,18 +10,15 @@ class InboxEventHelper(private val jsonMapper: JsonMapper) {
   private val log = LoggerFactory.getLogger(javaClass)
   fun toDomainEvent(inboxEvent: InboxEventHandler.InboxEvent): SnsDomainEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
 
-  fun findCrn(inboxEvent: InboxEventHandler.InboxEvent): String {
-    val crn =
-      requireNotNull(toDomainEvent(inboxEvent).personReference.findCrn()) { "CRN not found in [inboxEventId=${inboxEvent.id}]" }
-    log.debug("Found [crn={}] in [inboxEventId={}] ", crn, inboxEvent.id)
-    return crn
-  }
+  fun findCrn(inboxEvent: InboxEventHandler.InboxEvent) = findPersonReference(inboxEvent, "CRN")
 
-  fun findPrisonNumber(inboxEvent: InboxEventHandler.InboxEvent): String {
-    val prisonNumber =
-      requireNotNull(toDomainEvent(inboxEvent).personReference.findPrisonNumber()) { "Prison Number not found in [inboxEventId=${inboxEvent.id}]" }
-    log.debug("Found [prisonNumber={}] in [inboxEventId={}] ", prisonNumber, inboxEvent.id)
-    return prisonNumber
+  fun findPrisonNumber(inboxEvent: InboxEventHandler.InboxEvent) = findPersonReference(inboxEvent, "NOMS", "Prison Number")
+
+  fun findPersonReference(inboxEvent: InboxEventHandler.InboxEvent, name: String, label: String = name): String {
+    val value =
+      requireNotNull(toDomainEvent(inboxEvent).personReference[name]) { "$label not found in [inboxEventId=${inboxEvent.id}]" }
+    log.debug("Found [$name={}] in [inboxEventId={}] ", value, inboxEvent.id)
+    return value
   }
 }
 

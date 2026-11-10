@@ -90,6 +90,9 @@ case-list:
 bulk-load:
   page-size: 10000
 
+team-members:
+  page-size: 200
+
 case-refresh:
   worker:
     cron: "* * 8-17 * * *" #runs between 08:00-18:00 daily as upstream services can be offline overnight.

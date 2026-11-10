@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshCompletionService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailure
@@ -100,7 +100,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     )
     caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierServerErrorResponse(crn)
-    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationServerErrorResponse(crn)
 
     val result = caseRefreshWorker.process()
 
@@ -148,7 +148,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"), delayMs = 200)
 
-    ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn)
 
     val workerRun = CompletableFuture.runAsync { caseRefreshWorker.process() }
     waitFor {
@@ -275,7 +275,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
     clock.freezeAt(now.plus(Duration.ofMinutes(1)))
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"), delayMs = 200)
-    ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn)
 
     val workerRun = CompletableFuture.runAsync { caseRefreshWorker.process() }
     waitFor {

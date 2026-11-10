@@ -19,6 +19,10 @@ interface SasAndDeliusClient {
   fun getCasesByTeamCode(@PathVariable teamCode: String, @RequestParam page: Long, @RequestParam size: Long): TeamCaseList
 
   @WebClientRetry
+  @GetExchange(value = "/team/staff")
+  fun getStaffForTeams(@RequestParam teamCodes: List<String>, @RequestParam page: Long, @RequestParam size: Long): TeamStaffList
+
+  @WebClientRetry
   @GetExchange(value = "/case/{crn}")
   fun getCase(@PathVariable crn: String): Case
 
@@ -42,6 +46,9 @@ class SasAndDeliusCachingService(
     log.debug("Calling getCaseList for username: {}, teamCode: {}, size: {}, page: {}", username, teamCode, size, page)
     return sasAndDeliusClient.getCaseList(username = username, teamCode = teamCode, page = page, size = size)
   }
+
+  @Cacheable(ApiCallKeys.GET_STAFF_FOR_TEAMS, sync = true)
+  fun getStaffForTeams(teamCodes: List<String>, page: Long, size: Long) = sasAndDeliusClient.getStaffForTeams(teamCodes = teamCodes, page = page, size = size)
 
   @Cacheable(ApiCallKeys.GET_SEXUAL_OFFENCE_REGISTRATIONS, key = "#crn", sync = true)
   fun getSexualOffenceRegistrations(crn: String) = sasAndDeliusClient.getSexualOffenceRegistrations(crn)

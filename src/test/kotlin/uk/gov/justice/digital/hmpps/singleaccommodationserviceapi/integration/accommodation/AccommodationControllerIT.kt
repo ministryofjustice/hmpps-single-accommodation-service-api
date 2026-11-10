@@ -17,9 +17,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalPremisesV2Dto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
@@ -299,6 +302,12 @@ class AccommodationControllerIT : IntegrationTestBase() {
       crn = crn,
       response = corePersonRecord,
     )
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(
+      crn = crn,
+    )
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(
+      crn = crn,
+    )
     webTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
@@ -374,6 +383,9 @@ class AccommodationControllerIT : IntegrationTestBase() {
         inOutStatus = InOutStatus.IN,
         releaseDate = LocalDate.of(2025, 10, 17),
       ),
+    )
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(
+      crn = crn,
     )
     webTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
@@ -451,6 +463,9 @@ class AccommodationControllerIT : IntegrationTestBase() {
         inOutStatus = InOutStatus.OUT,
         releaseDate = LocalDate.of(2025, 10, 17),
       ),
+    )
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(
+      crn = crn,
     )
     webTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
@@ -536,6 +551,9 @@ class AccommodationControllerIT : IntegrationTestBase() {
         inOutStatus = InOutStatus.OUT,
         releaseDate = LocalDate.of(2025, 10, 17),
       ),
+    )
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(
+      crn = crn,
     )
     webTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
@@ -705,20 +723,23 @@ class AccommodationControllerIT : IntegrationTestBase() {
       crn = crn,
       response = corePersonRecord,
     )
-    val cas1Application = buildCas1Application(
-      placement = buildCas1PlacementSummary(
-        status = Cas1PlacementStatus.UPCOMING,
-        premises = buildCas1PremisesSummary(
-          postcode = "SW1A 1AB",
-          startDate = LocalDate.of(2026, 1, 11),
-          endDate = LocalDate.of(2026, 1, 12),
-          addressLine1 = "100 Some Street",
-          addressLine2 = "Some Place",
-          town = "London",
-        ),
+    val cas1Placement = buildCas1PlacementV2(
+      status = Cas1PlacementStatus.UPCOMING,
+      canonicalArrivalDate = LocalDate.of(2026, 1, 11),
+      canonicalDepartureDate = LocalDate.of(2026, 1, 12),
+      premises = buildCas1ExternalPremisesV2Dto(
+        postcode = "SW1A 1AB",
+        addressLine1 = "100 Some Street",
+        addressLine2 = "Some Place",
+        town = "London",
       ),
     )
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
+    val cas1Application = buildCas1ApplicationV2(
+      submittedApplication = buildCas1SubmittedApplication(
+        upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(placement = cas1Placement),
+      ),
+    )
+    ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(
       crn = crn,
       response = cas1Application,
     )
@@ -737,6 +758,12 @@ class AccommodationControllerIT : IntegrationTestBase() {
       crn = crn,
       response = cas3Application,
     )
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(
+      crn = crn,
+    )
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(
+      crn = crn,
+    )
     webTestClient.get().uri("/cases/{crn}/accommodations/next", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
@@ -745,8 +772,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetNextAccommodationsResponse(
             crn = crn,
-            prStartDate = cas1Application.placement!!.premises!!.startDate.toString(),
-            prEndDate = cas1Application.placement!!.premises!!.endDate.toString(),
+            prStartDate = cas1Placement.canonicalArrivalDate.toString(),
+            prEndDate = cas1Placement.canonicalDepartureDate.toString(),
           ),
         )
       }
@@ -782,7 +809,9 @@ class AccommodationControllerIT : IntegrationTestBase() {
       ),
     )
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = buildCas1Application())
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = buildCas1ApplicationV2())
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = buildCas3Application())
     createAndSaveProposedAccommodation(proposedAccommodationId = proposedAccommodationId)
 
@@ -803,8 +832,11 @@ class AccommodationControllerIT : IntegrationTestBase() {
   @Test
   fun `get next accommodations should return partial success when CPR Addresses call returns server error`() {
     val getPersonUpstreamUrl = CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
-    ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
-    ApprovedPremisesStubs.getCas3SuitableApplicationNotFoundResponse(crn)
+
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(crn = crn)
 
     webTestClient.get().uri("/cases/{crn}/accommodations/next", crn)
       .withDeliusUserJwt()
