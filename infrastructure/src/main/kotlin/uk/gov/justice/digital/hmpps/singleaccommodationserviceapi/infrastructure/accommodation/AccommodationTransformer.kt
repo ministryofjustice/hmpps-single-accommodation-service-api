@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
@@ -124,6 +125,33 @@ object AccommodationTransformer {
       thoroughfareName = premises.addressLine1,
       dependentLocality = premises.addressLine2,
       postTown = premises.town,
+      county = null,
+      country = null,
+      uprn = null,
+    ),
+    status = getAccommodationStatus(currentAccommodation),
+    type = AccommodationTypeDto(
+      code = AddressUsageCode.A02.name,
+      description = AddressUsageCode.A02.description,
+    ),
+  )
+
+  fun toAccommodationSummary(
+    crn: String,
+    placement: Cas1PlacementV2,
+    currentAccommodation: AccommodationSummaryDto?,
+  ) = AccommodationSummaryDto(
+    crn = crn,
+    startDate = placement.canonicalArrivalDate,
+    endDate = placement.canonicalDepartureDate,
+    address = AccommodationAddressDetails(
+      postcode = placement.premises.postcode,
+      subBuildingName = null,
+      buildingName = null,
+      buildingNumber = null,
+      thoroughfareName = placement.premises.addressLine1,
+      dependentLocality = placement.premises.addressLine2,
+      postTown = placement.premises.town,
       county = null,
       country = null,
       uprn = null,

@@ -69,7 +69,7 @@ class ProbationUserUsernameChangedDomainEventIT : DomainEventIntegrationTestBase
 
     testInboxEventHelper.publish(
       messageType = eventType,
-      crn = null,
+      personIdentifier = null,
       detailUrl = null,
       additionalInformation = mapOf(
         "fromUsername" to fromUsername,
@@ -87,7 +87,7 @@ class ProbationUserUsernameChangedDomainEventIT : DomainEventIntegrationTestBase
   private fun publishProbationUsernameChangedEvent() {
     testInboxEventHelper.publish(
       messageType = eventType,
-      crn = null,
+      personIdentifier = null,
       detailUrl = null,
       additionalInformation = mapOf(
         "fromUsername" to fromUsername,

@@ -24,7 +24,7 @@ class CaseRefreshWorker(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @Scheduled(fixedDelayString = $$"${case-refresh.worker.fixed-delay}")
+  @Scheduled(cron = $$"${case-refresh.worker.cron}", zone = $$"${case-refresh.worker.zone}")
   @SchedulerLock(
     name = "CaseRefreshWorker",
     lockAtMostFor = $$"${shedlock.case-refresh-worker.lock-at-most-for}",

@@ -29,7 +29,8 @@ private fun caseJson(
   "userAccess": "FULL",
   "limitedAccess": false,
   "sexualOffenceRegistrations": [],
-  "accommodationSummaries": null
+  "accommodationSummaries": null,
+  "teamCode": null
 }
 """.trimIndent()
 

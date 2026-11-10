@@ -20,6 +20,7 @@ data class CaseDto(
   val limitedAccess: Boolean?,
   val accommodationSummaries: AccommodationSummariesDto? = null,
   val sexualOffenceRegistrations: List<SexualOffenceRegistrationCode> = emptyList(),
+  val teamCode: String? = null,
 )
 
 enum class SexualOffenceRegistrationCode(val code: String, val description: String) {

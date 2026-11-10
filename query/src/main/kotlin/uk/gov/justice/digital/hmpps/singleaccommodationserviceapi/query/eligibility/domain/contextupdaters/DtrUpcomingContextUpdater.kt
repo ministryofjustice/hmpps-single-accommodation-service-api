@@ -1,0 +1,24 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters
+
+import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
+
+@Component
+class DtrUpcomingContextUpdater : ContextUpdater() {
+  override val terminalNode = true
+  val upcoming = "upcoming"
+
+  override val outcomes = mapOf(
+    upcoming to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.DTR_UPCOMING,
+    ),
+  )
+
+  override fun toServiceResult(context: EvaluationContext) = outcome(
+    key = upcoming,
+    actionStartDate = context.data.currentAccommodation!!.endDate!!.minusWeeks(8),
+  )
+}

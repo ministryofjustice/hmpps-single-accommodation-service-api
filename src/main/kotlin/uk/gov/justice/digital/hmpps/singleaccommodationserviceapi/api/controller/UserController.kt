@@ -16,4 +16,8 @@ class UserController(private val userQueryService: UserQueryService) {
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/users/me")
   fun getUserData() = ApiResponseDto(userQueryService.getUserData())
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @GetMapping("/users/me/team-members")
+  fun getTeamMembers() = userQueryService.getUserTeamMembers()
 }

@@ -10,10 +10,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3UrlTemplates
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 
@@ -36,7 +37,7 @@ class DeeplinkResolverTest {
   @Nested
   inner class Cas1 {
     @Test
-    fun `CAS1_START_APPLICATION resolves to the CAS1 application start url template`() {
+    fun `CAS1_START_APPLICATION resolves to the application start url template`() {
       val result = resolver.resolve(
         buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,
@@ -63,14 +64,14 @@ class DeeplinkResolverTest {
 
     @Test
     fun `CAS1_VIEW_APPLICATION resolves to the application uiUrl`() {
-      val cas1Application = buildCas1Application(
+      val cas1Application = buildCas1ApplicationV2(
         uiUrl = cas1ApplicationViewUrl,
       )
       val result = resolver.resolve(
         buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS1_NOT_SUBMITTED,
         ),
-        buildDomainData(cas1Application = cas1Application),
+        buildDomainData(cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = null)),
       )
 
       assertThat(result.url).isEqualTo(cas1ApplicationViewUrl)

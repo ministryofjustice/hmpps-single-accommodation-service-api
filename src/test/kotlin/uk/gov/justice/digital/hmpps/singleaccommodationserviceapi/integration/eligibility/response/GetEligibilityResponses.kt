@@ -21,11 +21,11 @@ fun expectedGetEligibilityResponse(
   submittedAt: String,
   requestSubmittedAt: String,
   expectedArrivalDate: String,
+  expectedDepartureDate: String,
   expiresAt: String,
   cas1ApplicationStartedAt: String,
   startDate: String,
   endDate: String,
-  dateApplied: String,
 ): String = """
 {
   "data": {
@@ -77,7 +77,7 @@ fun expectedGetEligibilityResponse(
           "status": "CANCELLED",
           "actualArrivalDate": null,
           "actualDepartureDate": null,
-          "expectedDepartureDate": null,
+          "expectedDepartureDate": "$expectedDepartureDate",
           "cancellationReason": "Oops",
           "premises": {
             "startDate": "$startDate",
@@ -88,41 +88,7 @@ fun expectedGetEligibilityResponse(
             "postcode": "Test Postcode"
           }
         },
-        "placementHistory": [
-          {
-            "requestForPlacement": {
-              "status": "PLACEMENT_BOOKED",
-              "decision": "ACCEPTED",
-              "rejectionReason": null,
-              "submittedBy": {
-                "name": "Bob",
-                "username": "Bob123",
-                "staffCode": "123"
-              },
-              "submittedAt": "$requestSubmittedAt",
-              "withdrawalReason": null,
-              "withdrawalDate": null,
-              "expectedArrivalDate": "$expectedArrivalDate",
-              "durationDays": 12
-            },
-            "placement": {
-              "status": "CANCELLED",
-              "actualArrivalDate": null,
-              "actualDepartureDate": null,
-              "expectedDepartureDate": null,
-              "cancellationReason": "Oops",
-              "premises": {
-                "startDate": "$startDate",
-                "endDate": "$endDate",
-                "addressLine1": "Test House",
-                "addressLine2": "Test Road",
-                "town": "Test Town",
-                "postcode": "Test Postcode"
-              }
-            },
-            "dateApplied": "$dateApplied"
-          }
-        ],
+        "placementHistory": [],
         "id": "$cas1ApplicationId",
         "applicationStatus": "PLACEMENT_ALLOCATED",
         "requestForPlacementStatus": "PLACEMENT_BOOKED",
@@ -363,6 +329,111 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
 }
 """.trimIndent()
 
+fun expectedGetEligibilityCasApplicationsNotFoundResponse(crn: String): String = """
+  {
+   "data":{
+      "crn":"$crn",
+      "cas1":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "cas1Application":null
+      },
+      "cas2":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "cas2Application":null
+      },
+      "cas3":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "cas3Application":null
+      },
+      "dtr":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "caseId":null,
+         "submission":null
+      },
+      "crs":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "commissionedRehabilitativeServices":null
+      },
+      "pa":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         }
+      },
+      "caseActions":[]
+   },
+   "upstreamFailures":[
+      {
+         "endpoint":"getCas1Application",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"404 NOT_FOUND",
+         "message":"404 Not Found: [no body]",
+         "identifier":null
+      },
+      {
+         "endpoint":"getCas2Application",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"404 NOT_FOUND",
+         "message":"404 Not Found: [no body]",
+         "identifier":null
+      },
+      {
+         "endpoint":"getCas3Application",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"404 NOT_FOUND",
+         "message":"404 Not Found: [no body]",
+         "identifier":null
+      }
+   ]
+}
+  
+""".trimIndent()
+
 fun expectedGetEligibilityResponseTierNotFound(
   crn: String,
   cas1ApplicationId: UUID,
@@ -380,6 +451,10 @@ fun expectedGetEligibilityResponseTierNotFound(
   cas3ReferralUrl: String,
   crsUrl: String,
   cas1ApplicationStartedAt: String,
+  cas1ApplicationSubmittedAt: String,
+  cas1RequestForPlacementExpectedArrivalDate: String,
+  cas1PlacementExpectedDepartureDate: String,
+  cas1SubmittedAt: String,
 ): String = """
 {
   "data": {
@@ -405,7 +480,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "username": "testTester",
             "staffCode": "1234"
           },
-          "submittedAt": null,
+          "submittedAt": "$cas1ApplicationSubmittedAt",
           "expiresAt": null
         },
         "assessment": null,
@@ -413,20 +488,27 @@ fun expectedGetEligibilityResponseTierNotFound(
           "status": "PLACEMENT_BOOKED",
           "decision": null,
           "rejectionReason": null,
-          "submittedBy": null,
-          "submittedAt": null,
+          "submittedBy":{"name":"Test Tester","username":"testTester","staffCode":"1234"},
+          "submittedAt": "$cas1SubmittedAt",
           "withdrawalReason": null,
           "withdrawalDate": null,
-          "expectedArrivalDate": null,
+          "expectedArrivalDate": "$cas1RequestForPlacementExpectedArrivalDate",
           "durationDays": null
         },
         "placement": {
           "status": "ARRIVED",
           "actualArrivalDate": null,
           "actualDepartureDate": null,
-          "expectedDepartureDate": null,
+          "expectedDepartureDate": "$cas1PlacementExpectedDepartureDate",
           "cancellationReason": null,
-          "premises": null
+          "premises": {
+            "startDate": "2025-01-01",
+            "endDate": "2025-07-01",
+            "addressLine1": "TEST HOUSE",
+            "addressLine2": null,
+            "town": null,
+            "postcode": "TEST POSTCODE"
+          }
         },
         "placementHistory": [],
         "id": "$cas1ApplicationId",

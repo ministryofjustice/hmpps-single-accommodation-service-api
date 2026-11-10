@@ -11,8 +11,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCaseList
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamStaffList
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamStaffMember
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
 
 object SasAndDeliusStubs {
 
@@ -60,17 +62,6 @@ object SasAndDeliusStubs {
   }
 
   fun stubGetCase(
-    deliusUsername: String,
-    crn: String,
-    response: Case,
-  ) {
-    sasWiremock.stubFor(
-      get(WireMock.urlPathEqualTo("/case/$deliusUsername/$crn"))
-        .willReturn(okJson(jsonMapper.writeValueAsString(response))),
-    )
-  }
-
-  fun stubGetCase(
     crn: String,
     response: Case,
   ) {
@@ -81,21 +72,19 @@ object SasAndDeliusStubs {
   }
 
   fun stubGetCaseFailure(
-    deliusUsername: String,
     crn: String,
   ) {
     sasWiremock.stubFor(
-      get(WireMock.urlPathEqualTo("/case/$deliusUsername/$crn"))
+      get(WireMock.urlPathEqualTo("/case/$crn"))
         .willReturn(serverError()),
     )
   }
 
   fun stubGetCaseNotFoundFailure(
-    deliusUsername: String,
     crn: String,
   ) {
     sasWiremock.stubFor(
-      get(WireMock.urlPathEqualTo("/case/$deliusUsername/$crn"))
+      get(WireMock.urlPathEqualTo("/case/$crn"))
         .willReturn(notFound()),
     )
   }
@@ -134,6 +123,46 @@ object SasAndDeliusStubs {
   fun stubGetCasesByTeamCodeFailure(teamCode: String) {
     sasWiremock.stubFor(
       get(WireMock.urlPathEqualTo("/team/$teamCode/case-list"))
+        .willReturn(serverError()),
+    )
+  }
+
+  fun stubGetStaffForTeams(
+    teamCodes: List<String>,
+    staff: List<TeamStaffMember>,
+    pageSize: Int = 1,
+  ) {
+    val pages = staff.chunked(pageSize).ifEmpty { listOf(emptyList()) }
+
+    pages.forEachIndexed { page, staffInPage ->
+      sasWiremock.stubFor(
+        get(WireMock.urlPathEqualTo("/team/staff"))
+          .withQueryParam("teamCodes", WireMock.havingExactly(*teamCodes.toTypedArray()))
+          .withQueryParam("page", WireMock.equalTo(page.toString()))
+          .withQueryParam("size", WireMock.equalTo(pageSize.toString()))
+          .willReturn(
+            okJson(
+              jsonMapper.writeValueAsString(
+                TeamStaffList(
+                  content = staffInPage,
+                  page = PageMetadata(
+                    size = pageSize.toLong(),
+                    number = page.toLong(),
+                    totalElements = staff.size.toLong(),
+                    totalPages = pages.size.toLong(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      )
+    }
+  }
+
+  fun stubGetStaffForTeamsFailure(page: Int) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/team/staff"))
+        .withQueryParam("page", WireMock.equalTo(page.toString()))
         .willReturn(serverError()),
     )
   }

@@ -149,5 +149,6 @@ class AccommodationReferralTransformerTest {
     assertThat(externalReferralResult.withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.ANOTHER_REASON.name)
     assertThat(externalReferralResult.otherReason).isEqualTo("Some other reason")
     assertThat(externalReferralResult.withdrawalNote).isEqualTo("Some note")
+    assertThat(externalReferralResult.organisationName).isEqualTo("Some charity")
   }
 }

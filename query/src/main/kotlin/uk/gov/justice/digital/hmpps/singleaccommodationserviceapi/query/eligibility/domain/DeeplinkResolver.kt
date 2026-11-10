@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 
 @Component
 class DeeplinkResolver(
@@ -15,7 +16,7 @@ class DeeplinkResolver(
   fun resolve(result: ServiceResultNew, data: DomainData): ServiceResultNew {
     val url = when (result.serviceStatus.link?.type) {
       LinkType.CAS1_START_APPLICATION -> cas1UrlTemplates()?.cas1ApplicationStart
-      LinkType.CAS1_VIEW_APPLICATION -> data.cas1Application?.uiUrl
+      LinkType.CAS1_VIEW_APPLICATION -> data.cas1Application?.application?.uiUrl
 
       LinkType.CAS2_START_APPLICATION -> cas2UrlTemplates()?.cas2ApplicationStart?.replace("#crn", data.crn)
       LinkType.CAS2_VIEW_APPLICATION -> data.cas2Application?.uiUrl

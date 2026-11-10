@@ -4,11 +4,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.PrioritisedRuleResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.AlwaysFailRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.AlwaysPassRule
@@ -26,41 +24,29 @@ class RuleSetEvaluatorTest {
       val result = defaultRuleSetEvaluator.evaluate(
         ruleset = StubRuleSet(
           listOf(
-            PrioritisedRule(
-              AlwaysPassRule(),
-            ),
-            PrioritisedRule(
-              AlwaysPassRule(),
-            ),
-            PrioritisedRule(
-              AlwaysPassRule(),
-            ),
+            AlwaysPassRule(),
+            AlwaysPassRule(),
+            AlwaysPassRule(),
           ),
         ),
         data = buildDomainData(),
       )
 
       val expectedResult = listOf(
-        PrioritisedRuleResult(
-          RuleResult(
-            description = "FAIL never",
-            ruleStatus = RuleStatus.PASS,
-            failureReason = null,
-          ),
+        RuleResult(
+          description = "FAIL never",
+          ruleStatus = RuleStatus.PASS,
+          failureReason = null,
         ),
-        PrioritisedRuleResult(
-          RuleResult(
-            description = "FAIL never",
-            ruleStatus = RuleStatus.PASS,
-            failureReason = null,
-          ),
+        RuleResult(
+          description = "FAIL never",
+          ruleStatus = RuleStatus.PASS,
+          failureReason = null,
         ),
-        PrioritisedRuleResult(
-          RuleResult(
-            description = "FAIL never",
-            ruleStatus = RuleStatus.PASS,
-            failureReason = null,
-          ),
+        RuleResult(
+          description = "FAIL never",
+          ruleStatus = RuleStatus.PASS,
+          failureReason = null,
         ),
       )
 
@@ -72,41 +58,29 @@ class RuleSetEvaluatorTest {
       val result = defaultRuleSetEvaluator.evaluate(
         ruleset = StubRuleSet(
           listOf(
-            PrioritisedRule(
-              AlwaysFailRule(),
-            ),
-            PrioritisedRule(
-              AlwaysPassRule(),
-            ),
-            PrioritisedRule(
-              AlwaysFailRule(),
-            ),
+            AlwaysFailRule(),
+            AlwaysPassRule(),
+            AlwaysFailRule(),
           ),
         ),
         data = buildDomainData(),
       )
 
       val expectedResult = listOf(
-        PrioritisedRuleResult(
-          RuleResult(
-            description = "FAIL always",
-            ruleStatus = RuleStatus.FAIL,
-            failureReason = FailureReason.IS_SETTLED,
-          ),
+        RuleResult(
+          description = "FAIL always",
+          ruleStatus = RuleStatus.FAIL,
+          failureReason = FailureReason.IS_SETTLED,
         ),
-        PrioritisedRuleResult(
-          RuleResult(
-            description = "FAIL never",
-            ruleStatus = RuleStatus.PASS,
-            failureReason = null,
-          ),
+        RuleResult(
+          description = "FAIL never",
+          ruleStatus = RuleStatus.PASS,
+          failureReason = null,
         ),
-        PrioritisedRuleResult(
-          RuleResult(
-            description = "FAIL always",
-            ruleStatus = RuleStatus.FAIL,
-            failureReason = FailureReason.IS_SETTLED,
-          ),
+        RuleResult(
+          description = "FAIL always",
+          ruleStatus = RuleStatus.FAIL,
+          failureReason = FailureReason.IS_SETTLED,
         ),
       )
 
@@ -118,33 +92,23 @@ class RuleSetEvaluatorTest {
       val result = defaultRuleSetEvaluator.evaluate(
         ruleset = StubRuleSet(
           listOf(
-            PrioritisedRule(
-              AlwaysFailRule(),
-            ),
-            PrioritisedRule(
-              AlwaysPassRule(),
-            ),
+            AlwaysFailRule(),
+            AlwaysPassRule(),
           ),
         ),
         data = buildDomainData(),
       )
 
       val expectedResult = listOf(
-        PrioritisedRuleResult(
-
-          RuleResult(
-            description = "FAIL always",
-            ruleStatus = RuleStatus.FAIL,
-            failureReason = FailureReason.IS_SETTLED,
-          ),
+        RuleResult(
+          description = "FAIL always",
+          ruleStatus = RuleStatus.FAIL,
+          failureReason = FailureReason.IS_SETTLED,
         ),
-        PrioritisedRuleResult(
-
-          RuleResult(
-            description = "FAIL never",
-            ruleStatus = RuleStatus.PASS,
-            failureReason = null,
-          ),
+        RuleResult(
+          description = "FAIL never",
+          ruleStatus = RuleStatus.PASS,
+          failureReason = null,
         ),
       )
 
@@ -156,32 +120,23 @@ class RuleSetEvaluatorTest {
       val result = defaultRuleSetEvaluator.evaluate(
         ruleset = StubRuleSet(
           listOf(
-            PrioritisedRule(
-              AlwaysPassRule(),
-            ),
-            PrioritisedRule(
-              AlwaysFailRule(),
-            ),
+            AlwaysPassRule(),
+            AlwaysFailRule(),
           ),
         ),
         data = buildDomainData(),
       )
 
       val expectedResult = listOf(
-        PrioritisedRuleResult(
-
-          RuleResult(
-            description = "FAIL never",
-            ruleStatus = RuleStatus.PASS,
-            failureReason = null,
-          ),
+        RuleResult(
+          description = "FAIL never",
+          ruleStatus = RuleStatus.PASS,
+          failureReason = null,
         ),
-        PrioritisedRuleResult(
-          RuleResult(
-            description = "FAIL always",
-            ruleStatus = RuleStatus.FAIL,
-            failureReason = FailureReason.IS_SETTLED,
-          ),
+        RuleResult(
+          description = "FAIL always",
+          ruleStatus = RuleStatus.FAIL,
+          failureReason = FailureReason.IS_SETTLED,
         ),
       )
 
