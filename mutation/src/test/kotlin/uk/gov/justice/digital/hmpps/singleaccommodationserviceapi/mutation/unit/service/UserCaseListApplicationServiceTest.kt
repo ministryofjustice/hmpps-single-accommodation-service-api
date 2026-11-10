@@ -16,11 +16,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListEntryRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CustomCaseListApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.UserCaseListApplicationService
 import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
-class CustomCaseListApplicationServiceTest {
+class UserCaseListApplicationServiceTest {
 
   @RelaxedMockK
   private lateinit var userRepository: UserRepository
@@ -32,7 +32,7 @@ class CustomCaseListApplicationServiceTest {
   private lateinit var userCaseListEntryRepository: UserCaseListEntryRepository
 
   @InjectMockKs
-  private lateinit var customCaseListApplicationService: CustomCaseListApplicationService
+  private lateinit var userCaseListApplicationService: UserCaseListApplicationService
 
   private val userId = UUID.randomUUID()
 
@@ -40,7 +40,7 @@ class CustomCaseListApplicationServiceTest {
   fun `de-duplicates crns before resolving case ids`() {
     every { caseRepository.findByCrns(listOf("CRN1", "CRN2")) } returns emptyList()
 
-    customCaseListApplicationService.createCustomCaseList(userId, CaseListType.CUSTOM, listOf("CRN1", "CRN2", "CRN1"))
+    userCaseListApplicationService.createUserCaseList(userId, CaseListType.CUSTOM, listOf("CRN1", "CRN2", "CRN1"))
 
     verify(exactly = 1) { caseRepository.findByCrns(listOf("CRN1", "CRN2")) }
   }
@@ -50,7 +50,7 @@ class CustomCaseListApplicationServiceTest {
     val caseIds = listOf(UUID.randomUUID(), UUID.randomUUID())
     every { caseRepository.findByCrns(any()) } returns caseIds.map { buildCaseEntity(id = it) }
 
-    customCaseListApplicationService.createCustomCaseList(userId, CaseListType.CUSTOM, listOf("CRN1", "CRN2"))
+    userCaseListApplicationService.createUserCaseList(userId, CaseListType.CUSTOM, listOf("CRN1", "CRN2"))
 
     val insertedCaseIds = slot<Array<UUID>>()
     verifyOrder {
