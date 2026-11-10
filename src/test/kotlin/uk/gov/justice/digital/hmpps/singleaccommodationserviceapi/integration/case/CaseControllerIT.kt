@@ -688,6 +688,133 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Nested
+  inner class AssignedToUsername {
+    private val assignedToUsername = "otherStaff"
+    private val accessibleCrn = "X12345"
+    private val restrictedCrn = "X12346"
+
+    @BeforeEach
+    fun setup() {
+      val staff = buildOfficer(username = assignedToUsername, code = "otherStaff")
+      SasAndDeliusStubs.stubCaseList(
+        deliusUsername = assignedToUsername,
+        cases = listOf(
+          buildCase(crn = accessibleCrn, nomsNumber = "PRI1", staff = staff),
+          buildCase(crn = restrictedCrn, nomsNumber = "PRI2", staff = staff, name = buildName("RestrictedForename", "RestrictedSurname")),
+        ),
+        pageSize = pageSize.toInt(),
+      )
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf(accessibleCrn),
+        restrictedCrns = listOf(restrictedCrn),
+      )
+    }
+
+    @Test
+    fun `should return the cases assigned to the given username with access checked against the current user`() {
+      val response = getAssignedToCaseList().data
+
+      assertThat(response.map { it.crn }).containsExactlyInAnyOrder(accessibleCrn, restrictedCrn)
+      assertThat(response.single { it.crn == accessibleCrn }.assignedTo?.username).isEqualTo(assignedToUsername)
+      assertThat(response.single { it.crn == accessibleCrn }.userAccess).isEqualTo(UserAccess.FULL)
+      assertThat(response.single { it.crn == restrictedCrn }.userAccess).isEqualTo(UserAccess.LIMITED)
+      sasWiremock.verify(0, getRequestedFor(WireMock.urlPathEqualTo("/case-list/$USERNAME_OF_LOGGED_IN_DELIUS_USER")))
+      sasWiremock.verify(
+        1,
+        WireMock.postRequestedFor(WireMock.urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access"))
+          .withRequestBody(WireMock.equalToJson(jsonMapper.writeValueAsString(listOf(accessibleCrn, restrictedCrn)))),
+      )
+      sasWiremock.verify(0, WireMock.postRequestedFor(WireMock.urlPathEqualTo("/user/$assignedToUsername/access")))
+      assertThat(caseRepository.findAll()).hasSize(2)
+    }
+
+    @Test
+    fun `should ignore a blank teamCode when assignedToUsername is provided`() {
+      webTestClient.get().uri {
+        it.path("/case-list")
+          .queryParam("assignedToUsername", assignedToUsername)
+          .queryParam("teamCode", " ")
+          .build()
+      }
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(2)
+    }
+
+    @Test
+    fun `should return the current user's cases when assignedToUsername is blank`() {
+      val currentUserCrn = "X12347"
+      SasAndDeliusStubs.stubCaseList(
+        deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        cases = listOf(buildCase(crn = currentUserCrn, nomsNumber = "PRI3", staff = buildOfficer(username = deliusUser.username))),
+        pageSize = pageSize.toInt(),
+      )
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(currentUserCrn))
+
+      webTestClient.get().uri { it.path("/case-list").queryParam("assignedToUsername", " ").build() }
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo(currentUserCrn)
+
+      sasWiremock.verify(0, getRequestedFor(WireMock.urlPathEqualTo("/case-list/$assignedToUsername")))
+    }
+
+    @Test
+    fun `should apply the other filters to the cases assigned to the given username`() {
+      webTestClient.get().uri {
+        it.path("/case-list")
+          .queryParam("assignedToUsername", assignedToUsername)
+          .queryParam("searchTerm", accessibleCrn)
+          .build()
+      }
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo(accessibleCrn)
+    }
+
+    @Test
+    fun `should return the case list with an upstream failure when delius returns NotFound for the username`() {
+      val unknownUsername = "unknownStaff"
+      SasAndDeliusStubs.stubCaseListNotFoundFailure(unknownUsername)
+
+      webTestClient.get().uri { it.path("/case-list").queryParam("assignedToUsername", unknownUsername).build() }
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(0)
+        .jsonPath("$.upstreamFailures.length()").isEqualTo(1)
+        .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getCaseListByUsername${unknownUsername}0")
+    }
+
+    @Test
+    fun `returns BadRequest when teamCode and assignedToUsername are both provided`() {
+      webTestClient.get().uri {
+        it.path("/case-list")
+          .queryParam("assignedToUsername", assignedToUsername)
+          .queryParam("teamCode", "ABC123")
+          .build()
+      }
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("$.userMessage").isEqualTo("Validation failure: teamCode and assignedToUsername cannot both be provided")
+    }
+
+    private fun getAssignedToCaseList() = webTestClient.get()
+      .uri { it.path("/case-list").queryParam("assignedToUsername", assignedToUsername).build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectApiResponse<List<CaseDto>>()
+  }
+
+  @Nested
   inner class SearchByCrn {
     @Test
     fun `should return a CaseDto for a case that exists`() {
