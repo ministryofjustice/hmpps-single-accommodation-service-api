@@ -12,8 +12,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCustomCaseListRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListEntryRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CustomCaseListApplicationService
 import java.util.UUID
@@ -28,7 +29,7 @@ class CustomCaseListApplicationServiceTest {
   private lateinit var caseRepository: CaseRepository
 
   @RelaxedMockK
-  private lateinit var userCustomCaseListRepository: UserCustomCaseListRepository
+  private lateinit var userCaseListEntryRepository: UserCaseListEntryRepository
 
   @InjectMockKs
   private lateinit var customCaseListApplicationService: CustomCaseListApplicationService
@@ -39,7 +40,7 @@ class CustomCaseListApplicationServiceTest {
   fun `de-duplicates crns before resolving case ids`() {
     every { caseRepository.findByCrns(listOf("CRN1", "CRN2")) } returns emptyList()
 
-    customCaseListApplicationService.createCustomCaseList(userId, listOf("CRN1", "CRN2", "CRN1"))
+    customCaseListApplicationService.createCustomCaseList(userId, CaseListType.CUSTOM, listOf("CRN1", "CRN2", "CRN1"))
 
     verify(exactly = 1) { caseRepository.findByCrns(listOf("CRN1", "CRN2")) }
   }
@@ -49,13 +50,13 @@ class CustomCaseListApplicationServiceTest {
     val caseIds = listOf(UUID.randomUUID(), UUID.randomUUID())
     every { caseRepository.findByCrns(any()) } returns caseIds.map { buildCaseEntity(id = it) }
 
-    customCaseListApplicationService.createCustomCaseList(userId, listOf("CRN1", "CRN2"))
+    customCaseListApplicationService.createCustomCaseList(userId, CaseListType.CUSTOM, listOf("CRN1", "CRN2"))
 
     val insertedCaseIds = slot<Array<UUID>>()
     verifyOrder {
       userRepository.findByIdForUpdate(userId)
-      userCustomCaseListRepository.deleteBySasUserId(userId)
-      userCustomCaseListRepository.insertAll(userId, capture(insertedCaseIds))
+      userCaseListEntryRepository.deleteBySasUserIdAndListType(userId, CaseListType.CUSTOM)
+      userCaseListEntryRepository.insertAll(userId, CaseListType.CUSTOM, capture(insertedCaseIds))
     }
     assertThat(insertedCaseIds.captured).containsExactlyInAnyOrderElementsOf(caseIds)
   }

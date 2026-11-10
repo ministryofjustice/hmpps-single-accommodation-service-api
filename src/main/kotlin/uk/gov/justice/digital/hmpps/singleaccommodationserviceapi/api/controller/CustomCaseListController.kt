@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CustomCaseListApplicationService
@@ -47,6 +48,7 @@ class CustomCaseListController(
     @RequestParam(required = false) peopleType: PeopleType?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> = ResponseEntity.ok(
     customCaseListQueryService.getCustomCaseList(
+      listType = CaseListType.CUSTOM,
       searchTerm = searchTerm,
       riskLevel = riskLevel,
       teamCode = teamCode,
@@ -56,7 +58,7 @@ class CustomCaseListController(
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/case-list/custom/crns")
-  fun getCustomCaseListCrns(): ResponseEntity<ApiResponseDto<List<String>>> = ResponseEntity.ok(customCaseListQueryService.getCustomCaseListCrns())
+  fun getCustomCaseListCrns(): ResponseEntity<ApiResponseDto<List<String>>> = ResponseEntity.ok(customCaseListQueryService.getCustomCaseListCrns(CaseListType.CUSTOM))
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PostMapping("/case-list/custom")
@@ -77,7 +79,7 @@ class CustomCaseListController(
     val user = userService.authorizeAndRetrieveUser()
     val distinctCrns = normalisedCrns.distinct()
     caseApplicationService.createValidatedCases(distinctCrns)
-    customCaseListApplicationService.createCustomCaseList(user.id, distinctCrns)
+    customCaseListApplicationService.createCustomCaseList(user.id, CaseListType.CUSTOM, distinctCrns)
     return ResponseEntity(HttpStatus.CREATED)
   }
 }
