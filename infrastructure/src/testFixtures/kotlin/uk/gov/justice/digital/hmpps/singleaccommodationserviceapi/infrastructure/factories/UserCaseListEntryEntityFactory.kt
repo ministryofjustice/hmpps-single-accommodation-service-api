@@ -1,19 +1,22 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserCustomCaseListEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserCaseListEntryEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.Instant
 import java.util.UUID
 
 @TestData
-fun buildUserCustomCaseListEntity(
+fun buildUserCaseListEntryEntity(
   id: UUID = UUID.randomUUID(),
   sasUserId: UUID = UUID.randomUUID(),
   sasCaseId: UUID = UUID.randomUUID(),
+  listType: CaseListType = CaseListType.CUSTOM,
   createdAt: Instant = Instant.now(),
-) = UserCustomCaseListEntity(
+) = UserCaseListEntryEntity(
   id = id,
   sasUserId = sasUserId,
   sasCaseId = sasCaseId,
+  listType = listType,
   createdAt = createdAt,
 )
