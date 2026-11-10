@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
@@ -83,6 +84,12 @@ class CorePersonRecordEventPactTest {
     personReference(body, "fromCRN")
   }
 
+  @Pact(consumer = CONSUMER, provider = PROVIDER)
+  fun probationRecordDeleted(builder: PactBuilder): V4Pact = event(builder, CPR_PROBATION_RECORD_DELETED) { body ->
+    body.stringType("description", "A probation record has been deleted")
+    personReference(body, "CRN")
+  }
+
   @Test
   @PactTestFor(pactMethod = "probationAddressCreated")
   fun `consume probation address created event`(pact: V4Pact) {
@@ -134,6 +141,15 @@ class CorePersonRecordEventPactTest {
     assertThat(event.eventType).isEqualTo(CPR_PROBATION_RECORD_MERGED.typeName)
     assertThat(event.detailUrl).isEqualTo(personDetailUrl)
     assertThat(event.personReference["fromCRN"]).isEqualTo(crn)
+  }
+
+  @Test
+  @PactTestFor(pactMethod = "probationRecordDeleted")
+  fun `consume probation record deleted event`(pact: V4Pact) {
+    val event = consume(pact)
+
+    assertThat(event.eventType).isEqualTo(CPR_PROBATION_RECORD_DELETED.typeName)
+    assertThat(event.personReference["CRN"]).isEqualTo(crn)
   }
 
   private fun event(
