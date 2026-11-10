@@ -41,12 +41,14 @@ object AccommodationReferralTransformer {
     uiUrl = cas1Referral.uiUrl,
     withdrawalReason = cas1Referral.withdrawalReason,
     withdrawalNote = null,
+    subStatus = null,
   )
 
   private fun toCas2Referral(cas2Referral: Cas2ReferralHistory) = AccommodationReferralDto(
     id = cas2Referral.id,
     type = AccommodationService.CAS2,
     status = AccommodationReferralStatusMapper.toStatus(cas2Referral),
+    subStatus = cas2Referral.applicationSubStatus,
     assessmentStatus = null,
     requestForPlacementStatus = null,
     date = cas2Referral.applicationSubmittedDate,
@@ -84,6 +86,7 @@ object AccommodationReferralTransformer {
     uiUrl = cas3Referral.uiUrl,
     withdrawalReason = null,
     withdrawalNote = null,
+    subStatus = null,
   )
 
   private fun toDtrReferral(dtr: DutyToReferDto): AccommodationReferralDto? = dtr.submission?.let { submission ->
@@ -108,6 +111,7 @@ object AccommodationReferralTransformer {
       uiUrl = null,
       withdrawalReason = submission.withdrawalReason?.name,
       withdrawalNote = null,
+      subStatus = null,
     )
   }
 
@@ -136,6 +140,7 @@ object AccommodationReferralTransformer {
       withdrawalNote = externalReferral.withdrawalNote,
       otherReason = externalReferral.otherReason,
       organisationName = submission.organisationName,
+      subStatus = null,
     )
   }
 }

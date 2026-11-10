@@ -2,12 +2,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factori
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.CaseAccess
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.customcaselist.CustomCaseListOrchestrationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.usercaselist.UserCaseListOrchestrationDto
 
-fun buildCustomCaseListOrchestrationDto(
+fun buildUserCaseListOrchestrationDto(
   caseAccess: List<CaseAccess> = emptyList(),
   caseSummaries: List<CaseSummary> = emptyList(),
-) = CustomCaseListOrchestrationDto(
+) = UserCaseListOrchestrationDto(
   caseAccess = caseAccess,
   caseSummaries = caseSummaries,
 )

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.customcaselist
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.usercaselist
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
@@ -11,12 +11,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedAccessService
 
 @Service
-class CustomCaseListOrchestrationService(
+class UserCaseListOrchestrationService(
   private val aggregatorService: AggregatorService,
   private val limitedAccessService: LimitedAccessService,
   private val approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService,
 ) {
-  fun getCaseAccessAndSummaries(username: String, crns: List<String>): OrchestrationResultDto<CustomCaseListOrchestrationDto> {
+  fun getCaseAccessAndSummaries(username: String, crns: List<String>): OrchestrationResultDto<UserCaseListOrchestrationDto> {
     val calls = limitedAccessService.userAccessCalls(username, crns) + mapOf(
       POST_CASE_SUMMARIES to { approvedPremisesAndDeliusCachingService.postCaseSummaries(crns) },
     )
@@ -26,7 +26,7 @@ class CustomCaseListOrchestrationService(
     )
 
     return OrchestrationResultDto(
-      data = CustomCaseListOrchestrationDto(
+      data = UserCaseListOrchestrationDto(
         caseAccess = limitedAccessService.getCaseAccess(results.standardCallsNoIterationResults!!),
         caseSummaries = results.standardCallsNoIterationResults!!.getResult<CaseSummaries>(POST_CASE_SUMMARIES)?.cases
           ?: emptyList(),
