@@ -105,6 +105,25 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
   )
   fun insertBulkRequests(caseIds: Array<UUID>, priority: CaseRefreshPriority, requestedAt: Instant)
 
+  @Modifying
+  @Query(
+    nativeQuery = true,
+    value = """
+      UPDATE sas_case_refresh_request
+      SET status = 'PENDING',
+          next_attempt_at = now(),
+          attempt_count = 0,
+          failed_at = NULL,
+          last_failure_category = NULL,
+          last_failure_detail = NULL,
+          processing_generation = NULL,
+          claimed_at = NULL,
+          claim_id = NULL
+      WHERE status = 'FAILED'
+    """,
+  )
+  fun replayFailedRequests(): Int
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(
     """

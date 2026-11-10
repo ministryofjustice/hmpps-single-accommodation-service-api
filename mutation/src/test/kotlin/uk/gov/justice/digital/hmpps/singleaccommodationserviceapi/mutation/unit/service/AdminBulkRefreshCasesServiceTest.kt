@@ -92,6 +92,26 @@ class AdminBulkRefreshCasesServiceTest {
     verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any(), any()) }
   }
 
+  @Test
+  fun `replays failed refresh requests and reports the number requested`() {
+    every { caseRefreshRequestService.replayFailedRequests() } returns 3
+
+    val result = adminBulkRefreshCasesService.replayFailedRefreshRequests().data
+
+    verify(exactly = 1) { caseRefreshRequestService.replayFailedRequests() }
+    assertThat(result.refreshesRequested).isEqualTo(3)
+  }
+
+  @Test
+  fun `reports zero when there are no failed refresh requests to replay`() {
+    every { caseRefreshRequestService.replayFailedRequests() } returns 0
+
+    val result = adminBulkRefreshCasesService.replayFailedRefreshRequests().data
+
+    verify(exactly = 1) { caseRefreshRequestService.replayFailedRequests() }
+    assertThat(result.refreshesRequested).isZero()
+  }
+
   private fun stubCases(vararg cases: Pair<String, UUID>) {
     every { caseRepository.mapByCrns(any()) } returns cases.associate { (crn, id) ->
       crn to buildCaseEntity(id = id) { withCrn(crn) }
