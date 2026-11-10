@@ -83,6 +83,7 @@ fun buildReferralHistory(
   referredBy: DeliusUserDto = buildDeliusUserDto(),
   placementAddress: String? = null,
   uiUrl: String = "https://example.com/referral",
+  applicationSubStatus: String? = null,
 ) = Cas2ReferralHistory(
   id = id,
   applicationId = applicationId,
@@ -95,6 +96,7 @@ fun buildReferralHistory(
   referredBy = referredBy.name,
   placementAddress = placementAddress,
   uiUrl = uiUrl,
+  applicationSubStatus = applicationSubStatus,
 )
 
 fun buildDeliusUserDto(name: String = "Joe Bloggs", username: String = "user1") = DeliusUserDto(

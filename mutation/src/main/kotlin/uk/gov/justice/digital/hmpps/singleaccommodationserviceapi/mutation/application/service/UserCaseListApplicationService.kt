@@ -2,19 +2,20 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCustomCaseListRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListEntryRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import java.util.UUID
 
 @Service
-class CustomCaseListApplicationService(
+class UserCaseListApplicationService(
   private val userRepository: UserRepository,
   private val caseRepository: CaseRepository,
-  private val userCustomCaseListRepository: UserCustomCaseListRepository,
+  private val userCaseListEntryRepository: UserCaseListEntryRepository,
 ) {
   @Transactional
-  fun createCustomCaseList(userId: UUID, crns: List<String>) {
+  fun createUserCaseList(userId: UUID, listType: CaseListType, crns: List<String>) {
     val distinctCrns = crns.distinct()
 
     val caseIds = caseRepository.findByCrns(distinctCrns).map { it.id }.distinct()
@@ -22,7 +23,7 @@ class CustomCaseListApplicationService(
     // lock the user row so that concurrent requests for the same user wait for the current transaction to complete
     userRepository.findByIdForUpdate(userId)
 
-    userCustomCaseListRepository.deleteBySasUserId(userId)
-    userCustomCaseListRepository.insertAll(userId, caseIds.toTypedArray())
+    userCaseListEntryRepository.deleteBySasUserIdAndListType(userId, listType)
+    userCaseListEntryRepository.insertAll(userId, listType, caseIds.toTypedArray())
   }
 }

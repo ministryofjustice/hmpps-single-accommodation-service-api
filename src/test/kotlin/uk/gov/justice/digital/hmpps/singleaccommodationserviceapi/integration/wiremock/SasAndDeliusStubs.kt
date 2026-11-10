@@ -61,6 +61,15 @@ object SasAndDeliusStubs {
     }
   }
 
+  fun stubCaseListNotFoundFailure(
+    deliusUsername: String,
+  ) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/case-list/$deliusUsername"))
+        .willReturn(notFound()),
+    )
+  }
+
   fun stubGetCase(
     crn: String,
     response: Case,

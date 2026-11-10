@@ -9,12 +9,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
  *
  * The graph model is embedded as JSON; Cytoscape.js, dagre and cytoscape-dagre are loaded from a CDN.
  */
-object RulesGraphHtmlRenderer {
+object RulesGraphHtmlRenderer : RulesGraphRenderer {
 
   private val jsonMapper = JsonMapper.builder().build()
   private val cardPreview = requireNotNull(javaClass.getResource("/eligibility/status-card-preview.html")).readText()
 
-  fun render(graphs: List<RulesGraph>): String {
+  override fun render(graphs: List<RulesGraph>): String {
     val json = jsonMapper.writeValueAsString(toJson(graphs)).replace("</", "<\\/")
     return TEMPLATE.replace("__STATUS_CARD_PREVIEW__", cardPreview).replace(DATA_PLACEHOLDER, json)
   }

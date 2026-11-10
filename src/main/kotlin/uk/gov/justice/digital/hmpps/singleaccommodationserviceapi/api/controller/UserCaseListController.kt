@@ -17,26 +17,27 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CustomCaseListApplicationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.customcaselist.CustomCaseListQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.UserCaseListApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.usercaselist.UserCaseListQueryService
 
 private val CRN_REGEX = Regex("(?i)^[A-Z][0-9]{6}$")
 private const val CRN_FORMAT_MESSAGE = "Enter a valid format for all CRNs. For example, D016821"
 
 @Validated
 @RestController
-class CustomCaseListController(
+class UserCaseListController(
   private val userService: UserService,
   private val caseApplicationService: CaseApplicationService,
-  private val customCaseListApplicationService: CustomCaseListApplicationService,
-  private val customCaseListQueryService: CustomCaseListQueryService,
+  private val userCaseListApplicationService: UserCaseListApplicationService,
+  private val userCaseListQueryService: UserCaseListQueryService,
 ) {
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/case-list/custom")
-  fun getCustomCaseList(
+  fun getUserCaseList(
     @Parameter(description = "Filter results to only cases with this risk level.")
     @RequestParam(required = false) riskLevel: RiskLevel?,
     @Parameter(description = "Free-text search term to filter cases by name or CRN.")
@@ -46,7 +47,8 @@ class CustomCaseListController(
     @Parameter(description = "People type to filter based on tabs")
     @RequestParam(required = false) peopleType: PeopleType?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> = ResponseEntity.ok(
-    customCaseListQueryService.getCustomCaseList(
+    userCaseListQueryService.getUserCaseList(
+      listType = CaseListType.CUSTOM,
       searchTerm = searchTerm,
       riskLevel = riskLevel,
       teamCode = teamCode,
@@ -56,12 +58,12 @@ class CustomCaseListController(
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/case-list/custom/crns")
-  fun getCustomCaseListCrns(): ResponseEntity<ApiResponseDto<List<String>>> = ResponseEntity.ok(customCaseListQueryService.getCustomCaseListCrns())
+  fun getUserCaseListCrns(): ResponseEntity<ApiResponseDto<List<String>>> = ResponseEntity.ok(userCaseListQueryService.getUserCaseListCrns(CaseListType.CUSTOM))
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PostMapping("/case-list/custom")
   @ResponseStatus(HttpStatus.CREATED)
-  fun createCustomCaseList(
+  fun createUserCaseList(
     @RequestBody
     @Size(min = 1, max = 500, message = "Enter 500 CRNs or fewer")
     crns: List<String>,
@@ -77,7 +79,7 @@ class CustomCaseListController(
     val user = userService.authorizeAndRetrieveUser()
     val distinctCrns = normalisedCrns.distinct()
     caseApplicationService.createValidatedCases(distinctCrns)
-    customCaseListApplicationService.createCustomCaseList(user.id, distinctCrns)
+    userCaseListApplicationService.createUserCaseList(user.id, CaseListType.CUSTOM, distinctCrns)
     return ResponseEntity(HttpStatus.CREATED)
   }
 }

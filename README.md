@@ -124,7 +124,7 @@ The steps are also available in the pull request checklist[PULL_REQUEST_TEMPLATE
 The eligibility rules engine is in the codebase, you can extract a markdown version, (complete with mermaid diagrams) of the rules engine by running the following command:
 
 ```bash
-./gradlew :query:generateEligibilityRulesGraph
+./gradlew :query:generateEligibilityRulesGraphs
 ```
 
 the file generated is viewable [here](./docs/eligibility-rules-graph.md)

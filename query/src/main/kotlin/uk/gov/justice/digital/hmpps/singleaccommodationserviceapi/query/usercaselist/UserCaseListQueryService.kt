@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.customcaselist
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.usercaselist
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
@@ -6,9 +6,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCustomCaseListRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListEntryRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
@@ -20,27 +21,28 @@ import java.time.Clock
 import java.time.LocalDate
 
 @Service
-class CustomCaseListQueryService(
+class UserCaseListQueryService(
   private val userService: UserService,
   private val caseRepository: CaseRepository,
-  private val userCustomCaseListRepository: UserCustomCaseListRepository,
-  private val customCaseListOrchestrationService: CustomCaseListOrchestrationService,
+  private val userCaseListEntryRepository: UserCaseListEntryRepository,
+  private val userCaseListOrchestrationService: UserCaseListOrchestrationService,
   private val limitedAccessService: LimitedAccessService,
   private val clock: Clock,
 ) {
-  fun getCustomCaseList(
+  fun getUserCaseList(
+    listType: CaseListType,
     searchTerm: String? = null,
     riskLevel: RiskLevel? = null,
     teamCode: String? = null,
     peopleType: PeopleType? = null,
   ): ApiResponseDto<List<CaseDto>> {
     val user = userService.authorizeAndRetrieveUser()
-    val caseIds = userCustomCaseListRepository.findAllBySasUserId(user.id).map { it.sasCaseId }
+    val caseIds = userCaseListEntryRepository.findAllBySasUserIdAndListType(user.id, listType).map { it.sasCaseId }
     if (caseIds.isEmpty()) return toApiResponseDto(data = emptyList())
 
     val caseEntities = caseRepository.findAllWithIdentifiersByIdIn(caseIds)
     val crns = caseEntities.map { it.latestCrn() }
-    val orchestrationResult = customCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, crns)
+    val orchestrationResult = userCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, crns)
     limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
 
     val crnsToUserAccess = limitedAccessService.getCrnToUserAccess(orchestrationResult.data.caseAccess)
@@ -83,8 +85,8 @@ class CustomCaseListQueryService(
     )
   }
 
-  fun getCustomCaseListCrns(): ApiResponseDto<List<String>> {
+  fun getUserCaseListCrns(listType: CaseListType): ApiResponseDto<List<String>> {
     val user = userService.authorizeAndRetrieveUser()
-    return toApiResponseDto(data = userCustomCaseListRepository.findLatestCrnsBySasUserId(user.id))
+    return toApiResponseDto(data = userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(user.id, listType))
   }
 }
