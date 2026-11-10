@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.customcaselist
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.usercaselist
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
@@ -21,15 +21,15 @@ import java.time.Clock
 import java.time.LocalDate
 
 @Service
-class CustomCaseListQueryService(
+class UserCaseListQueryService(
   private val userService: UserService,
   private val caseRepository: CaseRepository,
   private val userCaseListEntryRepository: UserCaseListEntryRepository,
-  private val customCaseListOrchestrationService: CustomCaseListOrchestrationService,
+  private val userCaseListOrchestrationService: UserCaseListOrchestrationService,
   private val limitedAccessService: LimitedAccessService,
   private val clock: Clock,
 ) {
-  fun getCustomCaseList(
+  fun getUserCaseList(
     listType: CaseListType,
     searchTerm: String? = null,
     riskLevel: RiskLevel? = null,
@@ -42,7 +42,7 @@ class CustomCaseListQueryService(
 
     val caseEntities = caseRepository.findAllWithIdentifiersByIdIn(caseIds)
     val crns = caseEntities.map { it.latestCrn() }
-    val orchestrationResult = customCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, crns)
+    val orchestrationResult = userCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, crns)
     limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
 
     val crnsToUserAccess = limitedAccessService.getCrnToUserAccess(orchestrationResult.data.caseAccess)
@@ -85,7 +85,7 @@ class CustomCaseListQueryService(
     )
   }
 
-  fun getCustomCaseListCrns(listType: CaseListType): ApiResponseDto<List<String>> {
+  fun getUserCaseListCrns(listType: CaseListType): ApiResponseDto<List<String>> {
     val user = userService.authorizeAndRetrieveUser()
     return toApiResponseDto(data = userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(user.id, listType))
   }
