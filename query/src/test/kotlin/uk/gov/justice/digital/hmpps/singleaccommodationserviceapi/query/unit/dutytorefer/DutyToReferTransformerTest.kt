@@ -141,7 +141,7 @@ class DutyToReferTransformerTest {
     fun `should map to dto`() {
       val dtrId = UUID.randomUUID()
       val crn = "X123456"
-      val entity = buildDutyToReferEntity(id = dtrId)
+      val entity = buildDutyToReferEntity(id = dtrId, status = EntityDtrStatus.ACCEPTED)
       val transformer = DutyToReferTransformer(
         UrlTemplate("https://single-accommodation-service-test.hmpps.service.justice.gov.uk/cases/$crn/dtr/$dtrId/details"),
       )
@@ -150,6 +150,7 @@ class DutyToReferTransformerTest {
 
       assertThat(result.id).isEqualTo(dtrId)
       assertThat(result.crn).isEqualTo(crn)
+      assertThat(result.status).isEqualTo(DtrStatus.ACCEPTED)
       assertThat(result.viewUrl).isEqualTo("https://single-accommodation-service-test.hmpps.service.justice.gov.uk/cases/X123456/dtr/$dtrId/details")
     }
   }
