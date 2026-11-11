@@ -42,6 +42,33 @@ docker compose up -d
 ./gradlew check
 ```
 
+### CPR consumer contract tests
+
+Run the CPR contract tests without Docker, AWS or a live CPR service:
+
+```shell
+# HTTP API only
+./gradlew :infrastructure:cprApiPactTest
+
+# Asynchronous events only
+./gradlew :infrastructure:cprEventPactTest
+
+# Both (also used by the existing CI Pact workflow)
+./gradlew :infrastructure:pactTest
+```
+
+Both contracts use consumer `hmpps-single-accommodation-service-api` and are generated separately
+in `infrastructure/build/pacts`:
+
+| Contract | Provider | File | Format |
+| --- | --- | --- | --- |
+| HTTP API | `hmpps-person-record` | `hmpps-single-accommodation-service-api-hmpps-person-record.json` | Pact V4 |
+| Events | `hmpps-person-record-events` | `hmpps-single-accommodation-service-api-hmpps-person-record-events.json` | Pact V4 asynchronous messages |
+
+The event contract covers probation address created, updated and deleted events,
+and probation record updated, merged and deleted events.
+CI publishes both contracts with the same SAS app version and branch for CPR provider verification.
+
 ## Coding Notes
 1. At the early stages of this project it's best to look at `CaseController.getCases()` endpoint as this follows the standards set out below implementing the correct `n-tier architecture` required (i.e. `CaseController -> CaseService -> CaseOrchestration - AggregatorService`)
 2. Best practice testing standards have been included for this endpoint (inc. unit tests / integration tests)
