@@ -39,6 +39,11 @@ object ApprovedPremisesStubs {
    */
   fun setupDefaultResponses() {
     getCas1CurrentPremisesDefaultNoContentResponse()
+    getCas3CurrentPremisesDefaultNoContentResponse()
+    getCas1SuitableApplicationDefaultNoContentResponse()
+    getCas2SuitableApplicationDefaultNoContentResponse()
+    getCas3SuitableApplicationDefaultNoContentResponse()
+    getCas1CurrentApplicationsDefaultNoContentResponse()
   }
 
   fun getCas1UrlTemplatesOKResponse(cas1ApplicationStart: String = CAS1_APPLICATION_START_URL) {
@@ -58,6 +63,41 @@ object ApprovedPremisesStubs {
   fun getCas1CurrentPremisesDefaultNoContentResponse() {
     sasWiremock.stubFor(
       get(urlPathMatching("""/cas1/external/cases/[^/]+/premises/current"""))
+        .willReturn(noContent()),
+    )
+  }
+
+  fun getCas3CurrentPremisesDefaultNoContentResponse() {
+    sasWiremock.stubFor(
+      get(urlPathMatching("""/cas3/external/cases/[^/]+/premises/current"""))
+        .willReturn(noContent()),
+    )
+  }
+
+  fun getCas1SuitableApplicationDefaultNoContentResponse() {
+    sasWiremock.stubFor(
+      get(urlPathMatching("""/cas1/external/cases/[^/]+/applications/suitable"""))
+        .willReturn(noContent()),
+    )
+  }
+
+  fun getCas2SuitableApplicationDefaultNoContentResponse() {
+    sasWiremock.stubFor(
+      get(urlPathMatching("""/cas2/external/cases/[^/]+/applications/suitable"""))
+        .willReturn(noContent()),
+    )
+  }
+
+  fun getCas3SuitableApplicationDefaultNoContentResponse() {
+    sasWiremock.stubFor(
+      get(urlPathMatching("""/cas3/external/cases/[^/]+/applications/suitable"""))
+        .willReturn(noContent()),
+    )
+  }
+
+  fun getCas1CurrentApplicationsDefaultNoContentResponse() {
+    sasWiremock.stubFor(
+      get(urlPathMatching("""/cas1/external/cases/[^/]+/applications/current"""))
         .willReturn(noContent()),
     )
   }
