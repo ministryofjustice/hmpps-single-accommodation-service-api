@@ -34,13 +34,17 @@ class CaseOrchestrationService(
   private val log = LoggerFactory.getLogger(javaClass)
 
   @Cacheable(FULL_CASE_LIST, unless = "!#result.upstreamFailures.isEmpty()")
-  fun getCaseList(username: String, teamCode: String?): OrchestrationResultDto<CaseListOrchestrationDto> {
-    log.debug("Retrieving case list from Delius for username {}", username)
+  fun getCaseList(
+    viewerUsername: String,
+    caseloadUsername: String,
+    teamCode: String?,
+  ): OrchestrationResultDto<CaseListOrchestrationDto> {
+    log.debug("Retrieving case list from Delius for username {}", caseloadUsername)
     val caseList = aggregatorService.fetchAllPages(
-      callKeyForPage = { page -> GET_CASE_LIST + username + page },
+      callKeyForPage = { page -> GET_CASE_LIST + caseloadUsername + page },
       fetchPage = { page ->
         sasAndDeliusCachingService.getCaseList(
-          username = username,
+          username = caseloadUsername,
           teamCode = teamCode,
           page = page,
           size = pageSize,
@@ -53,7 +57,7 @@ class CaseOrchestrationService(
     log.debug("Received {} cases", cases.size)
 
     val caseAccessResults = aggregatorService.orchestrateAsyncCalls(
-      standardCallsNoIteration = limitedAccessService.userAccessCalls(username, cases.map { it.crn }),
+      standardCallsNoIteration = limitedAccessService.userAccessCalls(viewerUsername, cases.map { it.crn }),
     ).standardCallsNoIterationResults!!
 
     return OrchestrationResultDto(
