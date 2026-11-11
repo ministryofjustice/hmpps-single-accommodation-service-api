@@ -35,7 +35,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalPremisesV2Dto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummaryV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
@@ -126,7 +125,7 @@ class AccommodationSummaryCalculatorTest {
         crn = crn,
         addresses = listOf(buildAddress()),
         prisoner = prisoner,
-        cas1CurrentPremises = null,
+        cas1Residence = null,
         cas3CurrentPremises = null,
       )
 
@@ -161,7 +160,9 @@ class AccommodationSummaryCalculatorTest {
     @Test
     fun `returns CAS1 premises when main address has A02 usage and matching postcode`() {
       val postcode = "SW1A 1AA"
-      val cas1CurrentPremises = buildCas1PremisesSummary(postcode = postcode)
+      val cas1CurrentPremises = buildCas1PlacementV2(
+        premises = buildCas1ExternalPremisesV2Dto(postcode = postcode),
+      )
       val mainAddress = buildCanonicalAddress(
         cprAddressId = null,
         postcode = postcode,
@@ -180,14 +181,14 @@ class AccommodationSummaryCalculatorTest {
         crn = crn,
         addresses = listOf(mainAddress),
         prisoner = null,
-        cas1CurrentPremises = cas1CurrentPremises,
+        cas1Residence = cas1CurrentPremises,
         cas3CurrentPremises = null,
       )
 
       val expectedResult = buildAccommodationSummaryDto(
         crn = crn,
-        startDate = cas1CurrentPremises.startDate,
-        endDate = cas1CurrentPremises.endDate,
+        startDate = cas1CurrentPremises.canonicalArrivalDate,
+        endDate = cas1CurrentPremises.canonicalDepartureDate,
         address = buildAccommodationAddressDetails(
           subBuildingName = mainAddress.subBuildingName,
           postcode = postcode,
@@ -209,7 +210,9 @@ class AccommodationSummaryCalculatorTest {
 
     @Test
     fun `returns CAS1 premises without end dates when postcode does not match`() {
-      val cas1CurrentPremises = buildCas1PremisesSummary(postcode = "SW1A 1AA")
+      val cas1CurrentPremises = buildCas1PlacementV2(
+        premises = buildCas1ExternalPremisesV2Dto(postcode = "SW1A 1AA"),
+      )
       val mainAddress = buildCanonicalAddress(
         cprAddressId = UUID.randomUUID(),
         postcode = "SW1A 1AB",
@@ -228,7 +231,7 @@ class AccommodationSummaryCalculatorTest {
         crn = crn,
         addresses = listOf(mainAddress),
         prisoner = null,
-        cas1CurrentPremises = cas1CurrentPremises,
+        cas1Residence = cas1CurrentPremises,
         cas3CurrentPremises = null,
       )
 
@@ -277,7 +280,7 @@ class AccommodationSummaryCalculatorTest {
         crn = crn,
         addresses = listOf(mainAddress),
         prisoner = null,
-        cas1CurrentPremises = null,
+        cas1Residence = null,
         cas3CurrentPremises = cas3CurrentPremises,
       )
 
@@ -325,7 +328,7 @@ class AccommodationSummaryCalculatorTest {
         crn = crn,
         addresses = listOf(mainAddress),
         prisoner = null,
-        cas1CurrentPremises = null,
+        cas1Residence = null,
         cas3CurrentPremises = cas3CurrentPremises,
       )
 
@@ -360,7 +363,9 @@ class AccommodationSummaryCalculatorTest {
         crn = crn,
         addresses = listOf(mainAddress),
         prisoner = null,
-        cas1CurrentPremises = buildCas1PremisesSummary(postcode = "DIFFERENT"),
+        cas1Residence = buildCas1PlacementV2(
+          premises = buildCas1ExternalPremisesV2Dto(postcode = "DIFFERENT"),
+        ),
         cas3CurrentPremises = null,
       )
 
@@ -401,7 +406,7 @@ class AccommodationSummaryCalculatorTest {
         crn = crn,
         addresses = listOf(mainAddress, previousAddress),
         prisoner = buildPrisoner(inOutStatus = InOutStatus.OUT, prisonName = "A Prison"),
-        cas1CurrentPremises = null,
+        cas1Residence = null,
         cas3CurrentPremises = null,
       )
 
@@ -415,7 +420,7 @@ class AccommodationSummaryCalculatorTest {
         crn = crn,
         addresses = listOf(buildAddress(statusCode = AddressStatusCode.P.name)),
         prisoner = null,
-        cas1CurrentPremises = null,
+        cas1Residence = null,
         cas3CurrentPremises = null,
       )
 

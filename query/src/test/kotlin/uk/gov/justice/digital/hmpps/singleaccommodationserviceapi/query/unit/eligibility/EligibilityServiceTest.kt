@@ -80,7 +80,7 @@ class EligibilityServiceTest {
           cas3Application = null,
           commissionedRehabilitativeServices = null,
           prisoner = null,
-          cas1CurrentPremises = null,
+          cas1Residence = null,
           cas3CurrentPremises = null,
           sexualOffenceRegistrations = null,
           case = null,

@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_RESIDENCE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_URL_TEMPLATES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_URL_TEMPLATES
@@ -141,7 +141,7 @@ private fun commonCacheManager(
     GET_CAS2_REFERRAL to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
     GET_CAS3_REFERRAL to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
     GET_CAS_1_CURRENT_APPLICATION to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
-    GET_CAS_1_CURRENT_PREMISES to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
+    GET_CAS_1_RESIDENCE to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
     GET_CAS_2_APPLICATION to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
     GET_CAS_3_CURRENT_PREMISES to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
     GET_CAS_3_APPLICATION to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),

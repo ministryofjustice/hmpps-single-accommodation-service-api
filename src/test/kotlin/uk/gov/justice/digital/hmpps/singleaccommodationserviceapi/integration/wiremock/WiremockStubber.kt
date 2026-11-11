@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
@@ -25,7 +25,7 @@ class WiremockStubber {
       tier = buildTier(tierScore = UUID.randomUUID().toString()),
       case = buildCase(crn = crn, nomsNumber = prisonNumber, roshLevel = buildRoshLevel()),
       prisoner = buildPrisoner(prisonNumber = prisonNumber),
-      cas1CurrentPremises = buildCas1PremisesSummary(),
+      cas1Residence = buildCas1PlacementV2(),
       cas3CurrentPremises = buildCas3PremisesSummary(),
       cas1Application = buildCas1ApplicationV2(),
       cas3Application = buildCas3Application(),
@@ -38,7 +38,7 @@ class WiremockStubber {
     PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = responses.prisoner!!)
     ProbationIntegrationDeliusStubs.getCaseByCrn(crn = crn, response = responses.case!!)
     TierStubs.getTierOKResponse(crn = crn, response = responses.tier!!)
-    ApprovedPremisesStubs.getCas1CurrentPremisesOKResponse(crn = crn, response = responses.cas1CurrentPremises!!)
+    ApprovedPremisesStubs.getCas1ResidenceOKResponse(crn = crn, response = responses.cas1Residence!!)
     ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = responses.cas1Application!!)
     ApprovedPremisesStubs.getCas3CurrentPremisesOKResponse(crn = crn, response = responses.cas3CurrentPremises!!)
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = responses.cas3Application!!)

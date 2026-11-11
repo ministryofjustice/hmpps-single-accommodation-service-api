@@ -308,7 +308,6 @@ object EligibilityTransformer {
     Cas2AssessmentStatus.WITHDRAWN -> Cas2AssessmentStatusDto.WITHDRAWN
     Cas2AssessmentStatus.CANCELLED -> Cas2AssessmentStatusDto.CANCELLED
     Cas2AssessmentStatus.AWAITING_ARRIVAL -> Cas2AssessmentStatusDto.AWAITING_ARRIVAL
-    Cas2AssessmentStatus.UNKNOWN -> Cas2AssessmentStatusDto.UNKNOWN
     null -> null
   }
 
@@ -387,7 +386,7 @@ object EligibilityTransformer {
       status = toCas1RequestForPlacementStatus(it.status),
       decision = toRequestForPlacementDecision(it.decision),
       rejectionReason = it.rejectionReason,
-      submittedBy = it.submittedBy?.let { staff -> toCas1StaffDto(staff) },
+      submittedBy = toCas1StaffDto(it.submittedBy),
       submittedAt = it.submittedAt,
       withdrawalReason = toWithdrawalReason(it.withdrawal?.withdrawalReason),
       withdrawalDate = it.withdrawal?.withdrawalDate,

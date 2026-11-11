@@ -98,6 +98,7 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
   #toolbar label { font-size: 13px; }
   #cy { flex: 1; }
   #panel { width: 546px; border-left: 1px solid #ddd; overflow-y: auto; padding: 12px 16px; font-size: 14px; }
+  #panel.expanded { width: 760px; }
   #panel h2 { margin-top: 0; font-size: 18px; word-break: break-word; }
   #panel h3 { font-size: 15px; margin-bottom: 4px; }
   table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; }
@@ -133,6 +134,7 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
     <label>Tree <select id="tree"></select></label>
     <button id="fit">Fit</button>
     <button id="reset">Clear highlight</button>
+    <button id="toggle-panel" aria-controls="panel" aria-expanded="false">Expand panel</button>
     <label><input type="checkbox" id="simulate"> <b>Simulate</b></label>
     <span class="legend">
       <span style="background:${RulesGraphColours.RULE_SET_FILL};border:1px solid ${RulesGraphColours.RULE_SET_BORDER}">RuleSet</span>
@@ -154,6 +156,7 @@ __STATUS_CARD_PREVIEW__
   const data = JSON.parse(document.getElementById('graph-data').textContent);
   const treeSelect = document.getElementById('tree');
   const panel = document.getElementById('panel');
+  const togglePanelButton = document.getElementById('toggle-panel');
   data.trees.forEach(t => treeSelect.add(new Option(t.name, t.name)));
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -436,6 +439,11 @@ __STATUS_CARD_PREVIEW__
   });
   document.getElementById('fit').addEventListener('click', () => cy.fit(undefined, 30));
   document.getElementById('reset').addEventListener('click', () => { if (simMode) setSimMode(false); else clearHighlight(); });
+  togglePanelButton.addEventListener('click', () => {
+    const expanded = panel.classList.toggle('expanded');
+    togglePanelButton.setAttribute('aria-expanded', String(expanded));
+    togglePanelButton.textContent = expanded ? 'Narrow panel' : 'Expand panel';
+  });
 
   const params = new URLSearchParams(location.hash ? location.hash.substring(1) : location.search);
   const initial = params.get('tree');

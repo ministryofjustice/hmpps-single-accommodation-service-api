@@ -82,7 +82,7 @@ class CaseCreationServiceTest {
             cpr = null,
             tier = null,
             prisoner = null,
-            cas1CurrentPremises = null,
+            cas1Residence = null,
             cas3CurrentPremises = null,
             cas1Application = null,
             cas3Application = null,

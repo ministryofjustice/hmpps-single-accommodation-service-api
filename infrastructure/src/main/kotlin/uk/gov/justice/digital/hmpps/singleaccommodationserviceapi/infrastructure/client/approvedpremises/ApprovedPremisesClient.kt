@@ -12,8 +12,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 interface ApprovedPremisesClient {
   @WebClientRetry
-  @GetExchange(value = "/cas1/external/cases/{crn}/premises/current")
-  fun getCas1CurrentPremises(@PathVariable crn: String): Cas1PremisesSummary?
+  @GetExchange(value = "/cas1/external/cases/{crn}/residence")
+  fun getCas1Residence(@PathVariable crn: String): Cas1PlacementV2?
 
   @WebClientRetry
   @GetExchange(value = "/cas3/external/cases/{crn}/premises/current")
@@ -72,8 +72,8 @@ class ApprovedPremisesCachingService(
   @Cacheable(ApiCallKeys.GET_CAS3_REFERRAL)
   fun getCas3ReferralHistory(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas3ReferralHistory(crn) }
 
-  @Cacheable(ApiCallKeys.GET_CAS_1_CURRENT_PREMISES, sync = true)
-  fun getCas1CurrentPremises(crn: String): Cas1PremisesSummary? = approvedPremisesClient.getCas1CurrentPremises(crn)
+  @Cacheable(ApiCallKeys.GET_CAS_1_RESIDENCE, sync = true)
+  fun getCas1Residence(crn: String): Cas1PlacementV2? = approvedPremisesClient.getCas1Residence(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_3_CURRENT_PREMISES, sync = true)
   fun getCas3CurrentPremises(crn: String): Cas3BookingPremises? = approvedPremisesClient.getCas3CurrentPremises(crn)

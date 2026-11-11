@@ -21,7 +21,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalPremisesV2Dto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalRequestForPlacementOutcomeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
@@ -302,7 +301,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
       crn = crn,
       response = corePersonRecord,
     )
-    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(
+    ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(
       crn = crn,
     )
     ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(
@@ -319,7 +318,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get current accommodation for crn when it is a prison`() {
-    val cas1CurrentPremises = buildCas1PremisesSummary()
+    val cas1CurrentPremises = buildCas1PlacementV2()
     val corePersonRecord = buildCorePersonRecord(
       identifiers = buildIdentifiers(crns = listOf(crn)),
       addresses = listOf(
@@ -373,7 +372,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
       crn = crn,
       response = corePersonRecord,
     )
-    ApprovedPremisesStubs.getCas1CurrentPremisesOKResponse(crn, cas1CurrentPremises)
+    ApprovedPremisesStubs.getCas1ResidenceOKResponse(crn, cas1CurrentPremises)
     PrisonerSearchStubs.getPrisonerOKResponse(
       prisonNumber = prisonNumber,
       response = buildPrisoner(
@@ -399,7 +398,13 @@ class AccommodationControllerIT : IntegrationTestBase() {
   @Test
   fun `should get current accommodation for crn when it is a cas1 current premises`() {
     val postcode = "SW1A 1AA"
-    val cas1CurrentPremises = buildCas1PremisesSummary(postcode = postcode, startDate = LocalDate.of(2026, 1, 11), endDate = LocalDate.of(2026, 5, 11))
+    val cas1CurrentPremises = buildCas1PlacementV2(
+      canonicalArrivalDate = LocalDate.of(2026, 1, 11),
+      canonicalDepartureDate = LocalDate.of(2026, 5, 11),
+      premises = buildCas1ExternalPremisesV2Dto(
+        postcode = postcode,
+      ),
+    )
     val corePersonRecord = buildCorePersonRecord(
       identifiers = buildIdentifiers(crns = listOf(crn)),
       addresses = listOf(
@@ -453,7 +458,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
       crn = crn,
       response = corePersonRecord,
     )
-    ApprovedPremisesStubs.getCas1CurrentPremisesOKResponse(crn, cas1CurrentPremises)
+    ApprovedPremisesStubs.getCas1ResidenceOKResponse(crn, cas1CurrentPremises)
     PrisonerSearchStubs.getPrisonerOKResponse(
       prisonNumber = prisonNumber,
       response = buildPrisoner(
@@ -475,8 +480,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetCurrentAccommodationCas1CurrentPremisesResponse(
             crn = crn,
-            startDate = cas1CurrentPremises.startDate.toString(),
-            endDate = cas1CurrentPremises.endDate.toString(),
+            startDate = cas1CurrentPremises.canonicalArrivalDate.toString(),
+            endDate = cas1CurrentPremises.canonicalDepartureDate.toString(),
           ),
         )
       }
@@ -552,7 +557,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
         releaseDate = LocalDate.of(2025, 10, 17),
       ),
     )
-    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(
+    ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(
       crn = crn,
     )
     webTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
@@ -573,7 +578,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
   @Test
   fun `get current accommodation should return no success when CPR Addresses call returns server error`() {
     val getPersonRecordUrl = CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
-    val getCas1CurrentPremisesUrl = ApprovedPremisesStubs.getCas1CurrentPremisesServerErrorResponse(crn)
+    val getCas1CurrentPremisesUrl = ApprovedPremisesStubs.getCas1ResidenceServerErrorResponse(crn)
     val getCas3CurrentPremisesUrl = ApprovedPremisesStubs.getCas3CurrentPremisesServerErrorResponse(crn)
     val getPrisonerUrl = PrisonerSearchStubs.getPrisonerServerErrorResponse(prisonNumber)
 
@@ -758,7 +763,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
       crn = crn,
       response = cas3Application,
     )
-    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(
+    ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(
       crn = crn,
     )
     ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(
@@ -809,7 +814,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
       ),
     )
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
-    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = buildCas1ApplicationV2())
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = buildCas3Application())
@@ -833,7 +838,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
   fun `get next accommodations should return partial success when CPR Addresses call returns server error`() {
     val getPersonUpstreamUrl = CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
 
-    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(crn = crn)

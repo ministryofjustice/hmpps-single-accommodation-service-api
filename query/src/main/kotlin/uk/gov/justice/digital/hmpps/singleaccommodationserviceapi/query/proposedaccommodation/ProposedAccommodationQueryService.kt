@@ -26,12 +26,12 @@ class ProposedAccommodationQueryService(
       confirmedOnly = confirmedOnly,
     )
     return if (proposedAccommodations.isNotEmpty()) {
-      val deduplicatedUserIds = proposedAccommodations.mapNotNull { it.createdByUserId }.toSet()
+      val deduplicatedUserIds = proposedAccommodations.map { it.createdByUserId }.toSet()
       val accommodationTypeIds = proposedAccommodations.mapNotNull { it.accommodationTypeId }.toSet()
       val createdByUsers = userRepository.findAllById(deduplicatedUserIds)
       val accommodationTypes = accommodationTypeRepository.findAllById(accommodationTypeIds)
       proposedAccommodations.map { pa ->
-        val createdByUser = createdByUsers.first { it.id == pa.createdByUserId }!!
+        val createdByUser = createdByUsers.first { it.id == pa.createdByUserId }
         val accommodationType = accommodationTypes.firstOrNull { it.id == pa.accommodationTypeId }
         ProposedAccommodationTransformer.toAccommodationDetail(pa, accommodationType, crn, createdByUser.displayName())
       }
@@ -42,7 +42,7 @@ class ProposedAccommodationQueryService(
 
   fun getProposedAccommodation(crn: String, id: UUID): ProposedAccommodationDto {
     val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
-    val createdByUser = userRepository.findByIdOrNull(proposedAccommodationEntity.createdByUserId!!)
+    val createdByUser = userRepository.findByIdOrNull(proposedAccommodationEntity.createdByUserId)
     val accommodationTypeEntity = proposedAccommodationEntity.accommodationTypeId?.let {
       accommodationTypeRepository.findByIdOrNull(it)
         .orThrowNotFound("accommodationTypeId" to it)

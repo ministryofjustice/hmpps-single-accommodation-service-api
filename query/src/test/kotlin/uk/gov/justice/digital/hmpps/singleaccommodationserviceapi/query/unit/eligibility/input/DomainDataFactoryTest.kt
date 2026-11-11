@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
@@ -73,7 +73,7 @@ class DomainDataFactoryTest {
       val caseId = UUID.randomUUID()
       val cas1Application = buildCas1ApplicationV2()
       val cas2Application = buildCas2Application()
-      val cas1CurrentPremises = buildCas1PremisesSummary()
+      val cas1Residence = buildCas1PlacementV2()
       val cas3CurrentPremises = buildCas3PremisesSummary()
       val cas3Application = buildCas3Application()
       val cpr = buildCorePersonRecord(
@@ -113,7 +113,7 @@ class DomainDataFactoryTest {
           cas3Application = cas3Application,
           commissionedRehabilitativeServices = listOf(crs),
           prisoner = prisoner,
-          cas1CurrentPremises = cas1CurrentPremises,
+          cas1Residence = cas1Residence,
           cas3CurrentPremises = cas3CurrentPremises,
           sexualOffenceRegistrations = registrations,
           case = buildCase(crn = crn, roshLevel = roshLevel),
@@ -127,7 +127,7 @@ class DomainDataFactoryTest {
       every { accommodationTypeRepository.findAll() } returns listOf(otherAccommodationTypeEntity, accommodationTypeEntity)
       every { accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
-      every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises, cas3CurrentPremises) } returns currentAccommodation
+      every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, prisoner, cas1Residence, cas3CurrentPremises) } returns currentAccommodation
       val result = factory.buildDomainData(crn, orchestrationDto.data, caseEntity)
 
       val expected = buildDomainData(
@@ -171,7 +171,7 @@ class DomainDataFactoryTest {
           latestLiveReferral,
           buildCommissionedRehabilitativeServices(status = CrsReferralStatus.LIVE, sentAt = OffsetDateTime.now().minusDays(60)),
         ),
-        cas1CurrentPremises = null,
+        cas1Residence = null,
         cas3CurrentPremises = null,
         prisoner = null,
         sexualOffenceRegistrations = null,

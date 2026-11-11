@@ -1,0 +1,167 @@
+name: Update Status Card Preview HTML
+
+on:
+  workflow_dispatch:
+    inputs:
+      ui_run_id:
+        description: Optional UI pipeline run ID (defaults to the latest successful main run)
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      ui_run_id:
+        required: true
+        type: string
+    secrets:
+      APP_ID:
+        required: true
+      APP_PRIVATE_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-status-card-preview
+  cancel-in-progress: false
+
+jobs:
+  update-preview:
+    runs-on: [self-hosted, hmpps-github-actions-runner]
+    steps:
+      - name: Generate Token
+        id: generate-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            hmpps-single-accommodation-service-api
+            hmpps-single-accommodation-service-ui
+
+      - name: Check out API
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: ministryofjustice/hmpps-single-accommodation-service-api
+          token: ${{ steps.generate-token.outputs.token }}
+          ref: main
+          persist-credentials: 'false'
+
+      - name: Verify UI pipeline run
+        id: verify-run
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        env:
+          UI_RUN_ID: ${{ inputs.ui_run_id }}
+        with:
+          github-token: ${{ steps.generate-token.outputs.token }}
+          script: |
+            const { verifyRun } = require('./scripts/status-card-preview.cjs');
+            const repo = 'hmpps-single-accommodation-service-ui';
+            let runId = process.env.UI_RUN_ID;
+            if (!runId) {
+              const { data } = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo,
+                workflow_id: 'pipeline.yml',
+                branch: 'main',
+                status: 'success',
+                per_page: 1
+              });
+              if (!data.workflow_runs.length) {
+                throw new Error('No successful UI main pipeline run found');
+              }
+              runId = String(data.workflow_runs[0].id);
+            }
+            if (!/^[1-9]\d*$/.test(runId) || !Number.isSafeInteger(Number(runId))) {
+              throw new Error('A valid UI pipeline run ID is required');
+            }
+            const { data: run } = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo,
+              run_id: Number(runId)
+            });
+            verifyRun(run, 'main');
+            core.setOutput('run-id', runId);
+            core.setOutput('artifact-name', 'status-card-preview');
+            core.setOutput('head-sha', run.head_sha);
+            core.setOutput('run-url', run.html_url);
+
+      - name: Download tested UI preview
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          github-token: ${{ steps.generate-token.outputs.token }}
+          repository: ministryofjustice/hmpps-single-accommodation-service-ui
+          run-id: ${{ steps.verify-run.outputs.run-id }}
+          name: ${{ steps.verify-run.outputs.artifact-name }}
+          path: ${{ runner.temp }}/status-card-preview-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Copy changed preview
+        id: copy-preview
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        env:
+          PREVIEW_DIRECTORY: ${{ runner.temp }}/status-card-preview-${{ github.run_id }}-${{ github.run_attempt }}
+          UI_SHA: ${{ steps.verify-run.outputs.head-sha }}
+        with:
+          script: |
+            const fs = require('node:fs')
+            const path = require('node:path')
+            const { previewChanged } = require('./scripts/status-card-preview.cjs')
+
+            const source = path.join(process.env.PREVIEW_DIRECTORY, 'status-card-preview.html')
+            const target = 'query/src/main/resources/eligibility/status-card-preview.html'
+            if (previewChanged(source, target, process.env.UI_SHA)) {
+              fs.mkdirSync(path.dirname(target), { recursive: true })
+              fs.copyFileSync(source, target)
+              core.setOutput('changed', 'true')
+              console.log('Updated status card preview')
+            } else {
+              core.setOutput('changed', 'false')
+              console.log('Status card preview is unchanged')
+            }
+
+      - name: Set up Java
+        if: steps.copy-preview.outputs.changed == 'true'
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Regenerate eligibility rules graphs
+        if: steps.copy-preview.outputs.changed == 'true'
+        run: ./gradlew :query:generateEligibilityRulesGraphs --no-daemon
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          sign-commits: true
+          title: 'Update status card preview'
+          commit-message: |
+            Update status card preview from SAS UI
+
+            Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+          body: |
+            ## Pull Request Summary
+
+            Updates the eligibility graph's status card preview using the tested
+            artifact from ministryofjustice/hmpps-single-accommodation-service-ui main.
+            The generated header records the UI commit used.
+
+            Validation: `npm run test:ci` and coverage checks passed in the successful
+            UI pipeline: ${{ steps.verify-run.outputs.run-url }}
+
+            This PR was created automatically by update-status-card-preview.yml.
+
+            ## Team reminders
+
+            PRs work best when they are short-lived (ideally hours, not days) and as small as possible. If a PR is large, split it into follow-up PRs or at least into clearly reviewable commits. We should always be aiming to clear the list of open PRs as soon as possible.
+
+            Before requesting review, add a brief summary, self-review the diff, and leave clarifying code comments where useful. If comments are needed to explain confusing code, consider whether naming, structure, or in-code documentation could be improved.
+
+            For review coordination, use Slack rather than relying on GitHub tagging (except when replying to existing GitHub comments). Reviewing is a shared responsibility; but feel free to call out the best reviewer in Slack and arrange a quick walkthrough call when helpful.
+          add-paths: |
+            query/src/main/resources/eligibility/status-card-preview.html
+            docs/eligibility-rules-graph.html
+          delete-branch: true
+          branch: update-status-card-preview

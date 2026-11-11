@@ -407,6 +407,19 @@ class RulesGraphTest {
     }
 
     @Test
+    fun `HTML can expand and narrow the details panel`() {
+      val html = RulesGraphHtmlRenderer.render(emptyList())
+
+      assertThat(html).contains(
+        "#panel.expanded { width: 760px; }",
+        """<button id="toggle-panel" aria-controls="panel" aria-expanded="false">Expand panel</button>""",
+        "const expanded = panel.classList.toggle('expanded')",
+        "togglePanelButton.setAttribute('aria-expanded', String(expanded))",
+        "expanded ? 'Narrow panel' : 'Expand panel'",
+      )
+    }
+
+    @Test
     fun `HTML shows failures and outcome cards in a flat trace above the rules`() {
       val root = builder
         .ruleSet(StubRuleSet(name = "Tier", rules = listOf(MaleRiskEligibilityRule())))
