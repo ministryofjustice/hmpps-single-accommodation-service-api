@@ -101,7 +101,7 @@ jobs:
     with:
       gradle-command: './gradlew integrationTest'
       artifact-name: 'integration-test-results'
-      localstack-tag: 4
+      localstack-tag: community-archive
       postgres-tag: 18
       postgres-username: sas_user
       postgres-password: sas_psw
