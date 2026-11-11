@@ -19,6 +19,28 @@ pact {
   }
 }
 
+tasks.register<Test>("cprApiPactTest") {
+  group = "verification"
+  description = "Runs CPR HTTP API consumer contracts"
+  testClassesDirs = sourceSets.test.get().output.classesDirs
+  classpath = sourceSets.test.get().runtimeClasspath
+  useJUnitPlatform()
+  filter {
+    includeTestsMatching("*CorePersonRecordClientPactTest")
+  }
+}
+
+tasks.register<Test>("cprEventPactTest") {
+  group = "verification"
+  description = "Runs CPR asynchronous event consumer contracts"
+  testClassesDirs = sourceSets.test.get().output.classesDirs
+  classpath = sourceSets.test.get().runtimeClasspath
+  useJUnitPlatform()
+  filter {
+    includeTestsMatching("*CorePersonRecordEventPactTest")
+  }
+}
+
 dependencies {
   implementation(project(":common"))
   implementation(libs.hmpps.starter)
