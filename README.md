@@ -161,4 +161,13 @@ GitHub Pages must be configured to deploy from `main` and `/docs`; `docs/.nojeky
 
 To update the preview manually, run the **Update Status Card Preview HTML** workflow on `main` from GitHub Actions. Leave `ui_run_id` blank to use the latest successful UI `main` pipeline run, or provide a run ID to select a specific run.
 
+To update the current local API branch instead, install Node.js and authenticate with `gh auth login`:
+
+```bash
+./scripts/update-status-card-preview.sh             # latest successful UI main pipeline
+./scripts/update-status-card-preview.sh my-branch   # latest successful pipeline on a UI branch
+```
+
+The selected run must have an unexpired preview artifact. The script refuses to overwrite locally changed preview or graph files.
+
 The pre-push hook in `scripts/hooks/pre-push` regenerates this graph and blocks the push if it differs from the committed version. Review and commit the updated graph before pushing again. Gradle's `copyGitHooks` task installs the script locally (also run automatically by root `compileKotlin`).
