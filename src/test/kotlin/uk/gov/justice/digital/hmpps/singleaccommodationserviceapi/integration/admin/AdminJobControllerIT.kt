@@ -437,7 +437,8 @@ class AdminJobControllerIT : IntegrationTestBase() {
       val beforeReplay = Instant.now()
 
       replayFailedRefreshRequests()
-        .jsonPath("$.data.refreshesRequested").isEqualTo(1)
+        .jsonPath("$.data.requestsReplayed").isEqualTo(1)
+        .jsonPath("$.data.refreshesDeleted").isEqualTo(0)
 
       requests.forEach { (status, original) ->
         val request = caseRefreshRequestRepository.findById(original.caseId).orElseThrow()
@@ -460,23 +461,26 @@ class AdminJobControllerIT : IntegrationTestBase() {
       }
 
       replayFailedRefreshRequests()
-        .jsonPath("$.data.refreshesRequested").isEqualTo(0)
+        .jsonPath("$.data.requestsReplayed").isEqualTo(0)
+        .jsonPath("$.data.refreshesDeleted").isEqualTo(0)
     }
 
     @Test
-    fun `should exclude core person record not found failures and replay other failures`() {
+    fun `should delete core person record not found requests in all statuses and replay other failures`() {
       val requests = listOf(
-        "getCorePersonRecordByCrn: 404 Not Found",
-        "Upstream failures: [getCorePersonRecordByCrn: 404 Not Found, getTier: 500 Internal Server Error]",
-        "getCorePersonRecordByCrn: 500 Internal Server Error",
-        "getTier: 404 Not Found",
-        "",
-        null,
-      ).map { detail ->
+        CaseRefreshRequestStatus.FAILED to "getCorePersonRecordByCrn: 404 Not Found",
+        CaseRefreshRequestStatus.FAILED to "Upstream failures: [getCorePersonRecordByCrn: 404 Not Found, getTier: 500 Internal Server Error]",
+        CaseRefreshRequestStatus.PENDING to "getCorePersonRecordByCrn: 404 Not Found",
+        CaseRefreshRequestStatus.PROCESSING to "getCorePersonRecordByCrn: 404 Not Found",
+        CaseRefreshRequestStatus.FAILED to "getCorePersonRecordByCrn: 500 Internal Server Error",
+        CaseRefreshRequestStatus.FAILED to "getTier: 404 Not Found",
+        CaseRefreshRequestStatus.FAILED to "",
+        CaseRefreshRequestStatus.FAILED to null,
+      ).map { (status, detail) ->
         val case = caseRepository.save(buildCaseEntity())
         caseRefreshRequestService.requestLiveRefresh(case.id)
         val request = caseRefreshRequestRepository.findById(case.id).orElseThrow().apply {
-          status = CaseRefreshRequestStatus.FAILED
+          this.status = status
           attemptCount = 5
           nextAttemptAt = null
           failedAt = now
@@ -487,13 +491,14 @@ class AdminJobControllerIT : IntegrationTestBase() {
       }
 
       replayFailedRefreshRequests()
-        .jsonPath("$.data.refreshesRequested").isEqualTo(4)
+        .jsonPath("$.data.requestsReplayed").isEqualTo(4)
+        .jsonPath("$.data.refreshesDeleted").isEqualTo(4)
 
-      requests.take(2).forEach { original ->
-        assertThat(caseRefreshRequestRepository.findById(original.caseId).orElseThrow())
-          .usingRecursiveComparison().isEqualTo(original)
+      requests.take(4).forEach { original ->
+        assertThat(caseRefreshRequestRepository.findById(original.caseId)).isEmpty()
+        assertThat(caseRepository.findById(original.caseId)).isPresent()
       }
-      requests.drop(2).forEach { original ->
+      requests.drop(4).forEach { original ->
         val request = caseRefreshRequestRepository.findById(original.caseId).orElseThrow()
         assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
         assertThat(request.attemptCount).isZero()
@@ -503,30 +508,35 @@ class AdminJobControllerIT : IntegrationTestBase() {
       }
 
       replayFailedRefreshRequests()
-        .jsonPath("$.data.refreshesRequested").isEqualTo(0)
+        .jsonPath("$.data.requestsReplayed").isEqualTo(0)
+        .jsonPath("$.data.refreshesDeleted").isEqualTo(0)
     }
 
     @Test
     fun `should return 403 without the admin role and leave failed requests unchanged`() {
-      val case = caseRepository.save(buildCaseEntity())
-      caseRefreshRequestService.requestLiveRefresh(case.id)
-      val failed = caseRefreshRequestRepository.findById(case.id).orElseThrow().apply {
-        status = CaseRefreshRequestStatus.FAILED
-        attemptCount = 3
-        nextAttemptAt = null
-        failedAt = now
-        lastFailureCategory = CaseRefreshFailureCategory.UPSTREAM_TIMEOUT
-        lastFailureDetail = "Tier timed out"
+      val requests = listOf("Tier timed out", "getCorePersonRecordByCrn: 404 Not Found").map { detail ->
+        val case = caseRepository.save(buildCaseEntity())
+        caseRefreshRequestService.requestLiveRefresh(case.id)
+        val failed = caseRefreshRequestRepository.findById(case.id).orElseThrow().apply {
+          status = CaseRefreshRequestStatus.FAILED
+          attemptCount = 3
+          nextAttemptAt = null
+          failedAt = now
+          lastFailureCategory = CaseRefreshFailureCategory.UPSTREAM_TIMEOUT
+          lastFailureDetail = detail
+        }
+        caseRefreshRequestRepository.saveAndFlush(failed)
       }
-      caseRefreshRequestRepository.saveAndFlush(failed)
 
       webTestClient.post().uri("/admin/replay-failed-refresh-requests")
         .withClientCredentialsJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"))
         .exchange()
         .expectStatus().isForbidden
 
-      assertThat(caseRefreshRequestRepository.findById(case.id).orElseThrow())
-        .usingRecursiveComparison().isEqualTo(failed)
+      requests.forEach { original ->
+        assertThat(caseRefreshRequestRepository.findById(original.caseId).orElseThrow())
+          .usingRecursiveComparison().isEqualTo(original)
+      }
     }
   }
 

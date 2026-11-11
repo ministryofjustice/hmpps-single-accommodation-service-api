@@ -128,6 +128,16 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
   )
   fun replayFailedRequests(): Int
 
+  @Modifying
+  @Query(
+    nativeQuery = true,
+    value = """
+      DELETE FROM sas_case_refresh_request
+      WHERE last_failure_detail LIKE '%getCorePersonRecordByCrn: 404 Not Found%'
+    """,
+  )
+  fun deleteRequestsForMissingCorePersonRecords(): Int
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(
     """

@@ -54,9 +54,10 @@ This keeps the alerting simple and avoids sending one alert per failed row.
 
 Failed case refresh requests can be replayed through `AdminBulkRefreshCasesService.replayFailedRefreshRequests()`.
 This resets only `FAILED` requests to `PENDING`, makes them immediately eligible for processing, and clears retry and claim metadata.
-Requests whose `last_failure_detail` contains `getCorePersonRecordByCrn: 404 Not Found` are excluded and left unchanged.
-The response reports the number of requests reset; `CaseRefreshWorker` processes them asynchronously.
-Pending and processing requests are unchanged.
+Requests whose `last_failure_detail` contains `getCorePersonRecordByCrn: 404 Not Found` are deleted, regardless of status.
+Deletion and replay run in a single transaction.
+The response reports `requestsReplayed` and `requestsDeleted`; `CaseRefreshWorker` processes replayed requests asynchronously.
+Other pending and processing requests are unchanged.
 
 ## Scheduling
 

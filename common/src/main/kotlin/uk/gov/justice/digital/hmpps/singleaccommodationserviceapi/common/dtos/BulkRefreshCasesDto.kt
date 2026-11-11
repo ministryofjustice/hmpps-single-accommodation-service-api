@@ -18,5 +18,6 @@ data class BulkRefreshCasesResultDto(
 )
 
 data class ReplayFailedCaseRefreshResultDto(
-  val refreshesRequested: Int,
+  val requestsReplayed: Int,
+  val requestsDeleted: Int,
 )
