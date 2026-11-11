@@ -43,6 +43,8 @@ jobs:
       - name: Check out API
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          repository: ministryofjustice/hmpps-single-accommodation-service-api
+          token: ${{ steps.generate-token.outputs.token }}
           ref: main
           persist-credentials: 'false'
 
@@ -124,6 +126,9 @@ jobs:
               console.log('Status card preview is unchanged')
             }
 
+      - name: Regenerate eligibility rules graphs
+        run: ./gradlew :query:generateEligibilityRulesGraphs --no-daemon
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
@@ -153,6 +158,8 @@ jobs:
             Before requesting review, add a brief summary, self-review the diff, and leave clarifying code comments where useful. If comments are needed to explain confusing code, consider whether naming, structure, or in-code documentation could be improved.
 
             For review coordination, use Slack rather than relying on GitHub tagging (except when replying to existing GitHub comments). Reviewing is a shared responsibility; but feel free to call out the best reviewer in Slack and arrange a quick walkthrough call when helpful.
-          add-paths: query/src/main/resources/eligibility/status-card-preview.html
+          add-paths: |
+            query/src/main/resources/eligibility/status-card-preview.html
+            docs/eligibility-rules-graph.html
           delete-branch: true
           branch: update-status-card-preview
