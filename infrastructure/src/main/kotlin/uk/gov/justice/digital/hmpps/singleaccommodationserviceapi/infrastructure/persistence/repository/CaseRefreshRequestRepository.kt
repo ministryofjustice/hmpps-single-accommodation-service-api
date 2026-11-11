@@ -133,7 +133,8 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
     nativeQuery = true,
     value = """
       DELETE FROM sas_case_refresh_request
-      WHERE last_failure_detail LIKE '%getCorePersonRecordByCrn: 404 Not Found%'
+      WHERE status = 'FAILED'
+        AND last_failure_detail LIKE '%getCorePersonRecordByCrn: 404 Not Found%'
     """,
   )
   fun deleteRequestsForMissingCorePersonRecords(): Int
