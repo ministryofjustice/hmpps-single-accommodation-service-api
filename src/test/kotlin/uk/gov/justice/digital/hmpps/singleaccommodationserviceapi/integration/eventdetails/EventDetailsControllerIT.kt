@@ -59,6 +59,7 @@ class EventDetailsControllerIT : IntegrationTestBase() {
             {
               "id":"${dtrEntity.id}",
               "crn":"$crn",
+              "status":"${dtrEntity.status}",
               "viewUrl":"https://single-accommodation-service-test.hmpps.service.justice.gov.uk/cases/$crn/dtr/${dtrEntity.id}/details"
             }
           """.trimIndent(),

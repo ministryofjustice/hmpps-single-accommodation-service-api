@@ -95,6 +95,7 @@ class DutyToReferTransformer(
   ): DtrEventDetailsDto = DtrEventDetailsDto(
     id = dtrEntity.id,
     crn = crn,
+    status = toStatus(dtrEntity.status),
     viewUrl = dutyToReferViewUrl.resolve(
       mapOf(
         "crn" to crn,
