@@ -21,7 +21,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.UserCaseListApplicationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.usercaselist.CaseListFilters
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.usercaselist.UserCaseListQueryService
 
 private val CRN_REGEX = Regex("(?i)^[A-Z][0-9]{6}$")
@@ -49,12 +48,10 @@ class UserCaseListController(
     @RequestParam(required = false) peopleType: PeopleType?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> = ResponseEntity.ok(
     userCaseListQueryService.getUserCaseList(
-      CaseListFilters(
-        searchTerm = searchTerm,
-        riskLevel = riskLevel,
-        teamCode = teamCode,
-        peopleType = peopleType,
-      ),
+      searchTerm = searchTerm,
+      riskLevel = riskLevel,
+      teamCode = teamCode,
+      peopleType = peopleType,
     ),
   )
 
