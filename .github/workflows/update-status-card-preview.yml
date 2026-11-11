@@ -77,7 +77,7 @@ jobs:
             ) {
               throw new Error('Artifact must come from a successful UI main pipeline run');
             }
-            core.setOutput('artifact-name', `status-card-preview-${run.run_attempt}`);
+            core.setOutput('artifact-name', 'status-card-preview');
             core.setOutput('head-sha', run.head_sha);
             core.setOutput('run-url', run.html_url);
 
