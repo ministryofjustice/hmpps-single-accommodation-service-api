@@ -2,6 +2,7 @@
 hmpps-spring-boot = "3.1.0"
 hmpps-sqs = "7.4.1"
 springdoc = "3.2.0"
+swagger-ui = "5.34.1" # override springdoc's bundled version for DOMPurify CVEs; keep in sync with springdoc.swagger-ui.version in application.yml
 wiremock = "3.13.2"
 redisson = "4.8.0"
 mockk = "1.14.12"
@@ -42,6 +43,7 @@ sentry-spring-boot-starter-jakarta = { module = "io.sentry:sentry-spring-boot-4"
 
 # Springdoc
 springdoc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+swagger-ui = { module = "org.webjars:swagger-ui", version.ref = "swagger-ui" }
 
 # Coroutines
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core" }
