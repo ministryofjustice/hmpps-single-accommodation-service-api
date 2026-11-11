@@ -1,0 +1,14 @@
+hmpps:
+  sar:
+    template:
+      path: /sar/template_hmpps-single-accommodation-service-api.mustache
+      enabled: true
+    tests:
+      attachments-expected: false
+      # if this value is being changed, ensure that you have considered
+      # whether updates to the SAR template are required
+      expected-flyway-schema-version: "0066"
+      expected-jpa-entity-schema:
+        path: /sar/sas-entities-schema.json
+      expected-render-result:
+        path: /sar/sas-expected-render-result.html
