@@ -18,10 +18,10 @@ class CprProbationRecordMergedHandler(
 
   override fun supportedEventTypes() = setOf(eventType)
 
-  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String = inboxEventHelper.findCrn(inboxEvent)
+  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String = inboxEvent.findFromCrn()
 
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
-    val crn = inboxEventHelper.findCrn(inboxEvent)
+    val crn = inboxEvent.findFromCrn()
     return when (val caseEntity = caseRepository.findByCrn(crn)) {
       null -> InboxEventHandler.Result.IGNORED
 
@@ -31,4 +31,6 @@ class CprProbationRecordMergedHandler(
       }
     }
   }
+
+  private fun InboxEventHandler.InboxEvent.findFromCrn() = inboxEventHelper.findPersonReference(this, name = "fromCRN")
 }

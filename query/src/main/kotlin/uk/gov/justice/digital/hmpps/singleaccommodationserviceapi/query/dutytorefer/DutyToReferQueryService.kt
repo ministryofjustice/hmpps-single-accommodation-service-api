@@ -88,12 +88,10 @@ class DutyToReferQueryService(
 
   fun getEventDetailsDto(id: UUID): DtrEventDetailsDto {
     val dtrEntity = dutyToReferRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
-    val caseEntity = caseRepository.findWithIdentifiersById(dtrEntity.caseId).orThrowNotFound("id" to id)
+    val crn = caseRepository.findLatestCrnByCaseIdIncludingArchived(dtrEntity.caseId)
+      .orThrowNotFound("caseId" to dtrEntity.caseId)
 
-    return dutyToReferTransformer.toDutyToReferEventDetailsDto(
-      dtrEntity,
-      crn = caseEntity.latestCrn(),
-    )
+    return dutyToReferTransformer.toDutyToReferEventDetailsDto(dtrEntity, crn = crn)
   }
 
   fun getDutyToReferTimeline(id: UUID, crn: String): ApiResponseDto<List<AuditRecordDto>> {

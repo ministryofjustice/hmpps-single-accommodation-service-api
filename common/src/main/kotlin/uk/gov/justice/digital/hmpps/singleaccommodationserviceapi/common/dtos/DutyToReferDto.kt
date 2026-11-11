@@ -39,6 +39,7 @@ data class DtrSubmissionDto(
 data class DtrEventDetailsDto(
   val id: UUID,
   val crn: String,
+  val status: DtrStatus,
   val viewUrl: String,
 )
 

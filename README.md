@@ -42,6 +42,33 @@ docker compose up -d
 ./gradlew check
 ```
 
+### CPR consumer contract tests
+
+Run the CPR contract tests without Docker, AWS or a live CPR service:
+
+```shell
+# HTTP API only
+./gradlew :infrastructure:cprApiPactTest
+
+# Asynchronous events only
+./gradlew :infrastructure:cprEventPactTest
+
+# Both (also used by the existing CI Pact workflow)
+./gradlew :infrastructure:pactTest
+```
+
+Both contracts use consumer `hmpps-single-accommodation-service-api` and are generated separately
+in `infrastructure/build/pacts`:
+
+| Contract | Provider | File | Format |
+| --- | --- | --- | --- |
+| HTTP API | `hmpps-person-record` | `hmpps-single-accommodation-service-api-hmpps-person-record.json` | Pact V4 |
+| Events | `hmpps-person-record-events` | `hmpps-single-accommodation-service-api-hmpps-person-record-events.json` | Pact V4 asynchronous messages |
+
+The event contract covers probation address created, updated and deleted events,
+and probation record updated, merged and deleted events.
+CI publishes both contracts with the same SAS app version and branch for CPR provider verification.
+
 ## Coding Notes
 1. At the early stages of this project it's best to look at `CaseController.getCases()` endpoint as this follows the standards set out below implementing the correct `n-tier architecture` required (i.e. `CaseController -> CaseService -> CaseOrchestration - AggregatorService`)
 2. Best practice testing standards have been included for this endpoint (inc. unit tests / integration tests)
@@ -124,12 +151,14 @@ The steps are also available in the pull request checklist[PULL_REQUEST_TEMPLATE
 The eligibility rules engine is in the codebase, you can extract a markdown version, (complete with mermaid diagrams) of the rules engine by running the following command:
 
 ```bash
-./gradlew :query:generateEligibilityRulesGraph
+./gradlew :query:generateEligibilityRulesGraphs
 ```
 
 the file generated is viewable [here](./docs/eligibility-rules-graph.md)
 
 View the [interactive eligibility rules graph](https://ministryofjustice.github.io/hmpps-single-accommodation-service-api/eligibility-rules-graph.html).
 GitHub Pages must be configured to deploy from `main` and `/docs`; `docs/.nojekyll` disables Jekyll processing for these static files without changing the existing application deployment workflows.
+
+The status card preview HTML is currently static; [SAS-1629](https://dsdmoj.atlassian.net/browse/SAS-1629) will generate it dynamically and host it in [hmpps-single-accommodation-service-ui](https://github.com/ministryofjustice/hmpps-single-accommodation-service-ui), and the HTML graph will then be generated using that file.
 
 The pre-push hook in `scripts/hooks/pre-push` regenerates this graph and blocks the push if it differs from the committed version. Review and commit the updated graph before pushing again. Gradle's `copyGitHooks` task installs the script locally (also run automatically by root `compileKotlin`).

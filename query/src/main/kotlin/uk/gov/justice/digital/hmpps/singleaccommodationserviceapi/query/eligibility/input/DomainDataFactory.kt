@@ -6,6 +6,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.currentOutcome
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.historyExcludingCurrentOutcome
 
 @Service
 class DomainDataFactory(
@@ -19,8 +21,6 @@ class DomainDataFactory(
     eligibilityOrchestrationDto: EligibilityOrchestrationDto,
     caseEntity: CaseEntity?,
   ): DomainData {
-    val accommodationTypes = accommodationTypeRepository.findAll()
-
     val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) }
 
     val currentAccommodation = accommodationSummaryCalculator.calculateCurrentAccommodation(
@@ -31,7 +31,9 @@ class DomainDataFactory(
       cas3CurrentPremises = eligibilityOrchestrationDto.cas3CurrentPremises,
     )
 
-    val nextAccommodations = accommodationSummaryCalculator.calculateNextAccommodationsV2(
+    val currentAccommodationTypeEntity = accommodationTypeRepository.findAll().find { it.code == currentAccommodation?.type?.code }
+
+    val nextAccommodations = accommodationSummaryCalculator.calculateNextAccommodations(
       crn,
       addresses = eligibilityOrchestrationDto.cpr?.addresses,
       cas1Application = eligibilityOrchestrationDto.cas1Application,
@@ -44,19 +46,28 @@ class DomainDataFactory(
       ?.filter { it.sentAt != null }
       ?.maxByOrNull { it.sentAt!! }
 
+    val cas1ApplicationDomainData = eligibilityOrchestrationDto.cas1Application?.let {
+      Cas1ApplicationDomainData(
+        application = it,
+        currentOutcome = it.currentOutcome,
+        historyExcludingCurrentOutcome = it.historyExcludingCurrentOutcome,
+      )
+    }
+
     return DomainData(
       crn = crn,
-      cpr = eligibilityOrchestrationDto.cpr,
-      tier = eligibilityOrchestrationDto.tier,
-      case = eligibilityOrchestrationDto.case,
-      cas1Application = eligibilityOrchestrationDto.cas1Application,
+      tierScore = eligibilityOrchestrationDto.tier?.tierScore,
+      sex = eligibilityOrchestrationDto.cpr?.sex?.code,
+      dob = eligibilityOrchestrationDto.cpr?.dateOfBirth,
+      roshLevel = eligibilityOrchestrationDto.case?.roshLevel,
+      cas1Application = cas1ApplicationDomainData,
       cas2Application = eligibilityOrchestrationDto.cas2Application,
       cas3Application = eligibilityOrchestrationDto.cas3Application,
       currentAccommodation = currentAccommodation,
+      currentAccommodationTypeEntity = currentAccommodationTypeEntity,
       nextAccommodations = nextAccommodations,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = suitableCrsReferral,
-      accommodationTypes = accommodationTypes,
       sexualOffenceRegistrations = eligibilityOrchestrationDto.sexualOffenceRegistrations,
     )
   }

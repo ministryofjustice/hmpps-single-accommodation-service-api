@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_IF_EXISTS
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_PRISONER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER_V3
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesClient
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
@@ -95,7 +95,7 @@ class CaseMutationOrchestrationService(
     loadPersonRecord = { corePersonRecordClient.getByCrn(crn) },
     loadCas1CurrentPremises = { approvedPremisesClient.getCas1CurrentPremises(crn) },
     loadCas3CurrentPremises = { approvedPremisesClient.getCas3CurrentPremises(crn) },
-    loadCas1Application = { approvedPremisesClient.getSuitableCas1ApplicationInternal(crn) },
+    loadCas1Application = { approvedPremisesClient.getCurrentCas1ApplicationInternal(crn) },
     loadCas3Application = { approvedPremisesClient.getSuitableCas3ApplicationInternal(crn) },
     loadCase = { sasAndDeliusClient.getCase(crn) },
     loadPrisoner = prisonNumber?.let { num -> { prisonerSearchClient.getPrisoner(num) } },
@@ -107,7 +107,7 @@ class CaseMutationOrchestrationService(
     loadPersonRecord: () -> CorePersonRecord,
     loadCas1CurrentPremises: () -> Cas1PremisesSummary?,
     loadCas3CurrentPremises: () -> Cas3BookingPremises?,
-    loadCas1Application: () -> Cas1Application?,
+    loadCas1Application: () -> Cas1ApplicationV2?,
     loadCas3Application: () -> Cas3Application?,
     loadCase: () -> Case,
     loadPrisoner: (() -> Prisoner)? = null,
@@ -117,7 +117,7 @@ class CaseMutationOrchestrationService(
       put(GET_CORE_PERSON_RECORD_BY_CRN, loadPersonRecord)
       put(GET_CAS_1_CURRENT_PREMISES, loadCas1CurrentPremises)
       put(GET_CAS_3_CURRENT_PREMISES, loadCas3CurrentPremises)
-      put(GET_CAS_1_APPLICATION, loadCas1Application)
+      put(GET_CAS_1_CURRENT_APPLICATION, loadCas1Application)
       put(GET_CAS_3_APPLICATION, loadCas3Application)
       put(GET_CASE_IF_EXISTS, loadCase)
       loadPrisoner?.let { put(GET_PRISONER, it) }
@@ -134,7 +134,7 @@ class CaseMutationOrchestrationService(
         tier = results.getResult<Tier>(GET_TIER_V3),
         cas1CurrentPremises = results.getResult<Cas1PremisesSummary>(GET_CAS_1_CURRENT_PREMISES),
         cas3CurrentPremises = results.getResult<Cas3BookingPremises>(GET_CAS_3_CURRENT_PREMISES),
-        cas1Application = results.getResult<Cas1Application>(GET_CAS_1_APPLICATION),
+        cas1Application = results.getResult<Cas1ApplicationV2>(GET_CAS_1_CURRENT_APPLICATION),
         cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION),
         prisoner = results.getResult<Prisoner>(GET_PRISONER),
         case = results.getResult<Case>(GET_CASE_IF_EXISTS),
@@ -142,7 +142,7 @@ class CaseMutationOrchestrationService(
       upstreamFailures = results.getFailures().filterNot {
         it.errorDetail.httpStatus == HttpStatus.NOT_FOUND &&
           it.callKey in setOf(
-            GET_CAS_1_APPLICATION,
+            GET_CAS_1_CURRENT_APPLICATION,
             GET_CAS_3_APPLICATION,
             GET_CAS_1_CURRENT_PREMISES,
             GET_CAS_3_CURRENT_PREMISES,

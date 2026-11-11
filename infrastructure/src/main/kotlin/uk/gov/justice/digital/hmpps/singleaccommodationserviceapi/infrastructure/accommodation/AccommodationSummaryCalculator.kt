@@ -5,7 +5,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationTransformer.toAccommodationSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
@@ -50,7 +49,7 @@ class AccommodationSummaryCalculator(
     prisoner: Prisoner?,
     cas1CurrentPremises: Cas1PremisesSummary?,
     cas3CurrentPremises: Cas3BookingPremises?,
-    cas1Application: Cas1Application?,
+    cas1Application: Cas1ApplicationV2?,
     cas3Application: Cas3Application?,
   ): AccommodationSummariesDto {
     val currentAccommodation = calculateCurrentAccommodation(
@@ -117,22 +116,6 @@ class AccommodationSummaryCalculator(
   }
 
   fun calculateNextAccommodations(
-    crn: String,
-    addresses: List<CanonicalAddress>?,
-    cas1Application: Cas1Application?,
-    cas3Application: Cas3Application?,
-    currentAccommodation: AccommodationSummaryDto?,
-  ): List<AccommodationSummaryDto> {
-    val cas1NextAccommodation = cas1Application?.placement
-      ?.takeIf { it.status == Cas1PlacementStatus.UPCOMING }
-      ?.premises?.let {
-        toAccommodationSummary(crn, premises = it, currentAccommodation)
-      }
-
-    return calculateNextAccommodations(crn, addresses, cas1NextAccommodation, cas3Application, currentAccommodation)
-  }
-
-  fun calculateNextAccommodationsV2(
     crn: String,
     addresses: List<CanonicalAddress>?,
     cas1Application: Cas1ApplicationV2?,

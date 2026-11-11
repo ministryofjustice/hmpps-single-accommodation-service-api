@@ -32,7 +32,7 @@ class CprProbationRecordMergedHandlerTest {
   @InjectMockKs
   private lateinit var cprProbationRecordMergedHandler: CprProbationRecordMergedHandler
 
-  val crn = UUID.randomUUID().toString()
+  val fromCrn = UUID.randomUUID().toString()
 
   val inboxEvent = InboxEventHandler.InboxEvent(
     id = UUID.randomUUID(),
@@ -45,9 +45,9 @@ class CprProbationRecordMergedHandlerTest {
     val caseId = UUID.randomUUID()
     val caseEntity = mockk<CaseEntity>()
 
-    every { caseRepository.findByCrn(crn) } returns caseEntity
+    every { caseRepository.findByCrn(fromCrn) } returns caseEntity
     every { caseEntity.id } returns caseId
-    every { inboxEventHelper.findCrn(any()) } returns crn
+    every { inboxEventHelper.findPersonReference(any(), "fromCRN") } returns fromCrn
 
     assertThat(cprProbationRecordMergedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
     verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(caseId) }
@@ -55,8 +55,8 @@ class CprProbationRecordMergedHandlerTest {
 
   @Test
   fun `should not refresh case and ignore message when case is not known`() {
-    every { caseRepository.findByCrn(crn) } returns null
-    every { inboxEventHelper.findCrn(any()) } returns crn
+    every { caseRepository.findByCrn(fromCrn) } returns null
+    every { inboxEventHelper.findPersonReference(any(), "fromCRN") } returns fromCrn
 
     assertThat(cprProbationRecordMergedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }

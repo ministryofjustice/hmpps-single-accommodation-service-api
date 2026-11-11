@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_URL_TEMPLATES
@@ -34,6 +33,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_STAFF_DETAIL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_STAFF_FOR_TEAMS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER_V3
+import java.time.Duration
 
 @Configuration
 @Profile("dev", "preprod", "prod")
@@ -100,36 +100,58 @@ open class RedissonLocalConfig {
 
 @Configuration
 @EnableCaching
-@Profile(value = ["local", "dev", "preprod", "prod"])
+@Profile(value = ["preprod", "prod"])
 class RedissonCacheConfig {
 
   @Bean
-  fun cacheManager(redissonClient: RedissonClient): CacheManager {
-    val configs = mapOf(
-      GET_STAFF_DETAIL to CacheConfig(600_000, 300_000),
-      GET_STAFF_FOR_TEAMS to CacheConfig(600_000, 300_000),
-      GET_SEXUAL_OFFENCE_REGISTRATIONS to CacheConfig(600_000, 300_000),
-      GET_CASE to CacheConfig(60_000, 30_000),
-      GET_CORE_PERSON_RECORD_BY_CRN to CacheConfig(500, 250),
-      GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER to CacheConfig(60_000, 30_000),
-      GET_TIER_V3 to CacheConfig(60_000, 30_000),
-      GET_CAS1_REFERRAL to CacheConfig(60_000, 30_000),
-      GET_CAS2_REFERRAL to CacheConfig(60_000, 30_000),
-      GET_CAS3_REFERRAL to CacheConfig(60_000, 30_000),
-      GET_CAS_1_APPLICATION to CacheConfig(60_000, 30_000),
-      GET_CAS_1_CURRENT_APPLICATION to CacheConfig(60_000, 30_000),
-      GET_CAS_1_CURRENT_PREMISES to CacheConfig(60_000, 30_000),
-      GET_CAS_2_APPLICATION to CacheConfig(60_000, 30_000),
-      GET_CAS_3_CURRENT_PREMISES to CacheConfig(60_000, 30_000),
-      GET_CAS_3_APPLICATION to CacheConfig(60_000, 30_000),
-      GET_CAS_1_URL_TEMPLATES to CacheConfig(86_400_000, 43_200_000),
-      GET_CAS_2_URL_TEMPLATES to CacheConfig(86_400_000, 43_200_000),
-      GET_CAS_3_URL_TEMPLATES to CacheConfig(86_400_000, 43_200_000),
-      FULL_CASE_LIST to CacheConfig(600_000, 600_000),
-      GET_CRS to CacheConfig(60_000, 30_000),
-      GET_PRISONER to CacheConfig(60_000, 30_000),
-      GET_NOMIS_USER_DETAIL to CacheConfig(600_000, 600_000),
-    )
-    return RedissonSpringCacheManager(redissonClient, configs)
-  }
+  fun cacheManager(redissonClient: RedissonClient) = commonCacheManager(
+    redissonClient = redissonClient,
+    casTtl = Duration.ofSeconds(60),
+    casMaxIdle = Duration.ofSeconds(30),
+  )
+}
+
+@Configuration
+@EnableCaching
+@Profile(value = ["local", "dev"])
+class RedissonCacheConfigDev {
+
+  @Bean
+  fun cacheManager(redissonClient: RedissonClient) = commonCacheManager(
+    redissonClient = redissonClient,
+    casTtl = Duration.ofSeconds(5),
+    casMaxIdle = Duration.ofSeconds(5),
+  )
+}
+
+private fun commonCacheManager(
+  redissonClient: RedissonClient,
+  casTtl: Duration,
+  casMaxIdle: Duration,
+): CacheManager {
+  val configs = mapOf(
+    GET_STAFF_DETAIL to CacheConfig(600_000, 300_000),
+    GET_STAFF_FOR_TEAMS to CacheConfig(600_000, 300_000),
+    GET_SEXUAL_OFFENCE_REGISTRATIONS to CacheConfig(600_000, 300_000),
+    GET_CASE to CacheConfig(60_000, 30_000),
+    GET_CORE_PERSON_RECORD_BY_CRN to CacheConfig(500, 250),
+    GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER to CacheConfig(60_000, 30_000),
+    GET_TIER_V3 to CacheConfig(60_000, 30_000),
+    GET_CAS1_REFERRAL to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
+    GET_CAS2_REFERRAL to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
+    GET_CAS3_REFERRAL to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
+    GET_CAS_1_CURRENT_APPLICATION to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
+    GET_CAS_1_CURRENT_PREMISES to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
+    GET_CAS_2_APPLICATION to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
+    GET_CAS_3_CURRENT_PREMISES to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
+    GET_CAS_3_APPLICATION to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
+    GET_CAS_1_URL_TEMPLATES to CacheConfig(86_400_000, 43_200_000),
+    GET_CAS_2_URL_TEMPLATES to CacheConfig(86_400_000, 43_200_000),
+    GET_CAS_3_URL_TEMPLATES to CacheConfig(86_400_000, 43_200_000),
+    FULL_CASE_LIST to CacheConfig(600_000, 600_000),
+    GET_CRS to CacheConfig(60_000, 30_000),
+    GET_PRISONER to CacheConfig(60_000, 30_000),
+    GET_NOMIS_USER_DETAIL to CacheConfig(600_000, 600_000),
+  )
+  return RedissonSpringCacheManager(redissonClient, configs)
 }
