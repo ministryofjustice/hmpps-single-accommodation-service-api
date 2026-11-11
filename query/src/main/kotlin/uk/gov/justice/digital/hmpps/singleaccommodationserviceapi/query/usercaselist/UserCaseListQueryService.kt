@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
@@ -17,10 +18,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.LimitedAccessService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.filterCases
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.obfuscateLimitedAccessCases
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.sortCases
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
+import java.util.UUID
 
 @Service
 class UserCaseListQueryService(
@@ -32,28 +36,60 @@ class UserCaseListQueryService(
   private val clock: Clock,
 ) {
   fun getUserCaseList(
-    listType: CaseListType,
     searchTerm: String? = null,
     riskLevel: RiskLevel? = null,
     teamCode: String? = null,
     peopleType: PeopleType? = null,
+  ): ApiResponseDto<List<CaseDto>> = getCaseList(
+    listType = CaseListType.CUSTOM,
+    orderEntities = { entities, _ -> entities },
+    arrangeCases = { cases ->
+      cases
+        .filterCases(
+          searchTerm = searchTerm,
+          riskLevel = riskLevel,
+          teamCode = teamCode,
+          username = null,
+          peopleType = peopleType,
+        )
+        .sortCases(today = LocalDate.now(clock))
+    },
+  )
+
+  fun getSearchHistoryCaseList(): ApiResponseDto<List<CaseDto>> = getCaseList(
+    listType = CaseListType.SEARCH_HISTORY,
+    orderEntities = { entities, lastUpdatedAtByCaseId ->
+      entities.sortedWith(
+        compareByDescending<CaseEntity> { lastUpdatedAtByCaseId[it.id] }.thenBy { it.latestCrn() },
+      )
+    },
+    arrangeCases = { it.obfuscateLimitedAccessCases() },
+  )
+
+  private fun getCaseList(
+    listType: CaseListType,
+    orderEntities: (List<CaseEntity>, Map<UUID, Instant>) -> List<CaseEntity>,
+    arrangeCases: (List<CaseDto>) -> List<CaseDto>,
   ): ApiResponseDto<List<CaseDto>> {
     val user = userService.authorizeAndRetrieveUser()
-    val userCasesList = userCaseListEntryRepository.findAllBySasUserIdAndListType(user.id, listType)
-    if (userCasesList.isEmpty()) return toApiResponseDto(data = emptyList())
+    val entries = userCaseListEntryRepository.findAllBySasUserIdAndListType(user.id, listType)
+    if (entries.isEmpty()) return toApiResponseDto(data = emptyList())
 
-    val lastUpdatedAtByCaseId = userCasesList.associate { it.sasCaseId to it.lastUpdatedAt }
-    val caseEntities = caseRepository.findAllWithIdentifiersByIdIn(userCasesList.map { it.sasCaseId })
-      .let { entities ->
-        when (listType) {
-          CaseListType.CUSTOM -> entities
-          CaseListType.SEARCH_HISTORY -> entities.sortedWith(
-            compareByDescending<CaseEntity> { lastUpdatedAtByCaseId[it.id] }.thenBy { it.latestCrn() },
-          )
-        }
-      }
+    val lastUpdatedAtByCaseId = entries.associate { it.sasCaseId to it.lastUpdatedAt }
+    val caseEntities = orderEntities(
+      caseRepository.findAllWithIdentifiersByIdIn(entries.map { it.sasCaseId }),
+      lastUpdatedAtByCaseId,
+    )
+    val result = toCaseDtos(user.username, caseEntities)
+    return toApiResponseDto(
+      data = arrangeCases(result.data),
+      upstreamFailures = result.upstreamFailures,
+    )
+  }
+
+  private fun toCaseDtos(username: String, caseEntities: List<CaseEntity>): OrchestrationResultDto<List<CaseDto>> {
     val crns = caseEntities.map { it.latestCrn() }
-    val orchestrationResult = userCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, crns)
+    val orchestrationResult = userCaseListOrchestrationService.getCaseAccessAndSummaries(username, crns)
     limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
 
     val crnsToUserAccess = limitedAccessService.getCrnToUserAccess(orchestrationResult.data.caseAccess)
@@ -81,23 +117,8 @@ class UserCaseListQueryService(
           assignedTo = entity.toAssignedToDto(),
         )
       }
-    }.filterCases(
-      searchTerm = searchTerm,
-      riskLevel = riskLevel,
-      teamCode = teamCode,
-      username = null,
-      peopleType = peopleType,
-    ).let { cases ->
-      when (listType) {
-        CaseListType.CUSTOM -> cases.sortCases(today = LocalDate.now(clock))
-        // already ordered by entry last updated date above
-        CaseListType.SEARCH_HISTORY -> cases
-      }
     }
-    return toApiResponseDto(
-      data = caseDtos,
-      upstreamFailures = orchestrationResult.upstreamFailures,
-    )
+    return OrchestrationResultDto(data = caseDtos, upstreamFailures = orchestrationResult.upstreamFailures)
   }
 
   fun getUserCaseListCrns(listType: CaseListType): ApiResponseDto<List<String>> {
