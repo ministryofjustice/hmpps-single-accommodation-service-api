@@ -57,6 +57,12 @@ class UserCaseListController(
   )
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @GetMapping("/case-list/search-history")
+  fun getSearchHistoryCaseList(): ResponseEntity<ApiResponseDto<List<CaseDto>>> = ResponseEntity.ok(
+    userCaseListQueryService.getUserCaseList(listType = CaseListType.SEARCH_HISTORY),
+  )
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/case-list/custom/crns")
   fun getUserCaseListCrns(): ResponseEntity<ApiResponseDto<List<String>>> = ResponseEntity.ok(userCaseListQueryService.getUserCaseListCrns(CaseListType.CUSTOM))
 

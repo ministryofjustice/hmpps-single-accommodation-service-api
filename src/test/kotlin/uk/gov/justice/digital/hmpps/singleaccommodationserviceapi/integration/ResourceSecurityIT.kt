@@ -181,6 +181,7 @@ private val userCaseListControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /case-list/custom" to defaultRoles,
     "GET /case-list/custom/crns" to defaultRoles,
+    "GET /case-list/search-history" to defaultRoles,
     "POST /case-list/custom" to defaultRoles,
   )
 

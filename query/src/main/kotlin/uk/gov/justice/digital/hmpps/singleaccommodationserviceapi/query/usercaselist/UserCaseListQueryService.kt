@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -38,10 +39,19 @@ class UserCaseListQueryService(
     peopleType: PeopleType? = null,
   ): ApiResponseDto<List<CaseDto>> {
     val user = userService.authorizeAndRetrieveUser()
-    val caseIds = userCaseListEntryRepository.findAllBySasUserIdAndListType(user.id, listType).map { it.sasCaseId }
-    if (caseIds.isEmpty()) return toApiResponseDto(data = emptyList())
+    val userCasesList = userCaseListEntryRepository.findAllBySasUserIdAndListType(user.id, listType)
+    if (userCasesList.isEmpty()) return toApiResponseDto(data = emptyList())
 
-    val caseEntities = caseRepository.findAllWithIdentifiersByIdIn(caseIds)
+    val lastUpdatedAtByCaseId = userCasesList.associate { it.sasCaseId to it.lastUpdatedAt }
+    val caseEntities = caseRepository.findAllWithIdentifiersByIdIn(userCasesList.map { it.sasCaseId })
+      .let { entities ->
+        when (listType) {
+          CaseListType.CUSTOM -> entities
+          CaseListType.SEARCH_HISTORY -> entities.sortedWith(
+            compareByDescending<CaseEntity> { lastUpdatedAtByCaseId[it.id] }.thenBy { it.latestCrn() },
+          )
+        }
+      }
     val crns = caseEntities.map { it.latestCrn() }
     val orchestrationResult = userCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, crns)
     limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
@@ -77,9 +87,13 @@ class UserCaseListQueryService(
       teamCode = teamCode,
       username = null,
       peopleType = peopleType,
-    ).sortCases(
-      today = LocalDate.now(clock),
-    )
+    ).let { cases ->
+      when (listType) {
+        CaseListType.CUSTOM -> cases.sortCases(today = LocalDate.now(clock))
+        // already ordered by entry last updated date above
+        CaseListType.SEARCH_HISTORY -> cases
+      }
+    }
     return toApiResponseDto(
       data = caseDtos,
       upstreamFailures = orchestrationResult.upstreamFailures,
