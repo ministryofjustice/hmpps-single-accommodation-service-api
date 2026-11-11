@@ -26,6 +26,11 @@ dependencies {
   implementation(libs.spring.flyway)
 
   implementation(libs.springdoc)
+  constraints {
+    implementation(libs.swagger.ui) {
+      because("swagger-ui 5.34.0 bundles DOMPurify 3.4.16 (CVE-2026-116802/3/4), fixed in 5.34.1")
+    }
+  }
   implementation(libs.javers)
 
   // Due to use of a spring bom in hmpps-starter we have to force some versions to override them locally
