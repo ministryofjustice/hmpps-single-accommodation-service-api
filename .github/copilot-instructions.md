@@ -80,6 +80,14 @@ Use this file as the default operating guide. Only search the repo when these in
 - When a rule or updater consumes a precomputed value (for example `Cas1ApplicationDomainData.currentOutcome`), set that value directly in the test via the factory (`buildCas1ApplicationDomainData(application, currentOutcome)`, where `currentOutcome` is required and may be `null`), rather than deriving it through upstream model fields. Don't keep duplicate tests with different setup; rename existing tests instead.
 - New upstream endpoints need a cache key in `ApiCallKeys` (named `GET_CAS_1_...`, with matching camelCase value), the 404-exclusion list if 204/404 means "none", and an entry in `RedissonCacheConfig`; integration tests need stubs in `ApprovedPremisesStubs` and `WiremockStubber`.
 
+### CPR Pact maintenance
+- Keep the logical providers separate: `hmpps-person-record` for HTTP and `hmpps-person-record-events` for asynchronous messages. Separate test classes or output directories do not separate consumer/provider pairs in Pact Broker.
+- Keep event-specific payloads and assertions in `CorePersonRecordEventPactTest` explicit, with shared helpers limited to common setup. Pass messages through the real SQS listener using an SNS envelope and mock inbox persistence.
+- Require only fields consumed by SAS handlers. Merged records use `fromCRN`; the other covered CPR events use `CRN`. Address events require `additionalInformation.cprAddressId`, not `deliusAddressId`. Do not require a detail URL for deletion handling.
+- Match event types, version and identifier types exactly; use type/regex/UUID matchers for variable values and allow additional identifiers in any order.
+- Coordinate new event contracts with CPR's event verifier: its provider name must match, `@PactVerifyProvider` descriptions must match interaction descriptions, and `@State` callbacks must match `CPR publishes a <eventType> event`.
+- The existing `pactPublish` configuration publishes both contracts using `APP_VERSION` and `GITHUB_BRANCH`; no separate publishing job is needed. If local generated contracts contain stale interactions, regenerate with `./gradlew :infrastructure:clean :infrastructure:pactTest`.
+
 ## Subject Access Requests
 - SAR functionality is part of this repo: the service aggregates data into a single SAR response and HTML report.
 - The main SAR template is `src/main/resources/sar/template_hmpps-single-accommodation-service-api.mustache`.
