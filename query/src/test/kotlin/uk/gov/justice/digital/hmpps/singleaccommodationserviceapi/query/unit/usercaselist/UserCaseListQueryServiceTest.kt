@@ -278,6 +278,25 @@ class UserCaseListQueryServiceTest {
   }
 
   @Test
+  fun `sorts cases by entry last updated date newest first when case list type is SEARCH_HISTORY`() {
+    val settled = buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME, lastName = "Settled", accommodationSummariesDto = buildAccommodationSummariesDto(CaseAccommodationStatus.SETTLED)) { withCrn("A111111") }
+    val risk = buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME, lastName = "Risk", accommodationSummariesDto = buildAccommodationSummariesDto(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)) { withCrn("B222222") }
+    val restricted = buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME) { withCrn("C333333") }
+    val now = clock.instant()
+    every { userCaseListEntryRepository.findAllBySasUserIdAndListType(user.id, CaseListType.SEARCH_HISTORY) } returns listOf(
+      buildUserCaseListEntryEntity(sasUserId = user.id, sasCaseId = risk.id, listType = CaseListType.SEARCH_HISTORY, lastUpdatedAt = now.minusSeconds(120)),
+      buildUserCaseListEntryEntity(sasUserId = user.id, sasCaseId = settled.id, listType = CaseListType.SEARCH_HISTORY, lastUpdatedAt = now),
+      buildUserCaseListEntryEntity(sasUserId = user.id, sasCaseId = restricted.id, listType = CaseListType.SEARCH_HISTORY, lastUpdatedAt = now.minusSeconds(60)),
+    )
+    every { caseRepository.findAllWithIdentifiersByIdIn(listOf(risk.id, settled.id, restricted.id)) } returns listOf(restricted, risk, settled)
+    stubAccess(accessible = listOf("A111111", "B222222"), restricted = listOf("C333333"))
+
+    val result = userCaseListQueryService.getUserCaseList(listType = CaseListType.SEARCH_HISTORY)
+
+    assertThat(result.data.map { it.crn }).containsExactly("A111111", "C333333", "B222222")
+  }
+
+  @Test
   fun `returns the crns in the users custom case list without checking access`() {
     every { userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(user.id, CaseListType.CUSTOM) } returns listOf(
       userCaseListCrn("A111111"),
