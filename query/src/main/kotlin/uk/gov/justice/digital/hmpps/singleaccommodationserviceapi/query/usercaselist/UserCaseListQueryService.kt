@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.usercas
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
@@ -20,7 +18,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.fil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.sortCases
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
+import java.util.UUID
 
 @Service
 class UserCaseListQueryService(
@@ -31,12 +31,29 @@ class UserCaseListQueryService(
   private val limitedAccessService: LimitedAccessService,
   private val clock: Clock,
 ) {
-  fun getUserCaseList(
+  fun getUserCaseList(filters: CaseListFilters = CaseListFilters()): ApiResponseDto<List<CaseDto>> = getCaseList(
+    listType = CaseListType.CUSTOM,
+    filters = filters,
+    orderEntities = { entities, _ -> entities },
+    arrangeCases = { it.sortCases(today = LocalDate.now(clock)) },
+  )
+
+  fun getSearchHistoryCaseList(filters: CaseListFilters = CaseListFilters()): ApiResponseDto<List<CaseDto>> = getCaseList(
+    listType = CaseListType.SEARCH_HISTORY,
+    filters = filters,
+    orderEntities = { entities, lastUpdatedAtByCaseId ->
+      entities.sortedWith(
+        compareByDescending<CaseEntity> { lastUpdatedAtByCaseId[it.id] }.thenBy { it.latestCrn() },
+      )
+    },
+    arrangeCases = { it },
+  )
+
+  private fun getCaseList(
     listType: CaseListType,
-    searchTerm: String? = null,
-    riskLevel: RiskLevel? = null,
-    teamCode: String? = null,
-    peopleType: PeopleType? = null,
+    filters: CaseListFilters,
+    orderEntities: (List<CaseEntity>, Map<UUID, Instant>) -> List<CaseEntity>,
+    arrangeCases: (List<CaseDto>) -> List<CaseDto>,
   ): ApiResponseDto<List<CaseDto>> {
     val user = userService.authorizeAndRetrieveUser()
     val userCasesList = userCaseListEntryRepository.findAllBySasUserIdAndListType(user.id, listType)
@@ -44,14 +61,7 @@ class UserCaseListQueryService(
 
     val lastUpdatedAtByCaseId = userCasesList.associate { it.sasCaseId to it.lastUpdatedAt }
     val caseEntities = caseRepository.findAllWithIdentifiersByIdIn(userCasesList.map { it.sasCaseId })
-      .let { entities ->
-        when (listType) {
-          CaseListType.CUSTOM -> entities
-          CaseListType.SEARCH_HISTORY -> entities.sortedWith(
-            compareByDescending<CaseEntity> { lastUpdatedAtByCaseId[it.id] }.thenBy { it.latestCrn() },
-          )
-        }
-      }
+      .let { orderEntities(it, lastUpdatedAtByCaseId) }
     val crns = caseEntities.map { it.latestCrn() }
     val orchestrationResult = userCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, crns)
     limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
@@ -82,18 +92,12 @@ class UserCaseListQueryService(
         )
       }
     }.filterCases(
-      searchTerm = searchTerm,
-      riskLevel = riskLevel,
-      teamCode = teamCode,
+      searchTerm = filters.searchTerm,
+      riskLevel = filters.riskLevel,
+      teamCode = filters.teamCode,
       username = null,
-      peopleType = peopleType,
-    ).let { cases ->
-      when (listType) {
-        CaseListType.CUSTOM -> cases.sortCases(today = LocalDate.now(clock))
-        // already ordered by entry last updated date above
-        CaseListType.SEARCH_HISTORY -> cases
-      }
-    }
+      peopleType = filters.peopleType,
+    ).let(arrangeCases)
     return toApiResponseDto(
       data = caseDtos,
       upstreamFailures = orchestrationResult.upstreamFailures,

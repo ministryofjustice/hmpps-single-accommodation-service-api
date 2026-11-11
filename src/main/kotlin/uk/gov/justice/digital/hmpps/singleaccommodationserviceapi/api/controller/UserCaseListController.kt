@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.UserCaseListApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.usercaselist.CaseListFilters
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.usercaselist.UserCaseListQueryService
 
 private val CRN_REGEX = Regex("(?i)^[A-Z][0-9]{6}$")
@@ -48,18 +49,19 @@ class UserCaseListController(
     @RequestParam(required = false) peopleType: PeopleType?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> = ResponseEntity.ok(
     userCaseListQueryService.getUserCaseList(
-      listType = CaseListType.CUSTOM,
-      searchTerm = searchTerm,
-      riskLevel = riskLevel,
-      teamCode = teamCode,
-      peopleType = peopleType,
+      CaseListFilters(
+        searchTerm = searchTerm,
+        riskLevel = riskLevel,
+        teamCode = teamCode,
+        peopleType = peopleType,
+      ),
     ),
   )
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/case-list/search-history")
   fun getSearchHistoryCaseList(): ResponseEntity<ApiResponseDto<List<CaseDto>>> = ResponseEntity.ok(
-    userCaseListQueryService.getUserCaseList(listType = CaseListType.SEARCH_HISTORY),
+    userCaseListQueryService.getSearchHistoryCaseList(),
   )
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
