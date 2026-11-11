@@ -120,6 +120,10 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
           claimed_at = NULL,
           claim_id = NULL
       WHERE status = 'FAILED'
+        AND (
+          last_failure_detail IS NULL
+          OR last_failure_detail NOT LIKE '%getCorePersonRecordByCrn: 404 Not Found%'
+        )
     """,
   )
   fun replayFailedRequests(): Int
