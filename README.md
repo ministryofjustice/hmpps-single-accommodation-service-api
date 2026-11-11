@@ -159,6 +159,6 @@ the file generated is viewable [here](./docs/eligibility-rules-graph.md)
 View the [interactive eligibility rules graph](https://ministryofjustice.github.io/hmpps-single-accommodation-service-api/eligibility-rules-graph.html).
 GitHub Pages must be configured to deploy from `main` and `/docs`; `docs/.nojekyll` disables Jekyll processing for these static files without changing the existing application deployment workflows.
 
-The status card preview HTML is currently static; [SAS-1629](https://dsdmoj.atlassian.net/browse/SAS-1629) will generate it dynamically and host it in [hmpps-single-accommodation-service-ui](https://github.com/ministryofjustice/hmpps-single-accommodation-service-ui), and the HTML graph will then be generated using that file.
+To update the preview manually, run the **Update Status Card Preview HTML** workflow on `main` from GitHub Actions. Leave `ui_run_id` blank to use the latest successful UI `main` pipeline run, or provide a run ID to select a specific run.
 
 The pre-push hook in `scripts/hooks/pre-push` regenerates this graph and blocks the push if it differs from the committed version. Review and commit the updated graph before pushing again. Gradle's `copyGitHooks` task installs the script locally (also run automatically by root `compileKotlin`).

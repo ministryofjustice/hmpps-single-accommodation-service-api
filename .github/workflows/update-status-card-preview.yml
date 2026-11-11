@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       ui_run_id:
-        description: Successful UI main pipeline run ID containing the preview artifact
-        required: true
+        description: Optional UI pipeline run ID (defaults to the latest successful main run)
+        required: false
         type: string
   workflow_call:
     inputs:
@@ -56,11 +56,25 @@ jobs:
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |
-            const runId = process.env.UI_RUN_ID;
+            const repo = 'hmpps-single-accommodation-service-ui';
+            let runId = process.env.UI_RUN_ID;
+            if (!runId) {
+              const { data } = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo,
+                workflow_id: 'pipeline.yml',
+                branch: 'main',
+                status: 'success',
+                per_page: 1
+              });
+              if (!data.workflow_runs.length) {
+                throw new Error('No successful UI main pipeline run found');
+              }
+              runId = String(data.workflow_runs[0].id);
+            }
             if (!/^[1-9]\d*$/.test(runId) || !Number.isSafeInteger(Number(runId))) {
               throw new Error('A valid UI pipeline run ID is required');
             }
-            const repo = 'hmpps-single-accommodation-service-ui';
             const { data: run } = await github.rest.actions.getWorkflowRun({
               owner: context.repo.owner,
               repo,
@@ -77,6 +91,7 @@ jobs:
             ) {
               throw new Error('Artifact must come from a successful UI main pipeline run');
             }
+            core.setOutput('run-id', runId);
             core.setOutput('artifact-name', 'status-card-preview');
             core.setOutput('head-sha', run.head_sha);
             core.setOutput('run-url', run.html_url);
@@ -86,7 +101,7 @@ jobs:
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           repository: ministryofjustice/hmpps-single-accommodation-service-ui
-          run-id: ${{ inputs.ui_run_id }}
+          run-id: ${{ steps.verify-run.outputs.run-id }}
           name: ${{ steps.verify-run.outputs.artifact-name }}
           path: ${{ runner.temp }}/status-card-preview-${{ github.run_id }}-${{ github.run_attempt }}
 
