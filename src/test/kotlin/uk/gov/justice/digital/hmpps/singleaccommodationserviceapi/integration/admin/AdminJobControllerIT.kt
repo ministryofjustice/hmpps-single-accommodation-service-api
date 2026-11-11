@@ -464,6 +464,49 @@ class AdminJobControllerIT : IntegrationTestBase() {
     }
 
     @Test
+    fun `should exclude core person record not found failures and replay other failures`() {
+      val requests = listOf(
+        "getCorePersonRecordByCrn: 404 Not Found",
+        "Upstream failures: [getCorePersonRecordByCrn: 404 Not Found, getTier: 500 Internal Server Error]",
+        "getCorePersonRecordByCrn: 500 Internal Server Error",
+        "getTier: 404 Not Found",
+        "",
+        null,
+      ).map { detail ->
+        val case = caseRepository.save(buildCaseEntity())
+        caseRefreshRequestService.requestLiveRefresh(case.id)
+        val request = caseRefreshRequestRepository.findById(case.id).orElseThrow().apply {
+          status = CaseRefreshRequestStatus.FAILED
+          attemptCount = 5
+          nextAttemptAt = null
+          failedAt = now
+          lastFailureCategory = CaseRefreshFailureCategory.UPSTREAM_CLIENT_ERROR
+          lastFailureDetail = detail
+        }
+        caseRefreshRequestRepository.saveAndFlush(request)
+      }
+
+      replayFailedRefreshRequests()
+        .jsonPath("$.data.refreshesRequested").isEqualTo(4)
+
+      requests.take(2).forEach { original ->
+        assertThat(caseRefreshRequestRepository.findById(original.caseId).orElseThrow())
+          .usingRecursiveComparison().isEqualTo(original)
+      }
+      requests.drop(2).forEach { original ->
+        val request = caseRefreshRequestRepository.findById(original.caseId).orElseThrow()
+        assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
+        assertThat(request.attemptCount).isZero()
+        assertThat(request.failedAt).isNull()
+        assertThat(request.lastFailureCategory).isNull()
+        assertThat(request.lastFailureDetail).isNull()
+      }
+
+      replayFailedRefreshRequests()
+        .jsonPath("$.data.refreshesRequested").isEqualTo(0)
+    }
+
+    @Test
     fun `should return 403 without the admin role and leave failed requests unchanged`() {
       val case = caseRepository.save(buildCaseEntity())
       caseRefreshRequestService.requestLiveRefresh(case.id)
