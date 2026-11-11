@@ -438,7 +438,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
       replayFailedRefreshRequests()
         .jsonPath("$.data.requestsReplayed").isEqualTo(1)
-        .jsonPath("$.data.refreshesDeleted").isEqualTo(0)
+        .jsonPath("$.data.requestsDeleted").isEqualTo(0)
 
       requests.forEach { (status, original) ->
         val request = caseRefreshRequestRepository.findById(original.caseId).orElseThrow()
@@ -462,11 +462,11 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
       replayFailedRefreshRequests()
         .jsonPath("$.data.requestsReplayed").isEqualTo(0)
-        .jsonPath("$.data.refreshesDeleted").isEqualTo(0)
+        .jsonPath("$.data.requestsDeleted").isEqualTo(0)
     }
 
     @Test
-    fun `should delete core person record not found requests in all statuses and replay other failures`() {
+    fun `should delete only failed core person record not found requests and replay other failures`() {
       val requests = listOf(
         CaseRefreshRequestStatus.FAILED to "getCorePersonRecordByCrn: 404 Not Found",
         CaseRefreshRequestStatus.FAILED to "Upstream failures: [getCorePersonRecordByCrn: 404 Not Found, getTier: 500 Internal Server Error]",
@@ -486,17 +486,26 @@ class AdminJobControllerIT : IntegrationTestBase() {
           failedAt = now
           lastFailureCategory = CaseRefreshFailureCategory.UPSTREAM_CLIENT_ERROR
           lastFailureDetail = detail
+          if (status == CaseRefreshRequestStatus.PROCESSING) {
+            processingGeneration = generation
+            claimedAt = now
+            claimId = UUID.randomUUID()
+          }
         }
         caseRefreshRequestRepository.saveAndFlush(request)
       }
 
       replayFailedRefreshRequests()
         .jsonPath("$.data.requestsReplayed").isEqualTo(4)
-        .jsonPath("$.data.refreshesDeleted").isEqualTo(4)
+        .jsonPath("$.data.requestsDeleted").isEqualTo(2)
 
-      requests.take(4).forEach { original ->
+      requests.take(2).forEach { original ->
         assertThat(caseRefreshRequestRepository.findById(original.caseId)).isEmpty()
         assertThat(caseRepository.findById(original.caseId)).isPresent()
+      }
+      requests.slice(2..3).forEach { original ->
+        assertThat(caseRefreshRequestRepository.findById(original.caseId).orElseThrow())
+          .usingRecursiveComparison().isEqualTo(original)
       }
       requests.drop(4).forEach { original ->
         val request = caseRefreshRequestRepository.findById(original.caseId).orElseThrow()
@@ -509,7 +518,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
       replayFailedRefreshRequests()
         .jsonPath("$.data.requestsReplayed").isEqualTo(0)
-        .jsonPath("$.data.refreshesDeleted").isEqualTo(0)
+        .jsonPath("$.data.requestsDeleted").isEqualTo(0)
     }
 
     @Test
