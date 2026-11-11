@@ -264,7 +264,6 @@ class AccommodationReferralStatusMapperTest {
       Cas2AssessmentStatus.ON_WAITING_LIST -> AccommodationReferralStatus.ON_WAITING_LIST
       Cas2AssessmentStatus.OFFER_ACCEPTED -> AccommodationReferralStatus.ACCEPTED
       Cas2AssessmentStatus.OFFER_DECLINED -> AccommodationReferralStatus.OFFER_DECLINED_OR_WITHDRAWN
-      Cas2AssessmentStatus.UNKNOWN -> AccommodationReferralStatus.PENDING
     }
 
     val referral = buildReferralHistory(

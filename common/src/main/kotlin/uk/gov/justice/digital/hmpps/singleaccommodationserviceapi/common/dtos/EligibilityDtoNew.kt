@@ -217,10 +217,6 @@ enum class ServiceStatusNew(
   ),
 
   // CAS2 Service Statuses
-  CAS2_UNKNOWN(
-    service = ServiceType.CAS2,
-    uiStatusName = "Unknown",
-  ),
   CAS2_OFFER_DECLINED_OR_WITHDRAWN(
     service = ServiceType.CAS2,
     link = Link(text = EligibilityKeys.START_NEW_APPLICATION, type = LinkType.CAS2_START_APPLICATION),

@@ -48,7 +48,6 @@ object EligibilityNewToOldTransformer {
     ServiceStatusNew.CAS2_ON_WAITING_LIST -> ServiceStatus.ON_WAITING_LIST
     ServiceStatusNew.CAS2_PLACE_OFFERED -> ServiceStatus.PLACE_OFFERED
     ServiceStatusNew.CAS2_SUBMITTED -> ServiceStatus.SUBMITTED
-    ServiceStatusNew.CAS2_UNKNOWN -> ServiceStatus.UNKNOWN
     ServiceStatusNew.CAS2_UPCOMING -> ServiceStatus.UPCOMING
     ServiceStatusNew.CAS2_WITHDRAWN -> ServiceStatus.WITHDRAWN
     ServiceStatusNew.CAS2_ARRIVED -> ServiceStatus.ARRIVED

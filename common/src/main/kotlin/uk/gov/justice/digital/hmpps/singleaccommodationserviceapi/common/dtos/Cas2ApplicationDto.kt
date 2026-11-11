@@ -41,7 +41,6 @@ enum class Cas2AssessmentStatusDto {
   WITHDRAWN,
   CANCELLED,
   AWAITING_ARRIVAL,
-  UNKNOWN,
 }
 
 data class Cas2SubmittedApplicationSummaryDto(
