@@ -129,6 +129,13 @@ jobs:
               console.log('Status card preview is unchanged')
             }
 
+      - name: Set up Java
+        if: steps.copy-preview.outputs.changed == 'true'
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
       - name: Regenerate eligibility rules graphs
         if: steps.copy-preview.outputs.changed == 'true'
         run: ./gradlew :query:generateEligibilityRulesGraphs --no-daemon
