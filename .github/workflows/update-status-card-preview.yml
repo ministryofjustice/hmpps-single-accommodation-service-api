@@ -91,6 +91,7 @@ jobs:
           path: ${{ runner.temp }}/status-card-preview-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Copy changed preview
+        id: copy-preview
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         env:
           PREVIEW_DIRECTORY: ${{ runner.temp }}/status-card-preview-${{ github.run_id }}-${{ github.run_attempt }}
@@ -121,12 +122,15 @@ jobs:
             if (withoutRevision(generated) !== withoutRevision(existing)) {
               fs.mkdirSync(path.dirname(target), { recursive: true })
               fs.writeFileSync(target, generated)
+              core.setOutput('changed', 'true')
               console.log('Updated status card preview')
             } else {
+              core.setOutput('changed', 'false')
               console.log('Status card preview is unchanged')
             }
 
       - name: Regenerate eligibility rules graphs
+        if: steps.copy-preview.outputs.changed == 'true'
         run: ./gradlew :query:generateEligibilityRulesGraphs --no-daemon
 
       - name: Create Pull Request
