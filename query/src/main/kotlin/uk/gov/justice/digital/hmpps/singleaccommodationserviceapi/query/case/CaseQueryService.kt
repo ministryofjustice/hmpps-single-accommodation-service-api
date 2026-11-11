@@ -31,9 +31,13 @@ class CaseQueryService(
   private val clock: Clock,
 ) {
 
-  fun getCaseList(teamCode: String?): ApiResponseDto<List<CaseWithUserAccess>> {
+  fun getCaseList(teamCode: String?, assignedToUsername: String?): ApiResponseDto<List<CaseWithUserAccess>> {
     val user = userService.authorizeAndRetrieveUser()
-    val caseOrchestrationResult = caseOrchestrationService.getCaseList(user.username, teamCode)
+    val caseOrchestrationResult = caseOrchestrationService.getCaseList(
+      viewerUsername = user.username,
+      caseloadUsername = assignedToUsername ?: user.username,
+      teamCode = teamCode,
+    )
     limitedAccessService.throwIfUserAccessFailed(caseOrchestrationResult.upstreamFailures)
 
     val crnsToUserAccess = limitedAccessService.getCrnToUserAccess(caseOrchestrationResult.data.caseAccess)

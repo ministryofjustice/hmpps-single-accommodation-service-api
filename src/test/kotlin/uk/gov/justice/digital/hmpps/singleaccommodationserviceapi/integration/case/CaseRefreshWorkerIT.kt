@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshCompletionService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailure
@@ -122,6 +122,26 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  fun `retains the previous projection when a CAS endpoint returns 404`() {
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
+
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"))
+    ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn)
+
+    val result = caseRefreshWorker.process()
+
+    assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("A")
+    assertThat(result.refreshedCount).isZero()
+    assertThat(result.failedCount).isEqualTo(1)
+
+    val request = caseRefreshRequestRepository.findAll().single()
+    assertThat(request.attemptCount).isEqualTo(1)
+    assertThat(request.lastFailureCategory)
+      .isEqualTo(CaseRefreshFailureCategory.UPSTREAM_CLIENT_ERROR)
+  }
+
+  @Test
   fun `retains a newer refresh request that arrives while Tier is loading`() {
     val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
@@ -148,7 +168,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"), delayMs = 200)
 
-    ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationsDefaultNoContentResponse()
 
     val workerRun = CompletableFuture.runAsync { caseRefreshWorker.process() }
     waitFor {
@@ -275,7 +295,7 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
     clock.freezeAt(now.plus(Duration.ofMinutes(1)))
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"), delayMs = 200)
-    ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn)
+    ApprovedPremisesStubs.getCas1CurrentApplicationsDefaultNoContentResponse()
 
     val workerRun = CompletableFuture.runAsync { caseRefreshWorker.process() }
     waitFor {

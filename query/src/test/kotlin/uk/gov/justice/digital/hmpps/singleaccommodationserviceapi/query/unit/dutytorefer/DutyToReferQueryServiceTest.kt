@@ -725,7 +725,7 @@ class DutyToReferQueryServiceTest {
     fun `should return DTR event details with CRN and frontend view URL`() {
       val dtrEntity = buildDutyToReferEntity(caseId = caseId)
       every { dutyToReferRepository.findByIdOrNull(dtrEntity.id) } returns dtrEntity
-      every { caseRepository.findWithIdentifiersById(caseId) } returns buildCaseEntity { withCrn(crn) }
+      every { caseRepository.findLatestCrnByCaseIdIncludingArchived(caseId) } returns crn
 
       val result = service.getEventDetailsDto(dtrEntity.id)
 

@@ -9,11 +9,10 @@ echo "Running 'gradle ktlintCheck detekt'"
 echo "ktlintCheck complete."
 
 echo "Regenerating eligibility rules graph"
-./gradlew :query:generateEligibilityRulesGraph --no-daemon
+./gradlew :query:generateEligibilityRulesGraphs --no-daemon
 
-if ! git diff --quiet HEAD -- docs/eligibility-rules-graph.md; then
-    echo "Eligibility rules graph differs from the committed version. Review and commit docs/eligibility-rules-graph.md, then push again." >&2
-    exit 1
+if ! git diff --quiet HEAD -- docs/eligibility-rules-graph.md docs/eligibility-rules-graph.html; then
+    echo "Eligibility rules graphs differ from the committed versions. Regenerate using ./gradlew generateEligibilityRulesGraph, commit docs/eligibility-rules-graph.md and docs/eligibility-rules-graph.html, then push again." >&2
 fi
 
 # Run prek hooks

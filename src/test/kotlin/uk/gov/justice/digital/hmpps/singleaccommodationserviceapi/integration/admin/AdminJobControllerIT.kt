@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.http.MediaType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArchiveCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedInboxEventsResponse
@@ -29,6 +30,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.admin.json.archiveCasesByCrnRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.admin.json.bulkLoadCasesRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.admin.json.bulkRefreshCasesByCrnRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.expectApiResponse
@@ -463,6 +465,88 @@ class AdminJobControllerIT : IntegrationTestBase() {
       assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
     }
   }
+
+  @Nested
+  inner class ArchiveCasesByCrn {
+
+    @Test
+    fun `should archive the cases holding the crns and delete their refresh requests`() {
+      val case = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+      caseRepository.save(buildCaseEntity { withCrn(otherRefreshCrn) })
+      caseRefreshRequestService.requestBulkRefresh(listOf(case.id))
+
+      val result = archiveCasesByCrn(
+        archiveCasesByCrnRequestBody(crns = listOf(refreshCrn, " ${otherRefreshCrn.lowercase()} "), dryRun = false),
+      )
+
+      assertThat(result.dryRun).isFalse()
+      assertThat(result.crnsRequested).isEqualTo(2)
+      assertThat(result.casesFound).isEqualTo(2)
+      assertThat(result.casesArchived).isEqualTo(2)
+      assertThat(result.refreshRequestsDeleted).isEqualTo(1)
+      assertThat(result.crnsNotFound).isEmpty()
+
+      assertThat(caseRepository.findByCrns(listOf(refreshCrn, otherRefreshCrn))).isEmpty()
+      assertThat(caseRepository.findCaseForSubjectAccessRequest(refreshCrn, null)!!.archived).isTrue()
+      assertThat(caseRepository.findCaseForSubjectAccessRequest(otherRefreshCrn, null)!!.archived).isTrue()
+      assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+      assertThat(caseRepository.findAllCrns()).doesNotContain(refreshCrn, otherRefreshCrn)
+    }
+
+    @Test
+    fun `reports crns held by no case or already archived as not found`() {
+      caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+      caseRepository.save(buildCaseEntity(archived = true) { withCrn(otherRefreshCrn) })
+
+      val result = archiveCasesByCrn(
+        archiveCasesByCrnRequestBody(crns = listOf(refreshCrn, otherRefreshCrn, "X999999"), dryRun = false),
+      )
+
+      assertThat(result.casesFound).isEqualTo(1)
+      assertThat(result.casesArchived).isEqualTo(1)
+      assertThat(result.crnsNotFound).containsExactly(otherRefreshCrn, "X999999")
+    }
+
+    @Test
+    fun `should report what an archive would do without changing anything when dry run is not specified`() {
+      val case = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+      caseRefreshRequestService.requestBulkRefresh(listOf(case.id))
+
+      val result = archiveCasesByCrn(archiveCasesByCrnRequestBody(crns = listOf(refreshCrn, otherRefreshCrn)))
+
+      assertThat(result.dryRun).isTrue()
+      assertThat(result.crnsRequested).isEqualTo(2)
+      assertThat(result.casesFound).isEqualTo(1)
+      assertThat(result.casesArchived).isZero()
+      assertThat(result.refreshRequestsDeleted).isZero()
+      assertThat(result.crnsNotFound).containsExactly(otherRefreshCrn)
+
+      assertThat(caseRepository.findByCrn(refreshCrn)).isNotNull()
+      assertThat(caseRefreshRequestRepository.findAll().single().caseId).isEqualTo(case.id)
+    }
+
+    @Test
+    fun `should return 400 when no usable crns are supplied`() {
+      val case = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+
+      webTestClient.post().uri("/admin/archive-cases-by-crn")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(archiveCasesByCrnRequestBody(crns = listOf("", "  ")))
+        .withClientCredentialsJwt(roles = adminRoles)
+        .exchange()
+        .expectStatus().isBadRequest
+
+      assertThat(caseRepository.findByCrn(refreshCrn)?.id).isEqualTo(case.id)
+    }
+  }
+
+  private fun archiveCasesByCrn(requestBody: String) = webTestClient.post().uri("/admin/archive-cases-by-crn")
+    .contentType(MediaType.APPLICATION_JSON)
+    .bodyValue(requestBody)
+    .withClientCredentialsJwt(roles = adminRoles)
+    .exchangeSuccessfully()
+    .expectApiResponse<ArchiveCasesResultDto>()
+    .data
 
   private fun bulkRefreshCasesByCrn(requestBody: String) = webTestClient.post().uri("/admin/bulk-refresh-cases-by-crn")
     .contentType(MediaType.APPLICATION_JSON)

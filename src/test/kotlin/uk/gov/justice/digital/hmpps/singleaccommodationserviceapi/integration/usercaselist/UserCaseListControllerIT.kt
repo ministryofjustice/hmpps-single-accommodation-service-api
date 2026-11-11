@@ -1,0 +1,720 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.usercaselist
+
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummariesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummaryName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildManager
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeam
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserCaseListEntryEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListEntryRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.expectApiResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationAccessControlStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_USER_CASE_LIST_ENTRY
+import java.time.LocalDate
+import java.util.UUID
+
+class UserCaseListControllerIT : IntegrationTestBase() {
+
+  @Autowired
+  private lateinit var userCaseListEntryRepository: UserCaseListEntryRepository
+
+  @Autowired
+  private lateinit var caseRefreshRequestRepository: CaseRefreshRequestRepository
+
+  lateinit var deliusUser: UserEntity
+
+  @BeforeEach
+  fun setup() {
+    databaseUtils.truncate(SAS_USER_CASE_LIST_ENTRY, SAS_CASE)
+    deliusUser = createTestDataSetupUserAndDeliusUser().second
+    HmppsAuthStubs.stubGrantToken()
+  }
+
+  @Test
+  fun `creates the user case list and creates then refreshes any crns not already persisted`() {
+    val existingCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("B654321")
+
+    postUserCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
+
+    val savedMappings = userCaseListEntryRepository.findAll()
+    assertThat(savedMappings).hasSize(2)
+    assertThat(savedMappings.map { it.listType }).containsOnly(CaseListType.CUSTOM)
+
+    val newCase = caseRepository.findByCrn("B654321")
+    assertThat(newCase).isNotNull()
+    assertThat(savedMappings.map { it.sasCaseId }).containsExactlyInAnyOrder(existingCase.id, newCase!!.id)
+
+    val refreshRequests = caseRefreshRequestRepository.findAll()
+    assertThat(refreshRequests.map { it.caseId }).containsExactlyInAnyOrder(existingCase.id, newCase.id)
+  }
+
+  @Test
+  fun `enriches a newly created case with the details from the case summary`() {
+    ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
+      response = CaseSummaries(
+        listOf(
+          buildCaseSummary(
+            crn = "B654321",
+            nomsId = "B1234BB",
+            name = buildCaseSummaryName(forename = "Joe", surname = "Bloggs"),
+            dateOfBirth = LocalDate.of(1990, 1, 2),
+          ),
+        ),
+      ),
+    )
+
+    postUserCaseList(listOf("B654321")).expectStatus().isCreated
+
+    val newCase = caseRepository.findByCrn("B654321")
+    assertThat(newCase).isNotNull()
+    assertThat(newCase!!.firstName).isEqualTo("Joe")
+    assertThat(newCase.lastName).isEqualTo("Bloggs")
+    assertThat(newCase.dateOfBirth).isEqualTo(LocalDate.of(1990, 1, 2))
+    assertThat(caseRepository.findByIdentifier("B1234BB", IdentifierType.PRISON_NUMBER)?.id).isEqualTo(newCase.id)
+  }
+
+  @Test
+  fun `leaves an already persisted case untouched rather than enriching it`() {
+    val existingCase = caseRepository.save(
+      buildCaseEntity(firstName = "Joe", lastName = "Bloggs") { withCrn("A123456") },
+    )
+
+    postUserCaseList(listOf("A123456")).expectStatus().isCreated
+
+    val unchanged = caseRepository.findByCrn("A123456")
+    assertThat(unchanged!!.id).isEqualTo(existingCase.id)
+    assertThat(unchanged.firstName).isEqualTo("Joe")
+    assertThat(unchanged.lastName).isEqualTo("Bloggs")
+  }
+
+  @Test
+  fun `replaces an existing user case list on POST`() {
+    val oldCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    val newCase = caseRepository.save(buildCaseEntity { withCrn("B654321") })
+    userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = oldCase.id))
+
+    postUserCaseList(listOf("B654321")).expectStatus().isCreated
+
+    val savedMappings = userCaseListEntryRepository.findAll()
+    assertThat(savedMappings).hasSize(1)
+    assertThat(savedMappings.single().sasCaseId).isEqualTo(newCase.id)
+  }
+
+  @Test
+  fun `replaces an existing user case list that overlaps the new one`() {
+    val keptCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    val droppedCase = caseRepository.save(buildCaseEntity { withCrn("B654321") })
+    caseRepository.save(buildCaseEntity { withCrn("C111111") })
+    userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = keptCase.id))
+    userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = droppedCase.id))
+
+    postUserCaseList(listOf("A123456", "C111111")).expectStatus().isCreated
+
+    val addedCase = caseRepository.findByCrn("C111111")!!
+    val savedMappings = userCaseListEntryRepository.findAll()
+    assertThat(savedMappings.map { it.sasCaseId }).containsExactlyInAnyOrder(keptCase.id, addedCase.id)
+    assertThat(savedMappings.map { it.sasUserId }).containsOnly(deliusUser.id)
+  }
+
+  @Test
+  fun `resubmitting the identical user case list succeeds and leaves one mapping per case`() {
+    caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    caseRepository.save(buildCaseEntity { withCrn("B654321") })
+
+    postUserCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
+    postUserCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
+
+    assertThat(userCaseListEntryRepository.findAll()).hasSize(2)
+  }
+
+  @Test
+  fun `replacing one users list does not affect another users list`() {
+    val user2 = userRepository.save(buildUserEntity(username = "user2"))
+    val sharedCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = user2.id, sasCaseId = sharedCase.id))
+
+    postUserCaseList(listOf("A123456")).expectStatus().isCreated
+
+    val otherUsersMappings = userCaseListEntryRepository.findAll().filter { it.sasUserId == user2.id }
+    assertThat(otherUsersMappings.map { it.sasCaseId }).containsExactly(sharedCase.id)
+  }
+
+  @Test
+  fun `replacing the user case list does not affect the users search history list`() {
+    val historyCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    caseRepository.save(buildCaseEntity { withCrn("B654321") })
+    userCaseListEntryRepository.save(
+      buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = historyCase.id, listType = CaseListType.SEARCH_HISTORY),
+    )
+
+    postUserCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
+
+    val savedMappings = userCaseListEntryRepository.findAll()
+    assertThat(savedMappings.filter { it.listType == CaseListType.SEARCH_HISTORY }.map { it.sasCaseId })
+      .containsExactly(historyCase.id)
+    assertThat(savedMappings.filter { it.listType == CaseListType.CUSTOM }).hasSize(2)
+  }
+
+  @Test
+  fun `collapses duplicate crns in one request`() {
+    caseRepository.save(buildCaseEntity { withCrn("A123456") })
+
+    postUserCaseList(listOf("A123456", "a123456", " A123456 ")).expectStatus().isCreated
+
+    assertThat(userCaseListEntryRepository.findAll()).hasSize(1)
+  }
+
+  @Test
+  fun `accepts a lowercase crn and stores it against the uppercased case`() {
+    ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("A123456")
+
+    postUserCaseList(listOf("a123456")).expectStatus().isCreated
+
+    assertThat(caseRepository.findByCrn("A123456")).isNotNull()
+    assertThat(caseRepository.findByCrn("a123456")).isNull()
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["123456", "AB12345", "A12345", "A1234567", "A12B456"])
+  fun `returns BadRequest when a crn format is invalid`(crn: String) {
+    postUserCaseList(listOf(crn)).expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: Enter a valid format for all CRNs. For example, D016821. $crn is not a valid CRN format")
+
+    assertThat(userCaseListEntryRepository.findAll()).isEmpty()
+  }
+  companion object {
+    private val allCrns = setOf("A111111", "B222222", "C333333", "D444444")
+
+    @JvmStatic
+    fun userCaseListFilters() = listOf(
+      Arguments.of("no filters returns every case", emptyMap<String, String>(), allCrns),
+
+      Arguments.of("search by CRN ignoring case", mapOf("searchTerm" to "a111111"), setOf("A111111")),
+      Arguments.of("search by partial name ignoring case", mapOf("searchTerm" to "CAROL"), setOf("C333333")),
+      Arguments.of("search by multiple name parts", mapOf("searchTerm" to "alice alpha"), setOf("A111111")),
+      Arguments.of("search by CRN finds a limited case", mapOf("searchTerm" to "D444444"), setOf("D444444")),
+      Arguments.of("search by name does not find a limited case", mapOf("searchTerm" to "Dan Delta"), emptySet<String>()),
+      Arguments.of("search with no match", mapOf("searchTerm" to "nobody"), emptySet<String>()),
+
+      Arguments.of("risk level HIGH", mapOf("riskLevel" to "HIGH"), setOf("A111111")),
+      Arguments.of("risk level VERY_HIGH excludes the limited case", mapOf("riskLevel" to "VERY_HIGH"), setOf("B222222")),
+      Arguments.of("risk level LOW", mapOf("riskLevel" to "LOW"), setOf("C333333")),
+      Arguments.of("risk level with no matches", mapOf("riskLevel" to "MEDIUM"), emptySet<String>()),
+
+      Arguments.of("team code includes the limited case", mapOf("teamCode" to "TEAM_A"), setOf("A111111", "B222222", "D444444")),
+      Arguments.of("team code ignoring case", mapOf("teamCode" to "team_b"), setOf("C333333")),
+      Arguments.of("unknown team code", mapOf("teamCode" to "TEAM_Z"), emptySet<String>()),
+
+      Arguments.of("people type HOUSED", mapOf("peopleType" to "HOUSED"), setOf("A111111")),
+      Arguments.of("people type NFA_RISK", mapOf("peopleType" to "NFA_RISK"), setOf("B222222", "C333333", "D444444")),
+
+      Arguments.of(
+        "all filters combined",
+        mapOf("teamCode" to "TEAM_A", "riskLevel" to "VERY_HIGH", "peopleType" to "NFA_RISK", "searchTerm" to "bob"),
+        setOf("B222222"),
+      ),
+      Arguments.of(
+        "combined filters with no match",
+        mapOf("teamCode" to "TEAM_A", "riskLevel" to "HIGH", "peopleType" to "NFA_RISK"),
+        emptySet<String>(),
+      ),
+    )
+
+    @JvmStatic
+    fun invalidValues() = listOf(
+      listOf("123456", "AB12345"),
+      listOf("A12345", "A1234567", "A12B456"),
+    )
+  }
+
+  @ParameterizedTest
+  @MethodSource("invalidValues")
+  fun `returns BadRequest when multiple crn formats are invalid`(crnList: List<String>) {
+    postUserCaseList(crnList).expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: Enter a valid format for all CRNs. For example, D016821. ${crnList.joinToString()} are not valid CRN formats")
+
+    assertThat(userCaseListEntryRepository.findAll()).isEmpty()
+  }
+
+  @Test
+  fun `returns BadRequest for an empty crn list`() {
+    postUserCaseList(emptyList()).expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: createUserCaseList.crns: Enter 500 CRNs or fewer")
+  }
+
+  @Test
+  fun `returns BadRequest when more than 500 crns are provided`() {
+    postUserCaseList(List(501) { "A123456" }).expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: createUserCaseList.crns: Enter 500 CRNs or fewer")
+
+    assertThat(userCaseListEntryRepository.findAll()).isEmpty()
+  }
+
+  @Test
+  fun `accepts exactly 500 crns`() {
+    val crns = (1..500).map { "A%06d".format(it) }
+    ProbationIntegrationDeliusStubs.postCaseSummariesForCrns(*crns.toTypedArray())
+
+    postUserCaseList(crns).expectStatus().isCreated
+
+    assertThat(userCaseListEntryRepository.findAll()).hasSize(500)
+  }
+
+  @Test
+  fun `returns BadRequest and creates nothing when delius does not recognise a crn`() {
+    ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("A123456")
+
+    postUserCaseList(listOf("A123456", "B654321", "C111111")).expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("$.userMessage").isEqualTo("B654321, C111111")
+
+    assertThat(caseRepository.findAll()).isEmpty()
+    assertThat(userCaseListEntryRepository.findAll()).isEmpty()
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+  }
+
+  @Test
+  fun `only sends crns that are not already persisted to delius for validation`() {
+    caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("B654321")
+
+    postUserCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
+
+    sasWiremock.verify(
+      1,
+      postRequestedFor(urlPathEqualTo("/probation-cases/summaries")).withRequestBody(equalToJson("[\"B654321\"]")),
+    )
+  }
+
+  @Test
+  fun `does not call delius when every crn is already persisted`() {
+    caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    caseRepository.save(buildCaseEntity { withCrn("B654321") })
+
+    postUserCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
+
+    sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/probation-cases/summaries")))
+  }
+
+  @Test
+  fun `retries then creates nothing when delius is unavailable`() {
+    ProbationIntegrationDeliusStubs.postCaseSummariesServerError()
+
+    postUserCaseList(listOf("A123456", "B654321")).expectStatus().is5xxServerError
+
+    sasWiremock.verify(3, postRequestedFor(urlPathEqualTo("/probation-cases/summaries")))
+    assertThat(caseRepository.findAll()).isEmpty()
+    assertThat(userCaseListEntryRepository.findAll()).isEmpty()
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+  }
+
+  @Test
+  fun `leaves the existing user case list untouched when a crn is invalid`() {
+    val existingCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = existingCase.id))
+    ProbationIntegrationDeliusStubs.postCaseSummariesForCrns()
+
+    postUserCaseList(listOf("B654321")).expectStatus().isBadRequest
+
+    val savedMappings = userCaseListEntryRepository.findAll()
+    assertThat(savedMappings.map { it.sasCaseId }).containsExactly(existingCase.id)
+    assertThat(caseRepository.findByCrn("B654321")).isNull()
+  }
+
+  @Nested
+  inner class GetUserCaseList {
+
+    @BeforeEach
+    fun stubCaseSummaries() {
+      ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("A123456", "B654321", "C111111")
+    }
+
+    @Test
+    fun `returns an empty list when the user has no user case list`() {
+      getUserCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(0)
+
+      sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
+      sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/probation-cases/summaries")))
+    }
+
+    @Test
+    fun `returns the persisted assigned to and the limited access flag from the case summary`() {
+      val case = caseRepository.save(
+        buildCaseEntity(
+          assignedToForename = "Joe",
+          assignedToSurname = "Bloggs",
+          assignedToUsername = "JOE.BLOGGS",
+        ) { withCrn("A123456") },
+      )
+      addToUserCaseList(case.id)
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, restrictedCrns = listOf("A123456"))
+      ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
+        CaseSummaries(listOf(buildCaseSummary(crn = "A123456", currentRestriction = true))),
+      )
+
+      getUserCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data[0].limitedAccess").isEqualTo(true)
+        .jsonPath("$.upstreamFailures").doesNotExist()
+
+      sasWiremock.verify(
+        1,
+        postRequestedFor(urlPathEqualTo("/probation-cases/summaries")).withRequestBody(equalToJson("[\"A123456\"]")),
+      )
+    }
+
+    @Test
+    fun `does not return cases whose only crn is archived in the users user case list`() {
+      val activeCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val archivedCase = caseRepository.save(
+        buildCaseEntity {
+          withCrn("B654321")
+          archived = true
+        },
+      )
+
+      addToUserCaseList(activeCase.id)
+      addToUserCaseList(archivedCase.id)
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf("A123456"),
+      )
+
+      getUserCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+    }
+
+    @Test
+    fun `returns the cases with an upstream failure and a false limited access flag when delius case summaries are unavailable`() {
+      addToUserCaseList(caseRepository.save(buildCaseEntity(firstName = "Joe") { withCrn("A123456") }).id)
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
+      ProbationIntegrationDeliusStubs.postCaseSummariesServerError()
+
+      getUserCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+        .jsonPath("$.data[0].forename").isEqualTo("Joe")
+        .jsonPath("$.data[0].userAccess").isEqualTo("FULL")
+        .jsonPath("$.data[0].limitedAccess").isEqualTo(false)
+        .jsonPath("$.upstreamFailures.length()").isEqualTo(1)
+        .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("postCaseSummaries")
+
+      sasWiremock.verify(3, postRequestedFor(urlPathEqualTo("/probation-cases/summaries")))
+    }
+
+    @Test
+    fun `returns the cases in the users user case list`() {
+      val case = caseRepository.save(
+        buildCaseEntity(tierScore = "B2", firstName = "Joe", lastName = "Bloggs", roshLevelCode = "RHRH") { withCrn("A123456") },
+      )
+      addToUserCaseList(case.id)
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
+
+      getUserCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+        .jsonPath("$.data[0].forename").isEqualTo("Joe")
+        .jsonPath("$.data[0].surname").isEqualTo("Bloggs")
+        .jsonPath("$.data[0].tierScore").isEqualTo("B2")
+        .jsonPath("$.data[0].riskLevel").isEqualTo("HIGH")
+        .jsonPath("$.data[0].userAccess").isEqualTo("FULL")
+
+      sasWiremock.verify(
+        1,
+        postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")).withRequestBody(equalToJson("[\"A123456\"]")),
+      )
+    }
+
+    @Test
+    fun `does not return cases from another users user case list`() {
+      val user2 = userRepository.save(buildUserEntity(username = "user2"))
+      val myCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val theirCase = caseRepository.save(buildCaseEntity { withCrn("B654321") })
+      addToUserCaseList(myCase.id)
+      userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = user2.id, sasCaseId = theirCase.id))
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
+
+      getUserCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+    }
+
+    @Test
+    fun `does not return cases from the users search history list`() {
+      val myCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val historyCase = caseRepository.save(buildCaseEntity { withCrn("B654321") })
+      addToUserCaseList(myCase.id)
+      userCaseListEntryRepository.save(
+        buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = historyCase.id, listType = CaseListType.SEARCH_HISTORY),
+      )
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
+
+      getUserCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+    }
+
+    @Test
+    fun `returns cases the user is excluded or restricted from as limited cases at the top of the list`() {
+      addToUserCaseList(
+        caseRepository.save(
+          buildCaseEntity(
+            firstName = "Joe",
+            lastName = "Bloggs",
+            accommodationSummariesDto = buildAccommodationSummariesDto(CaseAccommodationStatus.SETTLED),
+          ) { withCrn("A123456") },
+        ).id,
+      )
+      addToUserCaseList(caseRepository.save(buildCaseEntity(firstName = "Jane", lastName = "Doe") { withCrn("B654321") }).id)
+      addToUserCaseList(caseRepository.save(buildCaseEntity(firstName = "John", lastName = "Smith") { withCrn("C111111") }).id)
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf("A123456"),
+        excludedCrns = listOf("B654321"),
+        restrictedCrns = listOf("C111111"),
+      )
+
+      getUserCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(3)
+        .jsonPath("$.data[0].crn").isEqualTo("B654321")
+        .jsonPath("$.data[0].userAccess").isEqualTo("LIMITED")
+        .jsonPath("$.data[0].limitedAccess").isEqualTo(true)
+        .jsonPath("$.data[0].forename").doesNotExist()
+        .jsonPath("$.data[1].crn").isEqualTo("C111111")
+        .jsonPath("$.data[1].userAccess").isEqualTo("LIMITED")
+        .jsonPath("$.data[1].surname").doesNotExist()
+        .jsonPath("$.data[2].crn").isEqualTo("A123456")
+        .jsonPath("$.data[2].userAccess").isEqualTo("FULL")
+    }
+
+    @Test
+    fun `includes partially populated cases with blank fields`() {
+      val partial = caseRepository.save(
+        buildCaseEntity(tierScore = null, firstName = "Joe", lastName = "Bloggs") { withCrn("A123456") },
+      )
+      addToUserCaseList(partial.id)
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
+
+      getUserCaseList().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+        .jsonPath("$.data[0].forename").isEqualTo("Joe")
+        .jsonPath("$.data[0].tierScore").doesNotExist()
+        .jsonPath("$.data[0].accommodationSummaries.caseAccommodationStatus").doesNotExist()
+    }
+
+    @Test
+    fun `retries then fails when probation access control is unavailable`() {
+      addToUserCaseList(caseRepository.save(buildCaseEntity { withCrn("A123456") }).id)
+      ProbationAccessControlStubs.postUserAccessServerError(USERNAME_OF_LOGGED_IN_DELIUS_USER)
+
+      getUserCaseList().expectStatus().is5xxServerError
+
+      sasWiremock.verify(3, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.usercaselist.UserCaseListControllerIT#userCaseListFilters")
+    fun `filters the user case list`(description: String, queryParams: Map<String, String>, expectedCrns: Set<String>) {
+      seedFilterScenario()
+
+      val actualCrns = webTestClient.get()
+        .uri { builder ->
+          builder.path("/case-list/custom")
+          queryParams.forEach { (name, value) -> builder.queryParam(name, value) }
+          builder.build()
+        }
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectApiResponse<List<CaseDto>>()
+        .data
+        .map { it.crn }
+
+      assertThat(actualCrns).containsExactlyInAnyOrderElementsOf(expectedCrns)
+    }
+
+    // A111111 Alice Alpha  HIGH      SETTLED         TEAM_A  full
+    // B222222 Bob Beta     VERY_HIGH TRANSIENT       TEAM_A  full
+    // C333333 Carol Gamma  LOW       NO_FIXED_ABODE  TEAM_B  full
+    // D444444 Dan Delta    VERY_HIGH (none)          TEAM_A  restricted (limited)
+    private fun seedFilterScenario() {
+      fun addCase(crn: String, firstName: String, lastName: String, roshLevelCode: String, status: CaseAccommodationStatus?) {
+        addToUserCaseList(
+          caseRepository.save(
+            buildCaseEntity(
+              firstName = firstName,
+              lastName = lastName,
+              roshLevelCode = roshLevelCode,
+              // assigned to someone else, to show the custom list is not filtered by assignee
+              assignedToForename = "Probation",
+              assignedToSurname = "Practitioner",
+              assignedToUsername = "SOMEONE.ELSE",
+              accommodationSummariesDto = status?.let { buildAccommodationSummariesDto(it) },
+            ) { withCrn(crn) },
+          ).id,
+        )
+      }
+      addCase("A111111", "Alice", "Alpha", "RHRH", CaseAccommodationStatus.SETTLED)
+      addCase("B222222", "Bob", "Beta", "RVHR", CaseAccommodationStatus.TRANSIENT)
+      addCase("C333333", "Carol", "Gamma", "RLRH", CaseAccommodationStatus.NO_FIXED_ABODE)
+      addCase("D444444", "Dan", "Delta", "RVHR", null)
+
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf("A111111", "B222222", "C333333"),
+        restrictedCrns = listOf("D444444"),
+      )
+      fun summary(crn: String, teamCode: String) = buildCaseSummary(crn = crn, manager = buildManager(buildTeam(code = teamCode)))
+      ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
+        CaseSummaries(
+          listOf(
+            summary("A111111", "TEAM_A"),
+            summary("B222222", "TEAM_A"),
+            summary("C333333", "TEAM_B"),
+            summary("D444444", "TEAM_A"),
+          ),
+        ),
+      )
+    }
+
+    private fun addToUserCaseList(caseId: UUID) = userCaseListEntryRepository.save(
+      buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = caseId),
+    )
+
+    private fun getUserCaseList() = webTestClient.get().uri("/case-list/custom")
+      .withDeliusUserJwt()
+      .exchange()
+  }
+
+  @Nested
+  inner class GetUserCaseListCrns {
+
+    @Test
+    fun `returns an empty list when the user has no user case list`() {
+      getUserCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(0)
+    }
+
+    @Test
+    fun `returns the sorted crns in the users user case list without LAO checks`() {
+      val user2 = userRepository.save(buildUserEntity(username = "user2"))
+      val theirCase = caseRepository.save(buildCaseEntity { withCrn("C111111") })
+      userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = user2.id, sasCaseId = theirCase.id))
+      listOf("B654321", "A123456").forEach {
+        val case = caseRepository.save(buildCaseEntity { withCrn(it) })
+        userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = case.id))
+      }
+
+      getUserCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data").isEqualTo(listOf("A123456", "B654321"))
+
+      sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
+    }
+
+    @Test
+    fun `does not return archived cases in the users user case list`() {
+      val activeCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val archivedCase = caseRepository.save(
+        buildCaseEntity {
+          withCrn("B654321")
+          archived = true
+        },
+      )
+
+      userCaseListEntryRepository.save(
+        buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = activeCase.id),
+      )
+      userCaseListEntryRepository.save(
+        buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = archivedCase.id),
+      )
+
+      getUserCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data").isEqualTo(listOf("A123456"))
+
+      sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
+    }
+
+    @Test
+    fun `does not return crns from the users search history list`() {
+      val myCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val historyCase = caseRepository.save(buildCaseEntity { withCrn("B654321") })
+      userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = myCase.id))
+      userCaseListEntryRepository.save(
+        buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = historyCase.id, listType = CaseListType.SEARCH_HISTORY),
+      )
+
+      getUserCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data").isEqualTo(listOf("A123456"))
+    }
+
+    @Test
+    fun `returns the crns that were saved by the POST request`() {
+      caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("B654321")
+
+      postUserCaseList(listOf("b654321", "A123456")).expectStatus().isCreated
+
+      getUserCaseListCrns().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data").isEqualTo(listOf("A123456", "B654321"))
+    }
+
+    private fun getUserCaseListCrns() = webTestClient.get().uri("/case-list/custom/crns")
+      .withDeliusUserJwt()
+      .exchange()
+  }
+
+  private fun postUserCaseList(crns: List<String>) = webTestClient.post().uri("/case-list/custom")
+    .contentType(MediaType.APPLICATION_JSON)
+    .bodyValue(crns.joinToString(prefix = "[", postfix = "]") { "\"$it\"" })
+    .withDeliusUserJwt()
+    .exchange()
+}

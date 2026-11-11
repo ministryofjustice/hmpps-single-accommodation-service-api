@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildExternalReferralSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildStaffDetailDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
@@ -89,6 +90,29 @@ class AccommodationReferralTransformerTest {
         else -> {}
       }
     }
+  }
+
+  @Test
+  fun `should transform CAS2 application sub-status`() {
+    val orchestrationDto = buildAccommodationReferralOrchestrationDto(
+      cas1Referrals = emptyList(),
+      cas2Referrals = listOf(
+        buildReferralHistory(
+          applicationStatus = Cas2AssessmentStatus.CANCELLED,
+          applicationSubStatus = "some-sub-status",
+        ),
+      ),
+      cas3Referrals = emptyList(),
+    )
+
+    val result = AccommodationReferralTransformer.transformReferrals(
+      orchestrationDto,
+      emptyList(),
+      emptyList(),
+    )
+
+    assertThat(result).hasSize(1)
+    assertThat(result.first().subStatus).isEqualTo("some-sub-status")
   }
 
   @Test
