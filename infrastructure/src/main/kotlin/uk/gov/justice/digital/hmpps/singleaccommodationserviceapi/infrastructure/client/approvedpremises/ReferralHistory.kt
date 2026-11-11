@@ -166,13 +166,12 @@ enum class Cas2AssessmentStatus(@get:JsonValue val value: String) {
   WITHDRAWN("withdrawn"),
   CANCELLED("cancelled"),
   AWAITING_ARRIVAL("awaitingArrival"),
-  UNKNOWN("unknown"),
   ;
 
   companion object {
     @JvmStatic
     @JsonCreator
-    fun forValue(value: String): Cas2AssessmentStatus = entries.firstOrNull { it.value == value } ?: UNKNOWN
+    fun forValue(value: String): Cas2AssessmentStatus = entries.firstOrNull { it.value == value } ?: throw IllegalArgumentException("Unknown value: $value")
   }
 }
 

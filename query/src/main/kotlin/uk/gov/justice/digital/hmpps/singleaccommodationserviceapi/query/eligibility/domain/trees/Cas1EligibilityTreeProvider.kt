@@ -8,27 +8,27 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1RejectedContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1StartContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1UpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ActivePlacementRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1ActivePlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1ActiveRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1MoreInfoNotRequestedRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotArrivedPlacementRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotDepartedPlacementRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotRejectedRequestRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotSubmittedRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotWithdrawnRequestRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1PlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1RejectedRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1RequestForPlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1SubmittedRequestRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1SubmittedRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1UpcomingPlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.CurrentAccommodationEligibleForCas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.MaleTierEligibleForCas1RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.MoreInfoNotRequestedRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotArrivedPlacementRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotDepartedPlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotMaleRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotMaleTierEligibleForCas1RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotRejectedRequestRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotWithdrawnRequestRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.PlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ReleaseWithin28WeeksRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.RequestForPlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.RoshEligibleRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.SubmittedRequestRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.UpcomingPlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
@@ -46,22 +46,22 @@ class Cas1EligibilityTreeProvider(
   private val activeReferral: Cas1ActiveRuleSet,
   private val rejectedContextUpdater: Cas1RejectedContextUpdater,
   private val rejected: Cas1RejectedRuleSet,
-  private val placement: PlacementRuleSet,
-  private val requestForPlacement: RequestForPlacementRuleSet,
-  private val activePlacement: ActivePlacementRuleSet,
-  private val notDepartedPlacement: NotDepartedPlacementRuleSet,
-  private val upcomingPlacement: UpcomingPlacementRuleSet,
-  private val notArrivedPlacement: NotArrivedPlacementRuleSet,
+  private val placement: Cas1PlacementRuleSet,
+  private val requestForPlacement: Cas1RequestForPlacementRuleSet,
+  private val activePlacement: Cas1ActivePlacementRuleSet,
+  private val notDepartedPlacement: Cas1NotDepartedPlacementRuleSet,
+  private val upcomingPlacement: Cas1UpcomingPlacementRuleSet,
+  private val notArrivedPlacement: Cas1NotArrivedPlacementRuleSet,
   private val startContextUpdater: Cas1StartContextUpdater,
   private val maleTierEligibleForCas1: MaleTierEligibleForCas1RuleSet,
   private val notMaleTierEligibleForCas1: NotMaleTierEligibleForCas1RuleSet,
   private val notMale: NotMaleRuleSet,
   private val currentAccommodationEligibleForCas1: CurrentAccommodationEligibleForCas1RuleSet,
   private val roshEligible: RoshEligibleRuleSet,
-  private val notRejectedRequest: NotRejectedRequestRuleSet,
-  private val notWithdrawnRequest: NotWithdrawnRequestRuleSet,
-  private val submittedRequest: SubmittedRequestRuleSet,
-  private val moreInfoNotRequested: MoreInfoNotRequestedRuleSet,
+  private val notRejectedRequest: Cas1NotRejectedRequestRuleSet,
+  private val notWithdrawnRequest: Cas1NotWithdrawnRequestRuleSet,
+  private val submittedRequest: Cas1SubmittedRequestRuleSet,
+  private val moreInfoNotRequested: Cas1MoreInfoNotRequestedRuleSet,
   private val submitted: Cas1SubmittedRuleSet,
 
 ) : EligibilityTreeProvider {

@@ -105,7 +105,6 @@ class EligibilityNewToOldTransformerTest {
       Arguments.of(ServiceStatusNew.CAS2_ON_WAITING_LIST, ServiceStatus.ON_WAITING_LIST),
       Arguments.of(ServiceStatusNew.CAS2_PLACE_OFFERED, ServiceStatus.PLACE_OFFERED),
       Arguments.of(ServiceStatusNew.CAS2_SUBMITTED, ServiceStatus.SUBMITTED),
-      Arguments.of(ServiceStatusNew.CAS2_UNKNOWN, ServiceStatus.UNKNOWN),
       Arguments.of(ServiceStatusNew.CAS2_UPCOMING, ServiceStatus.UPCOMING),
       Arguments.of(ServiceStatusNew.CAS2_WITHDRAWN, ServiceStatus.WITHDRAWN),
 

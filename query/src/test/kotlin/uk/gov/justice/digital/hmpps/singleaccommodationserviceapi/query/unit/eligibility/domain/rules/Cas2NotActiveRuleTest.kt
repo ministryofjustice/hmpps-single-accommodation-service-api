@@ -14,10 +14,28 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class Cas2NotActiveRuleTest {
   private val rule = Cas2NotActiveRule()
-  private val description = "FAIL if assessment is present and inactive"
+  private val description = "FAIL if assessment is inactive"
 
   @ParameterizedTest
-  @EnumSource(value = Cas2AssessmentStatus::class, names = ["WITHDRAWN", "CANCELLED", "OFFER_DECLINED"])
+  @EnumSource(value = Cas2AssessmentStatus::class, names = ["MORE_INFO_REQUESTED", "AWAITING_DECISION", "ON_WAITING_LIST", "PLACE_OFFERED", "OFFER_ACCEPTED", "AWAITING_ARRIVAL"])
+  fun `active assessment passes`(status: Cas2AssessmentStatus) {
+    val result = rule.evaluate(
+      buildDomainData(
+        cas2Application = buildCas2Application(
+          submittedApplication = buildCas2SubmittedApplicationSummary(latestAssessmentStatus = status),
+        ),
+      ),
+    )
+
+    assertThat(result).isEqualTo(RuleResult(description, RuleStatus.PASS))
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+    value = Cas2AssessmentStatus::class,
+    names = ["MORE_INFO_REQUESTED", "AWAITING_DECISION", "ON_WAITING_LIST", "PLACE_OFFERED", "OFFER_ACCEPTED", "AWAITING_ARRIVAL"],
+    mode = EnumSource.Mode.EXCLUDE,
+  )
   fun `inactive assessment fails`(status: Cas2AssessmentStatus) {
     val result = rule.evaluate(
       buildDomainData(
@@ -34,26 +52,8 @@ class Cas2NotActiveRuleTest {
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.FAIL))
   }
 
-  @ParameterizedTest
-  @EnumSource(
-    value = Cas2AssessmentStatus::class,
-    names = ["WITHDRAWN", "CANCELLED", "OFFER_DECLINED"],
-    mode = EnumSource.Mode.EXCLUDE,
-  )
-  fun `assessment that is not inactive passes`(status: Cas2AssessmentStatus) {
-    val result = rule.evaluate(
-      buildDomainData(
-        cas2Application = buildCas2Application(
-          submittedApplication = buildCas2SubmittedApplicationSummary(latestAssessmentStatus = status),
-        ),
-      ),
-    )
-
-    assertThat(result).isEqualTo(RuleResult(description, RuleStatus.PASS))
-  }
-
   @Test
-  fun `missing assessment status passes`() {
+  fun `missing assessment status fails`() {
     val result = rule.evaluate(
       buildDomainData(
         cas2Application = buildCas2Application(
@@ -62,22 +62,22 @@ class Cas2NotActiveRuleTest {
       ),
     )
 
-    assertThat(result).isEqualTo(RuleResult(description, RuleStatus.PASS))
+    assertThat(result).isEqualTo(RuleResult(description, RuleStatus.FAIL))
   }
 
   @Test
-  fun `missing submitted application passes`() {
+  fun `missing submitted application fails`() {
     val result = rule.evaluate(
       buildDomainData(cas2Application = buildCas2Application(submittedApplication = null)),
     )
 
-    assertThat(result).isEqualTo(RuleResult(description, RuleStatus.PASS))
+    assertThat(result).isEqualTo(RuleResult(description, RuleStatus.FAIL))
   }
 
   @Test
-  fun `missing application passes`() {
+  fun `missing application fails`() {
     val result = rule.evaluate(buildDomainData(cas2Application = null))
 
-    assertThat(result).isEqualTo(RuleResult(description, RuleStatus.PASS))
+    assertThat(result).isEqualTo(RuleResult(description, RuleStatus.FAIL))
   }
 }
