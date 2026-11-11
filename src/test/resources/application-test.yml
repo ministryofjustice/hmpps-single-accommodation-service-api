@@ -40,6 +40,9 @@ service:
     base-url: commissioned-rehabilitative-services-ui-test-url
 
 spring:
+  config:
+    import:
+      - classpath:application-test-sar.yml
   cache:
     type: none
   datasource:
@@ -144,17 +147,6 @@ hmpps:
         dlqName: ${random.uuid}
         queueName: ${random.uuid}
         subscribeTopicId: hmpps-domain-event-topic
-  sar:
-    template:
-      path: /sar/template_hmpps-single-accommodation-service-api.mustache
-      enabled: true
-    tests:
-      attachments-expected: false
-      expected-flyway-schema-version: "0066"
-      expected-jpa-entity-schema:
-        path: /sar/sas-entities-schema.json
-      expected-render-result:
-        path: /sar/sas-expected-render-result.html
 
 test-data-setup:
   user-id: 48785d6e-19f2-49e6-9530-d48423f95e66

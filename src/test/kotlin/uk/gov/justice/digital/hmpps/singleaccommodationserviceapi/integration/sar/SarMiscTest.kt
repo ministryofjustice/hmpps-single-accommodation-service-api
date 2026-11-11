@@ -1,0 +1,145 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar
+
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.hmpps.kotlin.auth.AuthSource
+import java.util.UUID
+
+/**
+ * Miscellaneous API and Repository tests related to SAR
+ *
+ * For general information on SARs and testing, see docs/subject_access_requests.md
+ */
+class SarMiscTest : IntegrationTestBase() {
+
+  private fun sarToken() = jwtAuthHelper.createJwtAccessToken(
+    grantType = GrantType.CLIENT_CREDENTIALS.type,
+    clientId = "test-client-id",
+    username = null,
+    roles = listOf("ROLE_SAR_DATA_ACCESS"),
+    authSource = AuthSource.NONE.source,
+  )
+
+  private fun nonSarToken() = jwtAuthHelper.createJwtAccessToken(
+    grantType = GrantType.CLIENT_CREDENTIALS.type,
+    clientId = "other-client",
+    username = null,
+    roles = listOf("SOME_OTHER_ROLE"),
+    authSource = AuthSource.NONE.source,
+  )
+
+  @Nested
+  inner class ApiTest {
+
+    @Test
+    fun `GET subject-access-request returns 400 when neither PRN nor CRN provided`() {
+      webTestClient.get()
+        .uri("/subject-access-request")
+        .headers { it.setBearerAuth(sarToken()) }
+        .exchange()
+        .expectStatus().isBadRequest
+    }
+
+    @Test
+    fun `GET subject-access-request returns 204 when no data found for CRN`() {
+      webTestClient.get()
+        .uri("/subject-access-request?crn=X000000")
+        .headers { it.setBearerAuth(sarToken()) }
+        .exchange()
+        .expectStatus().isNoContent
+    }
+
+    @Test
+    fun `GET subject-access-request returns 403 without SAR_DATA_ACCESS role`() {
+      webTestClient.get()
+        .uri("/subject-access-request?crn=X000000")
+        .headers { it.setBearerAuth(nonSarToken()) }
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `GET subject-access-request template returns 200 with mustache content`() {
+      webTestClient.get()
+        .uri("/subject-access-request/template")
+        .headers { it.setBearerAuth(sarToken()) }
+        .exchange()
+        .expectStatus().isOk
+        .expectHeader().contentTypeCompatibleWith(MediaType.TEXT_PLAIN)
+        .expectBody<String>()
+        .value { body ->
+          assertThat(body).contains("{{#ProposedAccommodations}}")
+          assertThat(body).contains("{{#DutyToRefer}}")
+          assertThat(body).contains("{{#accommodation_notes}}")
+        }
+    }
+
+    @Test
+    fun `GET subject-access-request template returns 403 without SAR_DATA_ACCESS role`() {
+      webTestClient.get()
+        .uri("/subject-access-request/template")
+        .headers { it.setBearerAuth(nonSarToken()) }
+        .exchange()
+        .expectStatus().isForbidden
+    }
+  }
+
+  @Nested
+  inner class CaseRepositoryTest {
+
+    @Test
+    fun `findCaseForSubjectAccessRequest finds a case by CRN when the prison number is null`() {
+      val crn = UUID.randomUUID().toString()
+      val case = caseRepository.save(
+        buildCaseEntity {
+          withCrn(crn)
+          withPrisonNumber(UUID.randomUUID().toString())
+        },
+      )
+
+      assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)?.id).isEqualTo(case.id)
+    }
+
+    @Test
+    fun `findCaseForSubjectAccessRequest finds a case by prison number when the CRN is null`() {
+      val prisonNumber = UUID.randomUUID().toString()
+      val case = caseRepository.save(
+        buildCaseEntity {
+          withCrn(UUID.randomUUID().toString())
+          withPrisonNumber(prisonNumber)
+        },
+      )
+
+      assertThat(caseRepository.findCaseForSubjectAccessRequest(null, prisonNumber)?.id).isEqualTo(case.id)
+    }
+
+    @Test
+    fun `findCaseForSubjectAccessRequest finds an archived case`() {
+      val crn = UUID.randomUUID().toString()
+      val case = caseRepository.save(
+        buildCaseEntity {
+          withCrn(crn)
+          archived = true
+        },
+      )
+
+      assertThat(caseRepository.findCaseForSubjectAccessRequest(crn, null)?.id).isEqualTo(case.id)
+    }
+
+    @Test
+    fun `findCaseForSubjectAccessRequest returns null when no identifier matches`() {
+      caseRepository.save(buildCaseEntity { withCrn(UUID.randomUUID().toString()) })
+
+      assertThat(caseRepository.findCaseForSubjectAccessRequest(UUID.randomUUID().toString(), null)).isNull()
+      assertThat(caseRepository.findCaseForSubjectAccessRequest(null, UUID.randomUUID().toString())).isNull()
+    }
+  }
+}

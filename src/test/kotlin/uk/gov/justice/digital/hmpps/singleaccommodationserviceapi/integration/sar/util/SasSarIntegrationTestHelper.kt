@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar.util
 
 import com.fasterxml.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY
 import com.fasterxml.jackson.databind.ObjectMapper

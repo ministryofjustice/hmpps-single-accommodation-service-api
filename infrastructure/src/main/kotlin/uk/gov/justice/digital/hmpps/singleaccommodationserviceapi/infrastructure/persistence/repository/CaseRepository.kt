@@ -104,6 +104,20 @@ WHERE NOT EXISTS (
   )
   fun findCaseForSubjectAccessRequest(crn: String?, prisonNumber: String?): CaseEntity?
 
+  // native query so the archived = false @SQLRestriction on CaseEntity does not apply
+  @Query(
+    nativeQuery = true,
+    value = """
+    SELECT sci.identifier
+    FROM sas_case_identifier sci
+    WHERE sci.case_id = :caseId
+      AND sci.identifier_type = 'CRN'
+    ORDER BY sci.created_at DESC
+    LIMIT 1
+    """,
+  )
+  fun findLatestCrnByCaseIdIncludingArchived(caseId: UUID): String?
+
   fun findByCrn(crn: String) = findByIdentifier(crn, IdentifierType.CRN)
   fun findByPrisonNumber(prisonNumber: String) = findByIdentifier(prisonNumber, IdentifierType.PRISON_NUMBER)
 
