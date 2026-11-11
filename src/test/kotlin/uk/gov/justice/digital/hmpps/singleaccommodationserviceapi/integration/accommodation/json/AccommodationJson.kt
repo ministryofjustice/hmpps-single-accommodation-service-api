@@ -297,7 +297,7 @@ fun expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(
          "identifier":null
       },
       {
-         "endpoint":"getCas1CurrentPremises",
+         "endpoint":"getCas1ResidentPlacement",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
          "message":"500 Internal Server Error from GET $getCas1CurrentPremisesUrl",

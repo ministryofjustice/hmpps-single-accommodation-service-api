@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
@@ -20,7 +20,7 @@ data class EligibilityOrchestrationDto(
   val cas2Application: Cas2Application?,
   val cas3Application: Cas3Application?,
   val commissionedRehabilitativeServices: List<CommissionedRehabilitativeServices>?,
-  val cas1CurrentPremises: Cas1PremisesSummary?,
+  val cas1Residence: Cas1PlacementV2?,
   val cas3CurrentPremises: Cas3BookingPremises?,
   val prisoner: Prisoner?,
   val sexualOffenceRegistrations: SexualOffenceRegistrations?,

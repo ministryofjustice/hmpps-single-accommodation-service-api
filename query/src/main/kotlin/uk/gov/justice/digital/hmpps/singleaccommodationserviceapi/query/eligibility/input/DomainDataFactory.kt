@@ -27,7 +27,7 @@ class DomainDataFactory(
       crn = crn,
       addresses = eligibilityOrchestrationDto.cpr?.addresses,
       prisoner = eligibilityOrchestrationDto.prisoner,
-      cas1CurrentPremises = eligibilityOrchestrationDto.cas1CurrentPremises,
+      cas1Residence = eligibilityOrchestrationDto.cas1Residence,
       cas3CurrentPremises = eligibilityOrchestrationDto.cas3CurrentPremises,
     )
 

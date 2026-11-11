@@ -450,7 +450,7 @@ class AccommodationQueryServiceTest {
           crn = crn,
           addresses = addresses,
           prisoner = null,
-          cas1CurrentPremises = null,
+          cas1Residence = null,
           cas3CurrentPremises = null,
         )
       } returns expectedResult
@@ -632,7 +632,7 @@ class AccommodationQueryServiceTest {
           crn = crn,
           addresses = cpr.addresses,
           prisoner = prisoner,
-          cas1CurrentPremises = null,
+          cas1Residence = null,
           cas3CurrentPremises = null,
           cas1Application = cas1Application,
           cas3Application = cas3Application,
@@ -678,7 +678,7 @@ class AccommodationQueryServiceTest {
           crn = crn,
           addresses = null,
           prisoner = null,
-          cas1CurrentPremises = null,
+          cas1Residence = null,
           cas3CurrentPremises = null,
           cas1Application = null,
           cas3Application = null,

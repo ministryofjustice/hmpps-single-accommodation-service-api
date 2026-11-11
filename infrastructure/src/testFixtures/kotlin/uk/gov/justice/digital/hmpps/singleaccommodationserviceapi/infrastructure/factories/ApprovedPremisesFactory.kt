@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ExternalRequestForPlacementOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummaryV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementWithdrawal
@@ -75,22 +74,6 @@ fun buildCas2Staff(
   deliusStaffCode = deliusStaffCode,
   nomisStaffId = nomisStaffId,
   userType = userType,
-)
-
-fun buildCas1PremisesSummary(
-  addressLine1: String = "TEST HOUSE",
-  addressLine2: String? = null,
-  town: String? = null,
-  postcode: String = "TEST POSTCODE",
-  startDate: LocalDate = LocalDate.now(),
-  endDate: LocalDate? = null,
-) = Cas1PremisesSummary(
-  startDate = startDate,
-  endDate = endDate,
-  addressLine1 = addressLine1,
-  addressLine2 = addressLine2,
-  town = town,
-  postcode = postcode,
 )
 
 fun buildCas1AssessmentSummary(

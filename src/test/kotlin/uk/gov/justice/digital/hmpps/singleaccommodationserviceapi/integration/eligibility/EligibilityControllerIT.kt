@@ -150,7 +150,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
     ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas2SuitableApplicationNoContentResponse(crn = crn)
-    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
     CommissionedRehabilitativeServicesStubs.getCrsOkResponse(
       crn = crn,
@@ -556,7 +556,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should successfully get eligibility when CAS applications returns 204`() {
-    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas2SuitableApplicationNoContentResponse(crn = crn)
@@ -577,7 +577,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should send back failed eligibility when CAS current premises returns 404`() {
-    ApprovedPremisesStubs.getCas1CurrentPremisesNotFoundResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1ResidenceNotFoundResponse(crn = crn)
     ApprovedPremisesStubs.getCas3CurrentPremisesNotFoundResponse(crn = crn)
 
     TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
@@ -590,7 +590,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
       .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
       .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
       .jsonPath("$.upstreamFailures.length()").isEqualTo(2)
-      .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getCas1CurrentPremises")
+      .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getCas1ResidentPlacement")
       .jsonPath("$.upstreamFailures[1].endpoint").isEqualTo("getCas3CurrentPremises")
       .jsonPath("$.upstreamFailures[0].httpResponseStatus").isEqualTo("404 NOT_FOUND")
       .jsonPath("$.upstreamFailures[1].httpResponseStatus").isEqualTo("404 NOT_FOUND")

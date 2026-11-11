@@ -14,7 +14,7 @@ class CaseSnapshotAssembler(
       crn = caseMutationOrchestrationDto.crn,
       addresses = caseMutationOrchestrationDto.cpr?.addresses,
       prisoner = caseMutationOrchestrationDto.prisoner,
-      cas1CurrentPremises = caseMutationOrchestrationDto.cas1CurrentPremises,
+      cas1Residence = caseMutationOrchestrationDto.cas1Residence,
       cas3CurrentPremises = caseMutationOrchestrationDto.cas3CurrentPremises,
       cas1Application = caseMutationOrchestrationDto.cas1Application,
       cas3Application = caseMutationOrchestrationDto.cas3Application,
