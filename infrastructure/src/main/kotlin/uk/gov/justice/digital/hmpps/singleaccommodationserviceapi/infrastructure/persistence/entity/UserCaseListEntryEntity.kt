@@ -18,6 +18,7 @@ class UserCaseListEntryEntity(
   @Enumerated(EnumType.STRING)
   val listType: CaseListType,
   val createdAt: Instant = Instant.now(),
+  val lastUpdatedAt: Instant = createdAt,
 )
 
 enum class CaseListType {
