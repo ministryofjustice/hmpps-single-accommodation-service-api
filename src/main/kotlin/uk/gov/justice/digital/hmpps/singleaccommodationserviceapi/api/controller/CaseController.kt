@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.EligibilityMutationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.UserCaseListApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 
 @Validated
@@ -33,6 +34,7 @@ class CaseController(
   private val caseApplicationService: CaseApplicationService,
   private val userService: UserService,
   private val eligibilityMutationService: EligibilityMutationService,
+  private val userCaseListApplicationService: UserCaseListApplicationService,
 ) {
 
   @Operation(
@@ -97,6 +99,7 @@ class CaseController(
 
     val case = caseWithUserAccess.case
     caseApplicationService.createCases(listOf(CrnToPrisonNumber(case.crn, case.nomsNumber)))
+    userCaseListApplicationService.addOrUpdateCaseToSearchHistory(userService.authorizeAndRetrieveUser().id, case.crn)
 
     val caseDto = caseQueryService.getCaseDtos(
       listOf(caseWithUserAccess),

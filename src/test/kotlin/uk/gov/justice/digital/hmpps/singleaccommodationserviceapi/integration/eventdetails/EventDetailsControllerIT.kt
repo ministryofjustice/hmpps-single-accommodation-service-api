@@ -6,14 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.LocalAuthorityAreaEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables
+import java.time.Instant
 import java.util.UUID
 
 class EventDetailsControllerIT : IntegrationTestBase() {
@@ -24,26 +27,39 @@ class EventDetailsControllerIT : IntegrationTestBase() {
   @Autowired
   private lateinit var localAuthorityAreaRepository: LocalAuthorityAreaRepository
 
-  private lateinit var caseEntity: CaseEntity
-  private lateinit var crn: String
+  private lateinit var unarchivedCaseEntity: CaseEntity
+  private lateinit var unarchivedCrn: String
+  private lateinit var archivedCaseEntity: CaseEntity
+  private lateinit var archivedCrn: String
   private val localAuthorityArea: LocalAuthorityAreaEntity by lazy {
     localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+  }
+
+  private fun buildCaseWithMultipleIdentifiers(newestCrn: String, archived: Boolean = false): CaseEntity {
+    val now = Instant.now()
+    return buildCaseEntity(archived = archived) {
+      caseIdentifiers.add(buildCaseIdentifier(caseEntity = this, identifier = newestCrn, identifierType = IdentifierType.CRN, createdAt = now.minusSeconds(60)))
+      caseIdentifiers.add(buildCaseIdentifier(caseEntity = this, identifier = "OLD-${UUID.randomUUID()}", identifierType = IdentifierType.CRN, createdAt = now.minusSeconds(120)))
+      caseIdentifiers.add(buildCaseIdentifier(caseEntity = this, identifier = "PN-${UUID.randomUUID()}", identifierType = IdentifierType.PRISON_NUMBER, createdAt = now))
+    }
   }
 
   @BeforeEach
   fun setup() {
     databaseUtils.truncate(SasTables.DUTY_TO_REFER, SasTables.SAS_CASE)
-    caseEntity = caseRepository.save(buildCaseEntity())
-    crn = caseEntity.caseIdentifiers.first().identifier
+    unarchivedCrn = UUID.randomUUID().toString()
+    unarchivedCaseEntity = caseRepository.save(buildCaseWithMultipleIdentifiers(unarchivedCrn))
+    archivedCrn = UUID.randomUUID().toString()
+    archivedCaseEntity = caseRepository.save(buildCaseWithMultipleIdentifiers(archivedCrn, archived = true))
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
   }
 
   @Test
-  fun `returns event details for a duty to refer with the probation integration role`() {
+  fun `returns event details for a duty to refer with an unarchived case entity with the probation integration role`() {
     val dtrEntity = dutyToReferRepository.save(
       buildDutyToReferEntity(
-        caseId = caseEntity.id,
+        caseId = unarchivedCaseEntity.id,
         localAuthorityAreaId = localAuthorityArea.id,
       ),
     )
@@ -58,8 +74,37 @@ class EventDetailsControllerIT : IntegrationTestBase() {
           """
             {
               "id":"${dtrEntity.id}",
-              "crn":"$crn",
-              "viewUrl":"https://single-accommodation-service-test.hmpps.service.justice.gov.uk/cases/$crn/dtr/${dtrEntity.id}/details"
+              "crn":"$unarchivedCrn",
+              "status":"${dtrEntity.status}",
+              "viewUrl":"https://single-accommodation-service-test.hmpps.service.justice.gov.uk/cases/$unarchivedCrn/dtr/${dtrEntity.id}/details"
+            }
+          """.trimIndent(),
+        )
+      }
+  }
+
+  @Test
+  fun `returns event details for a duty to refer with an archived case entity with the probation integration role`() {
+    val dtrEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = archivedCaseEntity.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+      ),
+    )
+
+    webTestClient.get().uri("/event-details/duty-to-refers/{id}", dtrEntity.id)
+      .withDeliusUserJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__PROBATION_INTEGRATION"))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody<String>()
+      .value { body ->
+        assertThatJson(body!!).matchesExpectedJson(
+          """
+            {
+              "id":"${dtrEntity.id}",
+              "crn":"$archivedCrn",
+              "status":"${dtrEntity.status}",
+              "viewUrl":"https://single-accommodation-service-test.hmpps.service.justice.gov.uk/cases/$archivedCrn/dtr/${dtrEntity.id}/details"
             }
           """.trimIndent(),
         )
