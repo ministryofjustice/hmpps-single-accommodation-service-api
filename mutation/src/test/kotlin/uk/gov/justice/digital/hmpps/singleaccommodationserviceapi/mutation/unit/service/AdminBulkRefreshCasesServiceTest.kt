@@ -93,23 +93,29 @@ class AdminBulkRefreshCasesServiceTest {
   }
 
   @Test
-  fun `replays failed refresh requests and reports the number requested`() {
+  fun `replays failed refresh requests and reports replay and deletion counts`() {
     every { caseRefreshRequestService.replayFailedRequests() } returns 3
+    every { caseRefreshRequestService.deleteRequestsForMissingCorePersonRecords() } returns 2
 
     val result = adminBulkRefreshCasesService.replayFailedRefreshRequests().data
 
     verify(exactly = 1) { caseRefreshRequestService.replayFailedRequests() }
-    assertThat(result.refreshesRequested).isEqualTo(3)
+    verify(exactly = 1) { caseRefreshRequestService.deleteRequestsForMissingCorePersonRecords() }
+    assertThat(result.requestsReplayed).isEqualTo(3)
+    assertThat(result.requestsDeleted).isEqualTo(2)
   }
 
   @Test
   fun `reports zero when there are no failed refresh requests to replay`() {
     every { caseRefreshRequestService.replayFailedRequests() } returns 0
+    every { caseRefreshRequestService.deleteRequestsForMissingCorePersonRecords() } returns 0
 
     val result = adminBulkRefreshCasesService.replayFailedRefreshRequests().data
 
     verify(exactly = 1) { caseRefreshRequestService.replayFailedRequests() }
-    assertThat(result.refreshesRequested).isZero()
+    verify(exactly = 1) { caseRefreshRequestService.deleteRequestsForMissingCorePersonRecords() }
+    assertThat(result.requestsReplayed).isZero()
+    assertThat(result.requestsDeleted).isZero()
   }
 
   private fun stubCases(vararg cases: Pair<String, UUID>) {
