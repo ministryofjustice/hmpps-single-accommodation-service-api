@@ -39,7 +39,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_USER_CASE_LIST_ENTRY
+import java.time.Instant
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class UserCaseListControllerIT : IntegrationTestBase() {
@@ -626,6 +628,101 @@ class UserCaseListControllerIT : IntegrationTestBase() {
     )
 
     private fun getUserCaseList() = webTestClient.get().uri("/case-list/custom")
+      .withDeliusUserJwt()
+      .exchange()
+  }
+
+  @Nested
+  inner class GetSearchHistoryCaseList {
+
+    @BeforeEach
+    fun stubCaseSummaries() {
+      ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("A123456", "B654321", "C111111")
+    }
+
+    @Test
+    fun `returns 403 when user does not have the required role`() {
+      webTestClient.get().uri("/case-list/search-history")
+        .withDeliusUserJwt(roles = listOf("ROLE_SOME_OTHER_ROLE"))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `returns an empty list when the user has no search history`() {
+      getSearchHistory().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(0)
+
+      sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access")))
+    }
+
+    @Test
+    fun `returns the users search history sorted by last updated date newest first, including limited cases`() {
+      val now = Instant.now().truncatedTo(ChronoUnit.MICROS)
+      addToSearchHistory(
+        caseRepository.save(
+          buildCaseEntity(firstName = "Joe", accommodationSummariesDto = buildAccommodationSummariesDto(CaseAccommodationStatus.SETTLED)) { withCrn("A123456") },
+        ).id,
+        lastUpdatedAt = now,
+      )
+      addToSearchHistory(caseRepository.save(buildCaseEntity(firstName = "Jane") { withCrn("B654321") }).id, lastUpdatedAt = now.minusSeconds(120))
+      addToSearchHistory(caseRepository.save(buildCaseEntity(firstName = "John") { withCrn("C111111") }).id, lastUpdatedAt = now.minusSeconds(60))
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf("A123456", "B654321"),
+        restrictedCrns = listOf("C111111"),
+      )
+
+      getSearchHistory().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(3)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+        .jsonPath("$.data[0].forename").isEqualTo("Joe")
+        .jsonPath("$.data[1].crn").isEqualTo("C111111")
+        .jsonPath("$.data[1].userAccess").isEqualTo("LIMITED")
+        .jsonPath("$.data[1].forename").doesNotExist()
+        .jsonPath("$.data[2].crn").isEqualTo("B654321")
+    }
+
+    @Test
+    fun `does not return cases from the users custom case list or another users search history`() {
+      val user2 = userRepository.save(buildUserEntity(username = "user2"))
+      val historyCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+      val customCase = caseRepository.save(buildCaseEntity { withCrn("B654321") })
+      val theirHistoryCase = caseRepository.save(buildCaseEntity { withCrn("C111111") })
+      addToSearchHistory(historyCase.id)
+      userCaseListEntryRepository.save(buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = customCase.id))
+      userCaseListEntryRepository.save(
+        buildUserCaseListEntryEntity(sasUserId = user2.id, sasCaseId = theirHistoryCase.id, listType = CaseListType.SEARCH_HISTORY),
+      )
+      ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf("A123456"))
+
+      getSearchHistory().expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(1)
+        .jsonPath("$.data[0].crn").isEqualTo("A123456")
+    }
+
+    @Test
+    fun `retries then fails when probation access control is unavailable`() {
+      addToSearchHistory(caseRepository.save(buildCaseEntity { withCrn("A123456") }).id)
+      ProbationAccessControlStubs.postUserAccessServerError(USERNAME_OF_LOGGED_IN_DELIUS_USER)
+
+      getSearchHistory().expectStatus().is5xxServerError
+    }
+
+    private fun addToSearchHistory(caseId: UUID, lastUpdatedAt: Instant = Instant.now()) = userCaseListEntryRepository.save(
+      buildUserCaseListEntryEntity(
+        sasUserId = deliusUser.id,
+        sasCaseId = caseId,
+        listType = CaseListType.SEARCH_HISTORY,
+        createdAt = lastUpdatedAt,
+        lastUpdatedAt = lastUpdatedAt,
+      ),
+    )
+
+    private fun getSearchHistory() = webTestClient.get().uri("/case-list/search-history")
       .withDeliusUserJwt()
       .exchange()
   }
