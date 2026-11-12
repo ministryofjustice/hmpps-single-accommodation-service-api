@@ -12,7 +12,7 @@ class RoshEligibleRuleSet(
   private val rules: List<Rule> = listOf(
     noRoshLevel,
   )
-  override val name: String = "ROSH Eligible"
+  override val name: String = "PASS if the person has a ROSH level"
 
   override fun getRules(): List<Rule> = rules
 }

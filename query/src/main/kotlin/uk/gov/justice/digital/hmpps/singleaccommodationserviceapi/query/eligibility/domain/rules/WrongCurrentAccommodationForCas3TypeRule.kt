@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class WrongCurrentAccommodationForCas3TypeRule : Rule {
-  override val description = "FAIL if person is not in CAS1, CAS2 or prison"
+  override val description = "FAIL if the person is not in CAS1, CAS2 or prison"
   override val failureReason = FailureReason.INVALID_CURRENT_ACCOMMODATION_TYPE
 
   override fun evaluate(data: DomainData): RuleResult {

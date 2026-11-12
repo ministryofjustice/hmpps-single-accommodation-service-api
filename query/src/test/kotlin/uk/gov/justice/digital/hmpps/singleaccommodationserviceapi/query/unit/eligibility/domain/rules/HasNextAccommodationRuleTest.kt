@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class HasNextAccommodationRuleTest {
-  private val description = "FAIL if person has next accommodation"
+  private val description = "FAIL if the person has a next accommodation"
 
   @Test
   fun `person passes when hasNextAccommodation is false`() {
@@ -37,6 +37,6 @@ class HasNextAccommodationRuleTest {
   @Test
   fun `rule has correct description`() {
     assertThat(HasNextAccommodationRule().description)
-      .isEqualTo("FAIL if person has next accommodation")
+      .isEqualTo("FAIL if the person has a next accommodation")
   }
 }
