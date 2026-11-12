@@ -10,6 +10,7 @@ data class ProposedAccommodationDto(
   val crn: String,
   val accommodationType: AccommodationTypeDto?,
   val verificationStatus: VerificationStatus?,
+  val verificationReason: String? = null,
   val nextAccommodationStatus: NextAccommodationStatus?,
   val address: AccommodationAddressDetails,
   val createdBy: String,
@@ -24,6 +25,7 @@ data class ProposedAccommodationDto(
 data class ProposedAccommodationDetailCommand(
   val accommodationTypeCode: String?,
   val verificationStatus: VerificationStatus,
+  val verificationReason: String? = null,
   val nextAccommodationStatus: NextAccommodationStatus,
   val address: AccommodationAddressDetails,
 )

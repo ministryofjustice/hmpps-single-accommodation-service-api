@@ -130,6 +130,11 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "oldValue":"FAILED"
          },
          {
+            "field":"verificationReason",
+            "value":"Verification passed",
+            "oldValue":null
+         },
+         {
             "field":"postcode",
             "value":"correct postcode",
             "oldValue":"test postcode"
@@ -160,6 +165,11 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "field":"verificationStatus",
             "value":"FAILED",
             "oldValue":"PASSED"
+         },
+         {
+            "field":"verificationReason",
+            "value":null,
+            "oldValue":"Verification passed"
          },
          {
             "field": "nextAccommodationStatus",
@@ -218,6 +228,11 @@ fun expectedGetProposedAccommodationTimelineResponse(
          {
             "field":"verificationStatus",
             "value":"PASSED",
+            "oldValue":null
+         },
+         {
+            "field":"verificationReason",
+            "value":"Verification passed",
             "oldValue":null
          },
          {
