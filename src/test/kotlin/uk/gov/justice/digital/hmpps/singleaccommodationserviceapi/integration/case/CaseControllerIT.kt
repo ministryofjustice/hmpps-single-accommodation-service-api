@@ -389,7 +389,7 @@ class CaseControllerIT : IntegrationTestBase() {
     @Test
     fun `should create a populated case without a refresh request on case-list when CAS1 and CAS3 return not found`() {
       ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn)
-      ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(crn)
+      ApprovedPremisesStubs.getCas3CurrentApplicationNoContentResponse(crn)
 
       getCaseListResponse()
 

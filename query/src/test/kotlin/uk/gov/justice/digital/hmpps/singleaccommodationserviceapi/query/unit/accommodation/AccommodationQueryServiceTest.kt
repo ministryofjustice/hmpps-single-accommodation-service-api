@@ -669,7 +669,7 @@ class AccommodationQueryServiceTest {
             callKey = ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION,
           ),
           buildUpstreamFailure(
-            callKey = ApiCallKeys.GET_CAS_3_APPLICATION,
+            callKey = ApiCallKeys.GET_CAS_3_CURRENT_APPLICATION,
           ),
         ),
       )
@@ -692,7 +692,7 @@ class AccommodationQueryServiceTest {
       assertThat(result.data).isNull()
       assertThat(result.upstreamFailures.first().endpoint).isEqualTo(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
       assertThat(result.upstreamFailures[1].endpoint).isEqualTo(ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION)
-      assertThat(result.upstreamFailures.last().endpoint).isEqualTo(ApiCallKeys.GET_CAS_3_APPLICATION)
+      assertThat(result.upstreamFailures.last().endpoint).isEqualTo(ApiCallKeys.GET_CAS_3_CURRENT_APPLICATION)
     }
   }
 

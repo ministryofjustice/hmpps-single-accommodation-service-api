@@ -40,9 +40,8 @@ object ApprovedPremisesStubs {
   fun setupDefaultResponses() {
     getCas3CurrentPremisesDefaultNoContentResponse()
     getCas1ResidenceDefaultNoContentResponse()
-    getCas1SuitableApplicationDefaultNoContentResponse()
-    getCas2SuitableApplicationDefaultNoContentResponse()
-    getCas3SuitableApplicationDefaultNoContentResponse()
+    getCas2CurrentApplicationDefaultNoContentResponse()
+    getCas3CurrentApplicationDefaultNoContentResponse()
     getCas1CurrentApplicationsDefaultNoContentResponse()
   }
 
@@ -67,23 +66,16 @@ object ApprovedPremisesStubs {
     )
   }
 
-  fun getCas1SuitableApplicationDefaultNoContentResponse() {
+  fun getCas2CurrentApplicationDefaultNoContentResponse() {
     sasWiremock.stubFor(
-      get(urlPathMatching("""/cas1/external/cases/[^/]+/applications/suitable"""))
+      get(urlPathMatching("""/cas2/external/cases/[^/]+/applications/current"""))
         .willReturn(noContent()),
     )
   }
 
-  fun getCas2SuitableApplicationDefaultNoContentResponse() {
+  fun getCas3CurrentApplicationDefaultNoContentResponse() {
     sasWiremock.stubFor(
-      get(urlPathMatching("""/cas2/external/cases/[^/]+/applications/suitable"""))
-        .willReturn(noContent()),
-    )
-  }
-
-  fun getCas3SuitableApplicationDefaultNoContentResponse() {
-    sasWiremock.stubFor(
-      get(urlPathMatching("""/cas3/external/cases/[^/]+/applications/suitable"""))
+      get(urlPathMatching("""/cas3/external/cases/[^/]+/applications/current"""))
         .willReturn(noContent()),
     )
   }
@@ -168,9 +160,9 @@ object ApprovedPremisesStubs {
     )
   }
 
-  fun getCas2SuitableApplicationOKResponse(crn: String, response: Cas2Application) {
+  fun getCas2CurrentApplicationOKResponse(crn: String, response: Cas2Application) {
     sasWiremock.stubFor(
-      get(urlPathEqualTo("/cas2/external/cases/$crn/applications/suitable"))
+      get(urlPathEqualTo("/cas2/external/cases/$crn/applications/current"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }
@@ -182,16 +174,16 @@ object ApprovedPremisesStubs {
     )
   }
 
-  fun getCas2SuitableApplicationNotFoundResponse(crn: String) {
+  fun getCas2CurrentApplicationNotFoundResponse(crn: String) {
     sasWiremock.stubFor(
-      get(urlPathEqualTo("/cas2/external/cases/$crn/applications/suitable"))
+      get(urlPathEqualTo("/cas2/external/cases/$crn/applications/current"))
         .willReturn(notFound()),
     )
   }
 
-  fun getCas3SuitableApplicationNotFoundResponse(crn: String) {
+  fun getCas3CurrentApplicationNotFoundResponse(crn: String) {
     sasWiremock.stubFor(
-      get(urlPathEqualTo("/cas3/external/cases/$crn/applications/suitable"))
+      get(urlPathEqualTo("/cas3/external/cases/$crn/applications/current"))
         .willReturn(notFound()),
     )
   }
@@ -203,16 +195,16 @@ object ApprovedPremisesStubs {
     )
   }
 
-  fun getCas2SuitableApplicationNoContentResponse(crn: String) {
+  fun getCas2CurrentApplicationNoContentResponse(crn: String) {
     sasWiremock.stubFor(
-      get(urlPathEqualTo("/cas2/external/cases/$crn/applications/suitable"))
+      get(urlPathEqualTo("/cas2/external/cases/$crn/applications/current"))
         .willReturn(noContent()),
     )
   }
 
-  fun getCas3SuitableApplicationNoContentResponse(crn: String) {
+  fun getCas3CurrentApplicationNoContentResponse(crn: String) {
     sasWiremock.stubFor(
-      get(urlPathEqualTo("/cas3/external/cases/$crn/applications/suitable"))
+      get(urlPathEqualTo("/cas3/external/cases/$crn/applications/current"))
         .willReturn(noContent()),
     )
   }
@@ -224,9 +216,9 @@ object ApprovedPremisesStubs {
     )
   }
 
-  fun getCas3SuitableApplicationOKResponse(crn: String, response: Cas3Application) {
+  fun getCas3CurrentApplicationOKResponse(crn: String, response: Cas3Application) {
     sasWiremock.stubFor(
-      get(urlPathEqualTo("/cas3/external/cases/$crn/applications/suitable"))
+      get(urlPathEqualTo("/cas3/external/cases/$crn/applications/current"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }
