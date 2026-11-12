@@ -1800,6 +1800,64 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  fun `should show only the verification reason change in the timeline when the reason is changed and the verification status is not`() {
+    val accommodationTypeCode = "A01A"
+    val createdProposedAccommodation = webTestClient.post()
+      .uri("/cases/{crn}/proposed-accommodations", crn)
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(
+        proposedAddressesRequestBody(
+          accommodationTypeCode = accommodationTypeCode,
+          verificationStatus = VerificationStatus.PASSED.name,
+          verificationReason = "Verification passed",
+          nextAccommodationStatus = NextAccommodationStatus.NO.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody<String>()
+      .returnResult().responseBody!!
+    val createdProposedAccommodationId = ObjectMapper()
+      .readTree(createdProposedAccommodation)
+      .get("id").asText()
+
+    webTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(
+        proposedAddressesRequestBody(
+          accommodationTypeCode = accommodationTypeCode,
+          verificationStatus = VerificationStatus.PASSED.name,
+          verificationReason = "Updated verification reason",
+          nextAccommodationStatus = NextAccommodationStatus.NO.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody<String>()
+      .value {
+        val timeline = ObjectMapper().readTree(it!!).get("data")
+        assertThat(timeline).hasSize(2)
+        val latestEntry = timeline[0]
+        assertThat(latestEntry.get("type").asText()).isEqualTo("UPDATE")
+        assertThatJson(latestEntry.get("changes").toString()).matchesExpectedJson(
+          """
+            [
+              {
+                "field":"verificationReason",
+                "value":"Updated verification reason",
+                "oldValue":"Verification passed"
+              }
+            ]
+          """.trimIndent(),
+        )
+      }
+  }
+
+  @Test
   fun `should create a note for proposed-accommodation`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
