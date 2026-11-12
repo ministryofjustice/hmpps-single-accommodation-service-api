@@ -16,10 +16,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas3AssessmentNotActiveRuleTest {
-  private val description = "FAIL if the assessment is closed or rejected"
+  private val description = "FAIL if there is no booking and the assessment is closed"
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3AssessmentStatus::class, names = ["REJECTED", "CLOSED"])
+  @EnumSource(value = Cas3AssessmentStatus::class, names = ["CLOSED"])
   fun `application has unsuitable assessment status so rule fails`(assessmentStatus: Cas3AssessmentStatus) {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
@@ -45,13 +45,14 @@ class Cas3AssessmentNotActiveRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3AssessmentStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["REJECTED", "CLOSED"])
+  @EnumSource(value = Cas3AssessmentStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["CLOSED"])
   fun `application does not have unsuitable assessment status so rule passes`(assessmentStatus: Cas3AssessmentStatus) {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         submittedApplication = buildCas3SubmittedApplication(
           assessmentStatus = assessmentStatus,
+          assessmentRejectionReason = if (assessmentStatus == Cas3AssessmentStatus.REJECTED) "Some reason" else null,
           latestBooking = buildCas3LatestBooking(
             status = null,
           ),

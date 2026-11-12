@@ -9,13 +9,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3AssessmentNotActiveRule : Rule {
-  override val description = "FAIL if the assessment is closed or rejected"
+  override val description = "FAIL if there is no booking and the assessment is closed"
 
   override fun evaluate(data: DomainData): RuleResult {
     val submittedApplication = data.cas3Application?.submittedApplication
     val ruleStatus = if (
       submittedApplication?.latestBooking?.status == null &&
-      FAILING_ASSESSMENT_STATUSES.contains(submittedApplication?.assessmentStatus)
+      submittedApplication?.assessmentStatus == Cas3AssessmentStatus.CLOSED
     ) {
       RuleStatus.FAIL
     } else {
@@ -25,13 +25,6 @@ class Cas3AssessmentNotActiveRule : Rule {
     return RuleResult(
       description = description,
       ruleStatus = ruleStatus,
-    )
-  }
-
-  companion object {
-    private val FAILING_ASSESSMENT_STATUSES = setOf(
-      Cas3AssessmentStatus.CLOSED,
-      Cas3AssessmentStatus.REJECTED,
     )
   }
 }
