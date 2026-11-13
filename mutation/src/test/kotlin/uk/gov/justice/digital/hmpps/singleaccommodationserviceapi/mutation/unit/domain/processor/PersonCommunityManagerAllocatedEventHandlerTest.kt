@@ -88,6 +88,17 @@ class PersonCommunityManagerAllocatedEventHandlerTest {
   }
 
   @Test
+  fun `should still process the event when clearing the case list cache fails`() {
+    val caseEntity = buildCaseEntity { withCrn(crn) }
+    every { caseRepository.findByCrn(crn) } returns caseEntity
+    every { sasAndDeliusCachingService.cacheClearOnFullCaseList() } throws RuntimeException("Cache unavailable")
+
+    assertThat(personCommunityManagerAllocatedEventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
+
+    verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(caseEntity.id) }
+  }
+
+  @Test
   fun `should create a blank case with a live refresh when it is allocated to an onboarded team`() {
     stubCaseAllocatedToTeam("TEAM1")
     every { onboardedTeamRepository.existsByTeamCodeIsIgnoreCase("TEAM1") } returns true

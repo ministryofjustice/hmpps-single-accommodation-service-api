@@ -57,7 +57,11 @@ class PersonCommunityManagerAllocatedEventHandler(
   }
 
   private fun clearCaseListCache(inboxEvent: InboxEventHandler.InboxEvent, crn: String) {
-    sasAndDeliusCachingService.cacheClearOnFullCaseList()
-    log.info("Cleared case list cache for PERSON_COMMUNITY_MANAGER_ALLOCATED inbox event: [{}], crn: [{}]", inboxEvent.id, crn)
+    try {
+      sasAndDeliusCachingService.cacheClearOnFullCaseList()
+      log.info("Cleared case list cache for PERSON_COMMUNITY_MANAGER_ALLOCATED inbox event: [{}], crn: [{}]", inboxEvent.id, crn)
+    } catch (e: Exception) {
+      log.warn("Failed to clear case list cache for PERSON_COMMUNITY_MANAGER_ALLOCATED inbox event: [{}], crn: [{}]", inboxEvent.id, crn, e)
+    }
   }
 }
