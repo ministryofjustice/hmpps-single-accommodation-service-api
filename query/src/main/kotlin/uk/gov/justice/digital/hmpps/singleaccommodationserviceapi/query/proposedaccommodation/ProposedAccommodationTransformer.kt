@@ -27,6 +27,7 @@ object ProposedAccommodationTransformer {
       )
     },
     verificationStatus = proposedAccommodationEntity.verificationStatus?.let { toVerificationStatus(it) },
+    verificationReason = proposedAccommodationEntity.verificationReason,
     nextAccommodationStatus = proposedAccommodationEntity.nextAccommodationStatus?.let { toNextAccommodationStatus(it) },
     address = toAddressDetails(proposedAccommodationEntity),
     createdBy = createdBy,

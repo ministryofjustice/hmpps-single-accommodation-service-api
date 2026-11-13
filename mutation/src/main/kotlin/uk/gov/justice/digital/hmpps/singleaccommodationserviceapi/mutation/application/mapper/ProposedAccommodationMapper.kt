@@ -31,6 +31,7 @@ object ProposedAccommodationMapper {
     accommodationTypeId = accommodationTypeEntity?.id,
     accommodationStatusId = accommodationStatusEntity?.id,
     verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name),
+    verificationReason = snapshot.verificationReason,
     nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name),
     startDate = snapshot.startDate,
     endDate = snapshot.endDate,
@@ -59,6 +60,7 @@ object ProposedAccommodationMapper {
     proposedAccommodationEntity.accommodationTypeId = accommodationTypeEntity?.id
     proposedAccommodationEntity.accommodationStatusId = accommodationStatusEntity?.id
     proposedAccommodationEntity.verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name)
+    proposedAccommodationEntity.verificationReason = snapshot.verificationReason
     proposedAccommodationEntity.nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name)
     proposedAccommodationEntity.startDate = snapshot.startDate
     proposedAccommodationEntity.endDate = snapshot.endDate
@@ -118,6 +120,7 @@ object ProposedAccommodationMapper {
       )
     },
     verificationStatus = VerificationStatus.valueOf(proposedAccommodationEntity.verificationStatus!!.name),
+    verificationReason = proposedAccommodationEntity.verificationReason,
     nextAccommodationStatus = NextAccommodationStatus.valueOf(proposedAccommodationEntity.nextAccommodationStatus!!.name),
     address = AccommodationAddressDetails(
       postcode = proposedAccommodationEntity.postcode,
@@ -158,6 +161,7 @@ object ProposedAccommodationMapper {
       )
     },
     verificationStatus = snapshot.verificationStatus,
+    verificationReason = snapshot.verificationReason,
     nextAccommodationStatus = snapshot.nextAccommodationStatus,
     address = snapshot.address,
     createdBy = createdBy,

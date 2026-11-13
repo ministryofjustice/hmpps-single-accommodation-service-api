@@ -38,6 +38,7 @@ class ProposedAccommodationAggregate private constructor(
   private var accommodationType: AccommodationTypeDto? = null,
   private var accommodationStatus: AccommodationStatusDto? = null,
   private var verificationStatus: VerificationStatus? = null,
+  private var verificationReason: String? = null,
   private var nextAccommodationStatus: NextAccommodationStatus? = null,
   private var typeVerified: Boolean? = null,
   private var noFixedAbode: Boolean? = null,
@@ -71,6 +72,7 @@ class ProposedAccommodationAggregate private constructor(
       accommodationType: AccommodationTypeDto?,
       accommodationStatus: AccommodationStatusDto?,
       verificationStatus: VerificationStatus,
+      verificationReason: String?,
       nextAccommodationStatus: NextAccommodationStatus,
       address: AccommodationAddressDetails,
       startDate: LocalDate?,
@@ -87,6 +89,7 @@ class ProposedAccommodationAggregate private constructor(
       accommodationType = accommodationType,
       accommodationStatus = accommodationStatus,
       verificationStatus = verificationStatus,
+      verificationReason = verificationReason,
       nextAccommodationStatus = nextAccommodationStatus,
       typeVerified = typeVerified,
       noFixedAbode = noFixedAbode,
@@ -100,6 +103,7 @@ class ProposedAccommodationAggregate private constructor(
   fun updateProposedAccommodation(
     newAccommodationType: AccommodationTypeDto?,
     newVerificationStatus: VerificationStatus,
+    newVerificationReason: String?,
     newNextAccommodationStatus: NextAccommodationStatus,
     newAddress: AccommodationAddressDetails,
     newStartDate: LocalDate?,
@@ -130,6 +134,7 @@ class ProposedAccommodationAggregate private constructor(
 
     accommodationType = newAccommodationType
     verificationStatus = newVerificationStatus
+    verificationReason = newVerificationReason
     nextAccommodationStatus = newNextAccommodationStatus
     address = newAddress
     startDate = newStartDate
@@ -313,6 +318,7 @@ class ProposedAccommodationAggregate private constructor(
     accommodationType,
     accommodationStatus,
     verificationStatus!!,
+    verificationReason,
     nextAccommodationStatus!!,
     address!!,
     startDate,
@@ -330,6 +336,7 @@ class ProposedAccommodationAggregate private constructor(
     val accommodationType: AccommodationTypeDto?,
     val accommodationStatus: AccommodationStatusDto?,
     val verificationStatus: VerificationStatus,
+    val verificationReason: String?,
     val nextAccommodationStatus: NextAccommodationStatus,
     val address: AccommodationAddressDetails,
     val startDate: LocalDate?,

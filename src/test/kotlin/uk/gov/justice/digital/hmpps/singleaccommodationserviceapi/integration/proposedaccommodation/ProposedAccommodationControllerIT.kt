@@ -168,6 +168,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         country = "England",
         startDate = LocalDate.now(),
         verificationStatus = EntityVerificationStatus.PASSED,
+        verificationReason = "Verification passed",
         nextAccommodationStatus = EntityNextAccommodationStatus.YES,
         accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
       )
@@ -937,6 +938,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
           accommodationTypeCode = "A01A",
           accommodationTypeDescription = "Owner of the property",
           verificationStatus = VerificationStatus.PASSED.name,
+          verificationReason = "Verification passed",
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
           subBuildingName = expectedCprRequestBody.subBuildingName!!,
           buildingName = expectedCprRequestBody.buildingName!!,
@@ -988,6 +990,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         proposedAddressesRequestBody(
           accommodationTypeCode = addressUsageCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
+          verificationReason = "Verification passed",
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
           subBuildingName = expectedCprRequestBody.subBuildingName,
           buildingName = expectedCprRequestBody.buildingName,
@@ -1033,6 +1036,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
           uprn = "test uprn",
           accommodationTypeCode = addressUsageCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
+          verificationReason = "Verification passed",
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
       )
@@ -1050,6 +1054,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     assertThat(proposedAccommodationPersistedResult.accommodationTypeId).isEqualTo(expectedAccommodationTypeEntity.id)
     assertThat(proposedAccommodationPersistedResult.accommodationSource).isEqualTo(AccommodationSource.SAS)
     assertThat(proposedAccommodationPersistedResult.typeVerified).isFalse()
+    assertThat(proposedAccommodationPersistedResult.verificationReason).isEqualTo("Verification passed")
     assertThat(proposedAccommodationPersistedResult.noFixedAbode).isFalse()
 
     assertThatJson(createdProposedAccommodation).matchesExpectedJson(
@@ -1059,6 +1064,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         accommodationTypeCode = "A01A",
         accommodationTypeDescription = "Owner of the property",
         verificationStatus = VerificationStatus.PASSED.name,
+        verificationReason = "Verification passed",
         nextAccommodationStatus = NextAccommodationStatus.NO.name,
         subBuildingName = "test sub building name",
         buildingName = "test building name",
@@ -1204,6 +1210,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         proposedAddressesRequestBody(
           accommodationTypeCode = addressUsageCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
+          verificationReason = "Verification passed",
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
           subBuildingName = expectedCprRequestBody.subBuildingName,
           buildingName = expectedCprRequestBody.buildingName,
@@ -1239,6 +1246,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         accommodationTypeCode = "A01A",
         accommodationTypeDescription = "Owner of the property",
         verificationStatus = VerificationStatus.PASSED.name,
+        verificationReason = "Verification passed",
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
         subBuildingName = expectedCprRequestBody.subBuildingName!!,
         buildingName = expectedCprRequestBody.buildingName!!,
@@ -1317,7 +1325,8 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         postcode = "test postcode",
         uprn = "test uprn",
         caseId = caseEntity.id,
-        verificationStatus = EntityVerificationStatus.PASSED,
+        verificationStatus = EntityVerificationStatus.FAILED,
+        verificationReason = "Verification failed",
         nextAccommodationStatus = EntityNextAccommodationStatus.YES,
         startDate = LocalDate.now(),
       ),
@@ -1328,6 +1337,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         proposedAddressesRequestBody(
           accommodationTypeCode = newAccommodationTypeCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
+          verificationReason = "Verification passed",
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
           subBuildingName = "test sub building name",
           buildingName = newBuildingName,
@@ -1356,6 +1366,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     assertThat(proposedAccommodationPersistedResult.accommodationTypeId).isEqualTo(expectedAccommodationTypeEntity.id)
     assertThat(proposedAccommodationPersistedResult.accommodationStatusId).isEqualTo(expectedAccommodationStatusEntity.id)
     assertThat(proposedAccommodationPersistedResult.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
+    assertThat(proposedAccommodationPersistedResult.verificationReason).isEqualTo("Verification passed")
     assertThat(proposedAccommodationPersistedResult.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.YES)
     assertThat(proposedAccommodationPersistedResult.accommodationSource).isEqualTo(AccommodationSource.SAS)
     assertThat(proposedAccommodationPersistedResult.typeVerified).isFalse()
@@ -1367,6 +1378,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         accommodationTypeCode = expectedAccommodationTypeEntity.code,
         accommodationTypeDescription = expectedAccommodationTypeEntity.name,
         verificationStatus = VerificationStatus.PASSED.name,
+        verificationReason = "Verification passed",
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
         subBuildingName = "test sub building name",
         buildingName = newBuildingName,
@@ -1447,6 +1459,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         proposedAddressesRequestBody(
           nextAccommodationStatus = unconfirmedStatus.name,
           verificationStatus = VerificationStatus.PASSED.name,
+          verificationReason = "Verification passed",
           accommodationTypeCode = addressUsageCode.name,
           subBuildingName = "test sub building name",
           buildingName = "test building name",
@@ -1481,6 +1494,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         accommodationTypeCode = "A01A",
         accommodationTypeDescription = "Owner of the property",
         verificationStatus = VerificationStatus.PASSED.name,
+        verificationReason = "Verification passed",
         nextAccommodationStatus = NextAccommodationStatus.NO.name,
         subBuildingName = "test sub building name",
         buildingName = "test building name",
@@ -1738,6 +1752,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
           postcode = "correct postcode",
           accommodationTypeCode = secondAccommodationType.code,
           verificationStatus = VerificationStatus.PASSED.name,
+          verificationReason = "Verification passed",
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
       )
@@ -1780,6 +1795,64 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
             update2CommitTime = commitTimesAsc[2]
               .truncatedTo(ChronoUnit.SECONDS).toString(),
           ),
+        )
+      }
+  }
+
+  @Test
+  fun `should show only the verification reason change in the timeline when the reason is changed and the verification status is not`() {
+    val accommodationTypeCode = "A01A"
+    val createdProposedAccommodation = webTestClient.post()
+      .uri("/cases/{crn}/proposed-accommodations", crn)
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(
+        proposedAddressesRequestBody(
+          accommodationTypeCode = accommodationTypeCode,
+          verificationStatus = VerificationStatus.PASSED.name,
+          verificationReason = "Verification passed",
+          nextAccommodationStatus = NextAccommodationStatus.NO.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody<String>()
+      .returnResult().responseBody!!
+    val createdProposedAccommodationId = ObjectMapper()
+      .readTree(createdProposedAccommodation)
+      .get("id").asText()
+
+    webTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(
+        proposedAddressesRequestBody(
+          accommodationTypeCode = accommodationTypeCode,
+          verificationStatus = VerificationStatus.PASSED.name,
+          verificationReason = "Updated verification reason",
+          nextAccommodationStatus = NextAccommodationStatus.NO.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    webTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody<String>()
+      .value {
+        val timeline = ObjectMapper().readTree(it!!).get("data")
+        assertThat(timeline).hasSize(2)
+        val latestEntry = timeline[0]
+        assertThat(latestEntry.get("type").asText()).isEqualTo("UPDATE")
+        assertThatJson(latestEntry.get("changes").toString()).matchesExpectedJson(
+          """
+            [
+              {
+                "field":"verificationReason",
+                "value":"Updated verification reason",
+                "oldValue":"Verification passed"
+              }
+            ]
+          """.trimIndent(),
         )
       }
   }
@@ -2245,6 +2318,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     startDate: LocalDate,
     accommodationStatusEntity: AccommodationStatusEntity?,
     verificationStatus: EntityVerificationStatus?,
+    verificationReason: String? = null,
     nextAccommodationStatus: EntityNextAccommodationStatus?,
     accommodationTypeEntity: AccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
     county: String? = null,
@@ -2262,6 +2336,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       accommodationTypeEntity = accommodationTypeEntity,
       accommodationStatusEntity = accommodationStatusEntity,
       verificationStatus = verificationStatus,
+      verificationReason = verificationReason,
       nextAccommodationStatus = nextAccommodationStatus,
       postcode = postcode,
       buildingNumber = buildingNumber,

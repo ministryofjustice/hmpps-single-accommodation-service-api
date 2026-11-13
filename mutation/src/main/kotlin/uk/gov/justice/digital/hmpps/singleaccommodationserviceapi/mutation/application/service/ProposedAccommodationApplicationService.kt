@@ -98,6 +98,7 @@ class ProposedAccommodationApplicationService(
         description = accommodationTypeEntity.name,
       ),
       newVerificationStatus = proposedAccommodationDetailCommand.verificationStatus,
+      newVerificationReason = proposedAccommodationDetailCommand.verificationReason,
       newNextAccommodationStatus = proposedAccommodationDetailCommand.nextAccommodationStatus,
       newAddress = proposedAccommodationDetailCommand.address,
       newStartDate = LocalDate.now(clock),
@@ -223,6 +224,7 @@ class ProposedAccommodationApplicationService(
         )
       },
       newVerificationStatus = proposedAccommodationDetailCommand.verificationStatus,
+      newVerificationReason = proposedAccommodationDetailCommand.verificationReason,
       newNextAccommodationStatus = proposedAccommodationDetailCommand.nextAccommodationStatus,
       newAddress = proposedAccommodationDetailCommand.address,
       newStartDate = proposedAccommodationEntity.startDate,

@@ -132,6 +132,7 @@ class SubjectAccessRequestService(
           description = type?.name ?: "Unknown",
         ),
         verificationStatus = pa.verificationStatus?.let { VerificationStatus.valueOf(it.name) },
+        verificationReason = pa.verificationReason,
         nextAccommodationStatus = pa.nextAccommodationStatus?.let { NextAccommodationStatus.valueOf(it.name) },
         address = AccommodationAddressDetails(
           postcode = pa.postcode,
