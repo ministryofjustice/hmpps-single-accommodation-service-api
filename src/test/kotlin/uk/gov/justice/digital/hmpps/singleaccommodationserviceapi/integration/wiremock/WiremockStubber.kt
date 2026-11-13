@@ -41,7 +41,7 @@ class WiremockStubber {
     ApprovedPremisesStubs.getCas1ResidenceOKResponse(crn = crn, response = responses.cas1Residence!!)
     ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = responses.cas1Application!!)
     ApprovedPremisesStubs.getCas3CurrentPremisesOKResponse(crn = crn, response = responses.cas3CurrentPremises!!)
-    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = responses.cas3Application!!)
+    ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(crn = crn, response = responses.cas3Application!!)
     return responses
   }
 }

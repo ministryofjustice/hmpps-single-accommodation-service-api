@@ -24,12 +24,12 @@ interface ApprovedPremisesClient {
   fun getCurrentCas1ApplicationInternal(@PathVariable crn: String): Cas1ApplicationV2
 
   @WebClientRetry
-  @GetExchange(value = "/cas2/external/cases/{crn}/applications/suitable")
-  fun getSuitableCas2ApplicationInternal(@PathVariable crn: String): Cas2Application?
+  @GetExchange(value = "/cas2/external/cases/{crn}/applications/current")
+  fun getCas2CurrentApplicationInternal(@PathVariable crn: String): Cas2Application?
 
   @WebClientRetry
-  @GetExchange(value = "/cas3/external/cases/{crn}/applications/suitable")
-  fun getSuitableCas3ApplicationInternal(@PathVariable crn: String): Cas3Application?
+  @GetExchange(value = "/cas3/external/cases/{crn}/applications/current")
+  fun getCas3CurrentApplicationInternal(@PathVariable crn: String): Cas3Application?
 
   @WebClientRetry
   @GetExchange(value = "/cas1/external/referrals/{crn}")
@@ -81,11 +81,11 @@ class ApprovedPremisesCachingService(
   @Cacheable(ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION, sync = true)
   fun getCurrentCas1Application(crn: String): Cas1ApplicationV2? = approvedPremisesClient.getCurrentCas1ApplicationInternal(crn)
 
-  @Cacheable(ApiCallKeys.GET_CAS_2_APPLICATION, sync = true)
-  fun getSuitableCas2Application(crn: String): Cas2Application? = approvedPremisesClient.getSuitableCas2ApplicationInternal(crn)
+  @Cacheable(ApiCallKeys.GET_CAS_2_CURRENT_APPLICATION, sync = true)
+  fun getCas2CurrentApplication(crn: String): Cas2Application? = approvedPremisesClient.getCas2CurrentApplicationInternal(crn)
 
-  @Cacheable(ApiCallKeys.GET_CAS_3_APPLICATION, sync = true)
-  fun getSuitableCas3Application(crn: String): Cas3Application? = approvedPremisesClient.getSuitableCas3ApplicationInternal(crn)
+  @Cacheable(ApiCallKeys.GET_CAS_3_CURRENT_APPLICATION, sync = true)
+  fun getCas3CurrentApplication(crn: String): Cas3Application? = approvedPremisesClient.getCas3CurrentApplicationInternal(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_1_URL_TEMPLATES, sync = true)
   fun getCas1UrlTemplates() = approvedPremisesClient.getCas1UrlTemplatesInternal()

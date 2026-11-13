@@ -139,7 +139,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
       uiUrl = cas3ReferralUiUrl,
     )
 
-    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
+    ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(crn = crn, response = cas3Application)
 
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
@@ -147,9 +147,9 @@ class EligibilityControllerIT : IntegrationTestBase() {
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
     SasAndDeliusStubs.stubGetSexualOffenceRegistrations(crn, SexualOffenceRegistrations(crn, emptyList()))
     PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber))
-    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
+    ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(crn = crn, response = cas3Application)
     ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
-    ApprovedPremisesStubs.getCas2SuitableApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas2CurrentApplicationNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
     CommissionedRehabilitativeServicesStubs.getCrsOkResponse(
@@ -275,8 +275,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
       uiUrl = cas3ReferralUiUrl,
     )
 
-    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
-    ApprovedPremisesStubs.getCas2SuitableApplicationOKResponse(crn = crn, response = cas2Application)
+    ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(crn = crn, response = cas3Application)
+    ApprovedPremisesStubs.getCas2CurrentApplicationOKResponse(crn = crn, response = cas2Application)
     ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = cas1Application)
 
     TierStubs.getTierOKResponse(crn = crn, tier)
@@ -357,7 +357,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
+    ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(crn = crn, response = cas3Application)
 
     webTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
@@ -530,8 +530,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
   @Test
   fun `should send back failed eligibility when CAS applications returns 404`() {
     ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn = crn)
-    ApprovedPremisesStubs.getCas2SuitableApplicationNotFoundResponse(crn = crn)
-    ApprovedPremisesStubs.getCas3SuitableApplicationNotFoundResponse(crn = crn)
+    ApprovedPremisesStubs.getCas2CurrentApplicationNotFoundResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3CurrentApplicationNotFoundResponse(crn = crn)
 
     TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
 
@@ -547,8 +547,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
       .jsonPath("$.data.cas3.cas3Application").isEmpty()
       .jsonPath("$.upstreamFailures.length()").isEqualTo(3)
       .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getCas1CurrentApplication")
-      .jsonPath("$.upstreamFailures[1].endpoint").isEqualTo("getCas2Application")
-      .jsonPath("$.upstreamFailures[2].endpoint").isEqualTo("getCas3Application")
+      .jsonPath("$.upstreamFailures[1].endpoint").isEqualTo("getCas2CurrentApplication")
+      .jsonPath("$.upstreamFailures[2].endpoint").isEqualTo("getCas3CurrentApplication")
       .jsonPath("$.upstreamFailures[0].httpResponseStatus").isEqualTo("404 NOT_FOUND")
       .jsonPath("$.upstreamFailures[1].httpResponseStatus").isEqualTo("404 NOT_FOUND")
       .jsonPath("$.upstreamFailures[2].httpResponseStatus").isEqualTo("404 NOT_FOUND")
@@ -559,8 +559,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
-    ApprovedPremisesStubs.getCas2SuitableApplicationNoContentResponse(crn = crn)
-    ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas2CurrentApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3CurrentApplicationNoContentResponse(crn = crn)
 
     TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
 
