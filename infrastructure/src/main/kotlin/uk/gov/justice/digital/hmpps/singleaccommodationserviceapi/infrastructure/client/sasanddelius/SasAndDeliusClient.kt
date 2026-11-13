@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius
 
 import org.slf4j.LoggerFactory
+import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
@@ -34,6 +35,7 @@ interface SasAndDeliusClient {
 @Service
 class SasAndDeliusCachingService(
   val sasAndDeliusClient: SasAndDeliusClient,
+  private val cacheManager: CacheManager,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -55,4 +57,8 @@ class SasAndDeliusCachingService(
 
   @Cacheable(ApiCallKeys.GET_CASE, key = "#crn", sync = true)
   fun getCase(crn: String) = sasAndDeliusClient.getCase(crn)
+
+  fun cacheClearOnFullCaseList() {
+    cacheManager.getCache(ApiCallKeys.FULL_CASE_LIST)?.clear()
+  }
 }
