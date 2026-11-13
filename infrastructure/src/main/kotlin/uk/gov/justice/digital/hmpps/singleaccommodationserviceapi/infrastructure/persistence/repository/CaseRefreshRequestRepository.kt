@@ -111,7 +111,7 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
     value = """
       UPDATE sas_case_refresh_request
       SET status = 'PENDING',
-          next_attempt_at = now(),
+          next_attempt_at = :nextAttemptAt,
           attempt_count = 0,
           failed_at = NULL,
           last_failure_category = NULL,
@@ -126,7 +126,7 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
         )
     """,
   )
-  fun replayFailedRequests(): Int
+  fun replayFailedRequests(nextAttemptAt: Instant): Int
 
   @Modifying
   @Query(
