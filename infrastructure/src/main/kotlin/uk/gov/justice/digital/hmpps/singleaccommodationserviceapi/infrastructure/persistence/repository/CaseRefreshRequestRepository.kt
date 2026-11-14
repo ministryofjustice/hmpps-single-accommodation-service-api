@@ -105,6 +105,40 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
   )
   fun insertBulkRequests(caseIds: Array<UUID>, priority: CaseRefreshPriority, requestedAt: Instant)
 
+  @Modifying
+  @Query(
+    nativeQuery = true,
+    value = """
+      UPDATE sas_case_refresh_request
+      SET status = 'PENDING',
+          next_attempt_at = :nextAttemptAt,
+          attempt_count = 0,
+          failed_at = NULL,
+          last_failure_category = NULL,
+          last_failure_detail = NULL,
+          processing_generation = NULL,
+          claimed_at = NULL,
+          claim_id = NULL
+      WHERE status = 'FAILED'
+        AND (
+          last_failure_detail IS NULL
+          OR last_failure_detail NOT LIKE '%getCorePersonRecordByCrn: 404 Not Found%'
+        )
+    """,
+  )
+  fun replayFailedRequests(nextAttemptAt: Instant): Int
+
+  @Modifying
+  @Query(
+    nativeQuery = true,
+    value = """
+      DELETE FROM sas_case_refresh_request
+      WHERE status = 'FAILED'
+        AND last_failure_detail LIKE '%getCorePersonRecordByCrn: 404 Not Found%'
+    """,
+  )
+  fun deleteRequestsForMissingCorePersonRecords(): Int
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(
     """

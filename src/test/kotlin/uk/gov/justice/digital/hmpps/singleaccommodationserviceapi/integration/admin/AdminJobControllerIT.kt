@@ -11,6 +11,7 @@ import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArchiveCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedCaseRefreshResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedInboxEventsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
@@ -414,6 +415,123 @@ class AdminJobControllerIT : IntegrationTestBase() {
   }
 
   @Nested
+  inner class ReplayFailedRefreshRequests {
+
+    @Test
+    fun `should return the replay count and reset only failed requests`() {
+      val failedCase = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
+      caseRefreshRequestService.requestLiveRefresh(failedCase.id)
+      val failedRequest = caseRefreshRequestRepository.findById(failedCase.id).orElseThrow().apply {
+        status = CaseRefreshRequestStatus.FAILED
+        attemptCount = 5
+        nextAttemptAt = now.plusSeconds(3600)
+        failedAt = now
+        lastFailureCategory = CaseRefreshFailureCategory.UPSTREAM_TIMEOUT
+        lastFailureDetail = "getTierV3ByCrn: Request timed out"
+        processingGeneration = generation
+        claimedAt = now
+        claimId = UUID.randomUUID()
+      }
+      caseRefreshRequestRepository.saveAndFlush(failedRequest)
+
+      val processingCase = caseRepository.save(buildCaseEntity { withCrn(otherRefreshCrn) })
+      caseRefreshRequestService.requestLiveRefresh(processingCase.id)
+      val processingRequest = caseRefreshRequestRepository.findById(processingCase.id).orElseThrow().apply {
+        status = CaseRefreshRequestStatus.PROCESSING
+        attemptCount = 1
+        processingGeneration = generation
+        claimedAt = now
+        claimId = UUID.randomUUID()
+        lastFailureCategory = CaseRefreshFailureCategory.UPSTREAM_TIMEOUT
+        lastFailureDetail = "getTierV3ByCrn: Request timed out"
+      }
+      caseRefreshRequestRepository.saveAndFlush(processingRequest)
+
+      val result = replayFailedRefreshRequests()
+      assertThat(result.refreshRequestsReplayed).isEqualTo(1)
+      assertThat(result.refreshRequestsDeleted).isZero()
+
+      val replayedRequest = caseRefreshRequestRepository.findById(failedCase.id).orElseThrow()
+      assertThat(replayedRequest.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
+      assertThat(replayedRequest.nextAttemptAt).isEqualTo(now)
+      assertThat(replayedRequest.attemptCount).isZero()
+      assertThat(replayedRequest.failedAt).isNull()
+      assertThat(replayedRequest.lastFailureCategory).isNull()
+      assertThat(replayedRequest.lastFailureDetail).isNull()
+      assertThat(replayedRequest.processingGeneration).isNull()
+      assertThat(replayedRequest.claimedAt).isNull()
+      assertThat(replayedRequest.claimId).isNull()
+      assertThat(replayedRequest.generation).isEqualTo(failedRequest.generation)
+      assertThat(replayedRequest.priority).isEqualTo(failedRequest.priority)
+      assertThat(replayedRequest.requestedAt).isEqualTo(failedRequest.requestedAt)
+
+      val unchangedRequest = caseRefreshRequestRepository.findById(processingCase.id).orElseThrow()
+      assertThat(unchangedRequest).usingRecursiveComparison().isEqualTo(processingRequest)
+
+      val resultAfterReplay = replayFailedRefreshRequests()
+      assertThat(resultAfterReplay.refreshRequestsReplayed).isZero()
+      assertThat(resultAfterReplay.refreshRequestsDeleted).isZero()
+    }
+
+    @Test
+    fun `should delete only failed core person record not found requests and replay other failures`() {
+      val requests = listOf(
+        CaseRefreshRequestStatus.FAILED to "getCorePersonRecordByCrn: 404 Not Found",
+        CaseRefreshRequestStatus.FAILED to "Upstream failures: [getCorePersonRecordByCrn: 404 Not Found, getTier: 500 Internal Server Error]",
+        CaseRefreshRequestStatus.PENDING to "getCorePersonRecordByCrn: 404 Not Found",
+        CaseRefreshRequestStatus.PROCESSING to "getCorePersonRecordByCrn: 404 Not Found",
+        CaseRefreshRequestStatus.FAILED to "getCorePersonRecordByCrn: 500 Internal Server Error",
+        CaseRefreshRequestStatus.FAILED to "getTier: 404 Not Found",
+        CaseRefreshRequestStatus.FAILED to "",
+        CaseRefreshRequestStatus.FAILED to null,
+      ).map { (status, detail) ->
+        val case = caseRepository.save(buildCaseEntity())
+        caseRefreshRequestService.requestLiveRefresh(case.id)
+        val request = caseRefreshRequestRepository.findById(case.id).orElseThrow().apply {
+          this.status = status
+          attemptCount = 5
+          nextAttemptAt = null
+          failedAt = now
+          lastFailureCategory = CaseRefreshFailureCategory.UPSTREAM_CLIENT_ERROR
+          lastFailureDetail = detail
+          if (status == CaseRefreshRequestStatus.PROCESSING) {
+            processingGeneration = generation
+            claimedAt = now
+            claimId = UUID.randomUUID()
+          }
+        }
+        caseRefreshRequestRepository.saveAndFlush(request)
+      }
+
+      val result = replayFailedRefreshRequests()
+      assertThat(result.refreshRequestsReplayed).isEqualTo(4)
+      assertThat(result.refreshRequestsDeleted).isEqualTo(2)
+
+      requests.take(2).forEach { deletedRequest ->
+        assertThat(caseRefreshRequestRepository.findById(deletedRequest.caseId)).isEmpty()
+        assertThat(caseRepository.findById(deletedRequest.caseId)).isPresent()
+      }
+      requests.slice(2..3).forEach { unchangedRequest ->
+        assertThat(caseRefreshRequestRepository.findById(unchangedRequest.caseId).orElseThrow())
+          .usingRecursiveComparison().isEqualTo(unchangedRequest)
+      }
+      requests.drop(4).forEach { replayedRequest ->
+        val request = caseRefreshRequestRepository.findById(replayedRequest.caseId).orElseThrow()
+        assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
+        assertThat(request.nextAttemptAt).isEqualTo(now)
+        assertThat(request.attemptCount).isZero()
+        assertThat(request.failedAt).isNull()
+        assertThat(request.lastFailureCategory).isNull()
+        assertThat(request.lastFailureDetail).isNull()
+      }
+
+      val resultAfterReplay = replayFailedRefreshRequests()
+      assertThat(resultAfterReplay.refreshRequestsReplayed).isZero()
+      assertThat(resultAfterReplay.refreshRequestsDeleted).isZero()
+    }
+  }
+
+  @Nested
   inner class BulkRefreshAllCases {
 
     @Test
@@ -539,6 +657,12 @@ class AdminJobControllerIT : IntegrationTestBase() {
       assertThat(caseRepository.findByCrn(refreshCrn)?.id).isEqualTo(case.id)
     }
   }
+
+  private fun replayFailedRefreshRequests() = webTestClient.post().uri("/admin/replay-failed-refresh-requests")
+    .withClientCredentialsJwt(roles = adminRoles)
+    .exchangeSuccessfully()
+    .expectApiResponse<ReplayFailedCaseRefreshResultDto>()
+    .data
 
   private fun archiveCasesByCrn(requestBody: String) = webTestClient.post().uri("/admin/archive-cases-by-crn")
     .contentType(MediaType.APPLICATION_JSON)

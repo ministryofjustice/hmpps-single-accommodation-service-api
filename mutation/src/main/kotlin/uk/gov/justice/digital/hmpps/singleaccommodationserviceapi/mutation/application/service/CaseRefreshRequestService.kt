@@ -52,6 +52,12 @@ class CaseRefreshRequestService(
   }
 
   @Transactional
+  fun replayFailedRequests(): Int = caseRefreshRequestRepository.replayFailedRequests(nextAttemptAt = Instant.now(clock))
+
+  @Transactional
+  fun deleteRequestsForMissingCorePersonRecords(): Int = caseRefreshRequestRepository.deleteRequestsForMissingCorePersonRecords()
+
+  @Transactional
   fun claimPending(maxRequests: Int, abandonedClaimTimeout: Duration): List<Claim> {
     val claimedAt = Instant.now(clock)
     return caseRefreshRequestRepository.findClaimable(
