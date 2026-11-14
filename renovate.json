@@ -8,8 +8,16 @@
       "matchFileNames": ["**/.github/workflows/**/*.ya?ml"],
       "matchUpdateTypes": ["minor", "patch"],
       "enabled": false
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "minor and patch updates"
     }
   ],
+  "vulnerabilityAlerts": {
+    "groupName": null,
+    "labels": ["cve"]
+  },
   "platformCommit": "enabled",
   "dependencyDashboard": true
 }
