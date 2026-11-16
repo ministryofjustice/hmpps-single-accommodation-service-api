@@ -15,6 +15,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
  * lazily)
  */
 interface EligibilityTreeProvider {
+  val treeInfo: EligibilityTreeInfo
+
   fun tree(): DecisionNode
 
   /** The initial [EvaluationContext] to evaluate the tree against for [data]. */

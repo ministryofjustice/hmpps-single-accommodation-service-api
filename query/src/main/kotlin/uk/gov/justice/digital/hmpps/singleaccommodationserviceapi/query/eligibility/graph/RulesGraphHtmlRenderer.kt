@@ -32,13 +32,16 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
     "trees" to graphs.sortedBy { it.treeName }.map { graph ->
       mapOf(
         "name" to graph.treeName,
+        "fullName" to graph.info?.fullName,
+        "description" to graph.info?.description,
+        "displayOrder" to graph.info?.displayOrder,
         "nodes" to graph.nodes.map { node ->
           mapOf(
             "id" to node.id,
             "title" to node.title,
             "label" to RulesGraphMarkdownRenderer.nodeLabel(node),
             "kind" to node.kind.name,
-            "sourcePath" to node.ruleSet?.let { githubSourceUrl(sourceLinkPath(it::class)) },
+            "sourcePath" to githubSourceUrl(node.ruleSet?.let { sourceLinkPath(it::class) } ?: node.sourcePath),
             "rules" to node.rules.map { rule ->
               mapOf(
                 "className" to rule.className,
@@ -99,12 +102,16 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
   #cy { flex: 1; }
   #panel { width: 546px; border-left: 1px solid #ddd; overflow-y: auto; padding: 12px 16px; font-size: 14px; }
   #panel.expanded { width: 760px; }
+  #panel h1 { margin-top: 0; font-size: 20px; }
   #panel h2 { margin-top: 0; font-size: 18px; word-break: break-word; }
   #panel h3 { font-size: 15px; margin-bottom: 4px; }
+  #panel h4 { font-size: 14px; margin: 8px 0 4px; }
+  #panel .kind { margin: 0 0 2px; }
+  #panel .route { border-top: 1px solid #ddd; margin-top: 12px; padding-top: 4px; }
+  #panel-content > .trace-outcomes, #panel .route .trace-outcomes { margin: 8px 0 12px; }
   table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; }
   th, td { border: 1px solid #ccc; padding: 3px 5px; text-align: left; vertical-align: top; }
   th { background: #eee; }
-  .legend span { display: inline-block; padding: 2px 6px; margin-right: 4px; border-radius: 4px; font-size: 12px; }
   .muted { color: #666; }
   code { background: #f0f0f0; padding: 0 3px; border-radius: 3px; }
   ul { padding-left: 18px; }
@@ -120,15 +127,34 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
   .badge.pass { background: #d9f2d9; color: #1e6b1e; }
   .badge.fail { background: #f8d7d3; color: #a02a1e; }
   .badge.update { background: ${RulesGraphColours.UPDATER_FILL}; color: #594d00; }
+  .badge.continue { background: #d6e9ff; color: #0055aa; }
   .badge.na { background: #eee; color: #666; }
   ol.trace { padding-left: 20px; font-size: 13px; }
   ol.trace li { margin: 4px 0; }
   .trace-outcomes { background: ${RulesGraphColours.RULE_SET_FILL}; border: 1px solid ${RulesGraphColours.RULE_SET_BORDER}; border-radius: 6px; padding: 10px; }
   #panel .trace-update .govuk-tag { font-size: inherit; }
   .simulation-actions { display: flex; gap: 6px; margin-bottom: 12px; }
+  body.home #main, body.home #panel { display: none; }
+  body:not(.home) #home { display: none; }
+  #home { flex: 1; overflow-y: auto; padding: 24px 32px; }
+  #home h1 { margin-top: 0; }
+  #home .intro { max-width: 760px; color: #444; }
+  #tree-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+  .tree-card { text-align: left; font: inherit; background: #fff; border: 1px solid #b1b4b6; border-left: 4px solid #1d70b8; padding: 16px; cursor: pointer; }
+  .tree-card:hover, .tree-card:focus { border-color: #3b73c4; border-left-color: #1d70b8; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+  .tree-card h2 { margin: 0 0 4px; font-size: 20px; }
+  .tree-card .full-name { margin: 0 0 8px; font-weight: bold; }
+  .tree-card p { margin: 0 0 8px; font-size: 14px; }
+  #tree-heading { border-bottom: 1px solid #ddd; margin-bottom: 12px; }
 </style>
 </head>
-<body>
+<body class="home">
+<div id="home">
+  <h1>Eligibility rules graphs</h1>
+  <p class="intro">Each service has a decision tree that works out a person's status for that service from their case data.
+  Choose a tree to explore its rule sets, context updaters and outcomes, or to simulate how a case moves through it.</p>
+  <div id="tree-cards"></div>
+</div>
 <div id="main">
   <div id="toolbar">
     <label>Tree <select id="tree"></select></label>
@@ -136,31 +162,25 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
     <button id="reset">Clear highlight</button>
     <button id="toggle-panel" aria-controls="panel" aria-expanded="false">Expand panel</button>
     <label><input type="checkbox" id="simulate"> <b>Simulate</b></label>
-    <span class="legend">
-      <span style="background:${RulesGraphColours.RULE_SET_FILL};border:1px solid ${RulesGraphColours.RULE_SET_BORDER}">RuleSet</span>
-      <span style="background:${RulesGraphColours.UPDATER_FILL};border:1px solid ${RulesGraphColours.UPDATER_BORDER}">Context updater</span>
-      <span style="background:${RulesGraphColours.OUTCOME_FILL};border:1px solid ${RulesGraphColours.OUTCOME_BORDER}">Outcome</span>
-      <span style="color:${RulesGraphColours.PASS}">━ PASS</span>
-      <span style="color:${RulesGraphColours.FAIL}">━ FAIL</span>
-      <span style="color:${RulesGraphColours.CONTINUE}">━ CONTINUE</span>
-    </span>
   </div>
   <div id="cy"></div>
 </div>
-<div id="panel"><p class="muted">Click a node to see its rules, context updaters and outcomes.<br>
-Clicking a node also highlights every path from the root to it.</p></div>
+<div id="panel"><div id="tree-heading"></div><div id="panel-content"></div></div>
 
 <script type="application/json" id="graph-data">$DATA_PLACEHOLDER</script>
 __STATUS_CARD_PREVIEW__
 <script>
   const data = JSON.parse(document.getElementById('graph-data').textContent);
-  const treeSelect = document.getElementById('tree');
   const panel = document.getElementById('panel');
   const togglePanelButton = document.getElementById('toggle-panel');
-  data.trees.forEach(t => treeSelect.add(new Option(t.name, t.name)));
+  const treeHeading = document.getElementById('tree-heading');
+  const treeSelect = document.getElementById('tree');
+  const panelContent = document.getElementById('panel-content');
+
+  const orderedTrees = [...data.trees].sort((a, b) =>
+    (a.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.displayOrder ?? Number.MAX_SAFE_INTEGER));
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const codeLink = (name, path) => path ? '<a href="' + esc(path) + '" target="_blank"><code>' + esc(name) + '</code></a>' : '<code>' + esc(name) + '</code>';
   const sourceTextLink = (text, path) => path ?
     '<a href="' + esc(path) + '" target="_blank" rel="noopener noreferrer">' + esc(text) + '</a>' : esc(text);
 
@@ -209,31 +229,145 @@ __STATUS_CARD_PREVIEW__
     cy.add(currentTree.edges.map((e, i) => ({ group: 'edges', data: {
       id: 'e' + i, source: e.from, target: e.to, label: e.label } })));
     runLayout();
-    panel.innerHTML = '<h2>' + esc(name) + '</h2><p class="muted">' + currentTree.nodes.length + ' nodes, ' +
-      currentTree.edges.length + ' edges. Click a node for details.</p>';
+    panelContent.innerHTML = '<p class="muted">' + currentTree.nodes.length + ' nodes, ' +
+      currentTree.edges.length + ' edges. Click a node to see its rules, context updaters and outcomes, ' +
+      'and to highlight every path from the root to it.</p>';
   }
 
-  function updaterHtml(title, u) {
-    if (!u) return '';
-    const name = u.name === 'constant' ? '' : codeLink(u.name, u.sourcePath) + ' – ';
-    return '<h3>' + title + ' context updater</h3><p>' + name + esc(u.description);
+  const KIND_NAMES = { RULE_SET: 'Rule Set', CONTEXT_UPDATER: 'Context Updater', OUTCOME: 'Outcome' };
+  const nodeLink = n => sourceTextLink(n.title, n.sourcePath);
+  const nodeById = id => currentTree.nodes.find(x => x.id === id);
+
+  const cardHtml = (outcome, reasons) => '<div class="trace-outcomes"><div class="result">' +
+    statusCardPreview(outcome, reasons) + statusActionPreview(outcome) + '</div></div>';
+  const ruleLink = r => sourceTextLink(r.description, r.sourcePath);
+  const updaterFor = route => route.label === 'PASS' ? route.ruleSet.onPass : route.ruleSet.onFail;
+  const routeCause = (route, rule) => nodeLink(route.ruleSet) + ' ' + badge(route.label) + (rule ? ' – ' + ruleLink(rule) : '');
+
+  // Shows each distinct card once, listing every route (and rule) that leads to it above the card.
+  function distinctCardsHtml(entries) {
+    const groups = new Map();
+    entries.forEach(({ html, cause }) => {
+      const group = groups.get(html) || groups.set(html, { causes: new Set() }).get(html);
+      group.causes.add(cause);
+    });
+    return [...groups].map(([html, g]) =>
+      '<div class="route"><ul>' + [...g.causes].map(c => '<li>' + c + '</li>').join('') + '</ul>' + html + '</div>').join('');
   }
 
+  // The rule sets (and the PASS/FAIL branch) that lead to a node, looking through context updater nodes.
+  function routesInto(id) {
+    return currentTree.edges.filter(e => e.to === id).flatMap(e => {
+      const source = nodeById(e.from);
+      return source.kind === 'CONTEXT_UPDATER' ? routesInto(source.id) : [{ ruleSet: source, label: e.label }];
+    });
+  }
+
+  function reasonText(reason) {
+    const rules = [...new Map(currentTree.nodes.flatMap(n => n.rules)
+      .filter(r => r.failureReason === reason).map(r => [r.className, r])).values()];
+    return rules.length ? rules.map(ruleLink).join(' or ') : esc(reason);
+  }
+
+  const updaterOutcomeHtml = o =>
+    (o.failureReasons.length ? '<p>When ' + o.failureReasons.map(reasonText).join(' and ') + '</p>' : '') + cardHtml(o, []);
+
+  // The distinct cards set by the context updaters on the routes into a node.
+  function updaterCardsHtml(routes) {
+    return distinctCardsHtml(routes.flatMap(route => (updaterFor(route)?.outcomes || []).map(o =>
+      ({ html: updaterOutcomeHtml(o), cause: routeCause(route) }))));
+  }
+
+  // Each distinct card a context updater node can set, shown once however many routes lead to it.
+  function distinctUpdaterCardsHtml(routes) {
+    const outcomes = new Map();
+    routes.forEach(route => (updaterFor(route)?.outcomes || []).forEach(o =>
+      outcomes.set(JSON.stringify([o.status, o.failureReasons]), o)));
+    return [...outcomes.values()].map(updaterOutcomeHtml).join('');
+  }
+
+  function outcomeCardsHtml(n) {
+    const routes = routesInto(n.id);
+    if (data.statuses[n.id]) {
+      const outcome = { status: n.id };
+      const failureRoutes = routes.filter(r =>
+        r.label === 'FAIL' && r.ruleSet.rules.some(rule => rule.failureReason));
+      if (!failureRoutes.length || !n.id.endsWith('_NOT_ELIGIBLE')) return cardHtml(outcome, []);
+
+      const ruleSetGroups = new Map();
+      failureRoutes.forEach(route => {
+        const rulesWithFailureReasons = route.ruleSet.rules.filter(rule => rule.failureReason);
+        const combinations = rulesWithFailureReasons.reduce(
+          (subsets, rule) => subsets.concat(subsets.map(subset => [...subset, rule])),
+          [[]]);
+        const cards = new Map();
+        combinations.slice(1).forEach(rules => {
+          const failureReasons = [...new Set(rules.map(rule => rule.failureReason))].sort();
+          const renderedCard = cardHtml(outcome, failureReasons);
+          const card = cards.get(renderedCard) || { renderedCard, conditions: new Map() };
+          card.conditions.set(JSON.stringify(rules.map(rule => rule.className).sort()), rules);
+          cards.set(renderedCard, card);
+        });
+
+        const cardList = [...cards.keys()].sort();
+        const key = JSON.stringify(cardList);
+        const group = ruleSetGroups.get(key) || {
+          cards: new Map(cardList.map(renderedCard => [renderedCard, { renderedCard, conditions: new Map() }])),
+          ruleSets: new Map(),
+        };
+        group.ruleSets.set(route.ruleSet.id, route.ruleSet);
+        cards.forEach((card, renderedCard) => {
+          const groupedCard = group.cards.get(renderedCard);
+          card.conditions.forEach((rules, condition) =>
+            groupedCard.conditions.set(route.ruleSet.id + ':' + condition, { ruleSet: route.ruleSet, rules }));
+        });
+        ruleSetGroups.set(key, group);
+      });
+
+      return [...ruleSetGroups.values()].map(({ cards, ruleSets }) => {
+        const sets = [...ruleSets.values()];
+        const heading = sets.length === 1 ? 'Shown when this rule set fails:' : 'Shown when these rule sets fail:';
+        const conditions = sets.map(node => '<li>' + nodeLink(node) + '</li>').join('');
+        const cardsHtml = [...cards.values()].map(({ renderedCard, conditions: cardConditions }) => {
+          const triggers = [...cardConditions.values()].map(({ ruleSet, rules }) =>
+            '<li>' + nodeLink(ruleSet) + ': ' + rules.map(ruleLink).join(' and ') + '</li>').join('');
+          return '<div class="route"><p>Shown when these rules fail:</p><ul>' + triggers + '</ul>' +
+            renderedCard + '</div>';
+        }).join('');
+        return '<div class="route"><p>' + heading + '</p><ul>' + conditions + '</ul>' + cardsHtml + '</div>';
+      }).join('');
+    }
+    const updaterCards = updaterCardsHtml(routes);
+    if (updaterCards) return updaterCards;
+    const earlier = new Map();
+    cy.getElementById(n.id).predecessors('edge').forEach(e => {
+      const source = nodeById(e.source().id());
+      if (source.kind !== 'RULE_SET') return;
+      (updaterFor({ ruleSet: source, label: e.data('label') })?.outcomes || []).forEach(o => earlier.set(o.status, o));
+    });
+    if (!earlier.size) return '<p class="muted">Keeps the status from earlier in the tree; no status is set on the way here.</p>';
+    return '<p class="muted">Keeps the status set earlier in the tree, so it could be any of these:</p>' +
+      [...earlier.values()].map(o => cardHtml(o, [])).join('');
+  }
   function showNode(id) {
-    const n = currentTree.nodes.find(x => x.id === id);
-    let html = '<h2>' + esc(n.title) + '</h2><p class="muted">' + esc(n.kind) + '</p>';
+    const n = nodeById(id);
+    let html = '<p class="muted kind">' + esc(KIND_NAMES[n.kind] || n.kind) + '</p><h2>' + nodeLink(n) + '</h2>';
     if (n.kind === 'RULE_SET') {
       html += '<h3>Rules</h3>';
       html += n.rules.length === 0 ? '<p>(no rules – always PASS)</p>' :
-        '<ul>' + n.rules.map(r => '<li>' + codeLink(r.className, r.sourcePath) + '<br>' + esc(r.description) + '</li>').join('') + '</ul>';
-      html += updaterHtml('PASS', n.onPass) + updaterHtml('FAIL', n.onFail);
+        '<ul>' + n.rules.map(r => '<li>' + sourceTextLink(r.description, r.sourcePath) + '</li>').join('') + '</ul>';
+    }
+    if (n.kind === 'OUTCOME') html += '<h3>Cards</h3>' + outcomeCardsHtml(n);
+    if (n.kind === 'CONTEXT_UPDATER') {
+      const updaterCards = distinctUpdaterCardsHtml(routesInto(n.id));
+      if (updaterCards) html += '<h3>Cards</h3>' + updaterCards;
     }
     const node = cy.getElementById(id);
-    const inc = node.incomers('edge').map(e => esc(e.source().data('title')) + ' <b>' + esc(e.data('label')) + '</b>');
-    const out = node.outgoers('edge').map(e => '<b>' + esc(e.data('label')) + '</b> → ' + esc(e.target().data('title')));
+    const inc = node.incomers('edge').map(e => nodeLink(nodeById(e.source().id())));
+    const out = node.outgoers('edge').map(e => '<b>' + esc(e.data('label')) + '</b> → ' + nodeLink(nodeById(e.target().id())));
     if (inc.length) html += '<h3>Reached from</h3><ul>' + inc.map(s => '<li>' + s + '</li>').join('') + '</ul>';
     if (out.length) html += '<h3>Leads to</h3><ul>' + out.map(s => '<li>' + s + '</li>').join('') + '</ul>';
-    panel.innerHTML = html;
+    panelContent.innerHTML = html;
   }
 
   function highlightPathsTo(node) {
@@ -383,7 +517,7 @@ __STATUS_CARD_PREVIEW__
       });
       html += '</div>';
     });
-    panel.innerHTML = html;
+    panelContent.innerHTML = html;
     updateUrl();
   }
 
@@ -444,10 +578,6 @@ __STATUS_CARD_PREVIEW__
   });
   cy.on('tap', evt => { if (evt.target === cy && !simMode) clearHighlight(); });
 
-  treeSelect.addEventListener('change', evt => {
-    showTree(evt.target.value);
-    if (simMode) renderSim(); else updateUrl();
-  });
   document.getElementById('fit').addEventListener('click', () => cy.fit(undefined, 30));
   document.getElementById('reset').addEventListener('click', () => { if (simMode) setSimMode(false); else clearHighlight(); });
   togglePanelButton.addEventListener('click', () => {
@@ -456,12 +586,57 @@ __STATUS_CARD_PREVIEW__
     togglePanelButton.textContent = expanded ? 'Narrow panel' : 'Expand panel';
   });
 
+  function openTree(name) {
+    document.body.classList.remove('home');
+    cy.resize();
+    failing.clear();
+    simMode = false;
+    simCheckbox.checked = false;
+    clearHighlight();
+    showTree(name);
+    const tree = data.trees.find(t => t.name === name);
+    treeHeading.innerHTML = '<h1>' + esc(name) + (tree.fullName ? ' – ' + esc(tree.fullName) : '') + '</h1>' +
+      (tree.description ? '<p class="muted">' + esc(tree.description) + '</p>' : '');
+    treeSelect.value = name;
+    document.title = name + (tree.fullName ? ' – ' + tree.fullName : '') + ' – Eligibility rules graph';
+    updateUrl();
+  }
+
+  function goHome() {
+    simMode = false;
+    simCheckbox.checked = false;
+    failing.clear();
+    document.body.classList.add('home');
+    treeSelect.value = '';
+    document.title = 'Eligibility rules graphs';
+    history.replaceState(null, '', location.pathname);
+  }
+
+  document.getElementById('tree-cards').innerHTML = orderedTrees.map(t => {
+    return '<button class="tree-card" data-tree="' + esc(t.name) + '"><h2>' + esc(t.name) + '</h2>' +
+      '<p class="full-name">' + esc(t.fullName) + '</p><p>' + esc(t.description) + '</p>' +
+      '<p class="muted">' + t.nodes.filter(n => n.kind === 'RULE_SET').length + ' rule sets, ' +
+      t.nodes.filter(n => n.kind === 'OUTCOME').length + ' outcomes</p></button>';
+  }).join('');
+  document.getElementById('tree-cards').addEventListener('click', evt => {
+    const card = evt.target.closest('[data-tree]');
+    if (card) openTree(card.getAttribute('data-tree'));
+  });
+  treeSelect.add(new Option('← All trees (home page)', ''));
+  orderedTrees.forEach(t => treeSelect.add(new Option(t.name + (t.fullName ? ' – ' + t.fullName : ''), t.name)));
+  treeSelect.addEventListener('change', evt => {
+    if (evt.target.value) openTree(evt.target.value); else goHome();
+  });
+
   const params = new URLSearchParams(location.hash ? location.hash.substring(1) : location.search);
   const initial = params.get('tree');
-  showTree(data.trees.some(t => t.name === initial) ? initial : data.trees[0].name);
-  treeSelect.value = currentTree.name;
-  (params.get('fail') || '').split(',').filter(Boolean).forEach(r => failing.add(r));
-  if (params.get('sim') === '1') setSimMode(true);
+  if (data.trees.some(t => t.name === initial)) {
+    openTree(initial);
+    (params.get('fail') || '').split(',').filter(Boolean).forEach(r => failing.add(r));
+    if (params.get('sim') === '1') setSimMode(true); else updateUrl();
+  } else {
+    goHome();
+  }
 </script>
 </body>
 </html>

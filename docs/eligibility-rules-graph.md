@@ -11,42 +11,42 @@ Diamond RuleSet nodes have a FAIL context updater.
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
-  PASS_if_the_leaving_date_is_missing_or_within_28_weeks_of_today("<div style='text-align:left'>FAIL if the leaving date is more than 28 weeks from today</div>")
-  PASS_if_the_CAS1_placement_status_is__Arrived__or__Upcoming_("<div style='text-align:left'>FAIL if the CAS1 placement status is not 'Arrived' or 'Upcoming'</div>")
-  PASS_if_the_CAS1_placement_status_is_not__Arrived_("<div style='text-align:left'>FAIL if the CAS1 placement status is 'Arrived'</div>")
+  PASS_if_the_leaving_date_is_missing_or_within_28_weeks_of_today("<div style='text-align:left'>PASS if the leaving date is missing or within 28 weeks of today</div>")
+  PASS_if_the_CAS1_placement_status_is__Arrived__or__Upcoming_("<div style='text-align:left'>PASS if the CAS1 placement status is 'Arrived' or 'Upcoming'</div>")
+  PASS_if_the_CAS1_placement_status_is_not__Arrived_("<div style='text-align:left'>PASS if the CAS1 placement status is not 'Arrived'</div>")
   CAS1_PLACEMENT_BOOKED["<b>Placement Booked</b>"]
   CAS1_ARRIVED["<b>Arrived</b>"]
   PASS_if_there_is_an_unexpired_CAS1_application("<div style='text-align:left'>FAIL if there is no CAS1 application
 FAIL if the CAS1 application status is 'Expired'</div>")
-  PASS_if_there_is_a_CAS1_placement("<div style='text-align:left'>FAIL if there is no CAS1 placement</div>")
-  PASS_if_the_CAS1_placement_status_is_not__Departed_("<div style='text-align:left'>FAIL if the CAS1 placement status is 'Departed'</div>")
-  PASS_if_the_CAS1_placement_status_is_not__Cancelled_("<div style='text-align:left'>FAIL if the CAS1 placement status is 'Cancelled'</div>")
+  PASS_if_there_is_a_CAS1_placement("<div style='text-align:left'>PASS if there is a CAS1 placement</div>")
+  PASS_if_the_CAS1_placement_status_is_not__Departed_("<div style='text-align:left'>PASS if the CAS1 placement status is not 'Departed'</div>")
+  PASS_if_the_CAS1_placement_status_is_not__Cancelled_("<div style='text-align:left'>PASS if the CAS1 placement status is not 'Cancelled'</div>")
   CAS1_NOT_ARRIVED["<b>Not Arrived</b>"]
   CAS1_PLACEMENT_CANCELLED["<b>Placement Cancelled</b>"]
   CAS1_PLACEMENT_REQUEST_NOT_STARTED["<b>Placement Request Not Started</b>"]
-  PASS_if_there_is_a_CAS1_request_for_placement_status("<div style='text-align:left'>FAIL if there is no CAS1 request for placement</div>")
-  PASS_if_the_CAS1_request_for_placement_status_is_not__Rejected_("<div style='text-align:left'>FAIL if the CAS1 request for placement status is 'Rejected'</div>")
-  PASS_if_the_CAS1_request_for_placement_status_is_not__Withdrawn_("<div style='text-align:left'>FAIL if the CAS1 request for placement status is 'Withdrawn'</div>")
-  PASS_if_the_CAS1_request_for_placement_status_is_not__Unsubmitted_("<div style='text-align:left'>FAIL if the CAS1 request for placement status is 'Unsubmitted'</div>")
+  PASS_if_there_is_a_CAS1_request_for_placement_status("<div style='text-align:left'>PASS if there is a CAS1 request for placement status</div>")
+  PASS_if_the_CAS1_request_for_placement_status_is_not__Rejected_("<div style='text-align:left'>PASS if the CAS1 request for placement status is not 'Rejected'</div>")
+  PASS_if_the_CAS1_request_for_placement_status_is_not__Withdrawn_("<div style='text-align:left'>PASS if the CAS1 request for placement status is not 'Withdrawn'</div>")
+  PASS_if_the_CAS1_request_for_placement_status_is_not__Unsubmitted_("<div style='text-align:left'>PASS if the CAS1 request for placement status is not 'Unsubmitted'</div>")
   CAS1_PLACEMENT_REQUEST_SUBMITTED["<b>Placement Request Submitted</b>"]
   CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED["<b>Placement Request Not Started</b>"]
   CAS1_PLACEMENT_REQUEST_WITHDRAWN["<b>Placement Request Withdrawn</b>"]
   CAS1_PLACEMENT_REQUEST_REJECTED["<b>Placement Request Rejected</b>"]
-  PASS_if_the_CAS1_application_is_active("<div style='text-align:left'>FAIL if the CAS1 application is not active</div>")
-  PASS_if_the_CAS1_application_status_is_not__Pending_Placement_Request_("<div style='text-align:left'>FAIL if the CAS1 application status is 'Pending Placement Request'</div>")
-  PASS_if_the_CAS1_application_status_is_not__Requested_Further_Information_("<div style='text-align:left'>FAIL if the CAS1 application status is 'Requested Further Information'</div>")
+  PASS_if_the_CAS1_application_is_active("<div style='text-align:left'>PASS if the CAS1 application is active</div>")
+  PASS_if_the_CAS1_application_status_is_not__Pending_Placement_Request_("<div style='text-align:left'>PASS if the CAS1 application status is not 'Pending Placement Request'</div>")
+  PASS_if_the_CAS1_application_status_is_not__Requested_Further_Information_("<div style='text-align:left'>PASS if the CAS1 application status is not 'Requested Further Information'</div>")
   CAS1_SUBMITTED["<b>Submitted</b>"]
   CAS1_INFO_REQUESTED["<b>Information Requested</b>"]
-  PASS_if_the_CAS1_application_status_is__Rejected_("<div style='text-align:left'>FAIL if the CAS1 application status is not 'Rejected'</div>")
-  PASS_if_the_person_is_not_Male("<div style='text-align:left'>FAIL if the person is Male</div>")
-  PASS_if_the_person_s_tier_is_A__B__C_or_D("<div style='text-align:left'>FAIL if the person's tier is not A, B, C or D</div>")
-  PASS_if_the_person_is_in_prison_or_CAS1("<div style='text-align:left'>FAIL if the person is not in prison or CAS1</div>")
-  PASS_if_the_person_has_a_ROSH_level("<div style='text-align:left'>FAIL if the person has no ROSH level</div>")
+  PASS_if_the_CAS1_application_status_is__Rejected_("<div style='text-align:left'>PASS if the CAS1 application status is 'Rejected'</div>")
+  PASS_if_the_person_is_not_Male("<div style='text-align:left'>PASS if the person is not Male</div>")
+  PASS_if_the_person_s_tier_is_A__B__C_or_D("<div style='text-align:left'>PASS if the person's tier is A, B, C or D</div>")
+  PASS_if_the_person_is_in_prison_or_CAS1("<div style='text-align:left'>PASS if the person is in prison or CAS1</div>")
+  PASS_if_the_person_has_a_ROSH_level("<div style='text-align:left'>PASS if the person has a ROSH level</div>")
   confirmed["current status"]
   CAS1_NOT_ELIGIBLE["<b>Not Eligible</b>"]
-  PASS_if_the_person_s_tier_is_A__B_or_C("<div style='text-align:left'>FAIL if the person's tier is not A, B or C</div>")
+  PASS_if_the_person_s_tier_is_A__B_or_C("<div style='text-align:left'>PASS if the person's tier is A, B or C</div>")
   updater_Cas1RejectedContextUpdater_PASS_if_the_person_is_not_Male["Set current status to <b>Application Rejected</b>"]
-  PASS_if_the_CAS1_application_has_not_been_submitted("<div style='text-align:left'>FAIL if the CAS1 application has been submitted</div>")
+  PASS_if_the_CAS1_application_has_not_been_submitted("<div style='text-align:left'>PASS if the CAS1 application has not been submitted</div>")
   updater_Cas1NotSubmittedContextUpdater_PASS_if_the_person_is_not_Male["Set current status to <b>Not Submitted</b>"]
   updater_Cas1StartContextUpdater_PASS_if_the_person_is_not_Male["Set current status to <b>Not Started</b>"]
   updater_Cas1UpcomingContextUpdater_PASS_if_the_person_is_not_Male["Set current status to <b>Upcoming</b>"]
@@ -238,38 +238,38 @@ FAIL if the CAS1 application status is 'Expired'</div>")
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
-  PASS_if_the_leaving_date_is_missing_or_within_15_days_of_today("<div style='text-align:left'>FAIL if the leaving date is more than 15 days from today</div>")
-  PASS_if_a_CAS2_application_exists("<div style='text-align:left'>FAIL if no CAS2 application exists</div>")
-  PASS_if_the_CAS2_application_is_submitted("<div style='text-align:left'>FAIL if the CAS2 application has not been submitted</div>")
-  PASS_if_the_CAS2_assessment_status_is_present("<div style='text-align:left'>FAIL if the CAS2 assessor has not yet set a status</div>")
-  PASS_if_the_CAS2_assessment_status_is_active("<div style='text-align:left'>FAIL if the CAS2 assessment status is not active</div>")
-  PASS_if_the_CAS2_arrival_timestamp_is_present("<div style='text-align:left'>FAIL if the person has not arrived</div>")
+  PASS_if_the_leaving_date_is_missing_or_within_15_days_of_today("<div style='text-align:left'>PASS if the leaving date is missing or within 15 days of today</div>")
+  PASS_if_a_CAS2_application_exists("<div style='text-align:left'>PASS if a CAS2 application exists</div>")
+  PASS_if_the_CAS2_application_is_submitted("<div style='text-align:left'>PASS if the CAS2 application is submitted</div>")
+  PASS_if_the_CAS2_assessment_status_is_present("<div style='text-align:left'>PASS if the CAS2 assessment status is present</div>")
+  PASS_if_the_CAS2_assessment_status_is_active("<div style='text-align:left'>PASS if the CAS2 assessment status is active</div>")
+  PASS_if_the_CAS2_arrival_timestamp_is_present("<div style='text-align:left'>PASS if the CAS2 arrival timestamp is present</div>")
   CAS2_ARRIVED["<b>Arrived</b>"]
-  PASS_if_the_CAS2_assessment_status_is__Awaiting_Arrival_("<div style='text-align:left'>FAIL if the CAS2 assessment status is not 'Awaiting Arrival'</div>")
+  PASS_if_the_CAS2_assessment_status_is__Awaiting_Arrival_("<div style='text-align:left'>PASS if the CAS2 assessment status is 'Awaiting Arrival'</div>")
   CAS2_AWAITING_ARRIVAL["<b>Awaiting Arrival</b>"]
-  PASS_if_the_CAS2_assessment_status_is__Offer_Accepted_("<div style='text-align:left'>FAIL if the CAS2 assessment status is not 'Offer Accepted'</div>")
+  PASS_if_the_CAS2_assessment_status_is__Offer_Accepted_("<div style='text-align:left'>PASS if the CAS2 assessment status is 'Offer Accepted'</div>")
   CAS2_OFFER_ACCEPTED["<b>Offer Accepted</b>"]
-  PASS_if_the_CAS2_assessment_status_is__Place_Offered_("<div style='text-align:left'>FAIL if the CAS2 assessment status is not 'Place Offered'</div>")
+  PASS_if_the_CAS2_assessment_status_is__Place_Offered_("<div style='text-align:left'>PASS if the CAS2 assessment status is 'Place Offered'</div>")
   CAS2_PLACE_OFFERED["<b>Place Offered</b>"]
-  PASS_if_the_CAS2_assessment_status_is__On_Waiting_List_("<div style='text-align:left'>FAIL if the CAS2 assessment status is not 'On Waiting List'</div>")
+  PASS_if_the_CAS2_assessment_status_is__On_Waiting_List_("<div style='text-align:left'>PASS if the CAS2 assessment status is 'On Waiting List'</div>")
   CAS2_ON_WAITING_LIST["<b>On Waiting List</b>"]
-  PASS_if_the_CAS2_assessment_status_is__More_Information_Requested_("<div style='text-align:left'>FAIL if the CAS2 assessment status is not 'More Information Requested'</div>")
+  PASS_if_the_CAS2_assessment_status_is__More_Information_Requested_("<div style='text-align:left'>PASS if the CAS2 assessment status is 'More Information Requested'</div>")
   CAS2_MORE_INFORMATION_NEEDED["<b>More Information Needed</b>"]
   CAS2_AWAITING_DECISION["<b>Awaiting Decision</b>"]
-  PASS_if_the_CAS2_assessment_status_is__Offer_Declined_("<div style='text-align:left'>FAIL if the CAS2 assessment status is not 'Offer Declined'</div>")
+  PASS_if_the_CAS2_assessment_status_is__Offer_Declined_("<div style='text-align:left'>PASS if the CAS2 assessment status is 'Offer Declined'</div>")
   PASS_if_the_person_is_eligible("<div style='text-align:left'>FAIL if the person is under 18 years old
 FAIL if the person's tier is not A, B, C, D, E, F or G
 FAIL if the person has sexual offence registrations</div>")
-  PASS_if_the_person_is_not_in_prison__or_is_in_prison_with_no_release_date("<div style='text-align:left'>FAIL if the person is in prison and the release date is missing</div>")
+  PASS_if_the_person_is_not_in_prison__or_is_in_prison_with_no_release_date("<div style='text-align:left'>PASS if the person is not in prison, or is in prison with no release date</div>")
   PASS_if_the_person_is_not_in_CAS2__CAS3_or_the_community("<div style='text-align:left'>FAIL if the person is in CAS3
 FAIL if the person is in CAS2
 FAIL if the person is in the community</div>")
-  PASS_if_the_person_has_no_next_accommodation("<div style='text-align:left'>FAIL if the person has a next accommodation</div>")
-  PASS_if_the_person_has_a_ROSH_level("<div style='text-align:left'>FAIL if the person has no ROSH level</div>")
+  PASS_if_the_person_has_no_next_accommodation("<div style='text-align:left'>PASS if the person has no next accommodation</div>")
+  PASS_if_the_person_has_a_ROSH_level("<div style='text-align:left'>PASS if the person has a ROSH level</div>")
   confirmed["current status"]
   CAS2_NOT_ELIGIBLE["<b>Not Eligible</b>"]
   updater_Cas2OfferDeclinedContextUpdater_PASS_if_the_person_is_eligible["Set current status to <b>Offer Declined or Withdrawn</b>"]
-  PASS_if_the_CAS2_assessment_status_is__Cancelled_("<div style='text-align:left'>FAIL if the CAS2 assessment status is not 'Cancelled'</div>")
+  PASS_if_the_CAS2_assessment_status_is__Cancelled_("<div style='text-align:left'>PASS if the CAS2 assessment status is 'Cancelled'</div>")
   updater_Cas2CancelledContextUpdater_PASS_if_the_person_is_eligible["Set current status to <b>Cancelled</b>"]
   updater_Cas2WithdrawnContextUpdater_PASS_if_the_person_is_eligible["Set current status to <b>Withdrawn</b>"]
   CAS2_SUBMITTED["<b>Submitted</b>"]
@@ -450,36 +450,36 @@ FAIL if the person is in the community</div>")
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
-  PASS_if_the_leaving_date_is_missing_or_within_15_days_of_today("<div style='text-align:left'>FAIL if the leaving date is more than 15 days from today</div>")
-  PASS_if_there_is_a_CAS3_booking_status("<div style='text-align:left'>FAIL if there is no CAS3 booking status</div>")
+  PASS_if_the_leaving_date_is_missing_or_within_15_days_of_today("<div style='text-align:left'>PASS if the leaving date is missing or within 15 days of today</div>")
+  PASS_if_there_is_a_CAS3_booking_status("<div style='text-align:left'>PASS if there is a CAS3 booking status</div>")
   PASS_if_the_CAS3_booking_status_is_not__Departed__or__Closed_("<div style='text-align:left'>FAIL if the CAS3 booking status is 'Departed'
 FAIL if the CAS3 booking status is 'Closed'</div>")
-  PASS_if_the_CAS3_booking_status_is__Confirmed_("<div style='text-align:left'>FAIL if the CAS3 booking status is not 'Confirmed'</div>")
+  PASS_if_the_CAS3_booking_status_is__Confirmed_("<div style='text-align:left'>PASS if the CAS3 booking status is 'Confirmed'</div>")
   CAS3_BOOKING_CONFIRMED["<b>Booking Confirmed</b>"]
-  PASS_if_the_CAS3_booking_status_is__Arrived_("<div style='text-align:left'>FAIL if the CAS3 booking status is not 'Arrived'</div>")
+  PASS_if_the_CAS3_booking_status_is__Arrived_("<div style='text-align:left'>PASS if the CAS3 booking status is 'Arrived'</div>")
   CAS3_ARRIVED["<b>Arrived</b>"]
-  PASS_if_the_CAS3_booking_status_is__Provisional_("<div style='text-align:left'>FAIL if the CAS3 booking status is not 'Provisional'</div>")
+  PASS_if_the_CAS3_booking_status_is__Provisional_("<div style='text-align:left'>PASS if the CAS3 booking status is 'Provisional'</div>")
   CAS3_BEDSPACE_OFFERED["<b>Bedspace Offered</b>"]
-  PASS_if_the_CAS3_booking_status_is__Not_Arrived_("<div style='text-align:left'>FAIL if the CAS3 booking status is anything other than 'Not Arrived'</div>")
+  PASS_if_the_CAS3_booking_status_is__Not_Arrived_("<div style='text-align:left'>PASS if the CAS3 booking status is 'Not Arrived'</div>")
   CAS3_NOT_ARRIVED["<b>Not Arrived</b>"]
   CAS3_BOOKING_CANCELLED["<b>Booking Cancelled</b>"]
-  PASS_if_the_person_is_in_CAS1__CAS2_or_prison("<div style='text-align:left'>FAIL if the person is not in CAS1, CAS2 or prison</div>")
-  PASS_if_the_person_has_no_next_accommodation("<div style='text-align:left'>FAIL if the person has a next accommodation</div>")
-  PASS_if_the_person_has_a_ROSH_level("<div style='text-align:left'>FAIL if the person has no ROSH level</div>")
+  PASS_if_the_person_is_in_CAS1__CAS2_or_prison("<div style='text-align:left'>PASS if the person is in CAS1, CAS2 or prison</div>")
+  PASS_if_the_person_has_no_next_accommodation("<div style='text-align:left'>PASS if the person has no next accommodation</div>")
+  PASS_if_the_person_has_a_ROSH_level("<div style='text-align:left'>PASS if the person has a ROSH level</div>")
   PASS_if_the_DTR_was_submitted_in_the_last_26_weeks_and_there_is_a_live_CRS_referral("<div style='text-align:left'>FAIL if the DTR submission date is missing or more than 26 weeks ago
 FAIL if there is no live CRS referral</div>")
   confirmed["current status"]
-  PASS_if_the_person_is_not_Male("<div style='text-align:left'>FAIL if the person is Male</div>")
+  PASS_if_the_person_is_not_Male("<div style='text-align:left'>PASS if the person is not Male</div>")
   outcome_Cas3CannotStartNotMaleContextUpdater["<b>Cannot Start Yet</b>"]
   outcome_Cas3CannotStartMaleContextUpdater["<b>Cannot Start Yet</b>"]
   CAS3_NOT_ELIGIBLE["<b>Not Eligible</b>"]
   updater_Cas3NotStartedNewContextUpdater_PASS_if_the_person_is_in_CAS1__CAS2_or_prison["Set current status to <b>Not Started</b>"]
-  PASS_if_the_CAS3_assessment_status_is_not__Closed_("<div style='text-align:left'>FAIL if the CAS3 assessment status is 'Closed'</div>")
+  PASS_if_the_CAS3_assessment_status_is_not__Closed_("<div style='text-align:left'>PASS if the CAS3 assessment status is not 'Closed'</div>")
   PASS_if_the_CAS3_referral_has_not_been_rejected("<div style='text-align:left'>FAIL if the CAS3 assessment status is 'Rejected'
 FAIL if there is no CAS3 assessment and the CAS3 application status is 'Rejected'</div>")
-  PASS_if_the_CAS3_application_is_submitted("<div style='text-align:left'>FAIL if the CAS3 application is not submitted</div>")
+  PASS_if_the_CAS3_application_is_submitted("<div style='text-align:left'>PASS if the CAS3 application is submitted</div>")
   CAS3_SUBMITTED["<b>Submitted</b>"]
-  PASS_if_a_CAS3_application_exists("<div style='text-align:left'>FAIL if the person has no CAS3 application</div>")
+  PASS_if_a_CAS3_application_exists("<div style='text-align:left'>PASS if a CAS3 application exists</div>")
   updater_Cas3NotSubmittedContextUpdater_PASS_if_the_person_is_in_CAS1__CAS2_or_prison["Set current status to <b>Not Submitted</b>"]
   updater_Cas3NotStartedContextUpdater_PASS_if_the_person_is_in_CAS1__CAS2_or_prison["Set current status to <b>Not Started</b>"]
   updater_Cas3RejectedContextUpdater_PASS_if_the_person_is_in_CAS1__CAS2_or_prison["Set current status to <b>Rejected</b>"]
@@ -644,11 +644,11 @@ FAIL if there is no CAS3 assessment and the CAS3 application status is 'Rejected
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
-  PASS_if_the_leaving_date_is_missing_or_within_12_weeks_of_today("<div style='text-align:left'>FAIL if the leaving date is more than 12 weeks from today</div>")
-  PASS_if_there_is_a_live_CRS_referral("<div style='text-align:left'>FAIL if there is no live CRS referral</div>")
+  PASS_if_the_leaving_date_is_missing_or_within_12_weeks_of_today("<div style='text-align:left'>PASS if the leaving date is missing or within 12 weeks of today</div>")
+  PASS_if_there_is_a_live_CRS_referral("<div style='text-align:left'>PASS if there is a live CRS referral</div>")
   CRS_SUBMITTED["<b>Submitted</b>"]
-  PASS_if_person_is_not_settled("<div style='text-align:left'>FAIL if the person is settled</div>")
-  PASS_if_the_person_has_no_next_accommodation("<div style='text-align:left'>FAIL if the person has a next accommodation</div>")
+  PASS_if_person_is_not_settled("<div style='text-align:left'>PASS if person is not settled</div>")
+  PASS_if_the_person_has_no_next_accommodation("<div style='text-align:left'>PASS if the person has no next accommodation</div>")
   confirmed["current status"]
   CRS_NOT_REQUIRED["<b>Not Required</b>"]
   updater_CrsStartContextUpdater_PASS_if_person_is_not_settled["Set current status to <b>Not Started</b>"]
@@ -712,13 +712,13 @@ flowchart TD
   PASS_if_the_DTR_is_relevant("<div style='text-align:left'>FAIL if the DTR status is missing
 FAIL if the DTR status is 'Withdrawn'
 FAIL if the DTR submission date is missing or more than 26 weeks ago</div>")
-  PASS_if_the_DTR_status_is__Accepted_("<div style='text-align:left'>FAIL if the DTR status is not 'Accepted'</div>")
+  PASS_if_the_DTR_status_is__Accepted_("<div style='text-align:left'>PASS if the DTR status is 'Accepted'</div>")
   DTR_ACCEPTED["<b>Accepted</b>"]
-  PASS_if_the_DTR_status_is__Not_Accepted_("<div style='text-align:left'>FAIL if the DTR status is not 'Not Accepted'</div>")
+  PASS_if_the_DTR_status_is__Not_Accepted_("<div style='text-align:left'>PASS if the DTR status is 'Not Accepted'</div>")
   DTR_NOT_ACCEPTED["<b>Not Accepted</b>"]
   DTR_SUBMITTED["<b>Submitted</b>"]
-  PASS_if_the_person_has_no_next_accommodation("<div style='text-align:left'>FAIL if the person has a next accommodation</div>")
-  PASS_if_the_leaving_date_is_missing_or_within_8_weeks_of_today("<div style='text-align:left'>FAIL if the leaving date is more than 8 weeks from today</div>")
+  PASS_if_the_person_has_no_next_accommodation("<div style='text-align:left'>PASS if the person has no next accommodation</div>")
+  PASS_if_the_leaving_date_is_missing_or_within_8_weeks_of_today("<div style='text-align:left'>PASS if the leaving date is missing or within 8 weeks of today</div>")
   DTR_NOT_STARTED["<b>Not Started</b>"]
   outcome_DtrUpcomingContextUpdater["<b>Upcoming</b>"]
   DTR_NOT_REQUIRED["<b>Not Required</b>"]
@@ -783,7 +783,7 @@ FAIL if the DTR submission date is missing or more than 26 weeks ago</div>")
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
-  PASS_if_the_person_has_a_next_accommodation("<div style='text-align:left'>FAIL if the person has no next accommodation</div>")
+  PASS_if_the_person_has_a_next_accommodation("<div style='text-align:left'>PASS if the person has a next accommodation</div>")
   PA_COMPLETED["<b>Completed</b>"]
   PASS_if_the_CAS1_application_is_not_active_and_the_CAS3_application_is_not_active("<div style='text-align:left'>FAIL if the CAS1 application is active
 FAIL if the CAS3 application is active</div>")
