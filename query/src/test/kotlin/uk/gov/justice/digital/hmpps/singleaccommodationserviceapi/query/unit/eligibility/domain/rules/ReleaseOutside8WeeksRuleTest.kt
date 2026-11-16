@@ -82,6 +82,6 @@ class ReleaseOutside8WeeksRuleTest {
   @Test
   fun `rule has correct description`() {
     assertThat(ReleaseOutside8WeeksRule(clock).description)
-      .isEqualTo("FAIL if release is more than 8 weeks from today")
+      .isEqualTo("FAIL if the current accommodation end date is more than 8 weeks from today")
   }
 }
