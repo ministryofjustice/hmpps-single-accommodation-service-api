@@ -13,7 +13,7 @@ import java.time.Instant
 
 class Cas2NotMarkedAsArrivedRuleTest {
   private val rule = Cas2NotMarkedAsArrivedRule()
-  private val description = "FAIL if the CAS2 arrival timestamp is missing"
+  private val description = "FAIL if the person has not arrived"
 
   @Test
   fun `arrival timestamp present passes`() {

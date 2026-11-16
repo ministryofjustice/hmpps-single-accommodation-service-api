@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3DepartedBookingRule : Rule {
-  override val description = "FAIL if the CAS3 booking status is Departed"
+  override val description = "FAIL if the CAS3 booking status is 'Departed'"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.cas3Application?.submittedApplication?.latestBooking?.status == Cas3BookingStatus.DEPARTED

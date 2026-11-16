@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class Cas3AssessmentRejectedRuleTest {
   private val rule = Cas3AssessmentRejectedRule()
-  private val description = "FAIL if the CAS3 assessment status is Rejected"
+  private val description = "FAIL if the CAS3 assessment status is 'Rejected'"
 
   @Test
   fun `rejected assessment fails`() {

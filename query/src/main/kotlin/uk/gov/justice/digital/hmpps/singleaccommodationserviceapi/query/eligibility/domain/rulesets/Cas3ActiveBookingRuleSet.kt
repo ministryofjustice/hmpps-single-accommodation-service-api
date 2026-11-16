@@ -8,10 +8,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3ActiveBookingRuleSet(
-  cas3DepartedBookingRule: Cas3DepartedBookingRule,
-  cas3ClosedBookingRule: Cas3ClosedBookingRule,
+  departedBooking: Cas3DepartedBookingRule,
+  closedBooking: Cas3ClosedBookingRule,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(cas3DepartedBookingRule, cas3ClosedBookingRule)
-  override val name: String = "PASS if the CAS3 booking status is not Departed or Closed"
+  private val rules: List<Rule> = listOf(departedBooking, closedBooking)
+  override val name: String = "PASS if the CAS3 booking status is not 'Departed' or 'Closed'"
   override fun getRules(): List<Rule> = rules
 }

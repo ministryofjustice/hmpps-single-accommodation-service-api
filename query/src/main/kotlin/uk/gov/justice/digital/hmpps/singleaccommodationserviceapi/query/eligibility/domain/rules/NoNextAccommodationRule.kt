@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class NoNextAccommodationRule : Rule {
-  override val description = "FAIL if person has no future accommodation"
+  override val description = "FAIL if the person has no next accommodation"
 
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,

@@ -7,10 +7,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3PresentRuleSet(
-  cas3NotPresent: Cas3NotPresentRule,
+  notPresent: Cas3NotPresentRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(
-    cas3NotPresent,
+    notPresent,
   )
   override val name: String = "PASS if a CAS3 application exists"
   override fun getRules(): List<Rule> = rules

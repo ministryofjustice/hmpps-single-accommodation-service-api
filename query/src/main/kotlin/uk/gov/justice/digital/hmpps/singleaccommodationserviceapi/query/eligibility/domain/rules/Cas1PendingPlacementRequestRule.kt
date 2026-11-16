@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas1PendingPlacementRequestRule : Rule {
-  override val description = "FAIL if referral is pending placement request"
+  override val description = "FAIL if the CAS1 application status is 'Pending Placement Request'"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.cas1Application?.application?.status == Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST

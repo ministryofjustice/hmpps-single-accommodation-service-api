@@ -7,13 +7,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2MarkedAsArrivedRuleSet(
-  cas2NotMarkedAsArrived: Cas2NotMarkedAsArrivedRule,
+  notMarkedAsArrived: Cas2NotMarkedAsArrivedRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(
-    cas2NotMarkedAsArrived,
+    notMarkedAsArrived,
   )
 
-  override val name: String = "PASS if CAS2 is marked as arrived"
+  override val name: String = "PASS if the CAS2 arrival timestamp is present"
 
   override fun getRules(): List<Rule> = rules
 }

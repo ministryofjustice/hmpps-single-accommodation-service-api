@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas1CancelledPlacementRule : Rule {
-  override val description = "FAIL if current placement is cancelled"
+  override val description = "FAIL if the CAS1 placement status is 'Cancelled'"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.cas1Application?.currentOutcome?.placement?.status == Cas1PlacementStatus.CANCELLED

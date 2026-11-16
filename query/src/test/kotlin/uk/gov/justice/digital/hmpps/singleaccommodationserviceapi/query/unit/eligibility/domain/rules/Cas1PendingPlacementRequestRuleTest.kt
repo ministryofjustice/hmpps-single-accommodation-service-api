@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas1PendingPlacementRequestRuleTest {
-  private val description = "FAIL if referral is pending placement request"
+  private val description = "FAIL if the CAS1 application status is 'Pending Placement Request'"
 
   @Test
   fun `referral pending placement request fails`() {

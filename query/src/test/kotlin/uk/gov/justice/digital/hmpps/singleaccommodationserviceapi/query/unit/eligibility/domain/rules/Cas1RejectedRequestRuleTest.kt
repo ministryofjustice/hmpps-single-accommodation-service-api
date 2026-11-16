@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas1RejectedRequestRuleTest {
-  private val description = "FAIL if request for placement is rejected"
+  private val description = "FAIL if the CAS1 request for placement status is 'Rejected'"
 
   @Test
   fun `rejected request for placement fails`() {

@@ -13,7 +13,7 @@ class Cas1PlacementRuleSet(
     noPlacement,
   )
 
-  override val name: String = "Placement"
+  override val name: String = "PASS if there is a CAS1 placement"
 
   override fun getRules(): List<Rule> = rules
 }

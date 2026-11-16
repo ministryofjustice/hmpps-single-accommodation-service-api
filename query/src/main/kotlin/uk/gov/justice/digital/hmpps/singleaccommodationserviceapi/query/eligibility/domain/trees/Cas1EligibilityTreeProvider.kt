@@ -9,26 +9,26 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1StartContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1ActivePlacementRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1ActiveRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1ApplicationActiveRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1ApplicationNotSubmittedRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1ApplicationPresentAndNotExpiredRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1ApplicationRejectedRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1MoreInfoNotRequestedRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotArrivedPlacementRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotCancelledPlacementRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotDepartedPlacementRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotPendingPlacementRequestRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotRejectedRequestRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotSubmittedRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1NotWithdrawnRequestRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1PlacementRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1RejectedRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1RequestForPlacementRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1SubmittedRequestRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1SubmittedRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas1UpcomingPlacementRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.CurrentAccommodationEligibleForCas1RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.MaleTierEligibleForCas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.CurrentAccommodationPrisonOrCas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.HasRoshLevelRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.LeavingWithin28WeeksRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotMaleRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotMaleTierEligibleForCas1RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ReleaseWithin28WeeksRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.RoshEligibleRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.TierAToCRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.TierAToDRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
@@ -38,31 +38,31 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas1EligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
-  private val releaseWithin28Weeks: ReleaseWithin28WeeksRuleSet,
-  private val upcomingContextUpdater: Cas1UpcomingContextUpdater,
-  private val referral: Cas1RuleSet,
-  private val notSubmittedReferral: Cas1NotSubmittedRuleSet,
-  private val notSubmittedContextUpdater: Cas1NotSubmittedContextUpdater,
-  private val activeReferral: Cas1ActiveRuleSet,
-  private val rejectedContextUpdater: Cas1RejectedContextUpdater,
-  private val rejected: Cas1RejectedRuleSet,
-  private val placement: Cas1PlacementRuleSet,
-  private val requestForPlacement: Cas1RequestForPlacementRuleSet,
-  private val activePlacement: Cas1ActivePlacementRuleSet,
-  private val notDepartedPlacement: Cas1NotDepartedPlacementRuleSet,
-  private val upcomingPlacement: Cas1UpcomingPlacementRuleSet,
-  private val notArrivedPlacement: Cas1NotArrivedPlacementRuleSet,
-  private val startContextUpdater: Cas1StartContextUpdater,
-  private val maleTierEligibleForCas1: MaleTierEligibleForCas1RuleSet,
-  private val notMaleTierEligibleForCas1: NotMaleTierEligibleForCas1RuleSet,
-  private val notMale: NotMaleRuleSet,
-  private val currentAccommodationEligibleForCas1: CurrentAccommodationEligibleForCas1RuleSet,
-  private val roshEligible: RoshEligibleRuleSet,
-  private val notRejectedRequest: Cas1NotRejectedRequestRuleSet,
-  private val notWithdrawnRequest: Cas1NotWithdrawnRequestRuleSet,
-  private val submittedRequest: Cas1SubmittedRequestRuleSet,
-  private val moreInfoNotRequested: Cas1MoreInfoNotRequestedRuleSet,
-  private val submitted: Cas1SubmittedRuleSet,
+  private val leavingWithin28WeeksRuleSet: LeavingWithin28WeeksRuleSet,
+  private val cas1UpcomingContextUpdater: Cas1UpcomingContextUpdater,
+  private val cas1ApplicationPresentAndNotExpiredRuleSet: Cas1ApplicationPresentAndNotExpiredRuleSet,
+  private val cas1ApplicationNotSubmittedRuleSet: Cas1ApplicationNotSubmittedRuleSet,
+  private val cas1NotSubmittedContextUpdater: Cas1NotSubmittedContextUpdater,
+  private val cas1ApplicationActiveRuleSet: Cas1ApplicationActiveRuleSet,
+  private val cas1RejectedContextUpdater: Cas1RejectedContextUpdater,
+  private val cas1ApplicationRejectedRuleSet: Cas1ApplicationRejectedRuleSet,
+  private val cas1PlacementRuleSet: Cas1PlacementRuleSet,
+  private val cas1RequestForPlacementRuleSet: Cas1RequestForPlacementRuleSet,
+  private val cas1ActivePlacementRuleSet: Cas1ActivePlacementRuleSet,
+  private val cas1NotDepartedPlacementRuleSet: Cas1NotDepartedPlacementRuleSet,
+  private val cas1NotArrivedPlacementRuleSet: Cas1NotArrivedPlacementRuleSet,
+  private val cas1NotCancelledPlacementRuleSet: Cas1NotCancelledPlacementRuleSet,
+  private val cas1StartContextUpdater: Cas1StartContextUpdater,
+  private val tierAToCRuleSet: TierAToCRuleSet,
+  private val tierAToDRuleSet: TierAToDRuleSet,
+  private val notMaleRuleSet: NotMaleRuleSet,
+  private val currentAccommodationPrisonOrCas1RuleSet: CurrentAccommodationPrisonOrCas1RuleSet,
+  private val hasRoshLevelRuleSet: HasRoshLevelRuleSet,
+  private val cas1NotRejectedRequestRuleSet: Cas1NotRejectedRequestRuleSet,
+  private val cas1NotWithdrawnRequestRuleSet: Cas1NotWithdrawnRequestRuleSet,
+  private val cas1SubmittedRequestRuleSet: Cas1SubmittedRequestRuleSet,
+  private val cas1MoreInfoNotRequestedRuleSet: Cas1MoreInfoNotRequestedRuleSet,
+  private val cas1NotPendingPlacementRequestRuleSet: Cas1NotPendingPlacementRequestRuleSet,
 
 ) : EligibilityTreeProvider {
 
@@ -111,130 +111,130 @@ class Cas1EligibilityTreeProvider(
     val infoRequested = builder.outcome(
       ServiceResultNew(ServiceStatusNew.CAS1_INFO_REQUESTED),
     )
-    val roshEligibleNode = builder
-      .ruleSet(roshEligible)
+    val hasRoshLevelRuleSetNode = builder
+      .ruleSet(hasRoshLevelRuleSet)
       .onPass(confirmed)
       .onFail(notEligible)
       .build()
 
-    val currentAccommodationEligibleForCas1Node = builder
-      .ruleSet(currentAccommodationEligibleForCas1)
-      .onPass(roshEligibleNode)
+    val currentAccommodationPrisonOrCas1RuleSetNode = builder
+      .ruleSet(currentAccommodationPrisonOrCas1RuleSet)
+      .onPass(hasRoshLevelRuleSetNode)
       .onFail(notEligible)
       .build()
 
-    val maleTierEligibleForCas1Node = builder
-      .ruleSet(maleTierEligibleForCas1)
-      .onPass(currentAccommodationEligibleForCas1Node)
+    val tierAToCRuleSetNode = builder
+      .ruleSet(tierAToCRuleSet)
+      .onPass(currentAccommodationPrisonOrCas1RuleSetNode)
       .onFail(notEligible)
       .build()
 
-    val notMaleTierEligibleForCas1Node = builder
-      .ruleSet(notMaleTierEligibleForCas1)
-      .onPass(currentAccommodationEligibleForCas1Node)
+    val tierAToDRuleSetNode = builder
+      .ruleSet(tierAToDRuleSet)
+      .onPass(currentAccommodationPrisonOrCas1RuleSetNode)
       .onFail(notEligible)
       .build()
 
-    val notMaleNode = builder
-      .ruleSet(notMale)
-      .onPass(notMaleTierEligibleForCas1Node)
-      .onFail(maleTierEligibleForCas1Node)
+    val notMaleRuleSetNode = builder
+      .ruleSet(notMaleRuleSet)
+      .onPass(tierAToDRuleSetNode)
+      .onFail(tierAToCRuleSetNode)
       .build()
 
-    val notSubmittedNode = builder
-      .ruleSet(notSubmittedReferral)
-      .onPass(notMaleNode).applyContextUpdaterOnPass(notSubmittedContextUpdater)
-      .onFail(notMaleNode).applyContextUpdaterOnFailure(startContextUpdater)
+    val cas1ApplicationNotSubmittedRuleSetNode = builder
+      .ruleSet(cas1ApplicationNotSubmittedRuleSet)
+      .onPass(notMaleRuleSetNode).applyContextUpdaterOnPass(cas1NotSubmittedContextUpdater)
+      .onFail(notMaleRuleSetNode).applyContextUpdaterOnFailure(cas1StartContextUpdater)
       .build()
 
-    val rejectedNode = builder
-      .ruleSet(rejected)
-      .onPass(notMaleNode).applyContextUpdaterOnPass(rejectedContextUpdater)
-      .onFail(notSubmittedNode)
+    val cas1ApplicationRejectedRuleSetNode = builder
+      .ruleSet(cas1ApplicationRejectedRuleSet)
+      .onPass(notMaleRuleSetNode).applyContextUpdaterOnPass(cas1RejectedContextUpdater)
+      .onFail(cas1ApplicationNotSubmittedRuleSetNode)
       .build()
 
-    val moreInfoNotRequestedNode = builder
-      .ruleSet(moreInfoNotRequested)
+    val cas1MoreInfoNotRequestedRuleSetNode = builder
+      .ruleSet(cas1MoreInfoNotRequestedRuleSet)
       .onPass(applicationSubmitted)
       .onFail(infoRequested)
       .build()
 
-    val submittedNode = builder
-      .ruleSet(submitted)
-      .onPass(moreInfoNotRequestedNode)
+    val cas1NotPendingPlacementRequestRuleSetNode = builder
+      .ruleSet(cas1NotPendingPlacementRequestRuleSet)
+      .onPass(cas1MoreInfoNotRequestedRuleSetNode)
       .onFail(placementRequestNotSubmitted)
       .build()
 
-    val activeNode = builder
-      .ruleSet(activeReferral)
-      .onPass(submittedNode)
-      .onFail(rejectedNode)
+    val cas1ApplicationActiveRuleSetNode = builder
+      .ruleSet(cas1ApplicationActiveRuleSet)
+      .onPass(cas1NotPendingPlacementRequestRuleSetNode)
+      .onFail(cas1ApplicationRejectedRuleSetNode)
       .build()
 
-    val submittedRequestNode = builder
-      .ruleSet(submittedRequest)
+    val cas1SubmittedRequestRuleSetNode = builder
+      .ruleSet(cas1SubmittedRequestRuleSet)
       .onPass(placementRequestSubmitted)
       .onFail(placementRequestNotSubmitted)
       .build()
 
-    val notWithdrawnRequestNode = builder
-      .ruleSet(notWithdrawnRequest)
-      .onPass(submittedRequestNode)
+    val cas1NotWithdrawnRequestRuleSetNode = builder
+      .ruleSet(cas1NotWithdrawnRequestRuleSet)
+      .onPass(cas1SubmittedRequestRuleSetNode)
       .onFail(withdrawnRequest)
       .build()
 
-    val notRejectedRequestNode = builder
-      .ruleSet(notRejectedRequest)
-      .onPass(notWithdrawnRequestNode)
+    val cas1NotRejectedRequestRuleSetNode = builder
+      .ruleSet(cas1NotRejectedRequestRuleSet)
+      .onPass(cas1NotWithdrawnRequestRuleSetNode)
       .onFail(rejectedRequest)
       .build()
 
-    val requestForPlacementNode = builder
-      .ruleSet(requestForPlacement)
-      .onPass(notRejectedRequestNode)
-      .onFail(activeNode)
+    val cas1RequestForPlacementRuleSetNode = builder
+      .ruleSet(cas1RequestForPlacementRuleSet)
+      .onPass(cas1NotRejectedRequestRuleSetNode)
+      .onFail(cas1ApplicationActiveRuleSetNode)
       .build()
 
-    val notArrivedPlacementNode = builder
-      .ruleSet(notArrivedPlacement)
+    val cas1NotCancelledPlacementRuleSetNode = builder
+      .ruleSet(cas1NotCancelledPlacementRuleSet)
       .onPass(notArrived)
       .onFail(placementCancelled)
       .build()
 
-    val notDepartedPlacementNode = builder
-      .ruleSet(notDepartedPlacement)
-      .onPass(notArrivedPlacementNode)
+    val cas1NotDepartedPlacementRuleSetNode = builder
+      .ruleSet(cas1NotDepartedPlacementRuleSet)
+      .onPass(cas1NotCancelledPlacementRuleSetNode)
       .onFail(placementRequestNotStarted)
       .build()
 
-    val placementNode = builder
-      .ruleSet(placement)
-      .onPass(notDepartedPlacementNode)
-      .onFail(requestForPlacementNode)
+    val cas1PlacementRuleSetNode = builder
+      .ruleSet(cas1PlacementRuleSet)
+      .onPass(cas1NotDepartedPlacementRuleSetNode)
+      .onFail(cas1RequestForPlacementRuleSetNode)
       .build()
 
-    val referralNode = builder
-      .ruleSet(referral)
-      .onPass(placementNode)
-      .onFail(notMaleNode).applyContextUpdaterOnFailure(startContextUpdater)
+    val cas1ApplicationPresentAndNotExpiredRuleSetNode = builder
+      .ruleSet(cas1ApplicationPresentAndNotExpiredRuleSet)
+      .onPass(cas1PlacementRuleSetNode)
+      .onFail(notMaleRuleSetNode).applyContextUpdaterOnFailure(cas1StartContextUpdater)
       .build()
 
-    val upcomingPlacementNode = builder
-      .ruleSet(upcomingPlacement)
+    val cas1NotArrivedPlacementRuleSetNode = builder
+      .ruleSet(cas1NotArrivedPlacementRuleSet)
       .onPass(placementBooked)
       .onFail(arrived)
       .build()
 
-    val activePlacementNode = builder
-      .ruleSet(activePlacement)
-      .onPass(upcomingPlacementNode)
-      .onFail(referralNode)
+    val cas1ActivePlacementRuleSetNode = builder
+      .ruleSet(cas1ActivePlacementRuleSet)
+      .onPass(cas1NotArrivedPlacementRuleSetNode)
+      .onFail(cas1ApplicationPresentAndNotExpiredRuleSetNode)
       .build()
 
     return builder
-      .ruleSet(releaseWithin28Weeks)
-      .onPass(activePlacementNode)
-      .onFail(notMaleNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
+      .ruleSet(leavingWithin28WeeksRuleSet)
+      .onPass(cas1ActivePlacementRuleSetNode)
+      .onFail(notMaleRuleSetNode).applyContextUpdaterOnFailure(cas1UpcomingContextUpdater)
       .build()
   }
 }

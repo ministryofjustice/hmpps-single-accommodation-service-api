@@ -33,6 +33,6 @@ class NoNextAccommodationRuleTest {
   @Test
   fun `rule has correct description`() {
     assertThat(NoNextAccommodationRule().description)
-      .isEqualTo("FAIL if person has no future accommodation")
+      .isEqualTo("FAIL if the person has no next accommodation")
   }
 }
