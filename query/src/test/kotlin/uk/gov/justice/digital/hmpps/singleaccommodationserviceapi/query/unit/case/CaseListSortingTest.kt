@@ -74,6 +74,7 @@ class CaseListSortingTest {
       limitedAccess = true,
       teamCode = teamCode,
       assignedTo = assignedToUsername?.let { buildAssignedToDto(username = it) },
+      inUsersCustomList = false,
     )
 
     private fun List<CaseDto>.applyFilters(
@@ -193,8 +194,8 @@ class CaseListSortingTest {
 
       @Test
       fun `does not match the text null when name fields are missing`() {
-        val noNames = CaseDto(crn = "X100005", userAccess = UserAccess.FULL, limitedAccess = false, assignedTo = buildAssignedToDto(username = currentUser))
-        val forenameOnly = CaseDto(crn = "X100006", forename = "Zed", userAccess = UserAccess.FULL, limitedAccess = false, assignedTo = buildAssignedToDto(username = currentUser))
+        val noNames = CaseDto(crn = "X100005", userAccess = UserAccess.FULL, limitedAccess = false, assignedTo = buildAssignedToDto(username = currentUser), inUsersCustomList = false)
+        val forenameOnly = CaseDto(crn = "X100006", forename = "Zed", userAccess = UserAccess.FULL, limitedAccess = false, assignedTo = buildAssignedToDto(username = currentUser), inUsersCustomList = false)
         val cases = listOf(noNames, forenameOnly)
 
         assertThat(cases.applyFilters(searchTerm = "n")).isEmpty()
