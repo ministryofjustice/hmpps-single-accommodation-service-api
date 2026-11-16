@@ -14,6 +14,6 @@ class DtrRuleSet(
   dtrExpired: DtrExpiredRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(dtrNotPresent, dtrWithdrawn, dtrExpired)
-  override val name: String = "DTR"
+  override val name: String = "PASS if the DTR status is present and not Withdrawn, and the DTR was submitted in the last 26 weeks"
   override fun getRules(): List<Rule> = rules
 }

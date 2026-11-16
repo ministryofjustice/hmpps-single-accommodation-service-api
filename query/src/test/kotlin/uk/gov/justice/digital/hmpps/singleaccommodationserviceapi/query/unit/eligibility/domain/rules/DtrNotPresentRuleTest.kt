@@ -38,6 +38,6 @@ class DtrNotPresentRuleTest {
   @Test
   fun `rule has correct description`() {
     assertThat(DtrNotPresentRule().description)
-      .isEqualTo("FAIL if DTR status is not present")
+      .isEqualTo("FAIL if the DTR status is missing")
   }
 }

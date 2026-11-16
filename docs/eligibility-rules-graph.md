@@ -709,51 +709,66 @@ flowchart TD
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
-  DTR("<div style='text-align:left'>FAIL if DTR status is not present
-FAIL if referral has been withdrawn
+  PASS_if_the_DTR_status_is_present_and_not_Withdrawn__and_the_DTR_was_submitted_in_the_last_26_weeks("<div style='text-align:left'>FAIL if the DTR status is missing
+FAIL if the DTR status is Withdrawn
 FAIL if the DTR submission date is missing or more than 26 weeks ago</div>")
-  outcome_DtrActiveContextUpdater["<b>Accepted</b>,
- <b>Not Accepted</b>,
- <b>Submitted</b>"]
+  PASS_if_the_DTR_status_is_Accepted("<div style='text-align:left'>FAIL if the DTR status is not Accepted</div>")
+  DTR_ACCEPTED["<b>Accepted</b>"]
+  PASS_if_the_DTR_status_is_Not_Accepted("<div style='text-align:left'>FAIL if the DTR status is not Not Accepted</div>")
+  DTR_NOT_ACCEPTED["<b>Not Accepted</b>"]
+  DTR_SUBMITTED["<b>Submitted</b>"]
   PASS_if_the_person_has_no_next_accommodation("<div style='text-align:left'>FAIL if the person has a next accommodation</div>")
-  Release_Within_8_Weeks("<div style='text-align:left'>FAIL if release is more than 8 weeks from today</div>")
+  PASS_if_the_current_accommodation_end_date_is_missing_or_within_8_weeks_of_today("<div style='text-align:left'>FAIL if the current accommodation end date is more than 8 weeks from today</div>")
   DTR_NOT_STARTED["<b>Not Started</b>"]
   outcome_DtrUpcomingContextUpdater["<b>Upcoming</b>"]
   DTR_NOT_REQUIRED["<b>Not Required</b>"]
-  DTR -->|PASS| outcome_DtrActiveContextUpdater
-  Release_Within_8_Weeks -->|PASS| DTR_NOT_STARTED
-  Release_Within_8_Weeks -->|FAIL| outcome_DtrUpcomingContextUpdater
-  PASS_if_the_person_has_no_next_accommodation -->|PASS| Release_Within_8_Weeks
+  PASS_if_the_DTR_status_is_Accepted -->|PASS| DTR_ACCEPTED
+  PASS_if_the_DTR_status_is_Not_Accepted -->|PASS| DTR_NOT_ACCEPTED
+  PASS_if_the_DTR_status_is_Not_Accepted -->|FAIL| DTR_SUBMITTED
+  PASS_if_the_DTR_status_is_Accepted -->|FAIL| PASS_if_the_DTR_status_is_Not_Accepted
+  PASS_if_the_DTR_status_is_present_and_not_Withdrawn__and_the_DTR_was_submitted_in_the_last_26_weeks -->|PASS| PASS_if_the_DTR_status_is_Accepted
+  PASS_if_the_current_accommodation_end_date_is_missing_or_within_8_weeks_of_today -->|PASS| DTR_NOT_STARTED
+  PASS_if_the_current_accommodation_end_date_is_missing_or_within_8_weeks_of_today -->|FAIL| outcome_DtrUpcomingContextUpdater
+  PASS_if_the_person_has_no_next_accommodation -->|PASS| PASS_if_the_current_accommodation_end_date_is_missing_or_within_8_weeks_of_today
   PASS_if_the_person_has_no_next_accommodation -->|FAIL| DTR_NOT_REQUIRED
-  DTR -->|FAIL| PASS_if_the_person_has_no_next_accommodation
-  linkStyle 0,1,3 stroke:#2e8b2e,stroke-width:2px
-  linkStyle 2,4,5 stroke:#c0392b,stroke-width:2px
+  PASS_if_the_DTR_status_is_present_and_not_Withdrawn__and_the_DTR_was_submitted_in_the_last_26_weeks -->|FAIL| PASS_if_the_person_has_no_next_accommodation
+  linkStyle 0,1,4,5,7 stroke:#2e8b2e,stroke-width:2px
+  linkStyle 2,3,6,8,9 stroke:#c0392b,stroke-width:2px
   classDef ruleSetNode fill:#dbe9ff,stroke:#3b73c4,color:#333
   classDef outcomeNode fill:#d9f2d9,stroke:#2e8b2e,color:#333
   classDef updaterNode fill:#fff2cc,stroke:#c99a00,color:#333
-  class DTR,PASS_if_the_person_has_no_next_accommodation,Release_Within_8_Weeks ruleSetNode
-  class outcome_DtrActiveContextUpdater,DTR_NOT_STARTED,outcome_DtrUpcomingContextUpdater,DTR_NOT_REQUIRED outcomeNode
+  class PASS_if_the_DTR_status_is_present_and_not_Withdrawn__and_the_DTR_was_submitted_in_the_last_26_weeks,PASS_if_the_DTR_status_is_Accepted,PASS_if_the_DTR_status_is_Not_Accepted,PASS_if_the_person_has_no_next_accommodation,PASS_if_the_current_accommodation_end_date_is_missing_or_within_8_weeks_of_today ruleSetNode
+  class DTR_ACCEPTED,DTR_NOT_ACCEPTED,DTR_SUBMITTED,DTR_NOT_STARTED,outcome_DtrUpcomingContextUpdater,DTR_NOT_REQUIRED outcomeNode
 ```
 
 ### Nodes
 
-**DTR** (RuleSet) `DtrRuleSet`
-- [`DtrNotPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/DtrNotPresentRule.kt): FAIL if DTR status is not present
-- [`DtrWithdrawnRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/DtrWithdrawnRule.kt): FAIL if referral has been withdrawn
+**PASS if the DTR status is present and not Withdrawn, and the DTR was submitted in the last 26 weeks** (RuleSet) `DtrRuleSet`
+- [`DtrNotPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/DtrNotPresentRule.kt): FAIL if the DTR status is missing
+- [`DtrWithdrawnRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/DtrWithdrawnRule.kt): FAIL if the DTR status is Withdrawn
 - [`DtrExpiredRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/DtrExpiredRule.kt): FAIL if the DTR submission date is missing or more than 26 weeks ago
-- PASS: [`DtrActiveContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/contextupdaters/DtrActiveContextUpdater.kt) - Accepted,
- Not Accepted,
- Submitted
 
 
-**Accepted, Not Accepted, Submitted** (Outcome)
+**PASS if the DTR status is Accepted** (RuleSet) `DtrAcceptedRuleSet`
+- [`DtrNotAcceptedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/DtrNotAcceptedRule.kt): FAIL if the DTR status is not Accepted
+
+
+**Accepted** (Outcome)
+
+**PASS if the DTR status is Not Accepted** (RuleSet) `DtrNotAcceptedRuleSet`
+- [`DtrNotNotAcceptedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/DtrNotNotAcceptedRule.kt): FAIL if the DTR status is not Not Accepted
+
+
+**Not Accepted** (Outcome)
+
+**Submitted** (Outcome)
 
 **PASS if the person has no next accommodation** (RuleSet) `NoNextAccommodationRuleSet`
 - [`HasNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/HasNextAccommodationRule.kt): FAIL if the person has a next accommodation
 
 
-**Release Within 8 Weeks** (RuleSet) `ReleaseWithin8WeeksRuleSet`
-- [`ReleaseOutside8WeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/ReleaseOutside8WeeksRule.kt): FAIL if release is more than 8 weeks from today
+**PASS if the current accommodation end date is missing or within 8 weeks of today** (RuleSet) `ReleaseWithin8WeeksRuleSet`
+- [`ReleaseOutside8WeeksRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/ReleaseOutside8WeeksRule.kt): FAIL if the current accommodation end date is more than 8 weeks from today
 - FAIL: [`DtrUpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/contextupdaters/DtrUpcomingContextUpdater.kt) - Upcoming
 
 
@@ -854,9 +869,11 @@ FAIL if CAS3 referral is submitted and active</div>")
 | CurrentAccommodationTypeIsCas2Rule | FAIL if person is in CAS2 | Current Accommodation Eligible For CAS2 | CAS2 |
 | CurrentAccommodationTypeIsCas3Rule | FAIL if person is in CAS3 | Current Accommodation Eligible For CAS2 | CAS2 |
 | CurrentAccommodationTypeIsCommunityRule | FAIL if person is in the community | Current Accommodation Eligible For CAS2 | CAS2 |
-| DtrExpiredRule | FAIL if the DTR submission date is missing or more than 26 weeks ago | DTR, PASS if the DTR was submitted in the last 26 weeks and there is a live CRS referral | CAS3, DTR |
-| DtrNotPresentRule | FAIL if DTR status is not present | DTR | DTR |
-| DtrWithdrawnRule | FAIL if referral has been withdrawn | DTR | DTR |
+| DtrExpiredRule | FAIL if the DTR submission date is missing or more than 26 weeks ago | PASS if the DTR status is present and not Withdrawn, and the DTR was submitted in the last 26 weeks, PASS if the DTR was submitted in the last 26 weeks and there is a live CRS referral | CAS3, DTR |
+| DtrNotAcceptedRule | FAIL if the DTR status is not Accepted | PASS if the DTR status is Accepted | DTR |
+| DtrNotNotAcceptedRule | FAIL if the DTR status is not Not Accepted | PASS if the DTR status is Not Accepted | DTR |
+| DtrNotPresentRule | FAIL if the DTR status is missing | PASS if the DTR status is present and not Withdrawn, and the DTR was submitted in the last 26 weeks | DTR |
+| DtrWithdrawnRule | FAIL if the DTR status is Withdrawn | PASS if the DTR status is present and not Withdrawn, and the DTR was submitted in the last 26 weeks | DTR |
 | HasNextAccommodationRule | FAIL if the person has a next accommodation | PASS if the person has no next accommodation | CAS2, CAS3, CRS, DTR |
 | HasSexualOffenceRegistrationsRule | FAIL if person has sexual offence registrations. | Person Eligible | CAS2 |
 | InPrisonNoReleaseRule | FAIL if person is in prison and has no release date | Release Date Eligible | CAS2 |
@@ -870,7 +887,7 @@ FAIL if CAS3 referral is submitted and active</div>")
 | ReleaseOutside12WeeksRule | FAIL if release is more than 12 weeks from today | Release Within 12 Weeks | CRS |
 | ReleaseOutside15DaysRule | FAIL if the current accommodation end date is more than 15 days from today | PASS if the current accommodation end date is missing or within 15 days of today | CAS2, CAS3 |
 | ReleaseOutside28WeeksRule | FAIL if release is more than 28 weeks from today | Release Within 28 Weeks | CAS1 |
-| ReleaseOutside8WeeksRule | FAIL if release is more than 8 weeks from today | Release Within 8 Weeks | DTR |
+| ReleaseOutside8WeeksRule | FAIL if the current accommodation end date is more than 8 weeks from today | PASS if the current accommodation end date is missing or within 8 weeks of today | DTR |
 | Under18Rule | FAIL if person is under 18 years old | Person Eligible | CAS2 |
 | WrongCurrentAccommodationForCas3TypeRule | FAIL if the person is not in CAS1, CAS2 or prison | PASS if the person is in CAS1, CAS2 or prison | CAS3 |
 | WrongTierRule | FAIL if person is not Tier A through G | Person Eligible | CAS2 |
@@ -954,12 +971,6 @@ Set current status to Upcoming
 
 Used by: Release Within 12 Weeks (CRS) on fail
 
-Accepted,
- Not Accepted,
- Submitted
-
-Used by: DTR (DTR) on pass
-
 Upcoming
 
-Used by: Release Within 8 Weeks (DTR) on fail
+Used by: PASS if the current accommodation end date is missing or within 8 weeks of today (DTR) on fail
