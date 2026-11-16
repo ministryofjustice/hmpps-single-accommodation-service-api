@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class MaleRule : Rule {
-  override val description = "FAIL if person is Male"
+  override val description = "FAIL if the person is Male"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.sex == SexCode.M

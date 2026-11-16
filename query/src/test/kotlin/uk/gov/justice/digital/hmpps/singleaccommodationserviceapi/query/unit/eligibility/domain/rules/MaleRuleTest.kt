@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class MaleRuleTest {
-  private val description = "FAIL if person is Male"
+  private val description = "FAIL if the person is Male"
 
   @Test
   fun `male person fails`() {

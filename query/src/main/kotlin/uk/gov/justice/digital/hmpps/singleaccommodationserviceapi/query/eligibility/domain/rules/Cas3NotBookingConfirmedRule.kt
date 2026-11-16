@@ -8,16 +8,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 
 @Component
-class Cas3BookingNotActiveRule : Rule {
-  override val description = "FAIL if the booking is departed or closed"
+class Cas3NotBookingConfirmedRule : Rule {
+  override val description = "FAIL if the CAS3 booking status is not Confirmed"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val expiredStatuses = listOf(
-      Cas3BookingStatus.DEPARTED,
-      Cas3BookingStatus.CLOSED,
-    )
-
-    val ruleStatus = if (data.cas3Application?.submittedApplication?.latestBooking?.status in expiredStatuses) RuleStatus.FAIL else RuleStatus.PASS
+    val isFail = data.cas3Application?.submittedApplication?.latestBooking?.status != Cas3BookingStatus.CONFIRMED
+    val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 
     return RuleResult(
       description = description,

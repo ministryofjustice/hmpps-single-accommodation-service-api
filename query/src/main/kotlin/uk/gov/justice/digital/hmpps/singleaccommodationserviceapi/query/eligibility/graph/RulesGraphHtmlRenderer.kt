@@ -294,11 +294,22 @@ __STATUS_CARD_PREVIEW__
     return '<span class="badge ' + status.toLowerCase() + '">' + status + '</span>';
   }
 
+  // Updaters whose outcomes all declare failure reasons resolve to the outcome matching the reasons of the rules failed on the path.
+  function resolveOutcomes(res) {
+    const last = res.steps[res.steps.length - 1];
+    if (data.statuses[last.node.id]) return [{ status: last.node.id }];
+    const outcomes = res.lastUpdater?.outcomes || [];
+    if (outcomes.length < 2 || !outcomes.every(o => o.failureReasons.length)) return outcomes;
+    const selectable = new Set(outcomes.flatMap(o => o.failureReasons));
+    const failed = new Set(res.steps.flatMap(s => s.failed || []).map(r => r.failureReason).filter(r => selectable.has(r)));
+    const matches = outcomes.filter(o => o.failureReasons.length === failed.size && o.failureReasons.every(r => failed.has(r)));
+    return matches.length === 1 ? matches : outcomes;
+  }
+
   function resultHtml(res) {
     const last = res.steps[res.steps.length - 1];
     if (!last || last.node.kind !== 'OUTCOME') return '<div class="result">No outcome reached</div>';
-    const fixedStatus = data.statuses[last.node.id];
-    const outcomes = fixedStatus ? [{ status: last.node.id }] : (res.lastUpdater?.outcomes || []);
+    const outcomes = resolveOutcomes(res);
     let html = '<div class="result">';
     if (!outcomes.length) return html + '<p>No status was set, so a card cannot be previewed.</p></div>';
     if (outcomes.length > 1) {
@@ -336,7 +347,7 @@ __STATUS_CARD_PREVIEW__
       }
       return '<li class="trace-update">' + description + ' ' + badge('UPDATE') + '</li>';
     }
-    const outcomeCount = data.statuses[step.node.id] ? 1 : (res.lastUpdater?.outcomes.length || 0);
+    const outcomeCount = resolveOutcomes(res).length;
     return '<li><div class="trace-outcomes"><b>' + (outcomeCount > 1 ? 'Outcomes' : 'Outcome') + '</b>' +
       resultHtml(res) + '</div></li>';
   }

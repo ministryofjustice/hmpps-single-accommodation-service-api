@@ -10,6 +10,6 @@ class ReleaseWithin15DaysRuleSet(
   releaseOutside15Days: ReleaseOutside15DaysRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(releaseOutside15Days)
-  override val name: String = "Release Within 15 Days"
+  override val name: String = "PASS if the current accommodation end date is missing or within 15 days of today"
   override fun getRules(): List<Rule> = rules
 }

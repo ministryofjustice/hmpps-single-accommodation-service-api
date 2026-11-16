@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class NoRoshLevelRuleTest {
   private val rule = NoRoshLevelRule()
-  private val description = "FAIL if person has no ROSH level"
+  private val description = "FAIL if the person has no ROSH level"
 
   @Test
   fun `person passes when they have a ROSH level`() {

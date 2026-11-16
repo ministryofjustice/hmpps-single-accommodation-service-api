@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.NoLiveCrsRule
@@ -12,7 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class NoLiveCrsRuleTest {
-  private val description = "FAIL if no live CRS referral"
+  private val description = "FAIL if there is no live CRS referral"
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(value = CrsReferralStatus::class, names = ["LIVE"])
@@ -44,6 +45,7 @@ class NoLiveCrsRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
+        failureReason = FailureReason.CRS_NOT_LIVE,
       ),
     )
   }
@@ -60,6 +62,7 @@ class NoLiveCrsRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
+        failureReason = FailureReason.CRS_NOT_LIVE,
       ),
     )
   }

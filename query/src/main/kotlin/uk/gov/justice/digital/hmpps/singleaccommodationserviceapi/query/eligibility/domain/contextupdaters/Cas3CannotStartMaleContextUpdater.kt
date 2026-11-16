@@ -9,46 +9,32 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
 
 @Component
-class Cas3CannotStartContextUpdater : ContextUpdater() {
+class Cas3CannotStartMaleContextUpdater : ContextUpdater() {
   override val terminalNode = true
 
   val dtrAndCrsAccommodation = "dtrAndCrsAccommodation"
-  val dtrAndCrs = "dtrAndCrs"
   val crsAccommodation = "crsAccommodation"
-  val crs = "crs"
   val dtr = "dtr"
 
   override val outcomes = mapOf(
     dtrAndCrsAccommodation to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION,
-    ),
-    dtrAndCrs to ServiceResultSpec(
-      serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS,
+      failureReasons = listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_LIVE),
     ),
     crsAccommodation to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION,
-    ),
-    crs to ServiceResultSpec(
-      serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS,
+      failureReasons = listOf(FailureReason.CRS_NOT_LIVE),
     ),
     dtr to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR,
+      failureReasons = listOf(FailureReason.DTR_REFERRAL_EXPIRED),
     ),
   )
 
   override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
-    val currentFailureReasons = context.currentResult?.failureReasons ?: emptyList()
-    val crsOutstandingMale = FailureReason.CRS_NOT_SUBMITTED_MALE in currentFailureReasons
-    val crsOutstandingNonMale = FailureReason.CRS_NOT_SUBMITTED_NON_MALE in currentFailureReasons
-    val dtrOutstanding = FailureReason.DTR_REFERRAL_EXPIRED in currentFailureReasons
-
-    val key = when {
-      dtrOutstanding && crsOutstandingMale -> dtrAndCrsAccommodation
-      dtrOutstanding && crsOutstandingNonMale -> dtrAndCrs
-      crsOutstandingMale -> crsAccommodation
-      crsOutstandingNonMale -> crs
-      else -> dtr
-    }
-    return outcome(key).copy(failureReasons = currentFailureReasons)
+    val currentFailureReasons = context.failureReasons.toSet()
+    return outcomes.values
+      .single { it.failureReasons.toSet() == currentFailureReasons }
+      .toResult()
   }
 }
