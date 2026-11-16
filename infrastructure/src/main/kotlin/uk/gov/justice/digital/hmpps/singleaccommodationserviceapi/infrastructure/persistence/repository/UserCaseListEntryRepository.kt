@@ -13,6 +13,8 @@ import java.util.UUID
 interface UserCaseListEntryRepository : JpaRepository<UserCaseListEntryEntity, UUID> {
   fun findAllBySasUserIdAndListType(sasUserId: UUID, listType: CaseListType): List<UserCaseListEntryEntity>
 
+  fun existsBySasUserIdAndListTypeAndSasCaseId(sasUserId: UUID, listType: CaseListType, sasCaseId: UUID): Boolean
+
   @Modifying
   @Query("delete from UserCaseListEntryEntity e where e.sasUserId = :sasUserId and e.listType = :listType")
   fun deleteBySasUserIdAndListType(sasUserId: UUID, listType: CaseListType)
