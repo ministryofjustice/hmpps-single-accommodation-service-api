@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Us
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListCrn
@@ -80,20 +81,23 @@ class UserCaseListQueryService(
       caseRepository.findAllWithIdentifiersByIdIn(entries.map { it.sasCaseId }),
       lastUpdatedAtByCaseId,
     )
-    val result = toCaseDtos(user.username, caseEntities)
+    val result = toCaseDtos(user, caseEntities)
     return toApiResponseDto(
       data = arrangeCases(result.data),
       upstreamFailures = result.upstreamFailures,
     )
   }
 
-  private fun toCaseDtos(username: String, caseEntities: List<CaseEntity>): OrchestrationResultDto<List<CaseDto>> {
+  private fun toCaseDtos(user: UserEntity, caseEntities: List<CaseEntity>): OrchestrationResultDto<List<CaseDto>> {
     val crns = caseEntities.map { it.latestCrn() }
-    val orchestrationResult = userCaseListOrchestrationService.getCaseAccessAndSummaries(username, crns)
+    val orchestrationResult = userCaseListOrchestrationService.getCaseAccessAndSummaries(user.username, crns)
     limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
 
     val crnsToUserAccess = limitedAccessService.getCrnToUserAccess(orchestrationResult.data.caseAccess)
     val caseSummariesByCrn = orchestrationResult.data.caseSummaries.associateBy { it.crn }
+
+    val customListCrns = userCaseListEntryRepository.findCustomListCrnsBySasUserId(user.id)
+
     val caseDtos = caseEntities.map { entity ->
       val crn = entity.latestCrn()
       val caseSummary = caseSummariesByCrn[crn]
@@ -108,6 +112,7 @@ class UserCaseListQueryService(
             assignedTo = entity.toAssignedToDto(),
             limitedAccess = isLao,
             teamCode = caseTeamCode,
+            inUsersCustomList = crn in customListCrns,
           )
         }
 
@@ -115,6 +120,7 @@ class UserCaseListQueryService(
           crn,
           teamCode = caseTeamCode,
           assignedTo = entity.toAssignedToDto(),
+          inUsersCustomList = crn in customListCrns,
         )
       }
     }

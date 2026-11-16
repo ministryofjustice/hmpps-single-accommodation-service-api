@@ -23,19 +23,22 @@ object CaseTransformer {
     tier: Tier?,
     sexualOffenceRegistrations: SexualOffenceRegistrations?,
     userAccess: UserAccess?,
+    inUsersCustomList: Boolean,
   ) = when {
-    case == null -> CaseDto(crn = crn, userAccess = UserAccess.UNKNOWN, limitedAccess = null)
+    case == null -> CaseDto(crn = crn, userAccess = UserAccess.UNKNOWN, limitedAccess = null, inUsersCustomList = inUsersCustomList)
 
     userAccess == UserAccess.FULL -> case.toOrchestratedCaseDto(
       cpr = cpr,
       tier = tier,
       sexualOffenceRegistrations = sexualOffenceRegistrations,
+      inUsersCustomList = inUsersCustomList,
     )
 
     else -> toLimitedCaseDto(
       crn = case.crn,
       teamCode = case.team.code,
       assignedTo = case.toAssignedToDto(),
+      inUsersCustomList = inUsersCustomList,
     )
   }
 
@@ -49,6 +52,7 @@ object CaseTransformer {
     cpr: CorePersonRecord?,
     tier: Tier?,
     sexualOffenceRegistrations: SexualOffenceRegistrations?,
+    inUsersCustomList: Boolean,
   ) = CaseDto(
     forename = cpr?.firstName,
     middleNames = cpr?.middleNames,
@@ -66,6 +70,7 @@ object CaseTransformer {
       ?.sexualOffenceRegistrations
       ?.map { SexualOffenceRegistrationCode.valueOf(it.type.code.name) }
       .orEmpty(),
+    inUsersCustomList = inUsersCustomList,
   )
 
   fun toCaseDto(
@@ -74,6 +79,7 @@ object CaseTransformer {
     assignedTo: AssignedToDto?,
     limitedAccess: Boolean?,
     teamCode: String?,
+    inUsersCustomList: Boolean,
   ) = CaseDto(
     forename = caseEntity?.firstName,
     surname = caseEntity?.lastName,
@@ -94,6 +100,7 @@ object CaseTransformer {
       )
     },
     teamCode = teamCode,
+    inUsersCustomList = inUsersCustomList,
   )
 
   fun toAccommodationSummariesDto(
@@ -108,11 +115,12 @@ object CaseTransformer {
     nextAccommodation = nextAccommodation,
   )
 
-  fun toLimitedCaseDto(crn: String, teamCode: String?, assignedTo: AssignedToDto?) = CaseDto(
+  fun toLimitedCaseDto(crn: String, teamCode: String?, assignedTo: AssignedToDto?, inUsersCustomList: Boolean) = CaseDto(
     crn = crn,
     userAccess = UserAccess.LIMITED,
     limitedAccess = true,
     teamCode = teamCode,
     assignedTo = assignedTo,
+    inUsersCustomList = inUsersCustomList,
   )
 }

@@ -67,6 +67,10 @@ interface UserCaseListEntryRepository : JpaRepository<UserCaseListEntryEntity, U
     """,
   )
   fun findLatestCrnsBySasUserIdAndListType(sasUserId: UUID, listType: CaseListType): List<UserCaseListCrn>
+
+  fun findCustomListCrnsBySasUserId(sasUserId: UUID): Set<String> = findLatestCrnsBySasUserIdAndListType(sasUserId, CaseListType.CUSTOM)
+    .map { it.crn }
+    .toSet()
 }
 
 interface UserCaseListCrn {
