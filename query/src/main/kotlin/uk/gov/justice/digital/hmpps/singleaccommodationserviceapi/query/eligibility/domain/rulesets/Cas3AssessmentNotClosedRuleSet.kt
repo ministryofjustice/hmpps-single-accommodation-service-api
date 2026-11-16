@@ -7,9 +7,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3AssessmentNotClosedRuleSet(
-  cas3AssessmentClosed: Cas3AssessmentClosedRule,
+  assessmentClosed: Cas3AssessmentClosedRule,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(cas3AssessmentClosed)
-  override val name: String = "PASS if the CAS3 assessment status is not Closed"
+  private val rules: List<Rule> = listOf(assessmentClosed)
+  override val name: String = "PASS if the CAS3 assessment status is not 'Closed'"
   override fun getRules(): List<Rule> = rules
 }

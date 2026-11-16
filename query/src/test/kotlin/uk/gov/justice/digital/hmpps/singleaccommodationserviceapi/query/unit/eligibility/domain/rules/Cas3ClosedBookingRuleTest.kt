@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class Cas3ClosedBookingRuleTest {
   private val rule = Cas3ClosedBookingRule()
-  private val description = "FAIL if the CAS3 booking status is Closed"
+  private val description = "FAIL if the CAS3 booking status is 'Closed'"
 
   @Test
   fun `closed booking fails`() {

@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class Cas2NotActiveRuleTest {
   private val rule = Cas2NotActiveRule()
-  private val description = "FAIL if assessment is inactive"
+  private val description = "FAIL if the CAS2 assessment status is not active"
 
   @ParameterizedTest
   @EnumSource(value = Cas2AssessmentStatus::class, names = ["MORE_INFO_REQUESTED", "AWAITING_DECISION", "ON_WAITING_LIST", "PLACE_OFFERED", "OFFER_ACCEPTED", "AWAITING_ARRIVAL"])

@@ -2,24 +2,24 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.HasSexualOffenceRegistrationsRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.TierNotAToGRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Under18Rule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.WrongTierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSet
 
 @Component
 class PersonEligibleRuleSet(
   under18: Under18Rule,
-  wrongTier: WrongTierRule,
+  tierNotAToG: TierNotAToGRule,
   hasSexualOffenceRegistrations: HasSexualOffenceRegistrationsRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(
     under18,
-    wrongTier,
+    tierNotAToG,
     hasSexualOffenceRegistrations,
   )
 
-  override val name: String = "Person Eligible"
+  override val name: String = "PASS if the person is eligible"
 
   override fun getRules(): List<Rule> = rules
 }

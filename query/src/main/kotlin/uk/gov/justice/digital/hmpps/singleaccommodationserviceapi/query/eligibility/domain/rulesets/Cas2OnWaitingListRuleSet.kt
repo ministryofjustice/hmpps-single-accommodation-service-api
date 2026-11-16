@@ -7,13 +7,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2OnWaitingListRuleSet(
-  cas2NotOnWaitingList: Cas2NotOnWaitingListRule,
+  notOnWaitingList: Cas2NotOnWaitingListRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(
-    cas2NotOnWaitingList,
+    notOnWaitingList,
   )
 
-  override val name: String = "PASS if the CAS2 assessment status is On Waiting List"
+  override val name: String = "PASS if the CAS2 assessment status is 'On Waiting List'"
 
   override fun getRules(): List<Rule> = rules
 }

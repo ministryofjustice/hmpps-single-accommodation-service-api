@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas1PlacementNotActiveRuleTest {
-  private val description = "FAIL if current placement is not active"
+  private val description = "FAIL if the CAS1 placement status is not 'Arrived' or 'Upcoming'"
 
   @ParameterizedTest
   @EnumSource(value = Cas1PlacementStatus::class, names = ["ARRIVED", "UPCOMING"])

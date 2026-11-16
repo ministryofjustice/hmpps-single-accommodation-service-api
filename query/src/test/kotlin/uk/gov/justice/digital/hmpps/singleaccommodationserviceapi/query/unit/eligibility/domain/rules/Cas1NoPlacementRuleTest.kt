@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas1NoPlacementRuleTest {
-  private val description = "FAIL if no placement"
+  private val description = "FAIL if there is no CAS1 placement"
 
   @ParameterizedTest
   @EnumSource(Cas1PlacementStatus::class)

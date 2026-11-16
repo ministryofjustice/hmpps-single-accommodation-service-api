@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class Cas2NotOfferDeclinedRuleTest {
   private val rule = Cas2NotOfferDeclinedRule()
-  private val description = "FAIL if the CAS2 assessment status is not Offer Declined"
+  private val description = "FAIL if the CAS2 assessment status is not 'Offer Declined'"
 
   @Test
   fun `offer declined assessment passes`() {

@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class Cas2NotOnWaitingListRuleTest {
   private val rule = Cas2NotOnWaitingListRule()
-  private val description = "FAIL if the CAS2 assessment status is not On Waiting List"
+  private val description = "FAIL if the CAS2 assessment status is not 'On Waiting List'"
 
   @Test
   fun `on waiting list assessment passes`() {

@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class Cas3AssessmentClosedRuleTest {
   private val rule = Cas3AssessmentClosedRule()
-  private val description = "FAIL if the CAS3 assessment status is Closed"
+  private val description = "FAIL if the CAS3 assessment status is 'Closed'"
 
   @Test
   fun `closed assessment fails`() {

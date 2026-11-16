@@ -7,13 +7,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class DtrAcceptedRuleSet(
-  dtrNotAccepted: DtrNotAcceptedRule,
+  notAccepted: DtrNotAcceptedRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(
-    dtrNotAccepted,
+    notAccepted,
   )
 
-  override val name: String = "PASS if the DTR status is Accepted"
+  override val name: String = "PASS if the DTR status is 'Accepted'"
 
   override fun getRules(): List<Rule> = rules
 }

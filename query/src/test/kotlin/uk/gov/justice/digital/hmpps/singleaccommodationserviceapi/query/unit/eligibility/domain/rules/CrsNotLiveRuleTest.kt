@@ -1,0 +1,69 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.rules
+
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.CrsNotLiveRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+
+class CrsNotLiveRuleTest {
+  private val description = "FAIL if there is no live CRS referral"
+
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = CrsReferralStatus::class, names = ["LIVE"])
+  fun `crs is live so rule passes`(crsStatus: CrsReferralStatus) {
+    val data = buildDomainData(
+      commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(status = crsStatus),
+    )
+
+    val result = CrsNotLiveRule().evaluate(data)
+
+    assertThat(result).isEqualTo(
+      RuleResult(
+        description = description,
+        ruleStatus = RuleStatus.PASS,
+      ),
+    )
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = CrsReferralStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["LIVE"])
+  fun `crs is not live so rule fails`(crsStatus: CrsReferralStatus) {
+    val data = buildDomainData(
+      commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(status = crsStatus),
+    )
+
+    val result = CrsNotLiveRule().evaluate(data)
+
+    assertThat(result).isEqualTo(
+      RuleResult(
+        description = description,
+        ruleStatus = RuleStatus.FAIL,
+        failureReason = FailureReason.CRS_NOT_LIVE,
+      ),
+    )
+  }
+
+  @Test
+  fun `crs is missing so rule fails`() {
+    val data = buildDomainData(
+      commissionedRehabilitativeServices = null,
+    )
+
+    val result = CrsNotLiveRule().evaluate(data)
+
+    assertThat(result).isEqualTo(
+      RuleResult(
+        description = description,
+        ruleStatus = RuleStatus.FAIL,
+        failureReason = FailureReason.CRS_NOT_LIVE,
+      ),
+    )
+  }
+}

@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3AssessmentClosedRule : Rule {
-  override val description = "FAIL if the CAS3 assessment status is Closed"
+  override val description = "FAIL if the CAS3 assessment status is 'Closed'"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.cas3Application?.submittedApplication?.assessmentStatus == Cas3AssessmentStatus.CLOSED

@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class DtrNotNotAcceptedRuleTest {
   private val rule = DtrNotNotAcceptedRule()
-  private val description = "FAIL if the DTR status is not Not Accepted"
+  private val description = "FAIL if the DTR status is not 'Not Accepted'"
 
   @Test
   fun `not accepted DTR passes`() {

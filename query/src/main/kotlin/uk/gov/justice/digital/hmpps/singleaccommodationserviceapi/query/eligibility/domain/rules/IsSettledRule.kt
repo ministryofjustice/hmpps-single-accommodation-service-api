@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class IsSettledRule : Rule {
-  override val description = "FAIL if person is settled"
+  override val description = "FAIL if the person is settled"
   override val failureReason = FailureReason.IS_SETTLED
 
   override fun evaluate(data: DomainData): RuleResult {

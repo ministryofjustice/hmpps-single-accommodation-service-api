@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class Cas2NotAwaitingArrivalRuleTest {
   private val rule = Cas2NotAwaitingArrivalRule()
-  private val description = "FAIL if the CAS2 assessment status is not Awaiting Arrival"
+  private val description = "FAIL if the CAS2 assessment status is not 'Awaiting Arrival'"
 
   @Test
   fun `awaiting arrival assessment passes`() {

@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class Cas2NotCancelledRuleTest {
   private val rule = Cas2NotCancelledRule()
-  private val description = "FAIL if the CAS2 assessment status is not Cancelled"
+  private val description = "FAIL if the CAS2 assessment status is not 'Cancelled'"
 
   @Test
   fun `cancelled assessment passes`() {

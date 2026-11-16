@@ -13,7 +13,7 @@ class Cas1NotDepartedPlacementRuleSet(
     departedPlacement,
   )
 
-  override val name: String = "PASS if placement is not departed"
+  override val name: String = "PASS if the CAS1 placement status is not 'Departed'"
 
   override fun getRules(): List<Rule> = rules
 }

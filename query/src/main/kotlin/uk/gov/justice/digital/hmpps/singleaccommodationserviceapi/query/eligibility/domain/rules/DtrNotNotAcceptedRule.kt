@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class DtrNotNotAcceptedRule : Rule {
-  override val description = "FAIL if the DTR status is not Not Accepted"
+  override val description = "FAIL if the DTR status is not 'Not Accepted'"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.dutyToRefer?.status != DtrStatus.NOT_ACCEPTED

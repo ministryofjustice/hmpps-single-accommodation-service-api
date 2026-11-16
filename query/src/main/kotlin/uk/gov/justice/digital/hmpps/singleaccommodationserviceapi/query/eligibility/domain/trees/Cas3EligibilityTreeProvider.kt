@@ -12,21 +12,21 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas3RejectedContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas3UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3ActiveBookingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3ArrivedBookingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3AssessmentNotClosedRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3BedspaceOfferedRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3BookingConfirmedRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3ConfirmedBookingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3HasBookingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3MarkedAsArrivedRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3MarkedAsNotArrivedRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3NotArrivedBookingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3NotRejectedRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3PrerequisiteRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3PresentRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3ProvisionalBookingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas3SubmittedRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.CurrentAccommodationEligibleForCas3RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.CurrentAccommodationPrisonCas1OrCas2RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.DtrNotExpiredAndCrsLiveRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.HasRoshLevelRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.LeavingWithin15DaysRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NoNextAccommodationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotMaleRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ReleaseWithin15DaysRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.RoshEligibleRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
@@ -36,28 +36,28 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas3EligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
-  private val releaseWithin15DaysRuleSet: ReleaseWithin15DaysRuleSet,
-  private val upcomingContextUpdater: Cas3UpcomingContextUpdater,
-  private val hasBookingRuleSet: Cas3HasBookingRuleSet,
-  private val submittedRuleSet: Cas3SubmittedRuleSet,
-  private val presentRuleSet: Cas3PresentRuleSet,
-  private val notRejectedRuleSet: Cas3NotRejectedRuleSet,
-  private val assessmentNotClosedRuleSet: Cas3AssessmentNotClosedRuleSet,
-  private val notStartedContextUpdater: Cas3NotStartedContextUpdater,
-  private val notSubmittedContextUpdater: Cas3NotSubmittedContextUpdater,
-  private val rejectedContextUpdater: Cas3RejectedContextUpdater,
-  private val notStartedNewContextUpdater: Cas3NotStartedNewContextUpdater,
-  private val bookingConfirmedRuleSet: Cas3BookingConfirmedRuleSet,
-  private val markedAsArrivedRuleSet: Cas3MarkedAsArrivedRuleSet,
-  private val bedspaceOfferedRuleSet: Cas3BedspaceOfferedRuleSet,
-  private val markedAsNotArrivedRuleSet: Cas3MarkedAsNotArrivedRuleSet,
-  private val currentAccommodationEligible: CurrentAccommodationEligibleForCas3RuleSet,
-  private val noNextAccommodation: NoNextAccommodationRuleSet,
-  private val prerequisite: Cas3PrerequisiteRuleSet,
-  private val cannotStartNotMaleContextUpdater: Cas3CannotStartNotMaleContextUpdater,
-  private val cannotStartMaleContextUpdater: Cas3CannotStartMaleContextUpdater,
-  private val roshEligible: RoshEligibleRuleSet,
-  private val activeBookingRuleSet: Cas3ActiveBookingRuleSet,
+  private val leavingWithin15DaysRuleSet: LeavingWithin15DaysRuleSet,
+  private val cas3UpcomingContextUpdater: Cas3UpcomingContextUpdater,
+  private val cas3HasBookingRuleSet: Cas3HasBookingRuleSet,
+  private val cas3SubmittedRuleSet: Cas3SubmittedRuleSet,
+  private val cas3PresentRuleSet: Cas3PresentRuleSet,
+  private val cas3NotRejectedRuleSet: Cas3NotRejectedRuleSet,
+  private val cas3AssessmentNotClosedRuleSet: Cas3AssessmentNotClosedRuleSet,
+  private val cas3NotStartedContextUpdater: Cas3NotStartedContextUpdater,
+  private val cas3NotSubmittedContextUpdater: Cas3NotSubmittedContextUpdater,
+  private val cas3RejectedContextUpdater: Cas3RejectedContextUpdater,
+  private val cas3NotStartedNewContextUpdater: Cas3NotStartedNewContextUpdater,
+  private val cas3ConfirmedBookingRuleSet: Cas3ConfirmedBookingRuleSet,
+  private val cas3ArrivedBookingRuleSet: Cas3ArrivedBookingRuleSet,
+  private val cas3ProvisionalBookingRuleSet: Cas3ProvisionalBookingRuleSet,
+  private val cas3NotArrivedBookingRuleSet: Cas3NotArrivedBookingRuleSet,
+  private val currentAccommodationPrisonCas1OrCas2RuleSet: CurrentAccommodationPrisonCas1OrCas2RuleSet,
+  private val noNextAccommodationRuleSet: NoNextAccommodationRuleSet,
+  private val dtrNotExpiredAndCrsLiveRuleSet: DtrNotExpiredAndCrsLiveRuleSet,
+  private val cas3CannotStartNotMaleContextUpdater: Cas3CannotStartNotMaleContextUpdater,
+  private val cas3CannotStartMaleContextUpdater: Cas3CannotStartMaleContextUpdater,
+  private val hasRoshLevelRuleSet: HasRoshLevelRuleSet,
+  private val cas3ActiveBookingRuleSet: Cas3ActiveBookingRuleSet,
   private val notMaleRuleSet: NotMaleRuleSet,
 ) : EligibilityTreeProvider {
 
@@ -92,100 +92,100 @@ class Cas3EligibilityTreeProvider(
       ServiceResultNew(ServiceStatusNew.CAS3_SUBMITTED),
     )
 
-    val notMaleNode = builder
+    val notMaleRuleSetNode = builder
       .ruleSet(notMaleRuleSet)
-      .onPass(confirmed).applyContextUpdaterOnPass(cannotStartNotMaleContextUpdater)
-      .onFail(confirmed).applyContextUpdaterOnFailure(cannotStartMaleContextUpdater)
+      .onPass(confirmed).applyContextUpdaterOnPass(cas3CannotStartNotMaleContextUpdater)
+      .onFail(confirmed).applyContextUpdaterOnFailure(cas3CannotStartMaleContextUpdater)
       .build()
 
-    val prerequisiteNode = builder
-      .ruleSet(prerequisite)
+    val dtrNotExpiredAndCrsLiveRuleSetNode = builder
+      .ruleSet(dtrNotExpiredAndCrsLiveRuleSet)
       .onPass(confirmed)
-      .onFail(notMaleNode)
+      .onFail(notMaleRuleSetNode)
       .build()
 
-    val roshEligibleNode = builder
-      .ruleSet(roshEligible)
-      .onPass(prerequisiteNode)
+    val hasRoshLevelRuleSetNode = builder
+      .ruleSet(hasRoshLevelRuleSet)
+      .onPass(dtrNotExpiredAndCrsLiveRuleSetNode)
       .onFail(notEligible)
       .build()
 
-    val noNextAccommodationNode = builder
-      .ruleSet(noNextAccommodation)
-      .onPass(roshEligibleNode)
+    val noNextAccommodationRuleSetNode = builder
+      .ruleSet(noNextAccommodationRuleSet)
+      .onPass(hasRoshLevelRuleSetNode)
       .onFail(notEligible)
       .build()
 
-    val currentAccommodationEligibleNode = builder
-      .ruleSet(currentAccommodationEligible)
-      .onPass(noNextAccommodationNode)
+    val currentAccommodationPrisonCas1OrCas2RuleSetNode = builder
+      .ruleSet(currentAccommodationPrisonCas1OrCas2RuleSet)
+      .onPass(noNextAccommodationRuleSetNode)
       .onFail(notEligible)
       .build()
 
-    val markedAsNotArrivedRuleSetNode = builder
-      .ruleSet(markedAsNotArrivedRuleSet)
+    val cas3NotArrivedBookingRuleSetNode = builder
+      .ruleSet(cas3NotArrivedBookingRuleSet)
       .onPass(notArrived)
       .onFail(bookingCancelled)
       .build()
 
-    val bedspaceOfferedRuleSetNode = builder
-      .ruleSet(bedspaceOfferedRuleSet)
+    val cas3ProvisionalBookingRuleSetNode = builder
+      .ruleSet(cas3ProvisionalBookingRuleSet)
       .onPass(bedspaceOffered)
-      .onFail(markedAsNotArrivedRuleSetNode)
+      .onFail(cas3NotArrivedBookingRuleSetNode)
       .build()
 
-    val markedAsArrivedRuleSetNode = builder
-      .ruleSet(markedAsArrivedRuleSet)
+    val cas3ArrivedBookingRuleSetNode = builder
+      .ruleSet(cas3ArrivedBookingRuleSet)
       .onPass(arrived)
-      .onFail(bedspaceOfferedRuleSetNode)
+      .onFail(cas3ProvisionalBookingRuleSetNode)
       .build()
 
-    val bookingConfirmedRuleSetNode = builder
-      .ruleSet(bookingConfirmedRuleSet)
+    val cas3ConfirmedBookingRuleSetNode = builder
+      .ruleSet(cas3ConfirmedBookingRuleSet)
       .onPass(bookingConfirmed)
-      .onFail(markedAsArrivedRuleSetNode)
+      .onFail(cas3ArrivedBookingRuleSetNode)
       .build()
 
-    val presentRuleSetNode = builder
-      .ruleSet(presentRuleSet)
-      .onPass(currentAccommodationEligibleNode).applyContextUpdaterOnPass(notSubmittedContextUpdater)
-      .onFail(currentAccommodationEligibleNode).applyContextUpdaterOnFailure(notStartedContextUpdater)
+    val cas3PresentRuleSetNode = builder
+      .ruleSet(cas3PresentRuleSet)
+      .onPass(currentAccommodationPrisonCas1OrCas2RuleSetNode).applyContextUpdaterOnPass(cas3NotSubmittedContextUpdater)
+      .onFail(currentAccommodationPrisonCas1OrCas2RuleSetNode).applyContextUpdaterOnFailure(cas3NotStartedContextUpdater)
       .build()
 
-    val submittedRuleSetNode = builder
-      .ruleSet(submittedRuleSet)
+    val cas3SubmittedRuleSetNode = builder
+      .ruleSet(cas3SubmittedRuleSet)
       .onPass(submitted)
-      .onFail(presentRuleSetNode)
+      .onFail(cas3PresentRuleSetNode)
       .build()
 
-    val notRejectedRuleSetNode = builder
-      .ruleSet(notRejectedRuleSet)
-      .onPass(submittedRuleSetNode)
-      .onFail(currentAccommodationEligibleNode).applyContextUpdaterOnFailure(rejectedContextUpdater)
+    val cas3NotRejectedRuleSetNode = builder
+      .ruleSet(cas3NotRejectedRuleSet)
+      .onPass(cas3SubmittedRuleSetNode)
+      .onFail(currentAccommodationPrisonCas1OrCas2RuleSetNode).applyContextUpdaterOnFailure(cas3RejectedContextUpdater)
       .build()
 
-    val assessmentNotClosedRuleSetNode = builder
-      .ruleSet(assessmentNotClosedRuleSet)
-      .onPass(notRejectedRuleSetNode)
-      .onFail(currentAccommodationEligibleNode).applyContextUpdaterOnFailure(notStartedNewContextUpdater)
+    val cas3AssessmentNotClosedRuleSetNode = builder
+      .ruleSet(cas3AssessmentNotClosedRuleSet)
+      .onPass(cas3NotRejectedRuleSetNode)
+      .onFail(currentAccommodationPrisonCas1OrCas2RuleSetNode).applyContextUpdaterOnFailure(cas3NotStartedNewContextUpdater)
       .build()
 
-    val activeBookingRuleSetNode = builder
-      .ruleSet(activeBookingRuleSet)
-      .onPass(bookingConfirmedRuleSetNode)
-      .onFail(currentAccommodationEligibleNode).applyContextUpdaterOnFailure(notStartedNewContextUpdater)
+    val cas3ActiveBookingRuleSetNode = builder
+      .ruleSet(cas3ActiveBookingRuleSet)
+      .onPass(cas3ConfirmedBookingRuleSetNode)
+      .onFail(currentAccommodationPrisonCas1OrCas2RuleSetNode).applyContextUpdaterOnFailure(cas3NotStartedNewContextUpdater)
       .build()
 
-    val hasBookingRuleSetNode = builder
-      .ruleSet(hasBookingRuleSet)
-      .onPass(activeBookingRuleSetNode)
-      .onFail(assessmentNotClosedRuleSetNode)
+    val cas3HasBookingRuleSetNode = builder
+      .ruleSet(cas3HasBookingRuleSet)
+      .onPass(cas3ActiveBookingRuleSetNode)
+      .onFail(cas3AssessmentNotClosedRuleSetNode)
       .build()
 
     return builder
-      .ruleSet(releaseWithin15DaysRuleSet)
-      .onPass(hasBookingRuleSetNode)
-      .onFail(currentAccommodationEligibleNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
+      .ruleSet(leavingWithin15DaysRuleSet)
+      .onPass(cas3HasBookingRuleSetNode)
+      .onFail(currentAccommodationPrisonCas1OrCas2RuleSetNode).applyContextUpdaterOnFailure(cas3UpcomingContextUpdater)
       .build()
   }
 }
