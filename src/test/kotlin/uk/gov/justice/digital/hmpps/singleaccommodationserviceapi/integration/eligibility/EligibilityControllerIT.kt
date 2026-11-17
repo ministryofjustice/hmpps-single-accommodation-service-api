@@ -82,6 +82,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
   private val cas1ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f5-111111111111")
   private val cas2ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f7-111111111111")
   private val cas3ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f6-111111111111")
+  private val cas3ApplicationCreatedAt = OffsetDateTime.now()
   private val dutyToReferCaseId = UUID.fromString("e6b202ce-c214-4b87-98f5-111111111112")
 
   private val crsSubmissionDate = LocalDate.now()
@@ -131,6 +132,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     val cas3Application = buildCas3Application(
       id = cas3ApplicationId,
+      createdAt = cas3ApplicationCreatedAt,
       applicationStatus = Cas3ApplicationStatus.SUBMITTED,
       submittedApplication = buildCas3SubmittedApplication(
         assessmentStatus = Cas3AssessmentStatus.UNALLOCATED,
@@ -307,6 +309,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             crn = crn,
             cas1ApplicationId = cas1ApplicationId,
             cas3ApplicationId = cas3ApplicationId,
+            cas3ApplicationCreatedAt = cas3Application.createdAt.asJsonValue(),
             dutyToReferCaseId = dutyToReferCaseId,
             dutyToReferId = existingEntity.id,
             localAuthorityAreaId = localAuthorityArea.id,
@@ -350,6 +353,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     val cas3Application = buildCas3Application(
       id = cas3ApplicationId,
+      createdAt = cas3ApplicationCreatedAt,
       applicationStatus = Cas3ApplicationStatus.REJECTED,
       uiUrl = cas3ReferralUiUrl,
       submittedApplication = buildCas3SubmittedApplication(
@@ -368,6 +372,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
           expectedGetEligibilityResponseCannotStartYet(
             crn = crn,
             cas3ApplicationId = cas3ApplicationId,
+            cas3ApplicationCreatedAt = cas3Application.createdAt.asJsonValue(),
             cas3Url = cas3ReferralUiUrl,
             crsSubmissionDate = crsSubmissionDate.toString(),
             crsUrl = crsUrl,
@@ -422,6 +427,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             crn = crn,
             cas1ApplicationId = cas1ApplicationId,
             cas3ApplicationId = cas3ApplicationId,
+            cas3ApplicationCreatedAt = cas3ApplicationCreatedAt.asJsonValue(),
             dutyToReferCaseId = dutyToReferCaseId,
             dutyToReferId = existingEntity.id,
             localAuthorityAreaId = localAuthorityArea.id,

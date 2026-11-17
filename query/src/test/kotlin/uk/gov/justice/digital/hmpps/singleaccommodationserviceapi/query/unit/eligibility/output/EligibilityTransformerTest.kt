@@ -454,6 +454,7 @@ class EligibilityTransformerTest {
     val cas3ApplicationDto = buildCas3ApplicationDto(
       applicationStatus = Cas3ApplicationStatus.SUBMITTED,
       id = cas3Application.id,
+      createdAt = cas3Application.createdAt,
       applicationSubmittedDate = LocalDate.parse("2023-01-01"),
       applicationSubmittedBy = buildCas3StaffDto(),
       applicationRejectedReason = "Problem with application",
