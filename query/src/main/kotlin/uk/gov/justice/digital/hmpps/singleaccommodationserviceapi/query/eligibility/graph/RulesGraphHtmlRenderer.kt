@@ -562,6 +562,7 @@ __STATUS_CARD_PREVIEW__
   const simCheckbox = document.getElementById('simulate');
   const failing = new Set();
   let simMode = false;
+  let simTarget = null;
 
   function simulate() {
     const byId = new Map(currentTree.nodes.map(n => [n.id, n]));
@@ -580,11 +581,13 @@ __STATUS_CARD_PREVIEW__
         const failed = n.rules.filter(r => failing.has(r.className));
         const status = failed.length ? 'FAIL' : 'PASS';
         steps.push({ node: n, status: status, failed: failed });
+        if (id === simTarget) break;
         const updater = status === 'PASS' ? n.onPass : n.onFail;
         if (updater) lastUpdater = updater;
         edge = outEdges(id).find(e => e.label === status);
       } else if (n.kind === 'CONTEXT_UPDATER') {
         steps.push({ node: n });
+        if (id === simTarget) break;
         edge = outEdges(id).find(e => e.label === 'CONTINUE');
       } else {
         steps.push({ node: n });
@@ -595,6 +598,51 @@ __STATUS_CARD_PREVIEW__
       id = edge.to;
     }
     return { steps: steps, pathEdges: pathEdges, lastUpdater: lastUpdater };
+  }
+
+  function findRuleFailuresForNode(targetId) {
+    const nodes = new Map(currentTree.nodes.map(n => [n.id, n]));
+    const incoming = new Set(currentTree.edges.map(e => e.to));
+    const root = currentTree.nodes.find(n => !incoming.has(n.id)) || currentTree.nodes[0];
+
+    function searchPath(id, passing, failures, visited) {
+      if (visited.has(id)) return null;
+      if (id === targetId) {
+        const result = new Set([...failing].filter(rule => !passing.has(rule)));
+        for (const choices of failures) {
+          if (!choices.some(rule => result.has(rule))) result.add(choices.find(rule => !passing.has(rule)));
+        }
+        return result;
+      }
+      const node = nodes.get(id);
+      if (!node) return null;
+      const nextVisited = new Set(visited).add(id);
+      const edges = currentTree.edges.filter(e => e.from === id);
+      const preferred = node.rules.some(r => failing.has(r.className)) ? 'FAIL' : 'PASS';
+      edges.sort((a, b) => (a.label === preferred ? -1 : 0) - (b.label === preferred ? -1 : 0));
+      for (const edge of edges) {
+        let nextPassing = passing;
+        let nextFailures = failures;
+        if (node.kind === 'RULE_SET') {
+          const rules = node.rules.map(r => r.className);
+          if (edge.label === 'PASS') {
+            nextPassing = new Set([...passing, ...rules]);
+          } else if (edge.label === 'FAIL' && rules.length) {
+            nextFailures = [...failures, rules];
+          } else {
+            continue;
+          }
+          if (nextFailures.some(choices => choices.every(rule => nextPassing.has(rule)))) continue;
+        } else if (node.kind !== 'CONTEXT_UPDATER' || edge.label !== 'CONTINUE') {
+          continue;
+        }
+        const result = searchPath(edge.to, nextPassing, nextFailures, nextVisited);
+        if (result) return result;
+      }
+      return null;
+    }
+
+    return root ? searchPath(root.id, new Set(), [], new Set()) : null;
   }
 
   function badge(status) {
@@ -660,7 +708,7 @@ __STATUS_CARD_PREVIEW__
       resultHtml(res) + '</div></li>';
   }
 
-  function renderSim() {
+  function renderSim(message = '') {
     const res = simulate();
     const statusById = new Map(res.steps.filter(s => s.status).map(s => [s.node.id, s.status]));
 
@@ -671,7 +719,8 @@ __STATUS_CARD_PREVIEW__
     res.pathEdges.forEach(e => cy.getElementById('e' + currentTree.edges.indexOf(e)).removeClass('faded').addClass('onpath'));
     statusById.forEach((status, nodeId) => cy.getElementById(nodeId).addClass(status === 'PASS' ? 'sim-pass' : 'sim-fail'));
 
-    let html = '<div class="simulation-actions"><button data-sim="all-pass">All PASS</button>' +
+    let html = (message ? '<p role="status">' + esc(message) + '</p>' : '') +
+      '<div class="simulation-actions"><button data-sim="all-pass">All PASS</button>' +
       '<button data-sim="all-fail">All FAIL</button><button data-sim="copy">Copy link</button></div>' +
       '<h2>Trace</h2><ol class="trace">' +
       res.steps.map(s => traceStepHtml(s, res)).join('') + '</ol>' +
@@ -704,6 +753,7 @@ __STATUS_CARD_PREVIEW__
     params.set('tree', currentTree.name);
     if (simMode) params.set('sim', '1');
     if (failing.size) params.set('fail', [...failing].sort().join(','));
+    if (simMode && simTarget) params.set('target', simTarget);
     history.replaceState(null, '', location.pathname + '#' + params.toString());
   }
 
@@ -712,6 +762,7 @@ __STATUS_CARD_PREVIEW__
     if (ruleBtn) {
       const rule = ruleBtn.getAttribute('data-rule');
       if (failing.has(rule)) failing.delete(rule); else failing.add(rule);
+      simTarget = null;
       renderSim();
       return;
     }
@@ -719,8 +770,8 @@ __STATUS_CARD_PREVIEW__
     if (!action) return;
     evt.preventDefault();
     const kind = action.getAttribute('data-sim');
-    if (kind === 'all-pass') { failing.clear(); renderSim(); }
-    if (kind === 'all-fail') { allRuleClasses().forEach(r => failing.add(r)); renderSim(); }
+    if (kind === 'all-pass') { simTarget = null; failing.clear(); renderSim(); }
+    if (kind === 'all-fail') { simTarget = null; allRuleClasses().forEach(r => failing.add(r)); renderSim(); }
     if (kind === 'copy') {
       navigator.clipboard.writeText(location.href).then(() => { action.textContent = 'Copied!'; });
     }
@@ -737,6 +788,7 @@ __STATUS_CARD_PREVIEW__
     if (on) {
       renderSim();
     } else {
+      simTarget = null;
       clearHighlight();
       showTree(currentTree.name);
       updateUrl();
@@ -751,17 +803,17 @@ __STATUS_CARD_PREVIEW__
 
   cy.on('tap', 'node', evt => {
     if (simMode) {
-      const id = evt.target.id();
-      const rules = nodeById(id).rules;
-      if (rules.length) {
-        const allFailing = rules.every(rule => failing.has(rule.className));
-        rules.forEach(rule => {
-          if (allFailing) failing.delete(rule.className);
-          else failing.add(rule.className);
-        });
-        renderSim();
-        scrollToSimulationRule(id);
+      const target = evt.target.id();
+      const result = findRuleFailuresForNode(target);
+      if (!result) {
+        renderSim('No consistent simulation path reaches this node.');
+        return;
       }
+      failing.clear();
+      result.forEach(rule => failing.add(rule));
+      simTarget = target;
+      renderSim();
+      panel.scrollTop = 0;
       return;
     }
     resetSearch();
