@@ -3441,41 +3441,49 @@ nunjucks/browser/nunjucks-slim.js:
 
   function findRuleFailuresForNode(targetId) {
     const nodes = new Map(currentTree.nodes.map(n => [n.id, n]));
+    const outgoingEdges = new Map();
+    currentTree.edges.forEach(edge => {
+      const edges = outgoingEdges.get(edge.from) || [];
+      edges.push(edge);
+      outgoingEdges.set(edge.from, edges);
+    });
     const incoming = new Set(currentTree.edges.map(e => e.to));
     const root = currentTree.nodes.find(n => !incoming.has(n.id)) || currentTree.nodes[0];
 
-    function searchPath(id, passing, failures, visited) {
-      if (visited.has(id)) return null;
-      if (id === targetId) {
-        const result = new Set([...failing].filter(rule => !passing.has(rule)));
-        for (const choices of failures) {
-          if (!choices.some(rule => result.has(rule))) result.add(choices.find(rule => !passing.has(rule)));
+    function searchPath(nodeId, passedRules, failureConstraints, visitedNodes) {
+      if (visitedNodes.has(nodeId)) return null;
+      if (nodeId === targetId) {
+        const requiredFailures = new Set([...failing].filter(rule => !passedRules.has(rule)));
+        for (const rulesThatCanFail of failureConstraints) {
+          if (!rulesThatCanFail.some(rule => requiredFailures.has(rule))) {
+            requiredFailures.add(rulesThatCanFail.find(rule => !passedRules.has(rule)));
+          }
         }
-        return result;
+        return requiredFailures;
       }
-      const node = nodes.get(id);
+      const node = nodes.get(nodeId);
       if (!node) return null;
-      const nextVisited = new Set(visited).add(id);
-      const edges = currentTree.edges.filter(e => e.from === id);
+      const nextVisitedNodes = new Set(visitedNodes).add(nodeId);
+      const edges = [...(outgoingEdges.get(nodeId) || [])];
       const preferred = node.rules.some(r => failing.has(r.className)) ? 'FAIL' : 'PASS';
       edges.sort((a, b) => (a.label === preferred ? -1 : 0) - (b.label === preferred ? -1 : 0));
       for (const edge of edges) {
-        let nextPassing = passing;
-        let nextFailures = failures;
+        let nextPassedRules = passedRules;
+        let nextFailureConstraints = failureConstraints;
         if (node.kind === 'RULE_SET') {
           const rules = node.rules.map(r => r.className);
           if (edge.label === 'PASS') {
-            nextPassing = new Set([...passing, ...rules]);
+            nextPassedRules = new Set([...passedRules, ...rules]);
           } else if (edge.label === 'FAIL' && rules.length) {
-            nextFailures = [...failures, rules];
+            nextFailureConstraints = [...failureConstraints, rules];
           } else {
             continue;
           }
-          if (nextFailures.some(choices => choices.every(rule => nextPassing.has(rule)))) continue;
+          if (nextFailureConstraints.some(rulesThatCanFail => rulesThatCanFail.every(rule => nextPassedRules.has(rule)))) continue;
         } else if (node.kind !== 'CONTEXT_UPDATER' || edge.label !== 'CONTINUE') {
           continue;
         }
-        const result = searchPath(edge.to, nextPassing, nextFailures, nextVisited);
+        const result = searchPath(edge.to, nextPassedRules, nextFailureConstraints, nextVisitedNodes);
         if (result) return result;
       }
       return null;
