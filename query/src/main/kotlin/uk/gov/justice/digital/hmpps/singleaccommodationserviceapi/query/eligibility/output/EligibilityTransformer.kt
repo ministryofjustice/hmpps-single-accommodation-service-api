@@ -210,6 +210,7 @@ object EligibilityTransformer {
 
     Cas3ApplicationDto(
       id = application.id,
+      createdAt = application.createdAt,
       applicationStatus = toCas3ApplicationStatus(application.applicationStatus),
       assessmentStatus = toCas3AssessmentStatus(submittedApplication?.assessmentStatus),
       bookingStatus = toCas3BookingStatus(latestBooking?.status),
