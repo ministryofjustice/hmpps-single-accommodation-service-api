@@ -10,6 +10,7 @@ import io.mockk.verify
 import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
@@ -86,6 +87,54 @@ class UserCaseListApplicationServiceTest {
         CaseListType.SEARCH_HISTORY,
         UserCaseListApplicationService.MAX_SEARCH_HISTORY_ENTRIES,
       )
+    }
+  }
+
+  @Nested
+  inner class AddCaseToCustomList {
+    @Test
+    fun `should lock the user and check membership before adding a case to the custom list`() {
+      val case = buildCaseEntity()
+      every { caseRepository.findByCrn(crn) } returns case
+      every {
+        userCaseListEntryRepository.existsBySasUserIdAndListTypeAndSasCaseId(userId, CaseListType.CUSTOM, case.id)
+      } returns false
+      every { clock.instant() } returns now
+
+      userCaseListApplicationService.addCaseToCustomList(userId, crn)
+
+      verifyOrder {
+        userRepository.findByIdForUpdate(userId)
+        userCaseListEntryRepository.existsBySasUserIdAndListTypeAndSasCaseId(userId, CaseListType.CUSTOM, case.id)
+        userCaseListEntryRepository.insertOrUpdate(userId, CaseListType.CUSTOM, case.id, now)
+      }
+    }
+
+    @Test
+    fun `should throw NotFoundException without updating the custom list when the case does not exist`() {
+      every { caseRepository.findByCrn(crn) } returns null
+
+      assertThatThrownBy { userCaseListApplicationService.addCaseToCustomList(userId, crn) }
+        .isInstanceOf(NotFoundException::class.java)
+
+      verify(exactly = 0) { userCaseListEntryRepository.insertOrUpdate(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `should not update a case already in the custom list`() {
+      val case = buildCaseEntity()
+      every { caseRepository.findByCrn(crn) } returns case
+      every {
+        userCaseListEntryRepository.existsBySasUserIdAndListTypeAndSasCaseId(userId, CaseListType.CUSTOM, case.id)
+      } returns true
+
+      userCaseListApplicationService.addCaseToCustomList(userId, crn)
+
+      verifyOrder {
+        userRepository.findByIdForUpdate(userId)
+        userCaseListEntryRepository.existsBySasUserIdAndListTypeAndSasCaseId(userId, CaseListType.CUSTOM, case.id)
+      }
+      verify(exactly = 0) { userCaseListEntryRepository.insertOrUpdate(any(), any(), any(), any()) }
     }
   }
 

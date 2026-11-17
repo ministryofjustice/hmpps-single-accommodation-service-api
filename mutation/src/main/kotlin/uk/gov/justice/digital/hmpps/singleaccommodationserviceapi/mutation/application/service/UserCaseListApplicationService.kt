@@ -44,4 +44,16 @@ class UserCaseListApplicationService(
     userCaseListEntryRepository.insertOrUpdate(userId, CaseListType.SEARCH_HISTORY, caseId, clock.instant())
     userCaseListEntryRepository.deleteOldestBeyondLimit(userId, CaseListType.SEARCH_HISTORY, MAX_SEARCH_HISTORY_ENTRIES)
   }
+
+  @Transactional
+  fun addCaseToCustomList(userId: UUID, crn: String) {
+    val caseId = caseRepository.findByCrn(crn)?.id ?: throw NotFoundException("Case", mapOf("crn" to crn))
+
+    // lock the user row so that concurrent requests for the same user wait for the current transaction to complete
+    userRepository.findByIdForUpdate(userId)
+
+    if (userCaseListEntryRepository.existsBySasUserIdAndListTypeAndSasCaseId(userId, CaseListType.CUSTOM, caseId)) return
+
+    userCaseListEntryRepository.insertOrUpdate(userId, CaseListType.CUSTOM, caseId, clock.instant())
+  }
 }

@@ -183,6 +183,7 @@ private val userCaseListControllerMap: Map<String, Set<String>> =
     "GET /case-list/custom/crns" to defaultRoles,
     "GET /case-list/search-history" to defaultRoles,
     "POST /case-list/custom" to defaultRoles,
+    "PATCH /case-list/custom" to defaultRoles,
   )
 
 private val referenceDataControllerMap: Map<String, Set<String>> =

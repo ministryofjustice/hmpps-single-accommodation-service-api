@@ -7,6 +7,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
@@ -19,6 +20,19 @@ class SingleAccommodationServiceApiExceptionHandlerTest {
   @BeforeEach
   fun resetMocks() {
     clearMocks(sentryService)
+  }
+
+  @Test
+  fun `returns unauthorized without reporting authentication failures to Sentry`() {
+    val exception = AuthenticationCredentialsNotFoundException("Authentication is required")
+
+    val response = handler.handleAuthenticationException(exception)
+
+    assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
+    assertThat(response.body?.status).isEqualTo(401)
+    assertThat(response.body?.userMessage).isEqualTo("Unauthorized")
+    assertThat(response.body?.developerMessage).isEqualTo(exception.message)
+    verify(exactly = 0) { sentryService.captureException(any()) }
   }
 
   @Test
