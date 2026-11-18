@@ -23,6 +23,14 @@ class UserService(
 
   fun getUsername() = getPrincipal().username
 
+  fun getStaffNameFromUsername(username: String): String? {
+    val userEntity = userRepository.findByUsernameAndAuthSource(
+      username = Username(username),
+      authSource = AuthSourceEntity.DELIUS,
+    ) ?: return null
+    return userEntity.displayName()
+  }
+
   fun authorizeAndRetrieveUser(): UserEntity {
     val principal = getPrincipal()
     return when (principal.authSource) {

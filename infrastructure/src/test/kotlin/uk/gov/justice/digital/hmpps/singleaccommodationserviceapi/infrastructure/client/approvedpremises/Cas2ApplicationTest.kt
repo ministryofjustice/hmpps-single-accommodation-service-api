@@ -24,7 +24,7 @@ class Cas2ApplicationTest {
           offerDeclinedReason = null,
           cancelledReason = null,
           submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-          markedAsArrivedDateTime = null,
+          markedAsArrived = null,
         )
       }
       assertThat(thrown).isNull()
@@ -43,7 +43,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = null,
             cancelledReason = "a reason",
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-            markedAsArrivedDateTime = null,
+            markedAsArrived = null,
           )
         }
         assertThat(thrown).hasMessage("Cancelled reason is required when status is `cancelled` and forbidden otherwise")
@@ -57,7 +57,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = null,
             cancelledReason = "a reason",
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-            markedAsArrivedDateTime = null,
+            markedAsArrived = null,
           )
         }
         assertThat(thrown).isNull()
@@ -71,7 +71,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = null,
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-            markedAsArrivedDateTime = null,
+            markedAsArrived = null,
           )
         }
         assertThat(thrown).hasMessage("Cancelled reason is required when status is `cancelled` and forbidden otherwise")
@@ -91,7 +91,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = "a reason",
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-            markedAsArrivedDateTime = null,
+            markedAsArrived = null,
           )
         }
         assertThat(thrown).hasMessage("Offer declined reason is required when status is `offerDeclined` and forbidden otherwise")
@@ -106,7 +106,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = "a reason",
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-            markedAsArrivedDateTime = null,
+            markedAsArrived = null,
           )
         }
         assertThat(thrown).hasMessage("Cancelled reason is required when status is `cancelled` and forbidden otherwise")
@@ -120,7 +120,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = "a reason",
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-            markedAsArrivedDateTime = null,
+            markedAsArrived = null,
           )
         }
         assertThat(thrown).isNull()
@@ -134,7 +134,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = null,
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-            markedAsArrivedDateTime = null,
+            markedAsArrived = null,
           )
         }
         assertThat(thrown).hasMessage("Offer declined reason is required when status is `offerDeclined` and forbidden otherwise")
@@ -154,10 +154,13 @@ class Cas2ApplicationTest {
             offerDeclinedReason = null,
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-            markedAsArrivedDateTime = Instant.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrived = Cas2MarkedAsArrived(
+              dateTime = Instant.parse("2023-02-01T00:00:00.000Z"),
+              arrivedByUsername = "test-user",
+            ),
           )
         }
-        assertThat(thrown).hasMessage("Marked as arrived date time can only be provided when status is `awaitingArrival`")
+        assertThat(thrown).hasMessage("Marked as arrived can only be provided when status is `awaitingArrival`")
       }
 
       @ParameterizedTest
@@ -171,10 +174,13 @@ class Cas2ApplicationTest {
             offerDeclinedReason = "a reason",
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-            markedAsArrivedDateTime = Instant.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrived = Cas2MarkedAsArrived(
+              dateTime = Instant.parse("2023-02-01T00:00:00.000Z"),
+              arrivedByUsername = "test-user",
+            ),
           )
         }
-        assertThat(thrown).hasMessage("Marked as arrived date time can only be provided when status is `awaitingArrival`")
+        assertThat(thrown).hasMessage("Marked as arrived can only be provided when status is `awaitingArrival`")
       }
 
       @ParameterizedTest
@@ -188,10 +194,13 @@ class Cas2ApplicationTest {
             offerDeclinedReason = null,
             cancelledReason = "a reason",
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-            markedAsArrivedDateTime = Instant.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrived = Cas2MarkedAsArrived(
+              dateTime = Instant.parse("2023-02-01T00:00:00.000Z"),
+              arrivedByUsername = "test-user",
+            ),
           )
         }
-        assertThat(thrown).hasMessage("Marked as arrived date time can only be provided when status is `awaitingArrival`")
+        assertThat(thrown).hasMessage("Marked as arrived can only be provided when status is `awaitingArrival`")
       }
 
       @Test
@@ -202,7 +211,10 @@ class Cas2ApplicationTest {
             offerDeclinedReason = null,
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-            markedAsArrivedDateTime = Instant.parse("2023-02-01T00:00:00.000Z"),
+            markedAsArrived = Cas2MarkedAsArrived(
+              dateTime = Instant.parse("2023-02-01T00:00:00.000Z"),
+              arrivedByUsername = "test-user",
+            ),
           )
         }
         assertThat(thrown).isNull()
@@ -216,7 +228,7 @@ class Cas2ApplicationTest {
             offerDeclinedReason = null,
             cancelledReason = null,
             submittedAt = OffsetDateTime.parse("2023-02-01T00:00:00.000Z"),
-            markedAsArrivedDateTime = null,
+            markedAsArrived = null,
           )
         }
         assertThat(thrown).isNull()

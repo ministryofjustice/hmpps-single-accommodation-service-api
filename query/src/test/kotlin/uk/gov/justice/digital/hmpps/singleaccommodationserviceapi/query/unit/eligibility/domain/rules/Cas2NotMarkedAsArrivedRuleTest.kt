@@ -4,10 +4,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2MarkedAsArrived
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas2NotMarkedAsArrivedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.Instant
 
@@ -19,10 +21,12 @@ class Cas2NotMarkedAsArrivedRuleTest {
   fun `arrival timestamp present passes`() {
     val result = rule.evaluate(
       buildDomainData(
-        cas2Application = buildCas2Application(
-          submittedApplication = buildCas2SubmittedApplicationSummary(
-            latestAssessmentStatus = Cas2AssessmentStatus.AWAITING_ARRIVAL,
-            markedArrivedDateTime = Instant.parse("2026-11-10T12:00:00Z"),
+        cas2Application = buildCas2ApplicationDomainData(
+          application = buildCas2Application(
+            submittedApplication = buildCas2SubmittedApplicationSummary(
+              latestAssessmentStatus = Cas2AssessmentStatus.AWAITING_ARRIVAL,
+              markedArrived = buildCas2MarkedAsArrived(dateTime = Instant.parse("2026-11-10T12:00:00Z")),
+            ),
           ),
         ),
       ),
@@ -35,10 +39,12 @@ class Cas2NotMarkedAsArrivedRuleTest {
   fun `missing arrival timestamp fails`() {
     val result = rule.evaluate(
       buildDomainData(
-        cas2Application = buildCas2Application(
-          submittedApplication = buildCas2SubmittedApplicationSummary(
-            latestAssessmentStatus = Cas2AssessmentStatus.AWAITING_ARRIVAL,
-            markedArrivedDateTime = null,
+        cas2Application = buildCas2ApplicationDomainData(
+          application = buildCas2Application(
+            submittedApplication = buildCas2SubmittedApplicationSummary(
+              latestAssessmentStatus = Cas2AssessmentStatus.AWAITING_ARRIVAL,
+              markedArrived = null,
+            ),
           ),
         ),
       ),
@@ -50,7 +56,7 @@ class Cas2NotMarkedAsArrivedRuleTest {
   @Test
   fun `missing submitted application fails`() {
     val result = rule.evaluate(
-      buildDomainData(cas2Application = buildCas2Application(submittedApplication = null)),
+      buildDomainData(cas2Application = buildCas2ApplicationDomainData(buildCas2Application(submittedApplication = null))),
     )
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.FAIL))
