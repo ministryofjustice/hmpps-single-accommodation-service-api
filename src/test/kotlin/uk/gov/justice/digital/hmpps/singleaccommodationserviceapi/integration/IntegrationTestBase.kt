@@ -21,11 +21,13 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.SentryCaptureTestConfig
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TelemetryCaptureTestConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestCacheConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJaversAuthProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestSentryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestTelemetryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestWebTestClientConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
@@ -84,6 +86,7 @@ private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
     TestCacheConfig::class,
     SarIntegrationTestHelperConfig::class,
     SentryCaptureTestConfig::class,
+    TelemetryCaptureTestConfig::class,
     TestWebTestClientConfig::class,
   ],
 )
@@ -129,6 +132,9 @@ abstract class IntegrationTestBase {
   @Autowired
   protected lateinit var testSentryService: TestSentryService
 
+  @Autowired
+  protected lateinit var testTelemetryService: TestTelemetryService
+
   @MockitoSpyBean
   lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
@@ -149,6 +155,7 @@ abstract class IntegrationTestBase {
   @BeforeEach
   fun resetStubs() {
     testSentryService.reset()
+    testTelemetryService.reset()
     WireMockManager.reset()
     databaseUtils.truncate()
   }

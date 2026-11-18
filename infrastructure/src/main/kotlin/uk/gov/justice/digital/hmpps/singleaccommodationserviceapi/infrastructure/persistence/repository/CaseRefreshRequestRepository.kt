@@ -150,4 +150,51 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   fun findByCaseId(caseId: UUID): CaseRefreshRequestEntity?
+
+  @Query(
+    nativeQuery = true,
+    value = """
+      SELECT priority,
+             count(*) FILTER (WHERE status = 'PENDING' AND next_attempt_at <= :now) AS pending_due,
+             count(*) FILTER (WHERE status = 'PENDING' AND next_attempt_at > :now) AS pending_waiting_retry,
+             count(*) FILTER (WHERE status = 'PROCESSING') AS processing,
+             count(*) FILTER (WHERE status = 'PROCESSING' AND claimed_at < :abandonedBefore) AS processing_abandoned,
+             count(*) FILTER (WHERE status = 'FAILED') AS failed,
+             cast(COALESCE(EXTRACT(EPOCH FROM (cast(:now as timestamptz) - min(next_attempt_at)
+               FILTER (WHERE status = 'PENDING' AND next_attempt_at <= :now))), 0) as double precision) AS oldest_due_wait_seconds,
+             cast(COALESCE(EXTRACT(EPOCH FROM (cast(:now as timestamptz) - min(requested_at)
+               FILTER (WHERE status = 'PENDING' AND next_attempt_at <= :now))), 0) as double precision) AS oldest_due_age_seconds
+      FROM sas_case_refresh_request
+      GROUP BY priority
+    """,
+  )
+  fun findQueueStats(now: Instant, abandonedBefore: Instant): List<CaseRefreshQueueStatsRow>
+
+  @Query(
+    nativeQuery = true,
+    value = """
+      SELECT priority, last_failure_category AS failure_category, count(*) AS failed
+      FROM sas_case_refresh_request
+      WHERE status = 'FAILED'
+      GROUP BY priority, last_failure_category
+    """,
+  )
+  fun findFailedCountsByCategory(): List<CaseRefreshFailedCountRow>
+}
+
+interface CaseRefreshQueueStatsRow {
+  fun getPriority(): String
+  fun getPendingDue(): Long
+  fun getPendingWaitingRetry(): Long
+  fun getProcessing(): Long
+  fun getProcessingAbandoned(): Long
+  fun getFailed(): Long
+  fun getOldestDueWaitSeconds(): Double
+  fun getOldestDueAgeSeconds(): Double
+}
+
+interface CaseRefreshFailedCountRow {
+  fun getPriority(): String
+  fun getFailureCategory(): String?
+  fun getFailed(): Long
 }
