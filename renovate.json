@@ -11,6 +11,10 @@
     },
     {
       "matchUpdateTypes": ["minor", "patch"],
+      "excludePackageNames": [
+        "io.swagger.parser.v3:swagger-parser",
+        "org.webjars:swagger-ui"
+      ],
       "groupName": "minor and patch updates"
     }
   ],
