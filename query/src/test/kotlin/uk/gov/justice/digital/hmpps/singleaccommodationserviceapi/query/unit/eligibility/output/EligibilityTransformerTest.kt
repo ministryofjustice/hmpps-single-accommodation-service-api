@@ -380,9 +380,10 @@ class EligibilityTransformerTest {
     val cas3Application = buildCas3Application(
       applicationStatus = InfraCas3ApplicationStatus.SUBMITTED,
       id = UUID.randomUUID(),
+      applicationSubmittedBy = buildCas3Staff(name = "Application Creator"),
       submittedApplication = buildCas3SubmittedApplication(
         submittedDate = LocalDate.parse("2023-01-01"),
-        submittedBy = buildCas3Staff(),
+        submittedBy = buildCas3Staff(name = "Submitted By"),
         assessmentStatus = InfraCas3AssessmentStatus.REJECTED,
         assessmentRejectionReason = "Problem with application",
         latestBooking = buildCas3LatestBooking(
@@ -515,7 +516,7 @@ class EligibilityTransformerTest {
       id = cas3Application.id,
       createdAt = cas3Application.createdAt,
       applicationSubmittedDate = LocalDate.parse("2023-01-01"),
-      applicationSubmittedBy = buildCas3StaffDto(),
+      applicationSubmittedBy = buildCas3StaffDto(name = "Application Creator"),
       applicationRejectedReason = "Problem with application",
       assessmentStatus = Cas3AssessmentStatus.REJECTED,
       bookingStatus = Cas3BookingStatus.CANCELLED,
@@ -640,6 +641,46 @@ class EligibilityTransformerTest {
     )
 
     assertThat(actualEligibility).isEqualTo(expectedEligibility)
+  }
+
+  @Test
+  fun `cas3 draft application surfaces submitted by without submission details`() {
+    val application = buildCas3Application(
+      id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
+      createdAt = OffsetDateTime.parse("2026-11-18T10:00:00Z"),
+      applicationStatus = InfraCas3ApplicationStatus.IN_PROGRESS,
+      applicationSubmittedBy = buildCas3Staff(
+        name = "Draft Creator",
+        username = "draft.creator",
+        staffCode = "DRAFT01",
+      ),
+      submittedApplication = null,
+    )
+
+    val actual = toEligibilityDto(
+      crn = "FAKECRN1",
+      cas1 = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED),
+      cas2 = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED),
+      cas3 = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_SUBMITTED),
+      dtr = buildServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_STARTED),
+      crs = buildServiceResultNew(serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_REFERRAL),
+      pa = buildServiceResultNew(serviceStatus = ServiceStatusNew.PA_NOT_STARTED),
+      data = buildDomainData(cas3Application = application),
+    ).cas3.cas3Application
+
+    assertThat(actual).isEqualTo(
+      buildCas3ApplicationDto(
+        id = application.id,
+        createdAt = application.createdAt,
+        applicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
+        applicationSubmittedBy = buildCas3StaffDto(
+          name = "Draft Creator",
+          username = "draft.creator",
+          staffCode = "DRAFT01",
+        ),
+        uiUrl = application.uiUrl,
+      ),
+    )
   }
 
   @Test

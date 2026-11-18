@@ -241,7 +241,7 @@ object EligibilityTransformer {
       assessmentStatus = toCas3AssessmentStatus(submittedApplication?.assessmentStatus),
       bookingStatus = toCas3BookingStatus(latestBooking?.status),
       applicationSubmittedDate = submittedApplication?.submittedDate,
-      applicationSubmittedBy = submittedApplication?.submittedBy?.let { toCas3StaffDto(it) },
+      applicationSubmittedBy = toCas3StaffDto(application.applicationSubmittedBy),
       applicationRejectedReason = submittedApplication?.assessmentRejectionReason,
       bookingProvisionalOfferSentDate = latestBooking?.provisionalOfferSentDate,
       previousBookings = toPreviousBookings(submittedApplication?.previousBookings),
