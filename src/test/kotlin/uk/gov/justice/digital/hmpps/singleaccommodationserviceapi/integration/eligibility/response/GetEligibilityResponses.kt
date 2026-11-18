@@ -6,6 +6,7 @@ fun expectedGetEligibilityResponse(
   crn: String,
   cas1ApplicationId: UUID,
   cas3ApplicationId: UUID,
+  cas3ApplicationCreatedAt: String,
   dutyToReferCaseId: UUID,
   dutyToReferId: UUID,
   localAuthorityAreaId: UUID,
@@ -138,6 +139,7 @@ fun expectedGetEligibilityResponse(
       },
       "cas3Application": {
         "id": "$cas3ApplicationId",
+        "createdAt": "$cas3ApplicationCreatedAt",
         "applicationStatus": "SUBMITTED",
         "applicationSubmittedDate": "2023-01-01",
         "applicationSubmittedBy": {
@@ -438,6 +440,7 @@ fun expectedGetEligibilityResponseTierNotFound(
   crn: String,
   cas1ApplicationId: UUID,
   cas3ApplicationId: UUID,
+  cas3ApplicationCreatedAt: String,
   dutyToReferCaseId: UUID,
   dutyToReferId: UUID,
   localAuthorityAreaId: UUID,
@@ -543,6 +546,7 @@ fun expectedGetEligibilityResponseTierNotFound(
       },
       "cas3Application": {
         "id": "$cas3ApplicationId",
+        "createdAt": "$cas3ApplicationCreatedAt",
         "applicationStatus": "SUBMITTED",
         "applicationSubmittedDate": "2025-01-02",
         "applicationSubmittedBy": {
@@ -628,6 +632,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
   crn: String,
   cas1ApplicationId: UUID,
   cas3ApplicationId: UUID,
+  cas3ApplicationCreatedAt: String,
   dutyToReferCaseId: UUID,
   dutyToReferId: UUID,
   localAuthorityAreaId: UUID,
@@ -703,6 +708,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       },
       "cas3Application": {
         "id": "$cas3ApplicationId",
+        "createdAt": "$cas3ApplicationCreatedAt",
         "applicationStatus": "SUBMITTED",
         "applicationSubmittedDate": "2025-01-02",
         "applicationSubmittedBy": {
@@ -787,6 +793,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
 fun expectedGetEligibilityResponseCannotStartYet(
   crn: String,
   cas3ApplicationId: UUID,
+  cas3ApplicationCreatedAt: String,
   cas3Url: String,
   crsSubmissionDate: String,
   crsUrl: String,
@@ -835,6 +842,7 @@ fun expectedGetEligibilityResponseCannotStartYet(
       },
       "cas3Application": {
         "id": "$cas3ApplicationId",
+        "createdAt": "$cas3ApplicationCreatedAt",
         "applicationStatus": "REJECTED",
         "applicationSubmittedDate": "2025-01-02",
         "applicationSubmittedBy": {

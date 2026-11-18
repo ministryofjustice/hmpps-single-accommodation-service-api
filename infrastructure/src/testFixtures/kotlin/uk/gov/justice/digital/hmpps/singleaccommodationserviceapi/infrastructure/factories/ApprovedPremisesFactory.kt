@@ -96,6 +96,7 @@ fun buildCas1Staff(
 
 fun buildCas3Application(
   id: UUID = UUID.randomUUID(),
+  createdAt: OffsetDateTime = OffsetDateTime.now(),
   applicationStatus: Cas3ApplicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
   submittedApplication: Cas3SubmittedApplication? = when (applicationStatus) {
     Cas3ApplicationStatus.IN_PROGRESS -> null
@@ -106,6 +107,7 @@ fun buildCas3Application(
   uiUrl: String = "https://cas3-ui/referrals/$id/full",
 ) = Cas3Application(
   id = id,
+  createdAt = createdAt,
   applicationStatus = applicationStatus,
   submittedApplication = submittedApplication,
   uiUrl = uiUrl,
