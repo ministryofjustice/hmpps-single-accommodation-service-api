@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.TierAToDRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeInfo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
@@ -67,6 +68,12 @@ class Cas1EligibilityTreeProvider(
 ) : EligibilityTreeProvider {
 
   private val tree: DecisionNode by lazy { build() }
+
+  override val treeInfo = EligibilityTreeInfo(
+    fullName = "Approved Premises",
+    description = "Works out whether the person is eligible for an Approved Premises (CAS1) placement and where they are in the process, from application and assessment through to request for placement and placement status.",
+    displayOrder = 1,
+  )
 
   override fun tree(): DecisionNode = tree
 

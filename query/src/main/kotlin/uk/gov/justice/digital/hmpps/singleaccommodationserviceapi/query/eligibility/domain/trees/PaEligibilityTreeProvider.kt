@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NoActiveCas1OrCas3ApplicationsRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeInfo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
@@ -20,6 +21,12 @@ class PaEligibilityTreeProvider(
 ) : EligibilityTreeProvider {
 
   private val tree: DecisionNode by lazy { build() }
+
+  override val treeInfo = EligibilityTreeInfo(
+    fullName = "Proposed Accommodation",
+    description = "Works out whether the person has proposed (next) accommodation and whether any CAS1 or CAS3 applications are still active.",
+    displayOrder = 6,
+  )
 
   override fun tree(): DecisionNode = tree
 

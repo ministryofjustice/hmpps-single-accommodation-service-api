@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeInfo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSet
 
 enum class GraphNodeKind {
@@ -38,6 +39,7 @@ data class GraphNode(
   val ruleSet: RuleSet? = null,
   val onPassContextUpdater: ContextUpdaterInfo? = null,
   val onFailContextUpdater: ContextUpdaterInfo? = null,
+  val sourcePath: String? = null,
 )
 
 data class GraphEdge(
@@ -50,6 +52,7 @@ data class RulesGraph(
   val treeName: String,
   val nodes: List<GraphNode>,
   val edges: List<GraphEdge>,
+  val info: EligibilityTreeInfo? = null,
 )
 
 data class GenerationResult(

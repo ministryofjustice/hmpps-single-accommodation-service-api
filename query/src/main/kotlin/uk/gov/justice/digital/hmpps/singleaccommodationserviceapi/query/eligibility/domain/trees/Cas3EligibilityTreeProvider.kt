@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotMaleRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeInfo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
@@ -62,6 +63,12 @@ class Cas3EligibilityTreeProvider(
 ) : EligibilityTreeProvider {
 
   private val tree: DecisionNode by lazy { build() }
+
+  override val treeInfo = EligibilityTreeInfo(
+    fullName = "Temporary Accommodation",
+    description = "Works out whether the person is eligible for CAS3 temporary accommodation and tracks the referral, assessment and bedspace booking status.",
+    displayOrder = 3,
+  )
 
   override fun tree(): DecisionNode = tree
 
