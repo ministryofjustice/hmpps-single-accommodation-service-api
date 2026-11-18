@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas2NotAssessedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas2NotAssessedRuleTest {
@@ -21,11 +22,13 @@ class Cas2NotAssessedRuleTest {
   fun `assessment status present passes`(status: Cas2AssessmentStatus) {
     val result = rule.evaluate(
       buildDomainData(
-        cas2Application = buildCas2Application(
-          submittedApplication = buildCas2SubmittedApplicationSummary(
-            latestAssessmentStatus = status,
-            offerDeclinedReason = "Declined".takeIf { status == Cas2AssessmentStatus.OFFER_DECLINED },
-            cancelledReason = "Cancelled".takeIf { status == Cas2AssessmentStatus.CANCELLED },
+        cas2Application = buildCas2ApplicationDomainData(
+          application = buildCas2Application(
+            submittedApplication = buildCas2SubmittedApplicationSummary(
+              latestAssessmentStatus = status,
+              offerDeclinedReason = "Declined".takeIf { status == Cas2AssessmentStatus.OFFER_DECLINED },
+              cancelledReason = "Cancelled".takeIf { status == Cas2AssessmentStatus.CANCELLED },
+            ),
           ),
         ),
       ),
@@ -38,8 +41,10 @@ class Cas2NotAssessedRuleTest {
   fun `missing assessment status fails`() {
     val result = rule.evaluate(
       buildDomainData(
-        cas2Application = buildCas2Application(
-          submittedApplication = buildCas2SubmittedApplicationSummary(latestAssessmentStatus = null),
+        cas2Application = buildCas2ApplicationDomainData(
+          application = buildCas2Application(
+            submittedApplication = buildCas2SubmittedApplicationSummary(latestAssessmentStatus = null),
+          ),
         ),
       ),
     )
@@ -50,7 +55,7 @@ class Cas2NotAssessedRuleTest {
   @Test
   fun `missing submitted application fails`() {
     val result = rule.evaluate(
-      buildDomainData(cas2Application = buildCas2Application(submittedApplication = null)),
+      buildDomainData(cas2Application = buildCas2ApplicationDomainData(buildCas2Application(submittedApplication = null))),
     )
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.FAIL))

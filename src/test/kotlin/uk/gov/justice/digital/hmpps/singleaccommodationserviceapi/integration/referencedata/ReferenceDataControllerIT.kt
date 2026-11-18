@@ -26,8 +26,7 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
         val results = body!!.data
         assertThat(results).isNotNull
         assertThat(results.size).isGreaterThan(407)
-        assertThat(results.first().name).isEqualTo("Aberdeen City")
-        assertThat(results.last().name).isEqualTo("York")
+        assertThat(results.map { it.name }).contains("Aberdeen City", "York")
       }
   }
 

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2AssessmentStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2CohortDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2MarkedAsArrivedDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2SubmittedApplicationSummaryDto
 import java.time.Instant
@@ -30,13 +31,23 @@ fun buildCas2SubmittedApplicationSummaryDto(
   submittedAt: OffsetDateTime = OffsetDateTime.now(),
   offerDeclinedReason: String? = null,
   cancelledReason: String? = null,
-  markedAsArrivedDateTime: Instant? = null,
+  markedAsArrived: Cas2MarkedAsArrivedDto? = null,
 ) = Cas2SubmittedApplicationSummaryDto(
   submittedAt = submittedAt,
   latestAssessmentStatus = latestAssessmentStatus,
   offerDeclinedReason = offerDeclinedReason,
   cancelledReason = cancelledReason,
-  markedAsArrivedDateTime = markedAsArrivedDateTime,
+  markedAsArrived = markedAsArrived,
+)
+
+fun buildCas2MarkedAsArrivedDto(
+  dateTime: Instant = Instant.now(),
+  arrivedByUsername: String = "testTester@gov.uk",
+  arrivedByName: String = "Test Tester",
+) = Cas2MarkedAsArrivedDto(
+  dateTime = dateTime,
+  arrivedByUsername = arrivedByUsername,
+  arrivedByName = arrivedByName,
 )
 
 fun buildCas2StaffDto(

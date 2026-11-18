@@ -11,7 +11,7 @@ class Cas2NotAssessedRule : Rule {
   override val description = "FAIL if the CAS2 assessor has not yet set a status"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.cas2Application?.submittedApplication?.latestAssessmentStatus == null
+    val isFail = data.cas2Application?.application?.submittedApplication?.latestAssessmentStatus == null
 
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 

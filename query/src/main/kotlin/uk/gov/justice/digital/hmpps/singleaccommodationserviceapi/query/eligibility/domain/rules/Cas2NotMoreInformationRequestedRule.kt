@@ -12,7 +12,7 @@ class Cas2NotMoreInformationRequestedRule : Rule {
   override val description = "FAIL if the CAS2 assessment status is not 'More Information Requested'"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.cas2Application?.submittedApplication?.latestAssessmentStatus != Cas2AssessmentStatus.MORE_INFO_REQUESTED
+    val isFail = data.cas2Application?.application?.submittedApplication?.latestAssessmentStatus != Cas2AssessmentStatus.MORE_INFO_REQUESTED
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 
     return RuleResult(

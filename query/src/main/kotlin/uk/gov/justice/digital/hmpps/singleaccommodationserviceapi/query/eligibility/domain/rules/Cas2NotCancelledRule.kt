@@ -12,7 +12,7 @@ class Cas2NotCancelledRule : Rule {
   override val description = "FAIL if the CAS2 assessment status is not 'Cancelled'"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.cas2Application?.submittedApplication?.latestAssessmentStatus != Cas2AssessmentStatus.CANCELLED
+    val isFail = data.cas2Application?.application?.submittedApplication?.latestAssessmentStatus != Cas2AssessmentStatus.CANCELLED
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 
     return RuleResult(

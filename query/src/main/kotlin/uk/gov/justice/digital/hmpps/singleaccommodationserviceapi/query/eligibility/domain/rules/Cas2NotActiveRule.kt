@@ -21,7 +21,7 @@ class Cas2NotActiveRule : Rule {
       Cas2AssessmentStatus.AWAITING_ARRIVAL,
     )
 
-    val isFail = data.cas2Application?.submittedApplication?.latestAssessmentStatus !in activeStatuses
+    val isFail = data.cas2Application?.application?.submittedApplication?.latestAssessmentStatus !in activeStatuses
 
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 

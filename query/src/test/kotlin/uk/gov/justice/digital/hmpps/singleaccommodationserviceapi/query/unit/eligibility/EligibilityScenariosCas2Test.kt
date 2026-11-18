@@ -12,18 +12,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2MarkedAsArrived
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.Cas2EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.CsvReader
 import java.time.LocalDate
 import java.time.ZoneOffset
-import kotlin.text.isNotBlank
-import kotlin.text.lowercase
-import kotlin.text.split
-import kotlin.text.toBoolean
 
 private const val UPCOMING_DAYS = 15L
 
@@ -205,8 +203,11 @@ class EligibilityScenariosCas2Test : EligibilityScenarioTestBase() {
         submittedApplication = if (s.submittedAt != null) {
           buildCas2SubmittedApplicationSummary(
             latestAssessmentStatus = s.cas2ApplicationStatus,
-            markedArrivedDateTime = if (s.markedAsArrived) {
-              s.referenceDate.atStartOfDay().toInstant(ZoneOffset.UTC)
+            markedArrived = if (s.markedAsArrived) {
+              buildCas2MarkedAsArrived(
+                dateTime = s.submittedAt.atStartOfDay().toInstant(ZoneOffset.UTC),
+                arrivedByUsername = "testTester@gov.uk",
+              )
             } else {
               null
             },
@@ -236,7 +237,14 @@ class EligibilityScenariosCas2Test : EligibilityScenarioTestBase() {
           ),
         ),
         nextAccommodations = emptyList(),
-        cas2Application = cas2Application,
+        cas2Application = buildCas2ApplicationDomainData(
+          application = cas2Application,
+          staffNameMarkedAsArrived = if (s.markedAsArrived) {
+            "Test Tester"
+          } else {
+            null
+          },
+        ),
         currentAccommodationTypeEntity = buildAccommodationTypeEntity(
           code = "A02",
           isCas1 = true,

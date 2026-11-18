@@ -48,5 +48,11 @@ data class Cas2SubmittedApplicationSummaryDto(
   val offerDeclinedReason: String?,
   val cancelledReason: String?,
   val submittedAt: OffsetDateTime,
-  val markedAsArrivedDateTime: Instant?,
+  val markedAsArrived: Cas2MarkedAsArrivedDto?,
+)
+
+data class Cas2MarkedAsArrivedDto(
+  val dateTime: Instant,
+  val arrivedByUsername: String,
+  val arrivedByName: String?,
 )

@@ -27,7 +27,7 @@ data class Cas2SubmittedApplicationSummary(
   val offerDeclinedReason: String?,
   val cancelledReason: String?,
   val submittedAt: OffsetDateTime,
-  val markedAsArrivedDateTime: Instant?,
+  val markedAsArrived: Cas2MarkedAsArrived?,
 ) {
   init {
     requireXor(
@@ -49,9 +49,14 @@ data class Cas2SubmittedApplicationSummary(
 
   init {
     require(
-      latestAssessmentStatus == Cas2AssessmentStatus.AWAITING_ARRIVAL || markedAsArrivedDateTime == null,
+      latestAssessmentStatus == Cas2AssessmentStatus.AWAITING_ARRIVAL || markedAsArrived == null,
     ) {
-      "Marked as arrived date time can only be provided when status is `awaitingArrival`"
+      "Marked as arrived can only be provided when status is `awaitingArrival`"
     }
   }
 }
+
+data class Cas2MarkedAsArrived(
+  val dateTime: Instant,
+  val arrivedByUsername: String,
+)

@@ -19,7 +19,7 @@ class DeeplinkResolver(
       LinkType.CAS1_VIEW_APPLICATION -> data.cas1Application?.application?.uiUrl
 
       LinkType.CAS2_START_APPLICATION -> cas2UrlTemplates()?.cas2ApplicationStart?.replace("#crn", data.crn)
-      LinkType.CAS2_VIEW_APPLICATION -> data.cas2Application?.uiUrl
+      LinkType.CAS2_VIEW_APPLICATION -> data.cas2Application?.application?.uiUrl
 
       LinkType.CAS3_START_REFERRAL -> cas3UrlTemplates()?.cas3ReferralStart
       LinkType.CAS3_VIEW_REFERRAL -> data.cas3Application?.uiUrl

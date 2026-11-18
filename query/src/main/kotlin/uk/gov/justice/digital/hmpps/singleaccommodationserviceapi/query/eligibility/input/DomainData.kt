@@ -23,7 +23,7 @@ data class DomainData(
   val currentAccommodationTypeEntity: AccommodationTypeEntity?,
   val nextAccommodations: List<AccommodationSummaryDto>,
   val cas1Application: Cas1ApplicationDomainData?,
-  val cas2Application: Cas2Application?,
+  val cas2Application: Cas2ApplicationDomainData?,
   val cas3Application: Cas3Application?,
   val dutyToRefer: DutyToReferDto?,
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
@@ -34,4 +34,9 @@ data class Cas1ApplicationDomainData(
   val application: Cas1ApplicationV2,
   val currentOutcome: Cas1ExternalRequestForPlacementOutcome?,
   val historyExcludingCurrentOutcome: List<Cas1ExternalRequestForPlacementOutcome>,
+)
+
+data class Cas2ApplicationDomainData(
+  val application: Cas2Application,
+  val staffNameMarkedAsArrived: String?,
 )

@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -14,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationSummaryCalculator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
@@ -26,6 +28,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2MarkedAsArrived
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
@@ -36,11 +40,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.currentOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -58,6 +64,9 @@ class DomainDataFactoryTest {
 
   @MockK
   lateinit var dutyToReferQueryService: DutyToReferQueryService
+
+  @MockK
+  lateinit var userService: UserService
 
   @InjectMockKs
   lateinit var factory: DomainDataFactory
@@ -139,7 +148,7 @@ class DomainDataFactoryTest {
         currentAccommodationTypeEntity = accommodationTypeEntity,
         nextAccommodations = emptyList(),
         cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = cas1Application.currentOutcome),
-        cas2Application = cas2Application,
+        cas2Application = buildCas2ApplicationDomainData(cas2Application),
         cas3Application = cas3Application,
         commissionedRehabilitativeServices = crs,
         dutyToRefer = dutyToRefer,
@@ -148,6 +157,50 @@ class DomainDataFactoryTest {
       )
 
       assertThat(result).isEqualTo(expected)
+      verify(exactly = 0) { userService.getStaffNameFromUsername(any()) }
+    }
+
+    @Test
+    fun `resolves the name of the staff member who marked the CAS2 application as arrived`() {
+      val crn = "ABC123"
+      val cpr = buildCorePersonRecord()
+      val currentAccommodation = buildAccommodationSummaryDto()
+      val markedAsArrived = buildCas2MarkedAsArrived(arrivedByUsername = "ARRIVED_BY")
+      val cas2Application = buildCas2Application(
+        submittedApplication = buildCas2SubmittedApplicationSummary(
+          latestAssessmentStatus = Cas2AssessmentStatus.AWAITING_ARRIVAL,
+          markedArrived = markedAsArrived,
+        ),
+      )
+      val orchestrationDto = EligibilityOrchestrationDto(
+        crn = crn,
+        cpr = cpr,
+        tier = null,
+        cas1Application = null,
+        cas2Application = cas2Application,
+        cas3Application = null,
+        commissionedRehabilitativeServices = null,
+        cas1Residence = null,
+        cas3CurrentPremises = null,
+        prisoner = null,
+        sexualOffenceRegistrations = null,
+        case = null,
+      )
+      every {
+        accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, null, null, null)
+      } returns currentAccommodation
+      every {
+        accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, null, null, currentAccommodation)
+      } returns emptyList()
+      every { accommodationTypeRepository.findAll() } returns emptyList()
+      every { userService.getStaffNameFromUsername(markedAsArrived.arrivedByUsername) } returns "Arrived By"
+
+      val result = factory.buildDomainData(crn, orchestrationDto, caseEntity = null)
+
+      assertThat(result.cas2Application).isEqualTo(
+        buildCas2ApplicationDomainData(cas2Application, staffNameMarkedAsArrived = "Arrived By"),
+      )
+      verify(exactly = 1) { userService.getStaffNameFromUsername(markedAsArrived.arrivedByUsername) }
     }
 
     @Test
