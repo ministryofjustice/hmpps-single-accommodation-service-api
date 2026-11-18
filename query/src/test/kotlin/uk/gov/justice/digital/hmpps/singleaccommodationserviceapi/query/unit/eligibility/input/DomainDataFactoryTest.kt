@@ -139,6 +139,8 @@ class DomainDataFactoryTest {
       every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, prisoner, cas1Residence, cas3CurrentPremises) } returns currentAccommodation
       val result = factory.buildDomainData(crn, orchestrationDto.data, caseEntity)
 
+      assertThat(result.ppcAnswers).isNull()
+
       val expected = buildDomainData(
         crn = crn,
         tierScore = expectedTier,
@@ -154,6 +156,7 @@ class DomainDataFactoryTest {
         dutyToRefer = dutyToRefer,
         roshLevel = roshLevel,
         sexualOffenceRegistrations = registrations,
+        ppcAnswers = null,
       )
 
       assertThat(result).isEqualTo(expected)

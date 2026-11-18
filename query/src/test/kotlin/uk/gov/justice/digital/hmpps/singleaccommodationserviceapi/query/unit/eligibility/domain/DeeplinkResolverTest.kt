@@ -150,6 +150,22 @@ class DeeplinkResolverTest {
   }
 
   @Nested
+  inner class Ppc {
+    @Test
+    fun `PPC_START_CHECKER resolves to a null placeholder url`() {
+      val result = resolver.resolve(
+        buildServiceResultNew(
+          serviceStatus = ServiceStatusV2.PPC_NOT_STARTED,
+          url = "previous-url",
+        ),
+        buildDomainData(),
+      )
+
+      assertThat(result.url).isNull()
+    }
+  }
+
+  @Nested
   inner class Cas3 {
     @Test
     fun `CAS3_START_REFERRAL resolves to the CAS3 referral start url template`() {

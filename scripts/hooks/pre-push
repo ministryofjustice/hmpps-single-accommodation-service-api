@@ -12,7 +12,7 @@ echo "Regenerating eligibility rules graph"
 ./gradlew :query:generateEligibilityRulesGraphs --no-daemon
 
 if ! git diff --quiet HEAD -- docs/eligibility-rules-graph.md docs/eligibility-rules-graph.html; then
-    echo "Eligibility rules graphs differ from the committed versions. Regenerate using ./gradlew generateEligibilityRulesGraph, commit docs/eligibility-rules-graph.md and docs/eligibility-rules-graph.html, then push again." >&2
+    echo "Eligibility rules graphs differ from the committed versions. To regenerate them manually, run ./gradlew :query:generateEligibilityRulesGraphs. Review and commit the changes to docs/eligibility-rules-graph.md and docs/eligibility-rules-graph.html." >&2
 fi
 
 # Run prek hooks

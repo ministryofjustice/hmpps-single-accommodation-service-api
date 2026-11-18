@@ -562,6 +562,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
         .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
         .jsonPath("$.data.cas2.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
         .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
+        .jsonPath("$.data.ppc.serviceResult.serviceStatus").isEqualTo("PPC_NOT_STARTED")
         .jsonPath("$.data.cas1.cas1Application").isEmpty()
         .jsonPath("$.data.cas2.cas2Application").isEmpty()
         .jsonPath("$.data.cas3.cas3Application").isEmpty()
@@ -592,6 +593,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
         .jsonPath("$.data.cas1.cas1Application").isEmpty()
         .jsonPath("$.data.cas2.cas2Application").isEmpty()
         .jsonPath("$.data.cas3.cas3Application").isEmpty()
+        .jsonPath("$.data.ppc.serviceResult.serviceStatus").isEqualTo("PPC_NOT_STARTED")
         .jsonPath("$.upstreamFailures").doesNotExist()
     }
 
@@ -609,6 +611,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
         .expectBody()
         .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
         .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
+        .jsonPath("$.data.ppc.serviceResult.serviceStatus").isEqualTo("PPC_NOT_STARTED")
         .jsonPath("$.upstreamFailures.length()").isEqualTo(2)
         .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getCas1ResidentPlacement")
         .jsonPath("$.upstreamFailures[1].endpoint").isEqualTo("getCas3CurrentPremises")

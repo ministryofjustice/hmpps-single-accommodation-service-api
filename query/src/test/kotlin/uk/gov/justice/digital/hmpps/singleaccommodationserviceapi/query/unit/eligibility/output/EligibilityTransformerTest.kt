@@ -77,6 +77,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityV2Dto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPpcServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 import java.time.Instant
 import java.time.LocalDate
@@ -94,7 +95,7 @@ class EligibilityTransformerTest {
   @Nested
   inner class GetServiceResultActionOrder {
     @Test
-    fun `should place in standard (DTR, CRS, CAS1, CAS2, CAS3, PA) order when status is not upcoming`() {
+    fun `should place in standard (DTR, CRS, PPC, CAS1, CAS2, CAS3, PA) order when status is not upcoming`() {
       val dtr = buildServiceResultNew(
         serviceStatus = ServiceStatusV2.DTR_NOT_STARTED,
       )
@@ -113,10 +114,14 @@ class EligibilityTransformerTest {
       val pa = buildServiceResultNew(
         serviceStatus = ServiceStatusV2.PA_NOT_STARTED,
       )
+      val ppc = buildServiceResultNew(
+        serviceStatus = ServiceStatusV2.PPC_NOT_STARTED,
+      )
 
       val expectedServiceResultOrder = listOf(
         dtr,
         crs,
+        ppc,
         cas1,
         cas2,
         cas3,
@@ -130,6 +135,7 @@ class EligibilityTransformerTest {
         dtr = dtr,
         crs = crs,
         pa = pa,
+        ppc = ppc,
       )
 
       assertThat(result).isEqualTo(expectedServiceResultOrder)
@@ -155,6 +161,9 @@ class EligibilityTransformerTest {
       val pa = buildServiceResultNew(
         serviceStatus = ServiceStatusV2.PA_COMPLETED,
       )
+      val ppc = buildServiceResultNew(
+        serviceStatus = ServiceStatusV2.PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED,
+      )
 
       val expectedServiceResultOrder = emptyList<ServiceResultV2>()
 
@@ -165,6 +174,7 @@ class EligibilityTransformerTest {
         dtr = dtr,
         crs = crs,
         pa = pa,
+        ppc = ppc,
       )
 
       assertThat(result).isEqualTo(expectedServiceResultOrder)
@@ -194,12 +204,16 @@ class EligibilityTransformerTest {
       val pa = buildServiceResultNew(
         serviceStatus = ServiceStatusV2.PA_NOT_STARTED,
       )
+      val ppc = buildServiceResultNew(
+        serviceStatus = ServiceStatusV2.PPC_NOT_STARTED,
+      )
 
       val expectedServiceResultOrder = listOf(
         cas2,
         cas1,
         crs,
         dtr,
+        ppc,
         cas3,
         pa,
       )
@@ -211,6 +225,7 @@ class EligibilityTransformerTest {
         dtr = dtr,
         crs = crs,
         pa = pa,
+        ppc = ppc,
       )
 
       assertThat(result).isEqualTo(expectedServiceResultOrder)
@@ -243,6 +258,7 @@ class EligibilityTransformerTest {
       dtr = buildServiceResultNew(),
       crs = buildServiceResultNew(),
       pa = buildServiceResultNew(),
+      ppc = buildServiceResultNew(ServiceStatusV2.PPC_NOT_REQUIRED),
       data = data,
     )
 
@@ -561,21 +577,24 @@ class EligibilityTransformerTest {
     val pa = buildServiceResultNew(
       serviceStatus = ServiceStatusV2.PA_COMPLETED,
     )
+    val ppc = buildServiceResultNew(
+      serviceStatus = ServiceStatusV2.PPC_NOT_STARTED,
+    )
 
     val cas1ServiceResult = buildCas1ServiceResultNew(
       serviceResult = cas1,
       cas1Application = cas1ApplicationDto,
-      actionPosition = 1,
+      actionPosition = 2,
     )
     val cas2ServiceResult = buildCas2ServiceResultNew(
       serviceResult = cas2,
       cas2Application = cas2ApplicationDto,
-      actionPosition = 2,
+      actionPosition = 3,
     )
     val cas3ServiceResult = buildCas3ServiceResultNew(
       serviceResult = cas3,
       cas3Application = cas3ApplicationDto,
-      actionPosition = 3,
+      actionPosition = 4,
     )
     val dtrServiceResult = buildDtrServiceResultNew(
       serviceResult = dtr,
@@ -592,6 +611,10 @@ class EligibilityTransformerTest {
       serviceResult = pa,
       actionPosition = -1,
     )
+    val ppcServiceResult = buildPpcServiceResultNew(
+      serviceResult = ppc,
+      actionPosition = 1,
+    )
 
     val expectedEligibility = buildEligibilityV2Dto(
       crn = crn,
@@ -601,6 +624,7 @@ class EligibilityTransformerTest {
       dtr = dtrServiceResult,
       crs = crsServiceResult,
       pa = paServiceResult,
+      ppc = ppcServiceResult,
     )
 
     val actualEligibility = toEligibilityDto(
@@ -611,6 +635,7 @@ class EligibilityTransformerTest {
       dtr = dtr,
       crs = crs,
       pa = pa,
+      ppc = ppc,
       data = domainData,
     )
 
@@ -638,6 +663,7 @@ class EligibilityTransformerTest {
         dtr = buildServiceResultNew(serviceStatus = ServiceStatusV2.DTR_NOT_STARTED),
         crs = buildServiceResultNew(serviceStatus = ServiceStatusV2.CRS_NOT_STARTED_REFERRAL),
         pa = buildServiceResultNew(serviceStatus = ServiceStatusV2.PA_NOT_STARTED),
+        ppc = buildServiceResultNew(serviceStatus = ServiceStatusV2.PPC_NOT_REQUIRED),
         data = data,
       ).cas1.cas1Application!!
 
@@ -673,6 +699,7 @@ class EligibilityTransformerTest {
       dtr = dtr,
       crs = buildServiceResultNew(),
       pa = buildServiceResultNew(),
+      ppc = buildServiceResultNew(ServiceStatusV2.PPC_NOT_REQUIRED),
       data = data,
     )
 
@@ -695,6 +722,7 @@ class EligibilityTransformerTest {
       dtr = dtr,
       crs = buildServiceResultNew(),
       pa = buildServiceResultNew(),
+      ppc = buildServiceResultNew(ServiceStatusV2.PPC_NOT_REQUIRED),
       data = data,
     )
 
@@ -719,6 +747,7 @@ class EligibilityTransformerTest {
       dtr = buildServiceResultNew(),
       crs = crs,
       pa = buildServiceResultNew(),
+      ppc = buildServiceResultNew(ServiceStatusV2.PPC_NOT_REQUIRED),
       data = data,
     )
 
@@ -740,6 +769,7 @@ class EligibilityTransformerTest {
       dtr = buildServiceResultNew(),
       crs = crs,
       pa = buildServiceResultNew(),
+      ppc = buildServiceResultNew(ServiceStatusV2.PPC_NOT_REQUIRED),
       data = data,
     )
 
@@ -749,7 +779,12 @@ class EligibilityTransformerTest {
   @Test
   fun `should transform to failed eligibility`() {
     val crn = "FAKECRN1"
-    val expectedEligibility = buildEligibilityV2Dto(crn)
+    val expectedEligibility = buildEligibilityV2Dto(
+      crn = crn,
+      ppc = buildPpcServiceResultNew(
+        serviceResult = ServiceResultV2(ServiceStatusV2.PPC_NOT_STARTED),
+      ),
+    )
 
     val actualEligibility = toFailedEligibilityDto(crn)
 
@@ -766,11 +801,23 @@ class EligibilityTransformerTest {
   }
 
   @Test
+  fun `should transform PPC to not eligible service status`() {
+    assertThat(toNotEligibleServiceResult(ServiceType.PPC))
+      .isEqualTo(buildServiceResultNew(ServiceStatusV2.PPC_NOT_ELIGIBLE))
+  }
+
+  @Test
   fun `should transform to not required service status`() {
     val expectedServiceStatus = buildServiceResultNew(ServiceStatusV2.DTR_NOT_REQUIRED)
 
     val actualEligibility = toNotRequiredServiceResult(ServiceType.DTR)
 
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
+  }
+
+  @Test
+  fun `should transform PPC to not required service status`() {
+    assertThat(toNotRequiredServiceResult(ServiceType.PPC))
+      .isEqualTo(buildServiceResultNew(ServiceStatusV2.PPC_NOT_REQUIRED))
   }
 }

@@ -38,6 +38,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PpcServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
@@ -80,7 +81,8 @@ object EligibilityTransformer {
     dtr: ServiceResultV2,
     crs: ServiceResultV2,
     pa: ServiceResultV2,
-  ) = listOf(dtr, crs, cas1, cas2, cas3, pa)
+    ppc: ServiceResultV2 = ServiceResultV2(serviceStatus = ServiceStatusV2.PPC_NOT_REQUIRED),
+  ) = listOf(dtr, crs, ppc, cas1, cas2, cas3, pa)
     .filter { it.serviceStatus.proposedAction != null }
     .sortedWith(compareBy(nullsLast()) { it.actionStartDate })
 
@@ -93,8 +95,9 @@ object EligibilityTransformer {
     crs: ServiceResultV2,
     pa: ServiceResultV2,
     data: DomainData,
+    ppc: ServiceResultV2 = ServiceResultV2(serviceStatus = ServiceStatusV2.PPC_NOT_REQUIRED),
   ): EligibilityV2Dto {
-    val serviceResultActionOrder = getServiceResultActionOrder(cas1, cas2, cas3, dtr, crs, pa)
+    val serviceResultActionOrder = getServiceResultActionOrder(cas1, cas2, cas3, dtr, crs, pa, ppc)
 
     return EligibilityV2Dto(
       crn = crn,
@@ -128,6 +131,10 @@ object EligibilityTransformer {
       pa = PaServiceResultWrapper(
         serviceResult = pa,
         actionPosition = serviceResultActionOrder.indexOf(pa),
+      ),
+      ppc = PpcServiceResultWrapper(
+        serviceResult = ppc,
+        actionPosition = serviceResultActionOrder.indexOf(ppc),
       ),
     )
   }
@@ -166,6 +173,10 @@ object EligibilityTransformer {
       serviceResult = toNotEligibleServiceResult(ServiceType.PA),
       actionPosition = -1,
     ),
+    ppc = PpcServiceResultWrapper(
+      serviceResult = ServiceResultV2(serviceStatus = ServiceStatusV2.PPC_NOT_STARTED),
+      actionPosition = -1,
+    ),
   )
 
   fun toNotEligibleServiceResult(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultV2(
@@ -180,6 +191,7 @@ object EligibilityTransformer {
     ServiceType.PA -> ServiceStatusV2.PA_NOT_ELIGIBLE
     ServiceType.DTR -> ServiceStatusV2.DTR_NOT_ELIGIBLE
     ServiceType.CRS -> ServiceStatusV2.CRS_NOT_ELIGIBLE
+    ServiceType.PPC -> ServiceStatusV2.PPC_NOT_ELIGIBLE
   }
 
   fun toNotRequiredServiceResult(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultV2(
@@ -190,6 +202,7 @@ object EligibilityTransformer {
   fun toNotRequiredServiceStatus(service: ServiceType) = when (service) {
     ServiceType.DTR -> ServiceStatusV2.DTR_NOT_REQUIRED
     ServiceType.CRS -> ServiceStatusV2.CRS_NOT_REQUIRED
+    ServiceType.PPC -> ServiceStatusV2.PPC_NOT_REQUIRED
     else -> throw IllegalArgumentException("Unexpected not required service: $service")
   }
 

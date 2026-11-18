@@ -238,8 +238,48 @@ __STATUS_CARD_PREVIEW__
   const nodeLink = n => sourceTextLink(n.title, n.sourcePath);
   const nodeById = id => currentTree.nodes.find(x => x.id === id);
 
+  function outcomePreviewHtml(outcome, reasons, inTrace = false) {
+    const meta = data.statuses[outcome.status];
+    if (!meta) return '<p>Card preview unavailable for status ' + esc(outcome.status) + '.</p>';
+
+    const unavailable = () => {
+      const serviceName = orderedTrees.find(tree => tree.name === meta.service)?.fullName || meta.service;
+      const heading = inTrace ? '<h3>' + esc(meta.text) + '</h3><h4>Cards</h4>' : '';
+      return heading + '<p>' + esc(serviceName) + ': <b>' + esc(meta.text) +
+        '</b>. The UI has no corresponding eligibility card.</p>' + outcomeActionHtml(outcome, meta);
+    };
+
+    let preview;
+    try {
+      preview = statusCardPreview(outcome, reasons);
+    } catch (error) {
+      if (error.message === 'Unsupported UI status: ' + outcome.status ||
+          error.message === 'No eligibility card for service: ' + meta.service) return unavailable();
+      throw error;
+    }
+
+    const template = document.createElement('template');
+    template.innerHTML = preview || '';
+    const heading = template.content.querySelector('.sas-card__head h3');
+    // Older UI exports can render a card with an empty heading for an unsupported service.
+    if (!preview?.trim() || (heading && !heading.textContent.trim())) return unavailable();
+
+    return preview + outcomeActionHtml(outcome, meta);
+  }
+
+  function outcomeActionHtml(outcome, meta) {
+    try {
+      return statusActionPreview(outcome);
+    } catch (error) {
+      if (error.message === 'Missing UI action label: ' + meta.actionType) {
+        return '<p class="card-action"><b>Action:</b> Not implemented in the UI.</p>';
+      }
+      throw error;
+    }
+  }
+
   const cardHtml = (outcome, reasons) => '<div class="trace-outcomes"><div class="result">' +
-    statusCardPreview(outcome, reasons) + statusActionPreview(outcome) + '</div></div>';
+    outcomePreviewHtml(outcome, reasons) + '</div></div>';
   const ruleLink = r => sourceTextLink(r.description, r.sourcePath);
   const updaterFor = route => route.label === 'PASS' ? route.ruleSet.onPass : route.ruleSet.onFail;
   const routeCause = (route, rule) => nodeLink(route.ruleSet) + ' ' + badge(route.label) + (rule ? ' – ' + ruleLink(rule) : '');
@@ -451,7 +491,7 @@ __STATUS_CARD_PREVIEW__
     }
     const previousRuleSet = res.steps.filter(s => s.node.kind === 'RULE_SET').pop();
     const reasons = (previousRuleSet?.failed || []).map(r => r.failureReason).filter(Boolean);
-    return html + outcomes.map(o => statusCardPreview(o, reasons) + statusActionPreview(o)).join('') + '</div>';
+    return html + outcomes.map(o => outcomePreviewHtml(o, reasons, true)).join('') + '</div>';
   }
 
   function failureDescription(rules) {
