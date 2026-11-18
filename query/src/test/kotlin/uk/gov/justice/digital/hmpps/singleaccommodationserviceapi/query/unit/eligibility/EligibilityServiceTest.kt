@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer.toUpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -20,11 +21,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.DtrEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.PaEligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.PpcEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityNewToOldTransformer.toEligibilityDtoOld
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDtoNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPpcServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 
 @ExtendWith(MockKExtension::class)
@@ -59,6 +63,9 @@ class EligibilityServiceTest {
 
   @MockK
   private lateinit var paTree: PaEligibilityTreeProvider
+
+  @MockK
+  private lateinit var ppcTree: PpcEligibilityTreeProvider
 
   @InjectMockKs
   private lateinit var eligibilityService: EligibilityService
@@ -95,7 +102,13 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.getEligibility(crn)
 
-      val eligibility = buildEligibilityDtoNew(crn)
+      val eligibility = buildEligibilityDtoNew(
+        crn = crn,
+        ppc = buildPpcServiceResultNew(
+          serviceResult = buildServiceResultNew(ServiceStatusNew.PPC_NOT_STARTED),
+          actionPosition = -1,
+        ),
+      )
 
       val expected = ApiResponseDto(
         data = toEligibilityDtoOld(eligibility),

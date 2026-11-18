@@ -819,6 +819,60 @@ FAIL if the CAS3 application is active</div>")
 
 **Not Eligible** (Outcome)
 
+## PPC
+
+```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 800}}}%%
+flowchart TD
+  PASS_if_PPC_answers_have_been_submitted("<div style='text-align:left'>PASS if PPC answers have been submitted</div>")
+  PASS_if_Public_Protection_not_required("<div style='text-align:left'>FAIL if control measure suitable
+FAIL if supervision required
+FAIL if practical support sufficient</div>")
+  PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED["<b>Completed - Public Protection Not Required</b>"]
+  PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED["<b>Completed - Public Protection Required</b>"]
+  PASS_if_Public_Protection_Checker_must_be_completed("<div style='text-align:left'>PASS if Public Protection Checker must be completed
+(no rules - always pass)</div>")
+  PPC_NOT_STARTED["<b>Not Started</b>"]
+  PPC_NOT_REQUIRED["<b>Not Required</b>"]
+  PASS_if_Public_Protection_not_required -->|PASS| PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED
+  PASS_if_Public_Protection_not_required -->|FAIL| PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED
+  PASS_if_PPC_answers_have_been_submitted -->|PASS| PASS_if_Public_Protection_not_required
+  PASS_if_Public_Protection_Checker_must_be_completed -->|PASS| PPC_NOT_STARTED
+  PASS_if_Public_Protection_Checker_must_be_completed -->|FAIL| PPC_NOT_REQUIRED
+  PASS_if_PPC_answers_have_been_submitted -->|FAIL| PASS_if_Public_Protection_Checker_must_be_completed
+  linkStyle 0,2,3 stroke:#2e8b2e,stroke-width:2px
+  linkStyle 1,4,5 stroke:#c0392b,stroke-width:2px
+  classDef ruleSetNode fill:#dbe9ff,stroke:#3b73c4,color:#333
+  classDef outcomeNode fill:#d9f2d9,stroke:#2e8b2e,color:#333
+  classDef updaterNode fill:#fff2cc,stroke:#c99a00,color:#333
+  class PASS_if_PPC_answers_have_been_submitted,PASS_if_Public_Protection_not_required,PASS_if_Public_Protection_Checker_must_be_completed ruleSetNode
+  class PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED,PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED,PPC_NOT_STARTED,PPC_NOT_REQUIRED outcomeNode
+```
+
+### Nodes
+
+**PASS if PPC answers have been submitted** (RuleSet) `PpcAnswersPresentRuleSet`
+- [`PpcAnswersNotPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/PpcAnswersNotPresentRule.kt): FAIL if PPC answers have not been submitted
+
+
+**PASS if Public Protection not required** (RuleSet) `PpcPublicProtectionNotRequiredRuleSet`
+- [`PpcControlMeasureSuitableRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/PpcControlMeasureSuitableRule.kt): FAIL if control measure suitable
+- [`PpcSupervisionRequiredRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/PpcSupervisionRequiredRule.kt): FAIL if supervision required
+- [`PpcPracticalSupportSufficientRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/PpcPracticalSupportSufficientRule.kt): FAIL if practical support sufficient
+
+
+**Completed - Public Protection Not Required** (Outcome)
+
+**Completed - Public Protection Required** (Outcome)
+
+**PASS if Public Protection Checker must be completed** (RuleSet) `PpcRequiredRuleSet`
+- (no rules - always PASS)
+
+
+**Not Started** (Outcome)
+
+**Not Required** (Outcome)
+
 ## Rule catalogue
 
 | Rule | Description | RuleSets | Trees |
@@ -887,6 +941,10 @@ FAIL if the CAS3 application is active</div>")
 | MaleRule | FAIL if the person is Male | PASS if the person is not Male | CAS1, CAS3 |
 | NoNextAccommodationRule | FAIL if the person has no next accommodation | PASS if the person has a next accommodation | PA |
 | NoRoshLevelRule | FAIL if the person has no ROSH level | PASS if the person has a ROSH level | CAS1, CAS2, CAS3 |
+| PpcAnswersNotPresentRule | FAIL if PPC answers have not been submitted | PASS if PPC answers have been submitted | PPC |
+| PpcControlMeasureSuitableRule | FAIL if control measure suitable | PASS if Public Protection not required | PPC |
+| PpcPracticalSupportSufficientRule | FAIL if practical support sufficient | PASS if Public Protection not required | PPC |
+| PpcSupervisionRequiredRule | FAIL if supervision required | PASS if Public Protection not required | PPC |
 | TierNotAToCRule | FAIL if the person's tier is not A, B or C | PASS if the person's tier is A, B or C | CAS1 |
 | TierNotAToDRule | FAIL if the person's tier is not A, B, C or D | PASS if the person's tier is A, B, C or D | CAS1 |
 | TierNotAToGRule | FAIL if the person's tier is not A, B, C, D, E, F or G | PASS if the person is eligible | CAS2 |

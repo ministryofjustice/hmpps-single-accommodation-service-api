@@ -28,6 +28,13 @@ data class DomainData(
   val dutyToRefer: DutyToReferDto?,
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
   val sexualOffenceRegistrations: SexualOffenceRegistrations?,
+  val ppcAnswers: PublicProtectionCheckerAnswers?,
+)
+
+data class PublicProtectionCheckerAnswers(
+  val supervisionRequired: Boolean,
+  val controlMeasureSuitable: Boolean,
+  val practicalSupportSufficient: Boolean,
 )
 
 data class Cas1ApplicationDomainData(

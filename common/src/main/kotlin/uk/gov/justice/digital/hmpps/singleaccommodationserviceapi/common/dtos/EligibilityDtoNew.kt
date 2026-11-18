@@ -12,6 +12,7 @@ data class EligibilityDtoNew(
   val dtr: DtrServiceResultWrapper,
   val crs: CrsServiceResultWrapper,
   val pa: PaServiceResultWrapper,
+  val ppc: PpcServiceResultWrapper,
 )
 
 data class ServiceResultNew(
@@ -53,6 +54,11 @@ data class PaServiceResultWrapper(
   override val actionPosition: Int,
 ) : ServiceResultWrapper
 
+data class PpcServiceResultWrapper(
+  override val serviceResult: ServiceResultNew,
+  override val actionPosition: Int,
+) : ServiceResultWrapper
+
 data class DtrServiceResultWrapper(
   override val serviceResult: ServiceResultNew,
   override val actionPosition: Int,
@@ -90,6 +96,8 @@ data class Link(
 )
 
 object EligibilityKeys {
+  const val START_PUBLIC_PROTECTION_CHECKER = "Start public protection checker"
+
   // CAS1/CAS2
   const val CREATE_NEW_PLACEMENT_REQUEST = "Create new placement request" // LINK TEXT
   const val CREATE_PLACEMENT_REQUEST = "Create placement request" // LINK TEXT
@@ -120,6 +128,29 @@ enum class ServiceStatusNew(
   val blockingStatusReason: BlockingReason? = null,
   val uiStatusName: String,
 ) {
+
+  PPC_NOT_STARTED(
+    service = ServiceType.PPC,
+    proposedAction = CaseActionType.START_PPC,
+    link = Link(text = EligibilityKeys.START_PUBLIC_PROTECTION_CHECKER, type = LinkType.PPC_START_CHECKER),
+    uiStatusName = "Not Started",
+  ),
+  PPC_NOT_REQUIRED(
+    service = ServiceType.PPC,
+    uiStatusName = "Not Required",
+  ),
+  PPC_NOT_ELIGIBLE(
+    service = ServiceType.PPC,
+    uiStatusName = "Not Eligible",
+  ),
+  PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED(
+    service = ServiceType.PPC,
+    uiStatusName = "Completed - Public Protection Required",
+  ),
+  PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED(
+    service = ServiceType.PPC,
+    uiStatusName = "Completed - Public Protection Not Required",
+  ),
 
   // CAS1 Service Statuses
   CAS1_PLACEMENT_BOOKED(
@@ -484,6 +515,7 @@ enum class ServiceStatusNew(
 }
 
 enum class LinkType {
+  PPC_START_CHECKER,
   CAS1_START_APPLICATION,
   CAS1_VIEW_APPLICATION,
   CAS2_START_APPLICATION,
@@ -523,6 +555,7 @@ enum class BlockingReason {
 }
 
 enum class ServiceType {
+  PPC,
   CAS1,
   CAS2,
   CAS3,

@@ -23,6 +23,7 @@ class EligibilityRulesGraphGenerationTest {
               "CRS",
               "DTR",
               "PA",
+              "PPC",
             )
             graphs.forEach { graph ->
               assertThat(graph.nodes).isNotEmpty()

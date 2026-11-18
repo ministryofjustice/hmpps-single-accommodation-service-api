@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.PublicProtectionCheckerAnswers
 import java.time.LocalDate
 
 fun buildDomainData(
@@ -33,6 +34,7 @@ fun buildDomainData(
   dutyToRefer: DutyToReferDto? = null,
   commissionedRehabilitativeServices: CommissionedRehabilitativeServices? = null,
   sexualOffenceRegistrations: SexualOffenceRegistrations? = null,
+  ppcAnswers: PublicProtectionCheckerAnswers? = null,
 ) = DomainData(
   crn = crn,
   tierScore = tierScore,
@@ -48,6 +50,7 @@ fun buildDomainData(
   dutyToRefer = dutyToRefer,
   commissionedRehabilitativeServices = commissionedRehabilitativeServices,
   sexualOffenceRegistrations = sexualOffenceRegistrations,
+  ppcAnswers = ppcAnswers,
 )
 
 fun buildCas1ApplicationDomainData(

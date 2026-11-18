@@ -15,6 +15,7 @@ class DeeplinkResolver(
 
   fun resolve(result: ServiceResultNew, data: DomainData): ServiceResultNew {
     val url = when (result.serviceStatus.link?.type) {
+      LinkType.PPC_START_CHECKER -> null
       LinkType.CAS1_START_APPLICATION -> cas1UrlTemplates()?.cas1ApplicationStart
       LinkType.CAS1_VIEW_APPLICATION -> data.cas1Application?.application?.uiUrl
 

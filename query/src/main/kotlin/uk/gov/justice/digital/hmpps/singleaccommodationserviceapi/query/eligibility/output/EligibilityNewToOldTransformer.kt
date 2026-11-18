@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDtoNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PpcServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -19,6 +20,11 @@ object EligibilityNewToOldTransformer {
   fun toServiceStatusOld(
     serviceStatus: ServiceStatusNew,
   ) = when (serviceStatus) {
+    ServiceStatusNew.PPC_NOT_STARTED -> ServiceStatus.PPC_NOT_STARTED
+    ServiceStatusNew.PPC_NOT_REQUIRED -> ServiceStatus.NOT_REQUIRED
+    ServiceStatusNew.PPC_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
+    ServiceStatusNew.PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED -> ServiceStatus.PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED
+    ServiceStatusNew.PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED -> ServiceStatus.PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED
     ServiceStatusNew.CAS1_APPLICATION_REJECTED -> ServiceStatus.APPLICATION_REJECTED
     ServiceStatusNew.CAS1_ARRIVED -> ServiceStatus.ARRIVED
     ServiceStatusNew.CAS1_INFO_REQUESTED -> ServiceStatus.INFO_REQUESTED
@@ -167,9 +173,21 @@ object EligibilityNewToOldTransformer {
         blockingStatusReason = eligibilityDto.pa.serviceResult.serviceStatus.blockingStatusReason,
       ),
     ),
+    ppc = PpcServiceResult(
+      serviceResult = ServiceResult(
+        serviceStatus = toServiceStatusOld(eligibilityDto.ppc.serviceResult.serviceStatus),
+        action = eligibilityDto.ppc.serviceResult.toCaseAction(),
+        link = eligibilityDto.ppc.serviceResult.serviceStatus.link?.text,
+        url = eligibilityDto.ppc.serviceResult.url,
+        linkType = eligibilityDto.ppc.serviceResult.serviceStatus.link?.type,
+        failureReasons = eligibilityDto.ppc.serviceResult.failureReasons,
+        blockingStatusReason = eligibilityDto.ppc.serviceResult.serviceStatus.blockingStatusReason,
+      ),
+    ),
     caseActions = listOf(
       eligibilityDto.dtr,
       eligibilityDto.crs,
+      eligibilityDto.ppc,
       eligibilityDto.cas1,
       eligibilityDto.cas2,
       eligibilityDto.cas3,

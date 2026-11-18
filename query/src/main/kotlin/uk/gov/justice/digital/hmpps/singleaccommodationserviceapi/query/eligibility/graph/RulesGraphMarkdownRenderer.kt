@@ -184,7 +184,7 @@ object RulesGraphMarkdownRenderer : RulesGraphRenderer {
   private fun ruleSetLabel(node: GraphNode): String {
     val rules = node.ruleSet?.getRules().orEmpty()
     return when (rules.size) {
-      0 -> "always PASS"
+      0 -> "${node.title}\n(no rules - always pass)"
       1 -> node.title
       else -> rules.joinToString(separator = "\n") { it.description }
     }

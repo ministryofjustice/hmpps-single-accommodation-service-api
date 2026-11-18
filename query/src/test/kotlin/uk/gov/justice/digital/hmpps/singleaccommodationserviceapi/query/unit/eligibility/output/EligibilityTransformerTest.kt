@@ -77,6 +77,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDtoNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPpcServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 import java.time.Instant
 import java.time.LocalDate
@@ -749,7 +750,12 @@ class EligibilityTransformerTest {
   @Test
   fun `should transform to failed eligibility`() {
     val crn = "FAKECRN1"
-    val expectedEligibility = buildEligibilityDtoNew(crn)
+    val expectedEligibility = buildEligibilityDtoNew(
+      crn = crn,
+      ppc = buildPpcServiceResultNew(
+        serviceResult = ServiceResultNew(ServiceStatusNew.PPC_NOT_STARTED),
+      ),
+    )
 
     val actualEligibility = toFailedEligibilityDto(crn)
 

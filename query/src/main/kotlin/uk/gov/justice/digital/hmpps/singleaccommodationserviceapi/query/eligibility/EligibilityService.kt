@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.DtrEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.PaEligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.PpcEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataFactory
@@ -41,6 +42,7 @@ class EligibilityService(
   private val dtrTree: DtrEligibilityTreeProvider,
   private val crsTree: CrsEligibilityTreeProvider,
   private val paTree: PaEligibilityTreeProvider,
+  private val ppcTree: PpcEligibilityTreeProvider,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -94,6 +96,7 @@ class EligibilityService(
     val crs = evaluate("CRS", data, crsTree)
     val dtr = evaluate("DTR", data, dtrTree)
     val pa = evaluate("PA", data, paTree)
+    val ppc = evaluate("PPC", data, ppcTree)
 
     return EligibilityTransformer.toEligibilityDto(
       crn = data.crn,
@@ -103,6 +106,7 @@ class EligibilityService(
       dtr = dtr,
       crs = crs,
       pa = pa,
+      ppc = ppc,
       data = data,
     ).also { log.debug("Eligibility result for CRN {}: {}", data.crn, it) }
   }

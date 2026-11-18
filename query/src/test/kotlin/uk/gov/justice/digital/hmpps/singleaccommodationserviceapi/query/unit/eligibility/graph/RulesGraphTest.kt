@@ -31,6 +31,21 @@ class RulesGraphTest {
 
   @Nested
   inner class WalkerTests {
+    @Test
+    fun `both renderers label an empty ruleset with its name and explain why it passes`() {
+      val ruleSet = StubRuleSet(rules = emptyList(), name = "Check eligibility")
+      val root = builder.ruleSet(ruleSet)
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(ServiceType.CAS1))
+        .build()
+      val graph = RulesGraphWalker().walk("EXAMPLE", root)
+
+      assertThat(RulesGraphMarkdownRenderer.render(listOf(graph)))
+        .contains("<div style='text-align:left'>Check eligibility\n(no rules - always pass)</div>")
+      assertThat(RulesGraphHtmlRenderer.render(listOf(graph)))
+        .contains("\"label\":\"Check eligibility\\n(no rules - always pass)\"")
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
     fun `shared updater has one continuation per destination`(sameDestination: Boolean) {
