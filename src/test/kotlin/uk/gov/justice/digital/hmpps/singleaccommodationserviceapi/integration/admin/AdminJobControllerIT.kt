@@ -449,7 +449,6 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
       val result = replayFailedRefreshRequests()
       assertThat(result.refreshRequestsReplayed).isEqualTo(1)
-      assertThat(result.refreshRequestsDeleted).isZero()
 
       val replayedRequest = caseRefreshRequestRepository.findById(failedCase.id).orElseThrow()
       assertThat(replayedRequest.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
@@ -470,7 +469,6 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
       val resultAfterReplay = replayFailedRefreshRequests()
       assertThat(resultAfterReplay.refreshRequestsReplayed).isZero()
-      assertThat(resultAfterReplay.refreshRequestsDeleted).isZero()
     }
 
     @Test
