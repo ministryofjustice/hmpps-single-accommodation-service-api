@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine
 
 import org.slf4j.LoggerFactory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
 
 /** All nodes are Decision Nodes **/
 sealed interface DecisionNode {
   /** Evaluates this node and returns the final ServiceResult. */
-  fun eval(context: EvaluationContext): ServiceResultNew
+  fun eval(context: EvaluationContext): ServiceResultV2
 }
 
 /**
@@ -18,9 +18,9 @@ sealed interface DecisionNode {
 class OutcomeNode(
   val name: String = "unnamed",
   val key: String = name,
-  private val outcome: (EvaluationContext) -> ServiceResultNew,
+  private val outcome: (EvaluationContext) -> ServiceResultV2,
 ) : DecisionNode {
-  override fun eval(context: EvaluationContext): ServiceResultNew = outcome(context)
+  override fun eval(context: EvaluationContext): ServiceResultV2 = outcome(context)
 }
 
 /**
@@ -40,7 +40,7 @@ class RuleSetNode(
     private val log = LoggerFactory.getLogger(RuleSetNode::class.java)
   }
 
-  override fun eval(context: EvaluationContext): ServiceResultNew {
+  override fun eval(context: EvaluationContext): ServiceResultV2 {
     log.debug("Executing RuleSet: $ruleSetName")
 
     val ruleSetResult = engine.execute(ruleSet, context.data).also {

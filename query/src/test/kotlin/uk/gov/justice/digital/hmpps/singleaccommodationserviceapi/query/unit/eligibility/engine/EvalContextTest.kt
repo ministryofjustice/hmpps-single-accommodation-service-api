@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
@@ -11,7 +11,7 @@ class EvalContextTest {
   @Test
   fun `EvalContext can be created with DomainData and ServiceResult`() {
     val domainData = buildDomainData()
-    val serviceResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
+    val serviceResult = buildServiceResultNew(ServiceStatusV2.CAS1_PLACEMENT_BOOKED)
 
     val context = EvaluationContext(data = domainData, currentResult = serviceResult)
 
@@ -22,7 +22,7 @@ class EvalContextTest {
   @Test
   fun `EvalContext update creates new instance with updated fields`() {
     val originalData = buildDomainData()
-    val originalResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
+    val originalResult = buildServiceResultNew(ServiceStatusV2.CAS1_PLACEMENT_BOOKED)
     val context = EvaluationContext(data = originalData, currentResult = originalResult)
 
     val updatedResult = buildServiceResultNew()
@@ -36,7 +36,7 @@ class EvalContextTest {
   @Test
   fun `EvalContext copy can update data field`() {
     val originalData = buildDomainData()
-    val originalResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
+    val originalResult = buildServiceResultNew(ServiceStatusV2.CAS1_PLACEMENT_BOOKED)
     val context = EvaluationContext(data = originalData, currentResult = originalResult)
 
     val updatedData = buildDomainData(crn = "DIFFERENT_CRN")
@@ -51,7 +51,7 @@ class EvalContextTest {
   fun `EvalContext instances with same values are equal`() {
     val domainData = buildDomainData()
     val serviceResult = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
+      serviceStatus = ServiceStatusV2.CAS1_PLACEMENT_BOOKED,
     )
 
     val context1 = EvaluationContext(data = domainData, currentResult = serviceResult)
@@ -65,7 +65,7 @@ class EvalContextTest {
   fun `EvalContext instances with different values are not equal`() {
     val domainData1 = buildDomainData()
     val domainData2 = buildDomainData(crn = "DIFFERENT_CRN")
-    val serviceResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
+    val serviceResult = buildServiceResultNew(ServiceStatusV2.CAS1_PLACEMENT_BOOKED)
 
     val context1 = EvaluationContext(data = domainData1, currentResult = serviceResult)
     val context2 = EvaluationContext(data = domainData2, currentResult = serviceResult)
@@ -76,7 +76,7 @@ class EvalContextTest {
   @Test
   fun `EvalContext instances with different ServiceResult are not equal`() {
     val domainData = buildDomainData()
-    val result1 = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
+    val result1 = buildServiceResultNew(ServiceStatusV2.CAS1_PLACEMENT_BOOKED)
     val result2 = buildServiceResultNew()
 
     val context1 = EvaluationContext(data = domainData, currentResult = result1)

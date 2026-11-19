@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
@@ -36,7 +36,7 @@ class EligibilityScenariosDtrTest : EligibilityScenarioTestBase() {
           hasNextAccommodation = row["hasNextAccommodation"]!!,
           dtrStatus = row["dtrStatus"]?.let { DtrStatus.valueOf(it) },
           dtrSubmissionDate = row["dtrSubmissionDate"]?.toLocalDate(),
-          expectedDtrStatus = row["expectedDtrStatus"]?.let { ServiceStatusNew.valueOf(it) },
+          expectedDtrStatus = row["expectedDtrStatus"]?.let { ServiceStatusV2.valueOf(it) },
           expectedFailureReasons = row["expectedFailureReasons"]
             ?.takeIf { it.isNotBlank() }
             ?.split(",")
@@ -120,7 +120,7 @@ class EligibilityScenariosDtrTest : EligibilityScenarioTestBase() {
     val hasNextAccommodation: String,
     val dtrStatus: DtrStatus?,
     val dtrSubmissionDate: LocalDate?,
-    val expectedDtrStatus: ServiceStatusNew?,
+    val expectedDtrStatus: ServiceStatusV2?,
     val expectedFailureReasons: List<FailureReason>,
   )
 }

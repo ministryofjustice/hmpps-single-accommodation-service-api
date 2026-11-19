@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
@@ -48,7 +48,7 @@ class EligibilityScenariosCas3Test : EligibilityScenarioTestBase() {
           description = row["description"],
           referenceDate = row["referenceDate"]!!.toLocalDate(),
           currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
-          expectedCas3Status = row["expectedCas3Status"]?.let { ServiceStatusNew.valueOf(it) },
+          expectedCas3Status = row["expectedCas3Status"]?.let { ServiceStatusV2.valueOf(it) },
           expectedCas3Url = row["expectedCas3Url"]?.takeIf { it.isNotBlank() },
           isEligible = row["isEligible"]!!.lowercase().toBooleanStrict(),
           isStarted = row["isStarted"]!!.lowercase().toBooleanStrict(),
@@ -86,7 +86,7 @@ class EligibilityScenariosCas3Test : EligibilityScenarioTestBase() {
               dtrSubmissionDate = row["dtrSubmissionDate"]?.toLocalDate(),
               crsStatus = row["crsStatus"]?.let { CrsReferralStatus.valueOf(it) },
               sexCode = sexCode,
-              expectedCas3Status = row["expectedCas3Status"]?.let { ServiceStatusNew.valueOf(it) },
+              expectedCas3Status = row["expectedCas3Status"]?.let { ServiceStatusV2.valueOf(it) },
               expectedCas3Url = row["expectedCas3Url"]?.takeIf { it.isNotBlank() },
               expectedFailureReasons = row["expectedFailureReasons"]
                 ?.takeIf { it.isNotBlank() }
@@ -283,7 +283,7 @@ class EligibilityScenariosCas3Test : EligibilityScenarioTestBase() {
     val currentAccommodationEndDate: LocalDate?,
     val dtrSubmissionDate: LocalDate?,
     val crsStatus: CrsReferralStatus?,
-    val expectedCas3Status: ServiceStatusNew?,
+    val expectedCas3Status: ServiceStatusV2?,
     val sexCode: SexCode?,
     val expectedCas3Url: String?,
     val expectedFailureReasons: List<FailureReason>,
@@ -299,7 +299,7 @@ class EligibilityScenariosCas3Test : EligibilityScenarioTestBase() {
     val cas3ApplicationStatus: Cas3ApplicationStatus?,
     val cas3AssessmentStatus: Cas3AssessmentStatus?,
     val cas3BookingStatus: Cas3BookingStatus?,
-    val expectedCas3Status: ServiceStatusNew?,
+    val expectedCas3Status: ServiceStatusV2?,
     val expectedCas3Url: String?,
   )
 }
