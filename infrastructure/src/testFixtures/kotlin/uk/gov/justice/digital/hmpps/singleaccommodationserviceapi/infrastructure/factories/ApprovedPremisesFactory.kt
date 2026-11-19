@@ -107,6 +107,7 @@ fun buildCas3Application(
   id: UUID = UUID.randomUUID(),
   createdAt: OffsetDateTime = OffsetDateTime.now(),
   applicationStatus: Cas3ApplicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
+  applicationSubmittedBy: Cas3Staff = buildCas3Staff(),
   submittedApplication: Cas3SubmittedApplication? = when (applicationStatus) {
     Cas3ApplicationStatus.IN_PROGRESS -> null
     Cas3ApplicationStatus.SUBMITTED -> buildCas3SubmittedApplication()
@@ -118,6 +119,7 @@ fun buildCas3Application(
   id = id,
   createdAt = createdAt,
   applicationStatus = applicationStatus,
+  applicationSubmittedBy = applicationSubmittedBy,
   submittedApplication = submittedApplication,
   uiUrl = uiUrl,
 )
