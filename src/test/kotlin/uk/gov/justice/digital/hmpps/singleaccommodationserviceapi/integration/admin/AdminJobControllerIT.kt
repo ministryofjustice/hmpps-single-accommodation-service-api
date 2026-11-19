@@ -8,12 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.http.MediaType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArchiveCasesResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedCaseRefreshDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedInboxEventsResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.*
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -42,7 +37,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 class AdminJobControllerIT : IntegrationTestBase() {
 
@@ -657,7 +652,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
   private fun replayFailedRefreshRequests() = webTestClient.post().uri("/admin/replay-failed-refresh-requests")
     .withClientCredentialsJwt(roles = adminRoles)
     .exchangeSuccessfully()
-    .expectApiResponse<ReplayFailedCaseRefreshDto>()
+    .expectApiResponse<ReplayFailedCaseRefreshResultDto>()
     .data
 
   private fun archiveCasesByCrn(requestBody: String) = webTestClient.post().uri("/admin/archive-cases-by-crn")
