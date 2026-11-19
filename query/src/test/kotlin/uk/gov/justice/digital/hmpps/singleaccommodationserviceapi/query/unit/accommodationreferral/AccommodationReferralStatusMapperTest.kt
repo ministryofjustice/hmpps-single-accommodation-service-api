@@ -51,7 +51,6 @@ class AccommodationReferralStatusMapperTest {
       RequestForPlacementStatus.REQUEST_WITHDRAWN -> AccommodationReferralStatus.REQUEST_WITHDRAWN
       RequestForPlacementStatus.PLACEMENT_BOOKED -> AccommodationReferralStatus.ACCEPTED
       RequestForPlacementStatus.REQUEST_UNSUBMITTED,
-      RequestForPlacementStatus.REQUEST_SUBMITTED,
       RequestForPlacementStatus.AWAITING_MATCH,
       -> AccommodationReferralStatus.PENDING
     }
