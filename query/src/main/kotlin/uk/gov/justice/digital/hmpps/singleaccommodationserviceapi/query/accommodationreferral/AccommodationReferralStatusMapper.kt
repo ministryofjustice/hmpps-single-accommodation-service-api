@@ -29,7 +29,6 @@ object AccommodationReferralStatusMapper {
       RequestForPlacementStatus.REQUEST_REJECTED -> AccommodationReferralStatus.REQUEST_REJECTED
       RequestForPlacementStatus.REQUEST_WITHDRAWN -> AccommodationReferralStatus.REQUEST_WITHDRAWN
       RequestForPlacementStatus.PLACEMENT_BOOKED -> AccommodationReferralStatus.ACCEPTED
-      RequestForPlacementStatus.REQUEST_UNSUBMITTED,
       RequestForPlacementStatus.REQUEST_SUBMITTED,
       RequestForPlacementStatus.AWAITING_MATCH,
       null,

@@ -47,7 +47,6 @@ data class Cas1ReferralHistory(
   }
 
   enum class RequestForPlacementStatus(@get:JsonValue val value: String) {
-    REQUEST_UNSUBMITTED("request_unsubmitted"),
     REQUEST_REJECTED("request_rejected"),
     REQUEST_SUBMITTED("request_submitted"),
     AWAITING_MATCH("awaiting_match"),
