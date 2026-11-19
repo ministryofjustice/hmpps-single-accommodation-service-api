@@ -67,13 +67,13 @@ class AdminBulkRefreshCasesService(
 
     return ApiResponseDto(
       data = ReplayFailedCaseRefreshResultDto(
-        refreshRequestsReplayed = refreshRequestsReplayed
+        refreshRequestsReplayed = refreshRequestsReplayed,
       ),
     ).also {
       log.info(
         "Replay failed Case Refresh requests finished: refreshRequestsReplayed={}. " +
           "Refreshes (if any) are processed asynchronously by CaseRefreshWorker",
-        it.data.refreshRequestsReplayed
+        it.data.refreshRequestsReplayed,
       )
     }
   }
