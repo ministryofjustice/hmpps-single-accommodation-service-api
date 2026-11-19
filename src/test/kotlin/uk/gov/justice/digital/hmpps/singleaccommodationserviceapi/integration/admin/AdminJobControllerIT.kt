@@ -474,7 +474,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should delete only failed core person record not found requests and replay other failures`() {
+    fun `should replay all failed requests regardless of failure detail`() {
       val requests = listOf(
         CaseRefreshRequestStatus.FAILED to "getCorePersonRecordByCrn: 404 Not Found",
         CaseRefreshRequestStatus.FAILED to "Upstream failures: [getCorePersonRecordByCrn: 404 Not Found, getTier: 500 Internal Server Error]",
@@ -504,18 +504,13 @@ class AdminJobControllerIT : IntegrationTestBase() {
       }
 
       val result = replayFailedRefreshRequests()
-      assertThat(result.refreshRequestsReplayed).isEqualTo(4)
-      assertThat(result.refreshRequestsDeleted).isEqualTo(2)
+      assertThat(result.refreshRequestsReplayed).isEqualTo(6)
 
-      requests.take(2).forEach { deletedRequest ->
-        assertThat(caseRefreshRequestRepository.findById(deletedRequest.caseId)).isEmpty()
-        assertThat(caseRepository.findById(deletedRequest.caseId)).isPresent()
-      }
       requests.slice(2..3).forEach { unchangedRequest ->
         assertThat(caseRefreshRequestRepository.findById(unchangedRequest.caseId).orElseThrow())
           .usingRecursiveComparison().isEqualTo(unchangedRequest)
       }
-      requests.drop(4).forEach { replayedRequest ->
+      requests.filter { it.status == CaseRefreshRequestStatus.FAILED }.forEach { replayedRequest ->
         val request = caseRefreshRequestRepository.findById(replayedRequest.caseId).orElseThrow()
         assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
         assertThat(request.nextAttemptAt).isEqualTo(now)
@@ -527,7 +522,6 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
       val resultAfterReplay = replayFailedRefreshRequests()
       assertThat(resultAfterReplay.refreshRequestsReplayed).isZero()
-      assertThat(resultAfterReplay.refreshRequestsDeleted).isZero()
     }
   }
 

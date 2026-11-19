@@ -120,24 +120,9 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
           claimed_at = NULL,
           claim_id = NULL
       WHERE status = 'FAILED'
-        AND (
-          last_failure_detail IS NULL
-          OR last_failure_detail NOT LIKE '%getCorePersonRecordByCrn: 404 Not Found%'
-        )
     """,
   )
   fun replayFailedRequests(nextAttemptAt: Instant): Int
-
-  @Modifying
-  @Query(
-    nativeQuery = true,
-    value = """
-      DELETE FROM sas_case_refresh_request
-      WHERE status = 'FAILED'
-        AND last_failure_detail LIKE '%getCorePersonRecordByCrn: 404 Not Found%'
-    """,
-  )
-  fun deleteRequestsForMissingCorePersonRecords(): Int
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(

@@ -10,13 +10,24 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.ErrorDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.FailureType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshFailureCategory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshCompletionService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailureClassifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshProcessor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
+import org.springframework.http.HttpStatus
 import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
@@ -51,5 +62,43 @@ class CaseRefreshProcessorTest {
     assertThat(result).isEqualTo(CaseRefreshProcessor.Result.CaseNotFound)
     verify(exactly = 1) { caseRefreshRequestService.deleteOwnedRequest(claim) }
     verify(exactly = 0) { caseRefreshCompletionService.completeRefresh(any(), any()) }
+  }
+
+  @Test
+  fun `removes owned request when core person record is missing`() {
+    val claim = CaseRefreshRequestService.Claim(UUID.randomUUID(), 1L, UUID.randomUUID(), CaseRefreshPriority.BULK)
+    val caseEntity = buildCaseEntity { withCrn("X12345") }
+    every { caseRepository.findWithIdentifiersById(claim.caseId) } returns caseEntity
+    every { caseOrchestrationService.getCurrentCaseResult("X12345", any()) } returns OrchestrationResultDto(
+      data = CaseMutationOrchestrationDto(
+        crn = "X12345",
+        cpr = null,
+        tier = null,
+        prisoner = null,
+        cas1Residence = null,
+        cas3CurrentPremises = null,
+        cas1Application = null,
+        cas3Application = null,
+        case = null,
+      ),
+      upstreamFailures = listOf(
+        UpstreamFailure(
+          callKey = ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN,
+          type = FailureType.UPSTREAM_HTTP_ERROR,
+          errorDetail = ErrorDetail(HttpStatus.NOT_FOUND, "404 Not Found"),
+        ),
+      ),
+    )
+    every { failureClassifier.classify(any()) } returns CaseRefreshFailure(
+      category = CaseRefreshFailureCategory.CORE_PERSON_RECORD_NOT_FOUND,
+      detail = "getCorePersonRecordByCrn: 404 Not Found",
+    )
+    every { caseRefreshRequestService.deleteOwnedRequest(claim) } just runs
+
+    val result = processor.process(claim)
+
+    assertThat(result).isEqualTo(CaseRefreshProcessor.Result.CaseNotFound)
+    verify(exactly = 1) { caseRefreshRequestService.deleteOwnedRequest(claim) }
+    verify(exactly = 0) { caseRefreshRequestService.recordFailure(any(), any()) }
   }
 }

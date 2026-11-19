@@ -54,10 +54,9 @@ This keeps the alerting simple and avoids sending one alert per failed row.
 
 Failed case refresh requests can be replayed through `POST /admin/replay-failed-refresh-requests (requires ROLE_SAS_ADMIN_RW)`.
 This resets only `FAILED` requests to `PENDING`, makes them immediately eligible for processing, and clears retry and claim metadata.
-Only `FAILED` requests whose `last_failure_detail` contains `getCorePersonRecordByCrn: 404 Not Found` are deleted.
-Deletion and replay run in a single transaction.
+Core Person Record 404s are now handled by the refresh processor using a typed failure category, and those requests are deleted at processing time instead of being filtered by `last_failure_detail` text.
 The response reports `refreshRequestsReplayed` and `refreshRequestsDeleted`; `CaseRefreshWorker` processes replayed requests asynchronously.
-Pending and processing requests are unchanged, even if they retain this failure detail from an earlier attempt.
+Pending and processing requests are unchanged.
 
 ## Scheduling
 

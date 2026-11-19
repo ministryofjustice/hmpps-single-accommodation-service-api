@@ -142,6 +142,22 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
+  fun `deletes refresh request when core person record returns 404`() {
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
+    CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crn)
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"))
+
+    val result = caseRefreshWorker.process()
+
+    assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("A")
+    assertThat(result.refreshedCount).isZero()
+    assertThat(result.failedCount).isZero()
+    assertThat(result.caseNotFoundCount).isEqualTo(1)
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+  }
+
+  @Test
   fun `retains a newer refresh request that arrives while Tier is loading`() {
     val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)

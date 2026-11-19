@@ -95,6 +95,21 @@ class CaseRefreshRetryPolicyTest {
     assertThat(failure.category).isEqualTo(CaseRefreshFailureCategory.CURRENT_TIER_NOT_FOUND)
   }
 
+  @Test
+  fun `classifier treats missing core person record as permanent`() {
+    val failure = classifier.classify(
+      listOf(
+        upstreamFailure(
+          type = FailureType.UPSTREAM_HTTP_ERROR,
+          status = HttpStatus.NOT_FOUND,
+          callKey = ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN,
+        ),
+      ),
+    )
+
+    assertThat(failure.category).isEqualTo(CaseRefreshFailureCategory.CORE_PERSON_RECORD_NOT_FOUND)
+  }
+
   private fun upstreamFailure(
     type: FailureType,
     status: HttpStatus? = null,

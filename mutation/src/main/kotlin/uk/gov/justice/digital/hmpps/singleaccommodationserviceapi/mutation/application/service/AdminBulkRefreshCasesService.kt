@@ -63,20 +63,17 @@ class AdminBulkRefreshCasesService(
 
   @Transactional
   fun replayFailedRefreshRequests(): ApiResponseDto<ReplayFailedCaseRefreshResultDto> {
-    val refreshRequestsDeleted = caseRefreshRequestService.deleteRequestsForMissingCorePersonRecords()
     val refreshRequestsReplayed = caseRefreshRequestService.replayFailedRequests()
 
     return ApiResponseDto(
       data = ReplayFailedCaseRefreshResultDto(
-        refreshRequestsReplayed = refreshRequestsReplayed,
-        refreshRequestsDeleted = refreshRequestsDeleted,
+        refreshRequestsReplayed = refreshRequestsReplayed
       ),
     ).also {
       log.info(
-        "Replay failed Case Refresh requests finished: refreshRequestsReplayed={}, refreshRequestsDeleted={}. " +
+        "Replay failed Case Refresh requests finished: refreshRequestsReplayed={}. " +
           "Refreshes (if any) are processed asynchronously by CaseRefreshWorker",
-        it.data.refreshRequestsReplayed,
-        it.data.refreshRequestsDeleted,
+        it.data.refreshRequestsReplayed
       )
     }
   }
