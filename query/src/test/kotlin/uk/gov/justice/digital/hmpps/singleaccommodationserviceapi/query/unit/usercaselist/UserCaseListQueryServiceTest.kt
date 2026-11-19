@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -176,7 +177,15 @@ class UserCaseListQueryServiceTest {
     stubAccess(accessible = emptyList(), caseSummaries = emptyList())
 
     assertThat(userCaseListQueryService.getUserCaseList().data.single())
-      .isEqualTo(CaseDto(crn = "A123456", userAccess = UserAccess.LIMITED, limitedAccess = true, inUsersCustomList = true))
+      .isEqualTo(
+        CaseDto(
+          crn = "A123456",
+          userAccess = UserAccess.LIMITED,
+          limitedAccess = true,
+          accommodationSummaries = AccommodationSummariesDto(),
+          inUsersCustomList = true,
+        ),
+      )
   }
 
   @Test
@@ -219,11 +228,11 @@ class UserCaseListQueryServiceTest {
   }
 
   @Test
-  fun `returns cases the user is excluded or restricted from as limited cases with only the crn`() {
+  fun `returns cases the user is excluded or restricted from without accommodation details`() {
     stubCases(
       buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME, firstName = "Joe", lastName = "Bloggs") { withCrn("A123456") },
-      buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME, firstName = "Jane", lastName = "Doe") { withCrn("B654321") },
-      buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME, firstName = "John", lastName = "Smith") { withCrn("C111111") },
+      buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME, firstName = "Jane", lastName = "Doe", accommodationSummariesDto = buildAccommodationSummariesDto()) { withCrn("B654321") },
+      buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME, firstName = "John", lastName = "Smith", accommodationSummariesDto = buildAccommodationSummariesDto()) { withCrn("C111111") },
     )
     stubAccess(accessible = listOf("A123456"), excluded = listOf("B654321"), restricted = listOf("C111111"))
 
@@ -231,8 +240,8 @@ class UserCaseListQueryServiceTest {
 
     val limitedCases = result.data.filter { it.crn in listOf("B654321", "C111111") }
     assertThat(limitedCases).containsExactlyInAnyOrder(
-      CaseDto(crn = "B654321", userAccess = UserAccess.LIMITED, limitedAccess = true, teamCode = null, inUsersCustomList = true),
-      CaseDto(crn = "C111111", userAccess = UserAccess.LIMITED, limitedAccess = true, teamCode = null, inUsersCustomList = true),
+      CaseDto(crn = "B654321", userAccess = UserAccess.LIMITED, limitedAccess = true, accommodationSummaries = AccommodationSummariesDto(caseAccommodationStatus = CaseAccommodationStatus.SETTLED), teamCode = null, inUsersCustomList = true),
+      CaseDto(crn = "C111111", userAccess = UserAccess.LIMITED, limitedAccess = true, accommodationSummaries = AccommodationSummariesDto(caseAccommodationStatus = CaseAccommodationStatus.SETTLED), teamCode = null, inUsersCustomList = true),
     )
     assertThat(result.data.single { it.crn == "A123456" }.userAccess).isEqualTo(UserAccess.FULL)
     assertThat(result.data.single { it.crn == "A123456" }.inUsersCustomList).isTrue()

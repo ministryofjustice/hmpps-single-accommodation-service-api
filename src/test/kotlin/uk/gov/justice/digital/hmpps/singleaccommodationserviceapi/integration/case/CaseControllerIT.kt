@@ -690,6 +690,34 @@ class CaseControllerIT : IntegrationTestBase() {
     }
 
     @Test
+    fun `does not include current or next accommodation for a restricted case`() {
+      caseRepository.saveAndFlush(
+        buildCaseEntity(accommodationSummariesDto = buildAccommodationSummariesDto()) {
+          withCrn(restrictedCrn)
+        },
+      )
+      ProbationAccessControlStubs.postUserAccessForCrns(
+        USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        accessibleCrns = listOf(accessibleCrn),
+        restrictedCrns = listOf(restrictedCrn),
+      )
+
+      val responseBody = webTestClient.get().uri("/case-list")
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult()
+        .responseBody!!
+      val restrictedCase = jsonMapper.readTree(responseBody).path("data")
+        .first { it.path("crn").asText() == restrictedCrn }
+      val accommodationSummaries = restrictedCase.path("accommodationSummaries")
+
+      assertThat(restrictedCase.path("userAccess").asText()).isEqualTo("LIMITED")
+      assertThat(accommodationSummaries.has("currentAccommodation")).isFalse()
+      assertThat(accommodationSummaries.has("nextAccommodation")).isFalse()
+    }
+
+    @Test
     fun `should not match a restricted case by name when searching`() {
       ProbationAccessControlStubs.postUserAccessForCrns(
         USERNAME_OF_LOGGED_IN_DELIUS_USER,

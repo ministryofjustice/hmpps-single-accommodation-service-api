@@ -84,6 +84,8 @@ class CaseQueryService(
           teamCode = case.team.code,
           assignedTo = assignedTo,
           inUsersCustomList = case.crn in customListCrns,
+          accommodationStatus = entity?.accommodationStatus,
+          accommodationStatusDate = entity?.accommodationStatusDate,
         )
       }
     }.filterCases(
