@@ -8,12 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.http.MediaType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArchiveCasesResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedCaseRefreshResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedInboxEventsResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.*
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -42,7 +37,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 class AdminJobControllerIT : IntegrationTestBase() {
 
@@ -472,7 +467,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should delete only failed core person record not found requests and replay other failures`() {
+    fun `should replay all failed requests and leave pending or processing requests unchanged`() {
       val requests = listOf(
         CaseRefreshRequestStatus.FAILED to "getCorePersonRecordByCrn: 404 Not Found",
         CaseRefreshRequestStatus.FAILED to "Upstream failures: [getCorePersonRecordByCrn: 404 Not Found, getTier: 500 Internal Server Error]",
@@ -502,18 +497,22 @@ class AdminJobControllerIT : IntegrationTestBase() {
       }
 
       val result = replayFailedRefreshRequests()
-      assertThat(result.refreshRequestsReplayed).isEqualTo(4)
+      assertThat(result.refreshRequestsReplayed).isEqualTo(6)
 
-      requests.take(2).forEach { deletedRequest ->
-        assertThat(caseRefreshRequestRepository.findById(deletedRequest.caseId)).isEmpty()
-        assertThat(caseRepository.findById(deletedRequest.caseId)).isPresent()
+      val unchangedStatuses = setOf(CaseRefreshRequestStatus.PENDING, CaseRefreshRequestStatus.PROCESSING)
+      val unchangedRequests = requests
+        .filter { it.status in unchangedStatuses }
+        .map { initialRequest ->
+          caseRefreshRequestRepository.findById(initialRequest.caseId).orElseThrow() to initialRequest
+        }
+      assertThat(unchangedRequests).allSatisfy { (request, initialRequest) ->
+        assertThat(request).usingRecursiveComparison().isEqualTo(initialRequest)
       }
-      requests.slice(2..3).forEach { unchangedRequest ->
-        assertThat(caseRefreshRequestRepository.findById(unchangedRequest.caseId).orElseThrow())
-          .usingRecursiveComparison().isEqualTo(unchangedRequest)
-      }
-      requests.drop(4).forEach { replayedRequest ->
-        val request = caseRefreshRequestRepository.findById(replayedRequest.caseId).orElseThrow()
+
+      val replayedRequests = requests
+        .filterNot { it.status in unchangedStatuses }
+        .map { initialRequest -> caseRefreshRequestRepository.findById(initialRequest.caseId).orElseThrow() }
+      assertThat(replayedRequests).allSatisfy { request ->
         assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
         assertThat(request.nextAttemptAt).isEqualTo(now)
         assertThat(request.attemptCount).isZero()
