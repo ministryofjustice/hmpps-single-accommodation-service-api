@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminArchiveCasesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkLoadCasesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkRefreshCasesService
-import java.util.UUID
+import java.util.*
 
 @RestController
 class AdminJobController(
@@ -80,7 +80,7 @@ class AdminJobController(
 
   @PreAuthorize("hasRole('ROLE_SAS_ADMIN_RW')")
   @PostMapping("/admin/replay-failed-refresh-requests")
-  fun replayFailedRefreshRequests(): ResponseEntity<ApiResponseDto<ReplayFailedCaseRefreshDto>> = ResponseEntity.ok(
+  fun replayFailedRefreshRequests(): ResponseEntity<ApiResponseDto<ReplayFailedCaseRefreshResultDto>> = ResponseEntity.ok(
     adminBulkRefreshCasesService.replayFailedRefreshRequests(),
   )
 }
