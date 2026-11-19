@@ -230,8 +230,20 @@ fun expectedGetEligibilityResponse(
             "blockingStatusReason": null
          }
       },
+      "ppc":{
+         "serviceResult":{
+            "serviceStatus":"PPC_NOT_STARTED",
+            "action":{"type":"START_PPC","startDate":null,"service":"PPC"},
+            "link":"Start public protection checker",
+            "url":null,
+            "linkType":"PPC_START_CHECKER",
+            "failureReasons":[],
+            "blockingStatusReason":null
+         }
+      },
       "caseActions":[
          {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type":"START_PPC","startDate":null,"service":"PPC"},
          {"type":"CREATE_PLACEMENT","startDate":null, "service": "CAS1"}
       ]
    }
@@ -313,6 +325,17 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "link":null,
             "url":null,
             "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         }
+      },
+      "ppc":{
+         "serviceResult":{
+            "serviceStatus":"PPC_NOT_STARTED",
+            "action":{"type":"START_PPC","startDate":null,"service":"PPC"},
+            "link":"Start public protection checker",
+            "url":null,
+            "linkType":"PPC_START_CHECKER",
             "failureReasons":[],
             "blockingStatusReason":null
          }
@@ -516,8 +539,20 @@ fun expectedGetEligibilityResponseTierNotFound(
             "blockingStatusReason":null
          }
       },
+      "ppc":{
+         "serviceResult":{
+            "serviceStatus":"PPC_NOT_STARTED",
+            "action":{"type":"START_PPC","startDate":null,"service":"PPC"},
+            "link":"Start public protection checker",
+            "url":null,
+            "linkType":"PPC_START_CHECKER",
+            "failureReasons":[],
+            "blockingStatusReason":null
+         }
+      },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type":"START_PPC","startDate":null,"service":"PPC"}
       ]
    }
 }
@@ -632,8 +667,20 @@ fun expectedGetEligibilityResponseCannotStartYet(
             "blockingStatusReason":null
          }
       },
+      "ppc":{
+         "serviceResult":{
+            "serviceStatus":"PPC_NOT_STARTED",
+            "action":{"type":"START_PPC","startDate":null,"service":"PPC"},
+            "link":"Start public protection checker",
+            "url":null,
+            "linkType":"PPC_START_CHECKER",
+            "failureReasons":[],
+            "blockingStatusReason":null
+         }
+      },
       "caseActions":[
          {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null, "service": "DTR"},
+         {"type":"START_PPC","startDate":null,"service":"PPC"},
          {"type": "START_CAS2_REFERRAL", "startDate": null, "service": "CAS2"},
          {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null, "service": "PA"}
       ]
