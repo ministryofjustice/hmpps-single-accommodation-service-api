@@ -99,6 +99,8 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
   #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   #toolbar { padding: 8px 12px; border-bottom: 1px solid #ddd; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: #f7f7f7; }
   #toolbar label { font-size: 13px; }
+  #tree-search-input::placeholder { color: #666; opacity: 1; }
+  #tree-search-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   #cy { flex: 1; }
   #panel { width: 546px; border-left: 1px solid #ddd; overflow-y: auto; padding: 12px 16px; font-size: 14px; }
   #panel.expanded { width: 760px; }
@@ -162,6 +164,10 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
     <button id="reset">Clear highlight</button>
     <button id="toggle-panel" aria-controls="panel" aria-expanded="false">Expand panel</button>
     <label><input type="checkbox" id="simulate"> <b>Simulate</b></label>
+    <div id="tree-search" role="search" aria-label="Search current tree">
+      <input id="tree-search-input" type="search" aria-label="Find a node or rule" placeholder="Search...">
+      <span id="tree-search-status" role="status"></span>
+    </div>
   </div>
   <div id="cy"></div>
 </div>
@@ -176,6 +182,9 @@ __STATUS_CARD_PREVIEW__
   const treeHeading = document.getElementById('tree-heading');
   const treeSelect = document.getElementById('tree');
   const panelContent = document.getElementById('panel-content');
+  const treeSearch = document.getElementById('tree-search');
+  const searchInput = document.getElementById('tree-search-input');
+  const searchStatus = document.getElementById('tree-search-status');
 
   const orderedTrees = [...data.trees].sort((a, b) =>
     (a.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.displayOrder ?? Number.MAX_SAFE_INTEGER));
@@ -206,11 +215,13 @@ __STATUS_CARD_PREVIEW__
       { selector: 'edge[label = "FAIL"]', style: { 'line-color': '${RulesGraphColours.FAIL}', 'target-arrow-color': '${RulesGraphColours.FAIL}', 'color': '${RulesGraphColours.FAIL}' } },
       { selector: 'edge[label = "CONTINUE"]', style: { 'line-color': '${RulesGraphColours.CONTINUE}', 'target-arrow-color': '${RulesGraphColours.CONTINUE}', 'color': '${RulesGraphColours.CONTINUE}' } },
       { selector: '.faded', style: { 'opacity': 0.15 } },
-      { selector: 'node:selected', style: { 'border-width': 5, 'border-color': '${RulesGraphColours.SELECTED}' } },
+      { selector: 'node:selected, node.search-match', style: {
+        'border-width': 5, 'border-color': '${RulesGraphColours.SELECTED}' } },
       { selector: 'node.onpath', style: { 'border-width': 6, 'border-color': '${RulesGraphColours.HIGHLIGHT}' } },
       { selector: 'edge.onpath', style: { 'width': 6, 'z-index': 10 } },
       { selector: 'node.sim-fail', style: { 'background-color': '${RulesGraphColours.SIMULATION_FAIL}' } },
       { selector: 'node.sim-pass', style: { 'background-color': '${RulesGraphColours.SIMULATION_PASS}' } },
+      { selector: 'node.search-match', style: { 'opacity': 1, 'z-index': 20 } },
     ],
   });
 
@@ -380,6 +391,61 @@ __STATUS_CARD_PREVIEW__
     cy.elements().removeClass('faded onpath sim-pass sim-fail');
     cy.$(':selected').unselect();
   }
+
+  function selectNode(node) {
+    clearHighlight();
+    node.select();
+    highlightPathsTo(node);
+    showNode(node.id());
+  }
+
+  const normalizeSearch = text => (text ?? '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+  function bestTreeMatch(nodes, query) {
+    const words = query.split(' ');
+    let best;
+    for (const node of nodes) {
+      const fields = [node.title, node.label, node.id,
+        ...node.rules.flatMap(rule => [rule.description, rule.failureReason, rule.className])];
+      for (const field of fields) {
+        const text = normalizeSearch(field);
+        const score = text === query ? 3 : text.includes(query) ? 2 : words.every(word => text.includes(word)) ? 1 : 0;
+        if (score && (!best || score > best.score || (score === best.score && text.length < best.length))) {
+          best = { node, score, length: text.length };
+        }
+      }
+    }
+    return best?.node;
+  }
+
+  function clearSearchHighlight() {
+    const matches = cy.nodes('.search-match');
+    if (matches.length && !simMode) clearHighlight();
+    matches.removeClass('search-match');
+    searchStatus.textContent = '';
+  }
+
+  searchInput.addEventListener('input', () => {
+    if (simMode) return;
+    clearSearchHighlight();
+    const query = normalizeSearch(searchInput.value);
+    if (!query) return;
+    const match = bestTreeMatch(currentTree.nodes, query);
+    if (!match) {
+      searchStatus.textContent = 'No match in this tree.';
+      return;
+    }
+    const node = cy.getElementById(match.id);
+    selectNode(node);
+    node.addClass('search-match');
+    const bounds = node.renderedBoundingBox({ includeLabels: false });
+    if (bounds.x2 <= 0 || bounds.y2 <= 0 || bounds.x1 >= cy.width() || bounds.y1 >= cy.height()) {
+      cy.center(node);
+    }
+    searchStatus.textContent = 'Found: ' + match.title;
+  });
 
   // ---------- Simulation ----------
   // Mirrors RuleSetNode.eval / RulesEngine.execute: a RuleSet PASSes only if none of its rules FAIL,
@@ -553,9 +619,16 @@ __STATUS_CARD_PREVIEW__
   }
   panel.addEventListener('click', handleSimulationClick);
 
-  function setSimMode(on) {
+  function updateSimMode(on) {
+    clearSearchHighlight();
     simMode = on;
     simCheckbox.checked = on;
+    treeSearch.hidden = on;
+    searchInput.value = '';
+  }
+
+  function setSimMode(on) {
+    updateSimMode(on);
     if (on) {
       renderSim();
     } else {
@@ -566,20 +639,37 @@ __STATUS_CARD_PREVIEW__
   }
   simCheckbox.addEventListener('change', evt => setSimMode(evt.target.checked));
 
+  function scrollToSimulationRule(id) {
+    document.getElementById('sim-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   cy.on('tap', 'node', evt => {
+    clearSearchHighlight();
     if (simMode) {
-      const group = document.getElementById('sim-' + evt.target.id());
-      if (group) {
-        group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const id = evt.target.id();
+      const rules = nodeById(id).rules;
+      if (rules.length) {
+        const allFailing = rules.every(rule => failing.has(rule.className));
+        rules.forEach(rule => {
+          if (allFailing) failing.delete(rule.className);
+          else failing.add(rule.className);
+        });
+        renderSim();
+        scrollToSimulationRule(id);
       }
       return;
     }
-    clearHighlight(); evt.target.select(); highlightPathsTo(evt.target); showNode(evt.target.id());
+    selectNode(evt.target);
   });
-  cy.on('tap', evt => { if (evt.target === cy && !simMode) clearHighlight(); });
+  cy.on('tap', evt => {
+    if (evt.target === cy && !simMode) { clearSearchHighlight(); clearHighlight(); }
+  });
 
   document.getElementById('fit').addEventListener('click', () => cy.fit(undefined, 30));
-  document.getElementById('reset').addEventListener('click', () => { if (simMode) setSimMode(false); else clearHighlight(); });
+  document.getElementById('reset').addEventListener('click', () => {
+    clearSearchHighlight();
+    if (simMode) setSimMode(false); else clearHighlight();
+  });
   togglePanelButton.addEventListener('click', () => {
     const expanded = panel.classList.toggle('expanded');
     togglePanelButton.setAttribute('aria-expanded', String(expanded));
@@ -590,8 +680,7 @@ __STATUS_CARD_PREVIEW__
     document.body.classList.remove('home');
     cy.resize();
     failing.clear();
-    simMode = false;
-    simCheckbox.checked = false;
+    updateSimMode(false);
     clearHighlight();
     showTree(name);
     const tree = data.trees.find(t => t.name === name);
@@ -603,8 +692,7 @@ __STATUS_CARD_PREVIEW__
   }
 
   function goHome() {
-    simMode = false;
-    simCheckbox.checked = false;
+    updateSimMode(false);
     failing.clear();
     document.body.classList.add('home');
     treeSelect.value = '';

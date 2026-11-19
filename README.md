@@ -157,6 +157,8 @@ The eligibility rules engine is in the codebase, you can extract a markdown vers
 the file generated is viewable [here](./docs/eligibility-rules-graph.md)
 
 View the [interactive eligibility rules graph](https://ministryofjustice.github.io/hmpps-single-accommodation-service-api/eligibility-rules-graph.html).
+Use **Search...** in the tree toolbar to highlight the best match and its incoming paths, just as when clicking a node. The search includes rule descriptions and failure reasons and centres the match only if it is entirely off-screen. The search box is hidden in **Simulate** mode.
+In **Simulate** mode, click a node with rules to set them all to FAIL, or all to PASS if they are already all failing. You can still toggle individual rules in the sidebar.
 GitHub Pages must be configured to deploy from `main` and `/docs`; `docs/.nojekyll` disables Jekyll processing for these static files without changing the existing application deployment workflows.
 
 To update the preview manually, run the **Update Status Card Preview HTML** workflow on `main` from GitHub Actions. Leave `ui_run_id` blank to use the latest successful UI `main` pipeline run, or provide a run ID to select a specific run.
