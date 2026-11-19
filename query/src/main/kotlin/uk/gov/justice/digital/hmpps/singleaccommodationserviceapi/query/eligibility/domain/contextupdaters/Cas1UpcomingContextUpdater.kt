@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CAS1_UPCOMING_WEEKS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
@@ -14,7 +14,7 @@ class Cas1UpcomingContextUpdater : ContextUpdater() {
 
   override val outcomes = mapOf(
     upcoming to ServiceResultSpec(
-      serviceStatus = ServiceStatusNew.CAS1_UPCOMING,
+      serviceStatus = ServiceStatusV2.CAS1_UPCOMING,
     ),
   )
 

@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.Rule
@@ -23,7 +23,7 @@ class StubRuleSet(
 
 class StubContextUpdater : ContextUpdater() {
   override fun toServiceResult(context: EvaluationContext) = context.currentResult!!.copy(
-    serviceStatus = ServiceStatusNew.CAS1_UPCOMING,
+    serviceStatus = ServiceStatusV2.CAS1_UPCOMING,
   )
 }
 

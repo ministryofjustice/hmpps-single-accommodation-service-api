@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 
 /**
  * Renders the eligibility rules graphs as a standalone, interactive HTML page using Cytoscape.js.
@@ -20,7 +20,7 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
   }
 
   internal fun toJson(graphs: List<RulesGraph>): Map<String, Any?> = mapOf(
-    "statuses" to ServiceStatusNew.entries.associate { status ->
+    "statuses" to ServiceStatusV2.entries.associate { status ->
       status.name to mapOf(
         "service" to status.service.name,
         "text" to status.uiStatusName,

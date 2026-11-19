@@ -139,7 +139,10 @@ private val eventDetailsControllerMap: Map<String, Set<String>> =
   )
 
 private val eligibilityControllerMap: Map<String, Set<String>> =
-  mapOf("GET /cases/{crn}/eligibility" to defaultRoles)
+  mapOf(
+    "GET /cases/{crn}/eligibility" to defaultRoles,
+    "GET /cases/{crn}/v2/eligibility" to defaultRoles,
+  )
 
 private val proposedAccommodationControllerMap: Map<String, Set<String>> =
   mapOf(

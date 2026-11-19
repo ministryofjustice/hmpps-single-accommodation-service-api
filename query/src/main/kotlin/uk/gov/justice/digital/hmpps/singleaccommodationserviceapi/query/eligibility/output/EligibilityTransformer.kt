@@ -34,12 +34,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Co
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResultWrapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDtoNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityV2Dto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationV2
@@ -74,29 +74,29 @@ object EligibilityTransformer {
   private val log = LoggerFactory.getLogger(javaClass)
 
   fun getServiceResultActionOrder(
-    cas1: ServiceResultNew,
-    cas2: ServiceResultNew,
-    cas3: ServiceResultNew,
-    dtr: ServiceResultNew,
-    crs: ServiceResultNew,
-    pa: ServiceResultNew,
+    cas1: ServiceResultV2,
+    cas2: ServiceResultV2,
+    cas3: ServiceResultV2,
+    dtr: ServiceResultV2,
+    crs: ServiceResultV2,
+    pa: ServiceResultV2,
   ) = listOf(dtr, crs, cas1, cas2, cas3, pa)
     .filter { it.serviceStatus.proposedAction != null }
     .sortedWith(compareBy(nullsLast()) { it.actionStartDate })
 
   fun toEligibilityDto(
     crn: String,
-    cas1: ServiceResultNew,
-    cas2: ServiceResultNew,
-    cas3: ServiceResultNew,
-    dtr: ServiceResultNew,
-    crs: ServiceResultNew,
-    pa: ServiceResultNew,
+    cas1: ServiceResultV2,
+    cas2: ServiceResultV2,
+    cas3: ServiceResultV2,
+    dtr: ServiceResultV2,
+    crs: ServiceResultV2,
+    pa: ServiceResultV2,
     data: DomainData,
-  ): EligibilityDtoNew {
+  ): EligibilityV2Dto {
     val serviceResultActionOrder = getServiceResultActionOrder(cas1, cas2, cas3, dtr, crs, pa)
 
-    return EligibilityDtoNew(
+    return EligibilityV2Dto(
       crn = crn,
       cas1 = Cas1ServiceResultWrapper(
         serviceResult = cas1,
@@ -122,7 +122,7 @@ object EligibilityTransformer {
       crs = CrsServiceResultWrapper(
         serviceResult = crs,
         commissionedRehabilitativeServices = toCommissionedRehabilitativeServicesDto(data.commissionedRehabilitativeServices)
-          ?.takeIf { crs.serviceStatus == ServiceStatusNew.CRS_SUBMITTED },
+          ?.takeIf { crs.serviceStatus == ServiceStatusV2.CRS_SUBMITTED },
         actionPosition = serviceResultActionOrder.indexOf(crs),
       ),
       pa = PaServiceResultWrapper(
@@ -134,7 +134,7 @@ object EligibilityTransformer {
 
   fun toFailedEligibilityDto(
     crn: String,
-  ) = EligibilityDtoNew(
+  ) = EligibilityV2Dto(
     crn = crn,
     cas1 = Cas1ServiceResultWrapper(
       serviceResult = toNotEligibleServiceResult(ServiceType.CAS1),
@@ -168,39 +168,39 @@ object EligibilityTransformer {
     ),
   )
 
-  fun toNotEligibleServiceResult(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultNew(
+  fun toNotEligibleServiceResult(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultV2(
     serviceStatus = toNotEligibleServiceStatus(service),
     failureReasons = failureReasons,
   )
 
   fun toNotEligibleServiceStatus(service: ServiceType) = when (service) {
-    ServiceType.CAS2 -> ServiceStatusNew.CAS2_NOT_ELIGIBLE
-    ServiceType.CAS3 -> ServiceStatusNew.CAS3_NOT_ELIGIBLE
-    ServiceType.CAS1 -> ServiceStatusNew.CAS1_NOT_ELIGIBLE
-    ServiceType.PA -> ServiceStatusNew.PA_NOT_ELIGIBLE
-    ServiceType.DTR -> ServiceStatusNew.DTR_NOT_ELIGIBLE
-    ServiceType.CRS -> ServiceStatusNew.CRS_NOT_ELIGIBLE
+    ServiceType.CAS2 -> ServiceStatusV2.CAS2_NOT_ELIGIBLE
+    ServiceType.CAS3 -> ServiceStatusV2.CAS3_NOT_ELIGIBLE
+    ServiceType.CAS1 -> ServiceStatusV2.CAS1_NOT_ELIGIBLE
+    ServiceType.PA -> ServiceStatusV2.PA_NOT_ELIGIBLE
+    ServiceType.DTR -> ServiceStatusV2.DTR_NOT_ELIGIBLE
+    ServiceType.CRS -> ServiceStatusV2.CRS_NOT_ELIGIBLE
   }
 
-  fun toNotRequiredServiceResult(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultNew(
+  fun toNotRequiredServiceResult(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultV2(
     serviceStatus = toNotRequiredServiceStatus(service),
     failureReasons = failureReasons,
   )
 
   fun toNotRequiredServiceStatus(service: ServiceType) = when (service) {
-    ServiceType.DTR -> ServiceStatusNew.DTR_NOT_REQUIRED
-    ServiceType.CRS -> ServiceStatusNew.CRS_NOT_REQUIRED
+    ServiceType.DTR -> ServiceStatusV2.DTR_NOT_REQUIRED
+    ServiceType.CRS -> ServiceStatusV2.CRS_NOT_REQUIRED
     else -> throw IllegalArgumentException("Unexpected not required service: $service")
   }
 
   // DTR referral data should only be surfaced when a referral exists and has relevant service status to show the data
   private val surfacingStatuses = setOf(
-    ServiceStatusNew.DTR_SUBMITTED,
-    ServiceStatusNew.DTR_ACCEPTED,
-    ServiceStatusNew.DTR_NOT_ACCEPTED,
+    ServiceStatusV2.DTR_SUBMITTED,
+    ServiceStatusV2.DTR_ACCEPTED,
+    ServiceStatusV2.DTR_NOT_ACCEPTED,
   )
 
-  private fun surfacesReferralData(result: ServiceResultNew) = result.serviceStatus in surfacingStatuses
+  private fun surfacesReferralData(result: ServiceResultV2) = result.serviceStatus in surfacingStatuses
 
   private fun toCas3ApplicationDto(
     cas3Application: Cas3Application?,

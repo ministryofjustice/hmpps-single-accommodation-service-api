@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.CrsStartContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.CrsUpcomingContextUpdater
@@ -51,7 +51,7 @@ class CrsEligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notRequired = builder.notRequired(ServiceType.CRS)
     val submitted = builder.outcome(
-      ServiceResultNew(serviceStatus = ServiceStatusNew.CRS_SUBMITTED, url = url),
+      ServiceResultV2(serviceStatus = ServiceStatusV2.CRS_SUBMITTED, url = url),
     )
 
     val noNextAccommodationRuleSetNode = builder

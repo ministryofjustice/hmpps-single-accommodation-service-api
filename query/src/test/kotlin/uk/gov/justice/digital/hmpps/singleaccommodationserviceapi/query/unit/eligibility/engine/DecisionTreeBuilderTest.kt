@@ -6,7 +6,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
@@ -34,7 +34,7 @@ class DecisionTreeBuilderTest {
   @Test
   fun `named outcomes expose graph labels`() {
     val builder = DecisionTreeBuilder(engine)
-    val expectedResult = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
+    val expectedResult = buildServiceResultNew(serviceStatus = ServiceStatusV2.CAS1_PLACEMENT_BOOKED)
 
     assertThat(builder.confirmed().name).isEqualTo("current status")
     assertThat(builder.notEligible(ServiceType.CAS1).name).isEqualTo("Not Eligible")
@@ -46,7 +46,7 @@ class DecisionTreeBuilderTest {
   fun `outcome creates OutcomeNode with fixed ServiceResult`() {
     val expectedResult =
       buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
+        serviceStatus = ServiceStatusV2.CAS1_PLACEMENT_BOOKED,
       )
     val builder = DecisionTreeBuilder(engine)
 
@@ -68,7 +68,7 @@ class DecisionTreeBuilderTest {
     val builder = DecisionTreeBuilder(engine)
     val currentResult =
       buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
+        serviceStatus = ServiceStatusV2.CAS1_PLACEMENT_BOOKED,
       )
     val evaluationContext =
       EvaluationContext(
@@ -87,7 +87,7 @@ class DecisionTreeBuilderTest {
   fun `confirmed returns different ServiceResult when context changes`() {
     val builder = DecisionTreeBuilder(engine)
     val initialResult = buildServiceResultNew()
-    val updatedResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
+    val updatedResult = buildServiceResultNew(ServiceStatusV2.CAS1_PLACEMENT_BOOKED)
     val initialContext =
       EvaluationContext(
         data = buildDomainData(),
@@ -111,12 +111,12 @@ class DecisionTreeBuilderTest {
     val failureReasons = listOf(FailureReason.IS_SETTLED)
     val context = EvaluationContext(
       data = buildDomainData(),
-      currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_NOT_ELIGIBLE, failureReasons = failureReasons),
+      currentResult = buildServiceResultNew(ServiceStatusV2.CAS1_NOT_ELIGIBLE, failureReasons = failureReasons),
     )
 
     val result = builder.confirmed().eval(context)
 
-    assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatusV2.CAS1_NOT_ELIGIBLE)
     assertThat(result.failureReasons).isEqualTo(failureReasons)
   }
 
@@ -125,12 +125,12 @@ class DecisionTreeBuilderTest {
     val builder = DecisionTreeBuilder(engine)
     val context = EvaluationContext(
       data = buildDomainData(),
-      currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_NOT_STARTED, failureReasons = listOf(FailureReason.IS_SETTLED)),
+      currentResult = buildServiceResultNew(ServiceStatusV2.CAS1_NOT_STARTED, failureReasons = listOf(FailureReason.IS_SETTLED)),
     )
 
     val result = builder.confirmed().eval(context)
 
-    assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_STARTED)
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatusV2.CAS1_NOT_STARTED)
     assertThat(result.failureReasons).isEmpty()
   }
 
@@ -144,10 +144,10 @@ class DecisionTreeBuilderTest {
     val evaluationContext =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED),
+        currentResult = buildServiceResultNew(ServiceStatusV2.CAS1_PLACEMENT_BOOKED),
       )
     val actualResult = result.eval(evaluationContext)
-    assertThat(actualResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
+    assertThat(actualResult.serviceStatus).isEqualTo(ServiceStatusV2.CAS1_NOT_ELIGIBLE)
   }
 
   @Test
@@ -156,12 +156,12 @@ class DecisionTreeBuilderTest {
     val context1 =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED),
+        currentResult = buildServiceResultNew(ServiceStatusV2.CAS1_PLACEMENT_BOOKED),
       )
     val context2 =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_SUBMITTED),
+        currentResult = buildServiceResultNew(ServiceStatusV2.CAS1_SUBMITTED),
       )
 
     val notEligibleNode = builder.notEligible(ServiceType.CAS1)
@@ -170,7 +170,7 @@ class DecisionTreeBuilderTest {
     val result2 = notEligibleNode.eval(context2)
 
     assertThat(result1).isEqualTo(result2)
-    assertThat(result1.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
+    assertThat(result1.serviceStatus).isEqualTo(ServiceStatusV2.CAS1_NOT_ELIGIBLE)
   }
 
   @Test
@@ -180,14 +180,14 @@ class DecisionTreeBuilderTest {
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,
+        serviceStatus = ServiceStatusV2.CAS1_NOT_STARTED,
         failureReasons = failureReasons,
       ),
     )
 
     val result = builder.notEligible(ServiceType.CAS1).eval(context)
 
-    assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatusV2.CAS1_NOT_ELIGIBLE)
     assertThat(result.failureReasons).isEqualTo(failureReasons)
   }
 
@@ -201,10 +201,10 @@ class DecisionTreeBuilderTest {
     val evaluationContext =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED),
+        currentResult = buildServiceResultNew(ServiceStatusV2.CAS1_PLACEMENT_BOOKED),
       )
     val actualResult = result.eval(evaluationContext)
-    assertThat(actualResult.serviceStatus).isEqualTo(ServiceStatusNew.DTR_NOT_REQUIRED)
+    assertThat(actualResult.serviceStatus).isEqualTo(ServiceStatusV2.DTR_NOT_REQUIRED)
   }
 
   @Test
@@ -213,12 +213,12 @@ class DecisionTreeBuilderTest {
     val context1 =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED),
+        currentResult = buildServiceResultNew(ServiceStatusV2.CAS1_PLACEMENT_BOOKED),
       )
     val context2 =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_SUBMITTED),
+        currentResult = buildServiceResultNew(ServiceStatusV2.CAS1_SUBMITTED),
       )
 
     val notRequiredNode = builder.notRequired(ServiceType.DTR)
@@ -227,7 +227,7 @@ class DecisionTreeBuilderTest {
     val result2 = notRequiredNode.eval(context2)
 
     assertThat(result1).isEqualTo(result2)
-    assertThat(result1.serviceStatus).isEqualTo(ServiceStatusNew.DTR_NOT_REQUIRED)
+    assertThat(result1.serviceStatus).isEqualTo(ServiceStatusV2.DTR_NOT_REQUIRED)
   }
 
   @Test
@@ -237,14 +237,14 @@ class DecisionTreeBuilderTest {
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.DTR_NOT_REQUIRED,
+        serviceStatus = ServiceStatusV2.DTR_NOT_REQUIRED,
         failureReasons = failureReasons,
       ),
     )
 
     val result = builder.notRequired(ServiceType.DTR).eval(context)
 
-    assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.DTR_NOT_REQUIRED)
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatusV2.DTR_NOT_REQUIRED)
     assertThat(result.failureReasons).isEqualTo(failureReasons)
   }
 
@@ -271,7 +271,7 @@ class DecisionTreeBuilderTest {
 
     val result = builder.notEligible(ServiceType.CAS1).eval(context)
 
-    assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatusV2.CAS1_NOT_ELIGIBLE)
     assertThat(result.failureReasons).isEmpty()
   }
 
@@ -285,7 +285,7 @@ class DecisionTreeBuilderTest {
 
     val result = builder.notRequired(ServiceType.DTR).eval(context)
 
-    assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.DTR_NOT_REQUIRED)
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatusV2.DTR_NOT_REQUIRED)
     assertThat(result.failureReasons).isEmpty()
   }
 }
