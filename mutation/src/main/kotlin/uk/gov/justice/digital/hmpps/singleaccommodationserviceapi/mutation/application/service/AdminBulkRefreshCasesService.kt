@@ -2,9 +2,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedCaseRefreshDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedCaseRefreshResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.CrnsRequiredException
 
@@ -60,11 +61,12 @@ class AdminBulkRefreshCasesService(
     }
   }
 
-  fun replayFailedRefreshRequests(): ApiResponseDto<ReplayFailedCaseRefreshDto> {
+  @Transactional
+  fun replayFailedRefreshRequests(): ApiResponseDto<ReplayFailedCaseRefreshResultDto> {
     val refreshRequestsReplayed = caseRefreshRequestService.replayFailedRequests()
 
     return ApiResponseDto(
-      data = ReplayFailedCaseRefreshDto(
+      data = ReplayFailedCaseRefreshResultDto(
         refreshRequestsReplayed = refreshRequestsReplayed,
       ),
     ).also {

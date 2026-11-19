@@ -52,7 +52,7 @@ class CaseRefreshRequestService(
   }
 
   @Transactional
-  fun replayFailedRequests(): Int = caseRefreshRequestRepository.replayFailedRequests()
+  fun replayFailedRequests(): Int = caseRefreshRequestRepository.replayFailedRequests(nextAttemptAt = Instant.now(clock))
 
   @Transactional
   fun claimPending(maxRequests: Int, abandonedClaimTimeout: Duration): List<Claim> {

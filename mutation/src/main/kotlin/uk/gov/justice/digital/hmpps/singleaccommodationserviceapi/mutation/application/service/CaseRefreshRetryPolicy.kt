@@ -90,6 +90,8 @@ class CaseRefreshFailureClassifier {
   private fun classifyHttpFailure(failure: UpstreamFailure): CaseRefreshFailure {
     val status = failure.errorDetail.httpStatus
     val category = when {
+      status == HttpStatus.NOT_FOUND && failure.callKey == ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN ->
+        CaseRefreshFailureCategory.CORE_PERSON_RECORD_NOT_FOUND
       status == HttpStatus.NOT_FOUND && failure.callKey == ApiCallKeys.GET_TIER_V3 ->
         CaseRefreshFailureCategory.CURRENT_TIER_NOT_FOUND
       status?.is4xxClientError == true -> CaseRefreshFailureCategory.UPSTREAM_CLIENT_ERROR
@@ -109,6 +111,7 @@ class CaseRefreshFailureClassifier {
 }
 
 private fun CaseRefreshFailureCategory.isRetryable(): Boolean = when (this) {
+  CaseRefreshFailureCategory.CORE_PERSON_RECORD_NOT_FOUND,
   CaseRefreshFailureCategory.CURRENT_TIER_NOT_FOUND,
   CaseRefreshFailureCategory.UPSTREAM_CLIENT_ERROR,
   -> false
