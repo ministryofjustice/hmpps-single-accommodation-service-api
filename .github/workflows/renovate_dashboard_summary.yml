@@ -1,0 +1,106 @@
+name: Renovate dependency dashboard summary
+
+on:
+  schedule:
+    - cron: "0 07 * * *" # Every Day at 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  renovate-dashboard-summary:
+    name: Report open Renovate PRs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build report of open Renovate PRs
+        id: dashboards
+        shell: python
+        env:
+          GH_TOKEN: ${{ secrets.RENOVATE_DASHBOARD_TOKEN || github.token }}
+          OWNER: ministryofjustice
+          REPOSITORIES: >-
+            hmpps-approved-premises-api
+            hmpps-approved-premises-tools
+            hmpps-approved-premises-ui
+            hmpps-community-accommodation-tier-2-bail-ui
+            hmpps-community-accommodation-tier-2-ui
+            hmpps-single-accommodation-service-api
+            hmpps-single-accommodation-service-ui
+            hmpps-temporary-accommodation-ui
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          import json, os, subprocess
+          from collections import defaultdict
+
+          owner = os.environ["OWNER"]
+          repositories = os.environ["REPOSITORIES"].split()
+          run_url = os.environ["RUN_URL"]
+
+          repo_args = [arg for repo in repositories for arg in ("--repo", f"{owner}/{repo}")]
+          result = subprocess.run(
+              ["gh", "search", "prs", "--author", "app/renovate", "--state", "open", *repo_args,
+               "--sort", "created", "--order", "asc", "--limit", "1000",
+               "--json", "repository,number,title,url,createdAt"],
+              capture_output=True, text=True, check=True,
+          )
+
+          prs_by_repo = defaultdict(list)
+          for pr in json.loads(result.stdout):
+              prs_by_repo[pr["repository"]["name"]].append(pr)
+          repos_with_prs = [repo for repo in repositories if prs_by_repo[repo]]
+
+          total = sum(len(prs) for prs in prs_by_repo.values())
+          headline = f"{total} open Renovate PR(s) across {len(repos_with_prs)} repositories"
+          prelude = ("Good Morning! A summary of open renovate PRs across the accommodation repositories "
+                     "is shown below. Please action/resolve as appropriate")
+
+
+          def pulls_url(repo):
+              return f"https://github.com/{owner}/{repo}/pulls?q=is%3Apr+is%3Aopen+author%3Aapp%2Frenovate"
+
+
+          # Markdown report for the job log and job summary
+          report = ["# Renovate open PRs", "", prelude, "", headline, ""]
+          for repo in repos_with_prs:
+              report += [f"## [{repo}]({pulls_url(repo)}) ({len(prs_by_repo[repo])})", ""]
+              report += [f"- [#{pr['number']}]({pr['url']}) {pr['title']} (opened {pr['createdAt'][:10]})"
+                         for pr in prs_by_repo[repo]] + [""]
+          report = "\n".join(report)
+          print(report)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write(report + "\n")
+
+
+          def esc(text):
+              return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+          blocks = [
+              {"type": "header", "text": {"type": "plain_text", "text": ":package: Renovate open PRs", "emoji": True}},
+              {"type": "section", "text": {"type": "mrkdwn", "text": prelude}},
+              {"type": "section", "text": {"type": "mrkdwn", "text": f"*{headline}*"}},
+              {"type": "divider"},
+          ]
+          for repo in repos_with_prs:
+              lines = [f"*<{pulls_url(repo)}|{repo}>* ({len(prs_by_repo[repo])})"]
+              lines += [f"• <{pr['url']}|#{pr['number']}> {esc(pr['title'])}" for pr in prs_by_repo[repo]]
+              blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(lines)[:3000]}})
+          if not repos_with_prs:
+              blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": ":white_check_mark: No open Renovate PRs."}})
+          blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": f"<{run_url}|View workflow run>"}]})
+
+          payload = json.dumps({"text": f"{prelude}\n{headline}", "blocks": blocks, "unfurl_links": False, "unfurl_media": False})
+          print("Slack payload:")
+          print(json.dumps(json.loads(payload), indent=2))
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"payload<<EOF_PAYLOAD\n{payload}\nEOF_PAYLOAD\n")
+
+      - name: Post summary to Slack
+        uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
+        with:
+          channel-id: ${{ vars.SECURITY_ALERTS_SLACK_CHANNEL_ID }}
+          payload: ${{ steps.dashboards.outputs.payload }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.HMPPS_SRE_SLACK_BOT_TOKEN }}
