@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityV2Dto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 
 @RestController
@@ -17,4 +18,8 @@ class EligibilityController(
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/eligibility")
   fun getEligibility(@PathVariable crn: String): ResponseEntity<ApiResponseDto<EligibilityDto>> = ResponseEntity.ok(eligibilityService.getEligibility(crn))
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @GetMapping("/cases/{crn}/v2/eligibility")
+  fun getEligibilityV2(@PathVariable crn: String): ResponseEntity<ApiResponseDto<EligibilityV2Dto>> = ResponseEntity.ok(eligibilityService.getEligibilityV2(crn))
 }

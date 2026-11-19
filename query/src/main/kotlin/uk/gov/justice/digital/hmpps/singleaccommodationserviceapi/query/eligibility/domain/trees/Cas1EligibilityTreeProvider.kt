@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1NotSubmittedContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1RejectedContextUpdater
@@ -86,37 +86,37 @@ class Cas1EligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS1)
     val placementBooked = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_BOOKED),
     )
     val arrived = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_ARRIVED),
+      ServiceResultV2(ServiceStatusV2.CAS1_ARRIVED),
     )
     val placementCancelled = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_CANCELLED),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_CANCELLED),
     )
     val placementRequestNotStarted = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_STARTED),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_NOT_STARTED),
     )
     val notArrived = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_NOT_ARRIVED),
+      ServiceResultV2(ServiceStatusV2.CAS1_NOT_ARRIVED),
     )
     val rejectedRequest = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_REJECTED),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_REJECTED),
     )
     val withdrawnRequest = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_WITHDRAWN),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_WITHDRAWN),
     )
     val placementRequestSubmitted = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_SUBMITTED),
     )
     val placementRequestNotSubmitted = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED),
     )
     val applicationSubmitted = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_SUBMITTED),
+      ServiceResultV2(ServiceStatusV2.CAS1_SUBMITTED),
     )
     val infoRequested = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_INFO_REQUESTED),
+      ServiceResultV2(ServiceStatusV2.CAS1_INFO_REQUESTED),
     )
     val hasRoshLevelRuleSetNode = builder
       .ruleSet(hasRoshLevelRuleSet)

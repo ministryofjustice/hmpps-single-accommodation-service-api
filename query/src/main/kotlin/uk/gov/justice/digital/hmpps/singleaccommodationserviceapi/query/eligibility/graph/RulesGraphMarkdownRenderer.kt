@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 
 /**
  * # Eligibility rules graph
@@ -164,7 +164,7 @@ object RulesGraphMarkdownRenderer : RulesGraphRenderer {
   }
 
   // Longest names first so e.g. "Placement Request Not Started" wins over "Not Started"
-  private val uiStatusRegex = ServiceStatusNew.entries
+  private val uiStatusRegex = ServiceStatusV2.entries
     .map { it.uiStatusName }
     .distinct()
     .sortedByDescending { it.length }

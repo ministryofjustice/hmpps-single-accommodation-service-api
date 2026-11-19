@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas3CannotStartMaleContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas3CannotStartNotMaleContextUpdater
@@ -81,22 +81,22 @@ class Cas3EligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS3)
     val bookingConfirmed = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS3_BOOKING_CONFIRMED),
+      ServiceResultV2(ServiceStatusV2.CAS3_BOOKING_CONFIRMED),
     )
     val arrived = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS3_ARRIVED),
+      ServiceResultV2(ServiceStatusV2.CAS3_ARRIVED),
     )
     val bedspaceOffered = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS3_BEDSPACE_OFFERED),
+      ServiceResultV2(ServiceStatusV2.CAS3_BEDSPACE_OFFERED),
     )
     val notArrived = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS3_NOT_ARRIVED),
+      ServiceResultV2(ServiceStatusV2.CAS3_NOT_ARRIVED),
     )
     val bookingCancelled = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS3_BOOKING_CANCELLED),
+      ServiceResultV2(ServiceStatusV2.CAS3_BOOKING_CANCELLED),
     )
     val submitted = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS3_SUBMITTED),
+      ServiceResultV2(ServiceStatusV2.CAS3_SUBMITTED),
     )
 
     val notMaleRuleSetNode = builder

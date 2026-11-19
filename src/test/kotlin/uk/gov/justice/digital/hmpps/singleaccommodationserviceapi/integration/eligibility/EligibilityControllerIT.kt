@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -448,6 +449,41 @@ class EligibilityControllerIT : IntegrationTestBase() {
           ),
         )
       }
+  }
+
+  @Test
+  fun `should return the new eligibility response from v2`() {
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
+
+    val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
+    caseRepository.save(entity)
+
+    webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$.data.crn").isEqualTo(crn)
+      .jsonPath("$.data.cas1.actionPosition").isNumber
+      .jsonPath("$.data.cas1.serviceResult.serviceStatus").value<String> { status ->
+        assertThat(status).startsWith("CAS1_")
+      }
+      .jsonPath("$.data.caseActions").doesNotExist()
+      .jsonPath("$.upstreamFailures").doesNotExist()
+  }
+
+  @Test
+  fun `should return the new failed eligibility response with upstream failures from v2`() {
+    TierStubs.getTierServerErrorResponse(crn = crn)
+
+    webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("CAS1_NOT_ELIGIBLE")
+      .jsonPath("$.data.cas1.actionPosition").isEqualTo(-1)
+      .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getTierV3ByCrn")
   }
 
   @Test

@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.HasNextAccommodationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NoActiveCas1OrCas3ApplicationsRuleSet
@@ -37,8 +37,8 @@ class PaEligibilityTreeProvider(
 
   private fun build(): DecisionNode {
     val notEligible = builder.notEligible(ServiceType.PA)
-    val completed = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.PA_COMPLETED))
-    val notStarted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.PA_NOT_STARTED))
+    val completed = builder.outcome(ServiceResultV2(serviceStatus = ServiceStatusV2.PA_COMPLETED))
+    val notStarted = builder.outcome(ServiceResultV2(serviceStatus = ServiceStatusV2.PA_NOT_STARTED))
 
     val noActiveCas1OrCas3ApplicationsRuleSetNode = builder
       .ruleSet(noActiveCas1OrCas3ApplicationsRuleSet)

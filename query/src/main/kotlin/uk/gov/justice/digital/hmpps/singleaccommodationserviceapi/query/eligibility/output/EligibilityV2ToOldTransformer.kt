@@ -7,92 +7,92 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDtoNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityV2Dto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 
-object EligibilityNewToOldTransformer {
+object EligibilityV2ToOldTransformer {
 
   fun toServiceStatusOld(
-    serviceStatus: ServiceStatusNew,
+    serviceStatus: ServiceStatusV2,
   ) = when (serviceStatus) {
-    ServiceStatusNew.CAS1_APPLICATION_REJECTED -> ServiceStatus.APPLICATION_REJECTED
-    ServiceStatusNew.CAS1_ARRIVED -> ServiceStatus.ARRIVED
-    ServiceStatusNew.CAS1_INFO_REQUESTED -> ServiceStatus.INFO_REQUESTED
-    ServiceStatusNew.CAS1_NOT_ARRIVED -> ServiceStatus.NOT_ARRIVED
-    ServiceStatusNew.CAS1_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
-    ServiceStatusNew.CAS1_NOT_STARTED -> ServiceStatus.NOT_STARTED
-    ServiceStatusNew.CAS1_NOT_SUBMITTED -> ServiceStatus.NOT_SUBMITTED
-    ServiceStatusNew.CAS1_PLACEMENT_BOOKED -> ServiceStatus.PLACEMENT_BOOKED
-    ServiceStatusNew.CAS1_PLACEMENT_CANCELLED -> ServiceStatus.PLACEMENT_CANCELLED
-    ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_STARTED -> ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED
-    ServiceStatusNew.CAS1_PLACEMENT_REQUEST_REJECTED -> ServiceStatus.PLACEMENT_REQUEST_REJECTED
-    ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED -> ServiceStatus.PLACEMENT_REQUEST_SUBMITTED
-    ServiceStatusNew.CAS1_PLACEMENT_REQUEST_WITHDRAWN -> ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN
-    ServiceStatusNew.CAS1_SUBMITTED -> ServiceStatus.SUBMITTED
-    ServiceStatusNew.CAS1_UPCOMING -> ServiceStatus.UPCOMING
-    ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED -> ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED
+    ServiceStatusV2.CAS1_APPLICATION_REJECTED -> ServiceStatus.APPLICATION_REJECTED
+    ServiceStatusV2.CAS1_ARRIVED -> ServiceStatus.ARRIVED
+    ServiceStatusV2.CAS1_INFO_REQUESTED -> ServiceStatus.INFO_REQUESTED
+    ServiceStatusV2.CAS1_NOT_ARRIVED -> ServiceStatus.NOT_ARRIVED
+    ServiceStatusV2.CAS1_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
+    ServiceStatusV2.CAS1_NOT_STARTED -> ServiceStatus.NOT_STARTED
+    ServiceStatusV2.CAS1_NOT_SUBMITTED -> ServiceStatus.NOT_SUBMITTED
+    ServiceStatusV2.CAS1_PLACEMENT_BOOKED -> ServiceStatus.PLACEMENT_BOOKED
+    ServiceStatusV2.CAS1_PLACEMENT_CANCELLED -> ServiceStatus.PLACEMENT_CANCELLED
+    ServiceStatusV2.CAS1_PLACEMENT_REQUEST_NOT_STARTED -> ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED
+    ServiceStatusV2.CAS1_PLACEMENT_REQUEST_REJECTED -> ServiceStatus.PLACEMENT_REQUEST_REJECTED
+    ServiceStatusV2.CAS1_PLACEMENT_REQUEST_SUBMITTED -> ServiceStatus.PLACEMENT_REQUEST_SUBMITTED
+    ServiceStatusV2.CAS1_PLACEMENT_REQUEST_WITHDRAWN -> ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN
+    ServiceStatusV2.CAS1_SUBMITTED -> ServiceStatus.SUBMITTED
+    ServiceStatusV2.CAS1_UPCOMING -> ServiceStatus.UPCOMING
+    ServiceStatusV2.CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED -> ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED
 
-    ServiceStatusNew.CAS2_AWAITING_ARRIVAL -> ServiceStatus.AWAITING_ARRIVAL
-    ServiceStatusNew.CAS2_AWAITING_DECISION -> ServiceStatus.AWAITING_DECISION
-    ServiceStatusNew.CAS2_CANCELLED -> ServiceStatus.CANCELLED
-    ServiceStatusNew.CAS2_MORE_INFORMATION_NEEDED -> ServiceStatus.MORE_INFORMATION_NEEDED
-    ServiceStatusNew.CAS2_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
-    ServiceStatusNew.CAS2_NOT_STARTED -> ServiceStatus.NOT_STARTED
-    ServiceStatusNew.CAS2_NOT_SUBMITTED -> ServiceStatus.NOT_SUBMITTED
-    ServiceStatusNew.CAS2_OFFER_ACCEPTED -> ServiceStatus.OFFER_ACCEPTED
-    ServiceStatusNew.CAS2_OFFER_DECLINED_OR_WITHDRAWN -> ServiceStatus.OFFER_DECLINED_OR_WITHDRAWN
-    ServiceStatusNew.CAS2_ON_WAITING_LIST -> ServiceStatus.ON_WAITING_LIST
-    ServiceStatusNew.CAS2_PLACE_OFFERED -> ServiceStatus.PLACE_OFFERED
-    ServiceStatusNew.CAS2_SUBMITTED -> ServiceStatus.SUBMITTED
-    ServiceStatusNew.CAS2_UPCOMING -> ServiceStatus.UPCOMING
-    ServiceStatusNew.CAS2_WITHDRAWN -> ServiceStatus.WITHDRAWN
-    ServiceStatusNew.CAS2_ARRIVED -> ServiceStatus.ARRIVED
+    ServiceStatusV2.CAS2_AWAITING_ARRIVAL -> ServiceStatus.AWAITING_ARRIVAL
+    ServiceStatusV2.CAS2_AWAITING_DECISION -> ServiceStatus.AWAITING_DECISION
+    ServiceStatusV2.CAS2_CANCELLED -> ServiceStatus.CANCELLED
+    ServiceStatusV2.CAS2_MORE_INFORMATION_NEEDED -> ServiceStatus.MORE_INFORMATION_NEEDED
+    ServiceStatusV2.CAS2_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
+    ServiceStatusV2.CAS2_NOT_STARTED -> ServiceStatus.NOT_STARTED
+    ServiceStatusV2.CAS2_NOT_SUBMITTED -> ServiceStatus.NOT_SUBMITTED
+    ServiceStatusV2.CAS2_OFFER_ACCEPTED -> ServiceStatus.OFFER_ACCEPTED
+    ServiceStatusV2.CAS2_OFFER_DECLINED_OR_WITHDRAWN -> ServiceStatus.OFFER_DECLINED_OR_WITHDRAWN
+    ServiceStatusV2.CAS2_ON_WAITING_LIST -> ServiceStatus.ON_WAITING_LIST
+    ServiceStatusV2.CAS2_PLACE_OFFERED -> ServiceStatus.PLACE_OFFERED
+    ServiceStatusV2.CAS2_SUBMITTED -> ServiceStatus.SUBMITTED
+    ServiceStatusV2.CAS2_UPCOMING -> ServiceStatus.UPCOMING
+    ServiceStatusV2.CAS2_WITHDRAWN -> ServiceStatus.WITHDRAWN
+    ServiceStatusV2.CAS2_ARRIVED -> ServiceStatus.ARRIVED
 
-    ServiceStatusNew.CAS3_BEDSPACE_OFFERED -> ServiceStatus.BEDSPACE_OFFERED
-    ServiceStatusNew.CAS3_BOOKING_CANCELLED -> ServiceStatus.BOOKING_CANCELLED
-    ServiceStatusNew.CAS3_BOOKING_CONFIRMED -> ServiceStatus.BOOKING_CONFIRMED
-    ServiceStatusNew.CAS3_NOT_ARRIVED -> ServiceStatus.NOT_ARRIVED
-    ServiceStatusNew.CAS3_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
-    ServiceStatusNew.CAS3_NOT_STARTED -> ServiceStatus.NOT_STARTED
-    ServiceStatusNew.CAS3_NOT_STARTED_NEW -> ServiceStatus.NOT_STARTED
-    ServiceStatusNew.CAS3_NOT_SUBMITTED -> ServiceStatus.NOT_SUBMITTED
-    ServiceStatusNew.CAS3_REJECTED -> ServiceStatus.REJECTED
-    ServiceStatusNew.CAS3_SUBMITTED -> ServiceStatus.SUBMITTED
-    ServiceStatusNew.CAS3_ARRIVED -> ServiceStatus.ARRIVED
-    ServiceStatusNew.CAS3_UPCOMING -> ServiceStatus.UPCOMING
-    ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION -> ServiceStatus.CANNOT_START_YET
-    ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS -> ServiceStatus.CANNOT_START_YET
-    ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION -> ServiceStatus.CANNOT_START_YET
-    ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS -> ServiceStatus.CANNOT_START_YET
-    ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR -> ServiceStatus.CANNOT_START_YET
+    ServiceStatusV2.CAS3_BEDSPACE_OFFERED -> ServiceStatus.BEDSPACE_OFFERED
+    ServiceStatusV2.CAS3_BOOKING_CANCELLED -> ServiceStatus.BOOKING_CANCELLED
+    ServiceStatusV2.CAS3_BOOKING_CONFIRMED -> ServiceStatus.BOOKING_CONFIRMED
+    ServiceStatusV2.CAS3_NOT_ARRIVED -> ServiceStatus.NOT_ARRIVED
+    ServiceStatusV2.CAS3_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
+    ServiceStatusV2.CAS3_NOT_STARTED -> ServiceStatus.NOT_STARTED
+    ServiceStatusV2.CAS3_NOT_STARTED_NEW -> ServiceStatus.NOT_STARTED
+    ServiceStatusV2.CAS3_NOT_SUBMITTED -> ServiceStatus.NOT_SUBMITTED
+    ServiceStatusV2.CAS3_REJECTED -> ServiceStatus.REJECTED
+    ServiceStatusV2.CAS3_SUBMITTED -> ServiceStatus.SUBMITTED
+    ServiceStatusV2.CAS3_ARRIVED -> ServiceStatus.ARRIVED
+    ServiceStatusV2.CAS3_UPCOMING -> ServiceStatus.UPCOMING
+    ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION -> ServiceStatus.CANNOT_START_YET
+    ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS -> ServiceStatus.CANNOT_START_YET
+    ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION -> ServiceStatus.CANNOT_START_YET
+    ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_CRS -> ServiceStatus.CANNOT_START_YET
+    ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR -> ServiceStatus.CANNOT_START_YET
 
-    ServiceStatusNew.CRS_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
-    ServiceStatusNew.CRS_NOT_REQUIRED -> ServiceStatus.NOT_REQUIRED
-    ServiceStatusNew.CRS_NOT_STARTED_REFERRAL -> ServiceStatus.NOT_STARTED
-    ServiceStatusNew.CRS_SUBMITTED -> ServiceStatus.SUBMITTED
-    ServiceStatusNew.CRS_UPCOMING_ACCOMMODATION_REFERRAL -> ServiceStatus.UPCOMING
-    ServiceStatusNew.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL -> ServiceStatus.NOT_STARTED
-    ServiceStatusNew.CRS_UPCOMING_REFERRAL -> ServiceStatus.UPCOMING
+    ServiceStatusV2.CRS_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
+    ServiceStatusV2.CRS_NOT_REQUIRED -> ServiceStatus.NOT_REQUIRED
+    ServiceStatusV2.CRS_NOT_STARTED_REFERRAL -> ServiceStatus.NOT_STARTED
+    ServiceStatusV2.CRS_SUBMITTED -> ServiceStatus.SUBMITTED
+    ServiceStatusV2.CRS_UPCOMING_ACCOMMODATION_REFERRAL -> ServiceStatus.UPCOMING
+    ServiceStatusV2.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL -> ServiceStatus.NOT_STARTED
+    ServiceStatusV2.CRS_UPCOMING_REFERRAL -> ServiceStatus.UPCOMING
 
-    ServiceStatusNew.DTR_ACCEPTED -> ServiceStatus.ACCEPTED
-    ServiceStatusNew.DTR_NOT_ACCEPTED -> ServiceStatus.NOT_ACCEPTED
-    ServiceStatusNew.DTR_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
-    ServiceStatusNew.DTR_NOT_REQUIRED -> ServiceStatus.NOT_REQUIRED
-    ServiceStatusNew.DTR_NOT_STARTED -> ServiceStatus.NOT_STARTED
-    ServiceStatusNew.DTR_SUBMITTED -> ServiceStatus.SUBMITTED
-    ServiceStatusNew.DTR_UPCOMING -> ServiceStatus.UPCOMING
+    ServiceStatusV2.DTR_ACCEPTED -> ServiceStatus.ACCEPTED
+    ServiceStatusV2.DTR_NOT_ACCEPTED -> ServiceStatus.NOT_ACCEPTED
+    ServiceStatusV2.DTR_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
+    ServiceStatusV2.DTR_NOT_REQUIRED -> ServiceStatus.NOT_REQUIRED
+    ServiceStatusV2.DTR_NOT_STARTED -> ServiceStatus.NOT_STARTED
+    ServiceStatusV2.DTR_SUBMITTED -> ServiceStatus.SUBMITTED
+    ServiceStatusV2.DTR_UPCOMING -> ServiceStatus.UPCOMING
 
-    ServiceStatusNew.PA_COMPLETED -> ServiceStatus.COMPLETED
-    ServiceStatusNew.PA_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
-    ServiceStatusNew.PA_NOT_STARTED -> ServiceStatus.NOT_STARTED
+    ServiceStatusV2.PA_COMPLETED -> ServiceStatus.COMPLETED
+    ServiceStatusV2.PA_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
+    ServiceStatusV2.PA_NOT_STARTED -> ServiceStatus.NOT_STARTED
   }
 
   fun toEligibilityDtoOld(
-    eligibilityDto: EligibilityDtoNew,
+    eligibilityDto: EligibilityV2Dto,
   ) = EligibilityDto(
     crn = eligibilityDto.crn,
     cas1 = Cas1ServiceResult(
@@ -182,7 +182,7 @@ object EligibilityNewToOldTransformer {
       },
   )
 
-  fun ServiceResultNew.toCaseAction(): CaseAction? = serviceStatus.proposedAction?.let { action ->
+  fun ServiceResultV2.toCaseAction(): CaseAction? = serviceStatus.proposedAction?.let { action ->
     CaseAction(
       type = action,
       startDate = actionStartDate,

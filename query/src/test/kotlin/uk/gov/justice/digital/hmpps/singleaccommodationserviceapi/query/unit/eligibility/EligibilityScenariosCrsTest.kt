@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
@@ -39,7 +39,7 @@ class EligibilityScenariosCrsTest : EligibilityScenarioTestBase() {
           currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
           currentAccommodationSettledType = row["currentAccommodationSettledType"]?.takeIf { it.isNotBlank() }?.let { AccommodationSettledType.valueOf(it) },
           crsStatus = row["crsStatus"]?.let { CrsReferralStatus.valueOf(it) },
-          expectedCrsStatus = row["expectedCrsStatus"]?.let { ServiceStatusNew.valueOf(it) },
+          expectedCrsStatus = row["expectedCrsStatus"]?.let { ServiceStatusV2.valueOf(it) },
           expectedCrsUrl = row["expectedCrsUrl"]?.takeIf { it.isNotBlank() },
           crsSubmissionDate = row["crsSubmissionDate"]?.toLocalDate(),
           expectedFailureReasons = row["expectedFailureReasons"]
@@ -124,7 +124,7 @@ class EligibilityScenariosCrsTest : EligibilityScenarioTestBase() {
     val currentAccommodationSettledType: AccommodationSettledType?,
     val crsSubmissionDate: LocalDate?,
     val crsStatus: CrsReferralStatus?,
-    val expectedCrsStatus: ServiceStatusNew?,
+    val expectedCrsStatus: ServiceStatusV2?,
     val expectedCrsUrl: String?,
     val expectedFailureReasons: List<FailureReason>,
   )

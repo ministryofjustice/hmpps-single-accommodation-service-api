@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
@@ -53,7 +53,7 @@ class EligibilityScenariosCas1Test : EligibilityScenarioTestBase() {
             tierScore = row["tierScore"],
             currentAccommodationType = accommodationType,
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
-            expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatusNew.valueOf(it) },
+            expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatusV2.valueOf(it) },
             expectedCas1Url = row["expectedCas1Url"],
             expectedFailureReasons = row["expectedFailureReasons"]
               ?.takeIf { it.isNotBlank() }
@@ -81,7 +81,7 @@ class EligibilityScenariosCas1Test : EligibilityScenarioTestBase() {
           Cas1RequestForPlacementStatus.valueOf(it)
         },
         cas1PlacementStatus = row["cas1PlacementStatus"]?.let { Cas1PlacementStatus.valueOf(it) },
-        expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatusNew.valueOf(it) },
+        expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatusV2.valueOf(it) },
         expectedCas1Url = row["expectedCas1Url"],
       )
     } catch (e: Exception) {
@@ -219,7 +219,7 @@ class EligibilityScenariosCas1Test : EligibilityScenarioTestBase() {
     val tierScore: String?,
     val currentAccommodationType: String?,
     val currentAccommodationEndDate: LocalDate?,
-    val expectedCas1Status: ServiceStatusNew?,
+    val expectedCas1Status: ServiceStatusV2?,
     val expectedCas1Url: String?,
     val expectedFailureReasons: List<FailureReason>,
   )
@@ -233,7 +233,7 @@ class EligibilityScenariosCas1Test : EligibilityScenarioTestBase() {
     val cas1ApplicationStatus: Cas1ApplicationStatus?,
     val cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
     val cas1PlacementStatus: Cas1PlacementStatus?,
-    val expectedCas1Status: ServiceStatusNew?,
+    val expectedCas1Status: ServiceStatusV2?,
     val expectedCas1Url: String?,
   )
 }

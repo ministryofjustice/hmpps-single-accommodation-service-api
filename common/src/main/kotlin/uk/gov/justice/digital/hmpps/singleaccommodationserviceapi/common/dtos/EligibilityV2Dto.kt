@@ -4,7 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.util.re
 import java.time.LocalDate
 import java.util.UUID
 
-data class EligibilityDtoNew(
+data class EligibilityV2Dto(
   val crn: String,
   val cas1: Cas1ServiceResultWrapper,
   val cas2: Cas2ServiceResultWrapper,
@@ -14,8 +14,8 @@ data class EligibilityDtoNew(
   val pa: PaServiceResultWrapper,
 )
 
-data class ServiceResultNew(
-  val serviceStatus: ServiceStatusNew,
+data class ServiceResultV2(
+  val serviceStatus: ServiceStatusV2,
   val actionStartDate: LocalDate? = null,
   val url: String? = null,
   val failureReasons: List<FailureReason> = emptyList(),
@@ -31,11 +31,11 @@ data class ServiceResultNew(
 }
 
 data class ServiceResultSpec(
-  val serviceStatus: ServiceStatusNew,
+  val serviceStatus: ServiceStatusV2,
   val url: String? = null,
   val failureReasons: List<FailureReason> = emptyList(),
 ) {
-  fun toResult(actionStartDate: LocalDate? = null) = ServiceResultNew(
+  fun toResult(actionStartDate: LocalDate? = null) = ServiceResultV2(
     serviceStatus = serviceStatus,
     actionStartDate = actionStartDate,
     url = url,
@@ -44,42 +44,42 @@ data class ServiceResultSpec(
 }
 
 interface ServiceResultWrapper {
-  val serviceResult: ServiceResultNew
+  val serviceResult: ServiceResultV2
   val actionPosition: Int
 }
 
 data class PaServiceResultWrapper(
-  override val serviceResult: ServiceResultNew,
+  override val serviceResult: ServiceResultV2,
   override val actionPosition: Int,
 ) : ServiceResultWrapper
 
 data class DtrServiceResultWrapper(
-  override val serviceResult: ServiceResultNew,
+  override val serviceResult: ServiceResultV2,
   override val actionPosition: Int,
   val caseId: UUID?,
   val submission: DtrSubmissionDto?,
 ) : ServiceResultWrapper
 
 data class Cas1ServiceResultWrapper(
-  override val serviceResult: ServiceResultNew,
+  override val serviceResult: ServiceResultV2,
   override val actionPosition: Int,
   val cas1Application: Cas1ApplicationDto?,
 ) : ServiceResultWrapper
 
 data class Cas2ServiceResultWrapper(
-  override val serviceResult: ServiceResultNew,
+  override val serviceResult: ServiceResultV2,
   override val actionPosition: Int,
   val cas2Application: Cas2ApplicationDto?,
 ) : ServiceResultWrapper
 
 data class Cas3ServiceResultWrapper(
-  override val serviceResult: ServiceResultNew,
+  override val serviceResult: ServiceResultV2,
   override val actionPosition: Int,
   val cas3Application: Cas3ApplicationDto?,
 ) : ServiceResultWrapper
 
 data class CrsServiceResultWrapper(
-  override val serviceResult: ServiceResultNew,
+  override val serviceResult: ServiceResultV2,
   override val actionPosition: Int,
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServicesDto?,
 ) : ServiceResultWrapper
@@ -112,7 +112,7 @@ object EligibilityKeys {
   const val VIEW_REFER_AND_MONITOR = "View refer and monitor" // LINK TEXT
 }
 
-enum class ServiceStatusNew(
+enum class ServiceStatusV2(
   val service: ServiceType,
   val proposedAction: CaseActionType? = null,
   val link: Link? = null,
@@ -480,7 +480,7 @@ enum class ServiceStatusNew(
   ),
   ;
 
-  override fun toString(): String = "ServiceStatusNew(name=${this.name}, service=$service, proposedAction=$proposedAction, link=$link, isUpcoming=$isUpcoming, blockingStatusReason=$blockingStatusReason, uiStatusName='$uiStatusName')"
+  override fun toString(): String = "ServiceStatusV2(name=${this.name}, service=$service, proposedAction=$proposedAction, link=$link, isUpcoming=$isUpcoming, blockingStatusReason=$blockingStatusReason, uiStatusName='$uiStatusName')"
 }
 
 enum class LinkType {
