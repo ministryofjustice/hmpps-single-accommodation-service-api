@@ -1,15 +1,5 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>ministryofjustice/hmpps-renovate-config:jvm"],
-  "prBodyTemplate": "{{{table}}}{{{notes}}}{{{warnings}}}{{{controls}}}",
-  "packageRules": [
-    {
-      "matchManagers": ["github-actions"],
-      "matchFileNames": ["**/.github/workflows/**/*.ya?ml"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "enabled": false
-    }
-  ],
-  "platformCommit": "enabled",
-  "dependencyDashboard": true
+  "extends": [
+    "github>ministryofjustice/hmpps-single-accommodation-service-api//.github/renovate/cas-jvm"
+  ]
 }
