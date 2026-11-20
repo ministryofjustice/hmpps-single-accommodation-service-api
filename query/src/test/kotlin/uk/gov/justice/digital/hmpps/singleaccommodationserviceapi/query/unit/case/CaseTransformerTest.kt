@@ -6,6 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.NullAndEmptySource
 import org.junit.jupiter.params.provider.NullSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -305,13 +306,23 @@ class CaseTransformerTest {
   @Test
   fun `should transform a crn to a limited case dto`() {
     val assignedTo = AssignedToDto(forename = "Staff", surname = "Member")
+    val accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+    val accommodationStatusDate = LocalDate.now()
     assertThat(
-      toLimitedCaseDto(crn, teamCode = "TeamX", assignedTo = assignedTo, inUsersCustomList = false),
+      toLimitedCaseDto(
+        crn,
+        teamCode = "TeamX",
+        assignedTo = assignedTo,
+        inUsersCustomList = false,
+        accommodationStatus,
+        accommodationStatusDate,
+      ),
     ).isEqualTo(
       CaseDto(
         crn = crn,
         userAccess = UserAccess.LIMITED,
         limitedAccess = true,
+        accommodationSummaries = AccommodationSummariesDto(accommodationStatus, accommodationStatusDate),
         teamCode = "TeamX",
         assignedTo = assignedTo,
         inUsersCustomList = false,

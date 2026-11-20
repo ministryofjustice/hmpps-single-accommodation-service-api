@@ -121,6 +121,8 @@ class UserCaseListQueryService(
           teamCode = caseTeamCode,
           assignedTo = entity.toAssignedToDto(),
           inUsersCustomList = crn in customListCrns,
+          accommodationStatus = entity.accommodationStatus,
+          accommodationStatusDate = entity.accommodationStatusDate,
         )
       }
     }
@@ -131,7 +133,7 @@ class UserCaseListQueryService(
     val user = userService.authorizeAndRetrieveUser()
     val entries = userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(user.id, listType)
     val sortedEntries = when (listType) {
-      CaseListType.CUSTOM -> entries.sortedBy { it.crn }
+      CaseListType.CUSTOM -> entries
       CaseListType.SEARCH_HISTORY -> entries.sortedWith(
         compareByDescending<UserCaseListCrn> { it.lastUpdatedAt }.thenBy { it.crn },
       )

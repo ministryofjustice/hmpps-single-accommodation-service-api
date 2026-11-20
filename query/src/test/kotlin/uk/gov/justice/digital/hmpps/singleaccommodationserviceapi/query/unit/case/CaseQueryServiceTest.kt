@@ -211,7 +211,7 @@ class CaseQueryServiceTest {
   @Nested
   inner class GetCases {
 
-    private fun toLimitedCaseDto(crn: String) = CaseDto(
+    private fun toLimitedCaseDto(crn: String, accommodationStatus: CaseAccommodationStatus?, accommodationStatusDate: LocalDate?) = CaseDto(
       dateOfBirth = null,
       crn = crn,
       prisonNumber = null,
@@ -222,6 +222,7 @@ class CaseQueryServiceTest {
       assignedTo = null,
       userAccess = UserAccess.LIMITED,
       limitedAccess = true,
+      accommodationSummaries = AccommodationSummariesDto(accommodationStatus, accommodationStatusDate),
       inUsersCustomList = false,
     )
 
@@ -243,7 +244,9 @@ class CaseQueryServiceTest {
 
     @Test
     fun `CaseDto is redacted when UserAccess is not FULL`() {
-      val entity = buildCaseEntity(assignedToForename = "DbForename", assignedToSurname = "DbSurname", assignedToUsername = "DbUsername") { withCrn(crnTwo) }
+      val accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+      val accommodationStatusDate = LocalDate.now()
+      val entity = buildCaseEntity(assignedToForename = "DbForename", assignedToSurname = "DbSurname", assignedToUsername = "DbUsername", accommodationSummariesDto = AccommodationSummariesDto(accommodationStatus, accommodationStatusDate)) { withCrn(crnTwo) }
       every { caseRepository.mapByCrns(any()) } returns mapOf(crnTwo to entity)
 
       val result = getCaseDtos(
@@ -257,9 +260,9 @@ class CaseQueryServiceTest {
 
       assertThat(result).hasSize(4)
       assertThat(result.filter { it.userAccess == UserAccess.LIMITED }).containsExactlyInAnyOrder(
-        toLimitedCaseDto(crn = crnTwo),
-        toLimitedCaseDto(crn = crnThree),
-        toLimitedCaseDto(crn = crnFour),
+        toLimitedCaseDto(crn = crnTwo, accommodationStatus = accommodationStatus, accommodationStatusDate = accommodationStatusDate),
+        toLimitedCaseDto(crn = crnThree, accommodationStatus = null, accommodationStatusDate = null),
+        toLimitedCaseDto(crn = crnFour, accommodationStatus = null, accommodationStatusDate = null),
       )
     }
 
@@ -493,10 +496,17 @@ class CaseQueryServiceTest {
     @Test
     fun `should return a limited case when the limited access service marks the crn as limited`() {
       stubGetCase(buildCaseOrchestrationDto(crn = crnOne), limitedCrns = setOf(crnOne))
-
       val result = caseQueryService.getCase(crnOne)
 
-      assertThat(result.data).isEqualTo(CaseDto(crn = crnOne, userAccess = UserAccess.LIMITED, limitedAccess = true, inUsersCustomList = false))
+      assertThat(result.data).isEqualTo(
+        CaseDto(
+          crn = crnOne,
+          userAccess = UserAccess.LIMITED,
+          limitedAccess = true,
+          accommodationSummaries = AccommodationSummariesDto(null, null),
+          inUsersCustomList = false,
+        ),
+      )
     }
 
     @Test
@@ -522,10 +532,17 @@ class CaseQueryServiceTest {
     @Test
     fun `should return a redacted limited case when the crn has no entry in the access response`() {
       stubGetCase(buildCaseOrchestrationDto(crn = crnOne, caseAccess = emptyList()))
-
       val result = caseQueryService.getCase(crnOne)
 
-      assertThat(result.data).isEqualTo(CaseDto(crn = crnOne, userAccess = UserAccess.LIMITED, limitedAccess = true, inUsersCustomList = false))
+      assertThat(result.data).isEqualTo(
+        CaseDto(
+          crn = crnOne,
+          userAccess = UserAccess.LIMITED,
+          limitedAccess = true,
+          accommodationSummaries = AccommodationSummariesDto(null, null),
+          inUsersCustomList = false,
+        ),
+      )
     }
 
     @Test

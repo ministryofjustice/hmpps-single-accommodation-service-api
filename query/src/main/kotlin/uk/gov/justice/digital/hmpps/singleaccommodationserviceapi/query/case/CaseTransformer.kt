@@ -39,6 +39,8 @@ object CaseTransformer {
       teamCode = case.team.code,
       assignedTo = case.toAssignedToDto(),
       inUsersCustomList = inUsersCustomList,
+      accommodationStatus = null,
+      accommodationStatusDate = null,
     )
   }
 
@@ -115,12 +117,19 @@ object CaseTransformer {
     nextAccommodation = nextAccommodation,
   )
 
-  fun toLimitedCaseDto(crn: String, teamCode: String?, assignedTo: AssignedToDto?, inUsersCustomList: Boolean) = CaseDto(
+  fun toLimitedCaseDto(crn: String, teamCode: String?, assignedTo: AssignedToDto?, inUsersCustomList: Boolean, accommodationStatus: CaseAccommodationStatus?, accommodationStatusDate: LocalDate?) = CaseDto(
     crn = crn,
     userAccess = UserAccess.LIMITED,
     limitedAccess = true,
     teamCode = teamCode,
     assignedTo = assignedTo,
     inUsersCustomList = inUsersCustomList,
+    accommodationSummaries =
+    toAccommodationSummariesDto(
+      accommodationStatus = accommodationStatus,
+      accommodationStatusDate = accommodationStatusDate,
+      currentAccommodation = null,
+      nextAccommodation = null,
+    ),
   )
 }
