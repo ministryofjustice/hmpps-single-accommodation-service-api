@@ -90,6 +90,8 @@ class UserCaseListQueryServiceTest {
       clock = clock,
     )
     every { userService.authorizeAndRetrieveUser() } returns user
+    every { userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(any(), CaseListType.CUSTOM) } returns emptyList()
+    every { userCaseListEntryRepository.findCustomListCrnsBySasUserId(any()) } returns emptySet()
     every { limitedAccessService.throwIfUserAccessFailed(any()) } just runs
   }
 
@@ -97,7 +99,7 @@ class UserCaseListQueryServiceTest {
   fun `returns an empty list without loading cases or checking access when the user has no custom case list`() {
     every { userCaseListEntryRepository.findAllBySasUserIdAndListType(user.id, CaseListType.CUSTOM) } returns emptyList()
 
-    val result = userCaseListQueryService.getUserCaseList(CaseListType.CUSTOM)
+    val result = userCaseListQueryService.getUserCaseList()
 
     assertThat(result.data).isEmpty()
     verify(exactly = 0) { caseRepository.findAllWithIdentifiersByIdIn(any()) }
@@ -128,7 +130,7 @@ class UserCaseListQueryServiceTest {
     stubCases(caseEntity)
     stubAccess(accessible = listOf("A123456"), caseSummaries = listOf(caseSummary))
 
-    val caseDto = userCaseListQueryService.getUserCaseList(CaseListType.CUSTOM).data.single()
+    val caseDto = userCaseListQueryService.getUserCaseList().data.single()
 
     assertThat(caseDto.crn).isEqualTo("A123456")
     assertThat(caseDto.prisonNumber).isEqualTo("A1234AA")
@@ -143,6 +145,7 @@ class UserCaseListQueryServiceTest {
     assertThat(caseDto.pncReference).isNull()
     assertThat(caseDto.accommodationSummaries).isEqualTo(accommodationSummaries)
     assertThat(caseDto.teamCode).isEqualTo(caseSummary.manager.team.code)
+    assertThat(caseDto.inUsersCustomList).isTrue()
   }
 
   @Test
@@ -150,7 +153,7 @@ class UserCaseListQueryServiceTest {
     stubCases(buildCaseEntity { withCrn("A123456") })
     stubAccess(accessible = listOf("A123456"))
 
-    assertThat(userCaseListQueryService.getUserCaseList(listType = CaseListType.CUSTOM, teamCode = DEFAULT_TEAM_CODE).data.single().assignedTo).isNull()
+    assertThat(userCaseListQueryService.getUserCaseList(teamCode = DEFAULT_TEAM_CODE).data.single().assignedTo).isNull()
   }
 
   @Test
@@ -162,7 +165,7 @@ class UserCaseListQueryServiceTest {
     )
     stubAccess(accessible = listOf("A111111"), excluded = listOf("B222222"), restricted = listOf("C333333"))
 
-    val limitedAccessByCrn = userCaseListQueryService.getUserCaseList(CaseListType.CUSTOM).data.associate { it.crn to it.limitedAccess }
+    val limitedAccessByCrn = userCaseListQueryService.getUserCaseList().data.associate { it.crn to it.limitedAccess }
 
     assertThat(limitedAccessByCrn).isEqualTo(mapOf("A111111" to false, "B222222" to true, "C333333" to true))
   }
@@ -172,8 +175,8 @@ class UserCaseListQueryServiceTest {
     stubCases(buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME) { withCrn("A123456") })
     stubAccess(accessible = emptyList(), caseSummaries = emptyList())
 
-    assertThat(userCaseListQueryService.getUserCaseList(CaseListType.CUSTOM).data.single())
-      .isEqualTo(CaseDto(crn = "A123456", userAccess = UserAccess.LIMITED, limitedAccess = true))
+    assertThat(userCaseListQueryService.getUserCaseList().data.single())
+      .isEqualTo(CaseDto(crn = "A123456", userAccess = UserAccess.LIMITED, limitedAccess = true, inUsersCustomList = true))
   }
 
   @Test
@@ -181,7 +184,7 @@ class UserCaseListQueryServiceTest {
     stubCases(buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME) { withCrn("A123456") })
     stubAccess(accessible = emptyList(), caseSummaries = emptyList(), upstreamFailures = listOf(buildUpstreamFailure(callKey = POST_CASE_SUMMARIES)))
 
-    val result = userCaseListQueryService.getUserCaseList(CaseListType.CUSTOM)
+    val result = userCaseListQueryService.getUserCaseList()
 
     assertThat(result.data.single().crn).isEqualTo("A123456")
     assertThat(result.data.single().userAccess).isEqualTo(UserAccess.LIMITED)
@@ -199,7 +202,7 @@ class UserCaseListQueryServiceTest {
     )
     every { limitedAccessService.throwIfUserAccessFailed(listOf(failure)) } throws UpstreamFailureException(toUpstreamFailureDto(failure))
 
-    assertThatThrownBy { userCaseListQueryService.getUserCaseList(CaseListType.CUSTOM) }
+    assertThatThrownBy { userCaseListQueryService.getUserCaseList() }
       .isInstanceOf(UpstreamFailureException::class.java)
   }
 
@@ -208,7 +211,7 @@ class UserCaseListQueryServiceTest {
     stubCases(buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME) { withCrn("A123456") }, buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME) { withCrn("B654321") })
     stubAccess(accessible = listOf("A123456", "B654321"))
 
-    userCaseListQueryService.getUserCaseList(CaseListType.CUSTOM)
+    userCaseListQueryService.getUserCaseList()
 
     verify {
       userCaseListOrchestrationService.getCaseAccessAndSummaries(DELIUS_USERNAME, match { it.toSet() == setOf("A123456", "B654321") })
@@ -224,14 +227,15 @@ class UserCaseListQueryServiceTest {
     )
     stubAccess(accessible = listOf("A123456"), excluded = listOf("B654321"), restricted = listOf("C111111"))
 
-    val result = userCaseListQueryService.getUserCaseList(CaseListType.CUSTOM)
+    val result = userCaseListQueryService.getUserCaseList()
 
     val limitedCases = result.data.filter { it.crn in listOf("B654321", "C111111") }
     assertThat(limitedCases).containsExactlyInAnyOrder(
-      CaseDto(crn = "B654321", userAccess = UserAccess.LIMITED, limitedAccess = true, teamCode = null),
-      CaseDto(crn = "C111111", userAccess = UserAccess.LIMITED, limitedAccess = true, teamCode = null),
+      CaseDto(crn = "B654321", userAccess = UserAccess.LIMITED, limitedAccess = true, teamCode = null, inUsersCustomList = true),
+      CaseDto(crn = "C111111", userAccess = UserAccess.LIMITED, limitedAccess = true, teamCode = null, inUsersCustomList = true),
     )
     assertThat(result.data.single { it.crn == "A123456" }.userAccess).isEqualTo(UserAccess.FULL)
+    assertThat(result.data.single { it.crn == "A123456" }.inUsersCustomList).isTrue()
   }
 
   @Test
@@ -244,7 +248,7 @@ class UserCaseListQueryServiceTest {
     )
     stubAccess(accessible = listOf("A111111", "B222222"), excluded = listOf("D444444"), restricted = listOf("C333333"))
 
-    val result = userCaseListQueryService.getUserCaseList(CaseListType.CUSTOM)
+    val result = userCaseListQueryService.getUserCaseList()
 
     assertThat(result.data.map { it.crn }).containsExactly("C333333", "D444444", "B222222", "A111111")
   }
@@ -256,7 +260,7 @@ class UserCaseListQueryServiceTest {
     stubCases(populated, partial)
     stubAccess(accessible = listOf("A111111", "B222222"))
 
-    val result = userCaseListQueryService.getUserCaseList(CaseListType.CUSTOM)
+    val result = userCaseListQueryService.getUserCaseList()
 
     assertThat(result.data.map { it.crn }).containsExactly("A111111", "B222222")
     assertThat(result.data.first().tierScore).isNull()
@@ -272,9 +276,33 @@ class UserCaseListQueryServiceTest {
     )
     stubAccess(accessible = listOf("A111111", "B222222", "C333333", "D444444"))
 
-    val result = userCaseListQueryService.getUserCaseList(CaseListType.CUSTOM)
+    val result = userCaseListQueryService.getUserCaseList()
 
     assertThat(result.data.map { it.crn }).containsExactly("C333333", "B222222", "D444444", "A111111")
+  }
+
+  @Test
+  fun `sorts search history newest first and preserves custom membership for full and limited access cases`() {
+    val settled = buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME, lastName = "Settled", accommodationSummariesDto = buildAccommodationSummariesDto(CaseAccommodationStatus.SETTLED)) { withCrn("A111111") }
+    val risk = buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME, lastName = "Risk", accommodationSummariesDto = buildAccommodationSummariesDto(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)) { withCrn("B222222") }
+    val restricted = buildCaseEntity(assignedToForename = "Probation", assignedToSurname = "Practitioner", assignedToUsername = DELIUS_USERNAME) { withCrn("C333333") }
+    val now = clock.instant()
+    every { userCaseListEntryRepository.findAllBySasUserIdAndListType(user.id, CaseListType.SEARCH_HISTORY) } returns listOf(
+      buildUserCaseListEntryEntity(sasUserId = user.id, sasCaseId = risk.id, listType = CaseListType.SEARCH_HISTORY, lastUpdatedAt = now.minusSeconds(120)),
+      buildUserCaseListEntryEntity(sasUserId = user.id, sasCaseId = settled.id, listType = CaseListType.SEARCH_HISTORY, lastUpdatedAt = now),
+      buildUserCaseListEntryEntity(sasUserId = user.id, sasCaseId = restricted.id, listType = CaseListType.SEARCH_HISTORY, lastUpdatedAt = now.minusSeconds(60)),
+    )
+    every { caseRepository.findAllWithIdentifiersByIdIn(listOf(risk.id, settled.id, restricted.id)) } returns listOf(restricted, risk, settled)
+    every { userCaseListEntryRepository.findCustomListCrnsBySasUserId(user.id) } returns setOf("A111111", "C333333")
+    stubAccess(accessible = listOf("A111111", "B222222"), restricted = listOf("C333333"))
+
+    val result = userCaseListQueryService.getSearchHistoryCaseList()
+
+    assertThat(result.data.map { it.crn }).containsExactly("A111111", "C333333", "B222222")
+    assertThat(result.data.associate { it.crn to it.inUsersCustomList })
+      .isEqualTo(mapOf("A111111" to true, "C333333" to true, "B222222" to false))
+    assertThat(result.data.single { it.crn == "C333333" })
+      .isEqualTo(CaseDto(crn = "C333333", userAccess = UserAccess.LIMITED, limitedAccess = true, inUsersCustomList = true))
   }
 
   @Test
@@ -337,7 +365,7 @@ class UserCaseListQueryServiceTest {
       teamCode: String? = null,
       peopleType: PeopleType? = null,
     ) = userCaseListQueryService
-      .getUserCaseList(listType = CaseListType.CUSTOM, searchTerm = searchTerm, riskLevel = riskLevel, teamCode = teamCode, peopleType = peopleType)
+      .getUserCaseList(searchTerm = searchTerm, riskLevel = riskLevel, teamCode = teamCode, peopleType = peopleType)
       .data
       .map { it.crn }
 
@@ -468,6 +496,9 @@ class UserCaseListQueryServiceTest {
     every { userCaseListEntryRepository.findAllBySasUserIdAndListType(user.id, CaseListType.CUSTOM) } returns
       cases.map { buildUserCaseListEntryEntity(sasUserId = user.id, sasCaseId = it.id) }
     every { caseRepository.findAllWithIdentifiersByIdIn(cases.map { it.id }) } returns cases.toList()
+    every { userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(user.id, CaseListType.CUSTOM) } returns
+      cases.map { userCaseListCrn(it.latestCrn()) }
+    every { userCaseListEntryRepository.findCustomListCrnsBySasUserId(user.id) } returns cases.map { it.latestCrn() }.toSet()
   }
 
   private fun stubAccess(

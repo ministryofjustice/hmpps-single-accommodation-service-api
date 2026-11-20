@@ -5,6 +5,8 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
+import io.mockk.runs
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildManager
@@ -49,6 +52,9 @@ class PersonCommunityManagerAllocatedEventHandlerTest {
   @RelaxedMockK
   private lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
+  @MockK
+  private lateinit var sasAndDeliusCachingService: SasAndDeliusCachingService
+
   @InjectMockKs
   private lateinit var personCommunityManagerAllocatedEventHandler: PersonCommunityManagerAllocatedEventHandler
 
@@ -65,6 +71,7 @@ class PersonCommunityManagerAllocatedEventHandlerTest {
   fun setUp() {
     every { inboxEventHelper.findCrn(inboxEvent) } returns crn
     every { caseRepository.findByCrn(crn) } returns null
+    every { sasAndDeliusCachingService.cacheClearOnFullCaseList() } just runs
   }
 
   @Test
@@ -77,6 +84,18 @@ class PersonCommunityManagerAllocatedEventHandlerTest {
     verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(caseEntity.id) }
     verify(exactly = 0) { approvedPremisesAndDeliusClient.postCaseSummaries(any()) }
     verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
+    verify(exactly = 1) { sasAndDeliusCachingService.cacheClearOnFullCaseList() }
+  }
+
+  @Test
+  fun `should still process the event when clearing the case list cache fails`() {
+    val caseEntity = buildCaseEntity { withCrn(crn) }
+    every { caseRepository.findByCrn(crn) } returns caseEntity
+    every { sasAndDeliusCachingService.cacheClearOnFullCaseList() } throws RuntimeException("Cache unavailable")
+
+    assertThat(personCommunityManagerAllocatedEventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
+
+    verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(caseEntity.id) }
   }
 
   @Test
@@ -91,6 +110,7 @@ class PersonCommunityManagerAllocatedEventHandlerTest {
         CaseRefreshPriority.LIVE,
       )
     }
+    verify(exactly = 1) { sasAndDeliusCachingService.cacheClearOnFullCaseList() }
   }
 
   @Test
@@ -100,6 +120,7 @@ class PersonCommunityManagerAllocatedEventHandlerTest {
 
     assertThat(personCommunityManagerAllocatedEventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
+    verify(exactly = 0) { sasAndDeliusCachingService.cacheClearOnFullCaseList() }
   }
 
   @Test

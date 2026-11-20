@@ -303,6 +303,23 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should flag only the cases in the user's custom list in the case list`() {
+    val staff = buildOfficer(username = deliusUser.username)
+    val inCustomList = buildCase(crn = "X12345", nomsNumber = "PRI1", staff = staff, name = buildName("Alpha", "Able"))
+    val inSearchHistoryOnly = buildCase(crn = "X12346", nomsNumber = "PRI2", staff = staff, name = buildName("Bravo", "Baker"))
+    val inNoList = buildCase(crn = "X12347", nomsNumber = "PRI3", staff = staff, name = buildName("Charlie", "Clark"))
+    val cases = listOf(inCustomList, inSearchHistoryOnly, inNoList)
+    stubCaseListForCrns(cases)
+    caseRepository.saveAllAndFlush(cases.map { case -> buildCaseEntity { withCrn(case.crn) } })
+    addToUserList(inCustomList.crn, CaseListType.CUSTOM)
+    addToUserList(inSearchHistoryOnly.crn, CaseListType.SEARCH_HISTORY)
+
+    val response = getCaseListResponse().data
+
+    assertThat(response.filter { it.inUsersCustomList }.map { it.crn }).containsExactly(inCustomList.crn)
+  }
+
+  @Test
   fun `should hydrate a newly created case with real upstream data`() {
     val crn = "X12345"
     val nomsNumber = "12345"
@@ -389,7 +406,7 @@ class CaseControllerIT : IntegrationTestBase() {
     @Test
     fun `should create a populated case without a refresh request on case-list when CAS1 and CAS3 return not found`() {
       ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn)
-      ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(crn)
+      ApprovedPremisesStubs.getCas3CurrentApplicationNoContentResponse(crn)
 
       getCaseListResponse()
 
@@ -858,6 +875,24 @@ class CaseControllerIT : IntegrationTestBase() {
     }
 
     @Test
+    fun `should flag the found case as in the user's custom list when it is`() {
+      val crn = "G123456"
+      stubSearchableCase(crn)
+      addToUserList(crn, CaseListType.CUSTOM)
+
+      assertThat(searchByCrnResponse(crn).data.inUsersCustomList).isTrue()
+    }
+
+    @Test
+    fun `should not flag the found case as in the user's custom list when it is only in the search history`() {
+      val crn = "H123456"
+      stubSearchableCase(crn)
+      addToUserList(crn, CaseListType.SEARCH_HISTORY)
+
+      assertThat(searchByCrnResponse(crn).data.inUsersCustomList).isFalse()
+    }
+
+    @Test
     fun `should add the found case to the user's search history`() {
       val crn = "F123456"
       val now = Instant.parse("2026-11-09T10:00:00Z")
@@ -963,6 +998,11 @@ class CaseControllerIT : IntegrationTestBase() {
       ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(crn))
     }
 
+    private fun searchByCrnResponse(crn: String) = webTestClient.get().uri("/search/$crn")
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectApiResponse<CaseDto>()
+
     private fun searchByCrn(crn: String) {
       webTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()
@@ -1034,7 +1074,7 @@ class CaseControllerIT : IntegrationTestBase() {
         .exchangeSuccessfully()
         .expectApiResponse<CaseDto>()
 
-      assertThat(response.data).isEqualTo(CaseDto(crn = crn, userAccess = UserAccess.LIMITED, limitedAccess = true))
+      assertThat(response.data).isEqualTo(CaseDto(crn = crn, userAccess = UserAccess.LIMITED, limitedAccess = true, inUsersCustomList = false))
     }
 
     @Test
@@ -1101,6 +1141,18 @@ class CaseControllerIT : IntegrationTestBase() {
     val assertions: List<(List<CaseDto>) -> Unit> = emptyList(),
   )
 
+  private fun addToUserList(crn: String, listType: CaseListType) {
+    val caseEntity = caseRepository.findByCrn(crn) ?: caseRepository.saveAndFlush(buildCaseEntity { withCrn(crn) })
+    userCaseListEntryRepository.saveAndFlush(
+      buildUserCaseListEntryEntity(sasUserId = deliusUser.id, sasCaseId = caseEntity.id, listType = listType),
+    )
+  }
+
+  private fun getCaseDto(crn: String) = webTestClient.get().uri("/cases/$crn")
+    .withDeliusUserJwt()
+    .exchangeSuccessfully()
+    .expectApiResponse<CaseDto>()
+
   private fun getCaseResponse(crn: String) = webTestClient.get().uri("/cases/$crn")
     .withDeliusUserJwt()
     .exchangeSuccessfully()
@@ -1121,6 +1173,24 @@ class CaseControllerIT : IntegrationTestBase() {
     }
   }
 
+  @Test
+  fun `should flag a case as in the user's custom list when it is`() {
+    val case = stubGetCase()
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(case.crn))
+    addToUserList(case.crn, CaseListType.CUSTOM)
+
+    assertThat(getCaseDto(case.crn).data.inUsersCustomList).isTrue()
+  }
+
+  @Test
+  fun `should not flag a case as in the user's custom list when it is only in the search history`() {
+    val case = stubGetCase()
+    ProbationAccessControlStubs.postUserAccessForCrns(USERNAME_OF_LOGGED_IN_DELIUS_USER, accessibleCrns = listOf(case.crn))
+    addToUserList(case.crn, CaseListType.SEARCH_HISTORY)
+
+    assertThat(getCaseDto(case.crn).data.inUsersCustomList).isFalse()
+  }
+
   @Nested
   inner class GetCaseLimitedAccess {
     @Test
@@ -1133,7 +1203,7 @@ class CaseControllerIT : IntegrationTestBase() {
         .exchangeSuccessfully()
         .expectApiResponse<CaseDto>()
 
-      assertThat(response.data).isEqualTo(CaseDto(crn = case.crn, userAccess = UserAccess.LIMITED, limitedAccess = true))
+      assertThat(response.data).isEqualTo(CaseDto(crn = case.crn, userAccess = UserAccess.LIMITED, limitedAccess = true, inUsersCustomList = false))
       sasWiremock.verify(
         1,
         WireMock.postRequestedFor(WireMock.urlPathEqualTo("/user/$USERNAME_OF_LOGGED_IN_DELIUS_USER/access"))

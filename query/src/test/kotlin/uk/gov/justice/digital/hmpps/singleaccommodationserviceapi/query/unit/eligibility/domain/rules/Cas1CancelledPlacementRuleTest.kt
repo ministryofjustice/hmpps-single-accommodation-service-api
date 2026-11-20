@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas1CancelledPlacementRuleTest {
-  private val description = "FAIL if current placement is cancelled"
+  private val description = "FAIL if the CAS1 placement status is 'Cancelled'"
 
   @Test
   fun `cancelled placement fails`() {

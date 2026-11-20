@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.currentOutcome
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.historyExcludingCurrentOutcome
@@ -14,6 +15,7 @@ class DomainDataFactory(
   private val accommodationSummaryCalculator: AccommodationSummaryCalculator,
   private val accommodationTypeRepository: AccommodationTypeRepository,
   private val dutyToReferQueryService: DutyToReferQueryService,
+  private val userService: UserService,
 ) {
 
   fun buildDomainData(
@@ -30,6 +32,8 @@ class DomainDataFactory(
       cas1Residence = eligibilityOrchestrationDto.cas1Residence,
       cas3CurrentPremises = eligibilityOrchestrationDto.cas3CurrentPremises,
     )
+
+    val staffNameMarkedAsArrived = eligibilityOrchestrationDto.cas2Application?.submittedApplication?.markedAsArrived?.let { userService.getStaffNameFromUsername(it.arrivedByUsername) }
 
     val currentAccommodationTypeEntity = accommodationTypeRepository.findAll().find { it.code == currentAccommodation?.type?.code }
 
@@ -54,6 +58,13 @@ class DomainDataFactory(
       )
     }
 
+    val cas2ApplicationDomainData = eligibilityOrchestrationDto.cas2Application?.let {
+      Cas2ApplicationDomainData(
+        application = it,
+        staffNameMarkedAsArrived = staffNameMarkedAsArrived,
+      )
+    }
+
     return DomainData(
       crn = crn,
       tierScore = eligibilityOrchestrationDto.tier?.tierScore,
@@ -61,7 +72,7 @@ class DomainDataFactory(
       dob = eligibilityOrchestrationDto.cpr?.dateOfBirth,
       roshLevel = eligibilityOrchestrationDto.case?.roshLevel,
       cas1Application = cas1ApplicationDomainData,
-      cas2Application = eligibilityOrchestrationDto.cas2Application,
+      cas2Application = cas2ApplicationDomainData,
       cas3Application = eligibilityOrchestrationDto.cas3Application,
       currentAccommodation = currentAccommodation,
       currentAccommodationTypeEntity = currentAccommodationTypeEntity,

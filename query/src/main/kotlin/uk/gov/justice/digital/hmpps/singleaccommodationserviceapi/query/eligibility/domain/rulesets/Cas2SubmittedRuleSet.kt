@@ -7,9 +7,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2SubmittedRuleSet(
-  cas2NotSubmitted: Cas2NotSubmittedRule,
+  notSubmitted: Cas2NotSubmittedRule,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(cas2NotSubmitted)
+  private val rules: List<Rule> = listOf(notSubmitted)
   override val name: String = "PASS if the CAS2 application is submitted"
   override fun getRules(): List<Rule> = rules
 }

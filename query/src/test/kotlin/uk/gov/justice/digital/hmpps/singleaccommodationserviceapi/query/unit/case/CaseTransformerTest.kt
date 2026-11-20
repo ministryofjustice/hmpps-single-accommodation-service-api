@@ -38,7 +38,7 @@ class CaseTransformerTest {
 
   @Test
   fun `returns UserAccess of UNKNOWN when case is missing`() {
-    val result = toCaseDto(crn = crn, case = null, cpr = null, tier = null, sexualOffenceRegistrations = null, userAccess = null)
+    val result = toCaseDto(crn = crn, case = null, cpr = null, tier = null, sexualOffenceRegistrations = null, userAccess = null, inUsersCustomList = false)
 
     assertThat(result.crn).isEqualTo(crn)
     assertUserAccess(result, UserAccess.UNKNOWN)
@@ -46,7 +46,7 @@ class CaseTransformerTest {
 
   @Test
   fun `returns UserAccess FULL when user has full access`() {
-    val result = toCaseDto(crn = crn, case = buildCase(crn = crn), cpr = null, tier = null, sexualOffenceRegistrations = null, userAccess = UserAccess.FULL)
+    val result = toCaseDto(crn = crn, case = buildCase(crn = crn), cpr = null, tier = null, sexualOffenceRegistrations = null, userAccess = UserAccess.FULL, inUsersCustomList = false)
 
     assertThat(result.crn).isEqualTo(crn)
     assertUserAccess(result, UserAccess.FULL)
@@ -61,6 +61,7 @@ class CaseTransformerTest {
       tier = null,
       sexualOffenceRegistrations = null,
       userAccess = UserAccess.FULL,
+      inUsersCustomList = false,
     )
 
     assertThat(result.crn).isEqualTo(crn)
@@ -71,7 +72,7 @@ class CaseTransformerTest {
   @EnumSource(UserAccess::class, names = ["LIMITED", "UNKNOWN"])
   @NullSource
   fun `returns UserAccess of LIMITED when user does not have full access`(userAccess: UserAccess?) {
-    val result = toCaseDto(crn = crn, case = buildCase(crn = crn), cpr = null, tier = null, sexualOffenceRegistrations = null, userAccess = userAccess)
+    val result = toCaseDto(crn = crn, case = buildCase(crn = crn), cpr = null, tier = null, sexualOffenceRegistrations = null, userAccess = userAccess, inUsersCustomList = false)
 
     assertThat(result.crn).isEqualTo(crn)
     assertUserAccess(result, UserAccess.LIMITED, limitedAccess = true)
@@ -92,6 +93,7 @@ class CaseTransformerTest {
       tier = null,
       sexualOffenceRegistrations = null,
       userAccess = UserAccess.FULL,
+      inUsersCustomList = false,
     )
 
     assertThat(result.crn).isEqualTo(crn)
@@ -108,6 +110,7 @@ class CaseTransformerTest {
       tier = null,
       sexualOffenceRegistrations = null,
       userAccess = UserAccess.FULL,
+      inUsersCustomList = false,
     )
 
     assertThat(result.limitedAccess).isFalse()
@@ -122,6 +125,7 @@ class CaseTransformerTest {
       tier = null,
       sexualOffenceRegistrations = null,
       userAccess = UserAccess.FULL,
+      inUsersCustomList = false,
     )
 
     assertThat(result.riskLevel).isNull()
@@ -136,6 +140,7 @@ class CaseTransformerTest {
       tier = null,
       sexualOffenceRegistrations = null,
       userAccess = UserAccess.FULL,
+      inUsersCustomList = false,
     )
 
     assertThat(result.riskLevel).isNull()
@@ -228,6 +233,7 @@ class CaseTransformerTest {
       assignedTo = null,
       limitedAccess = false,
       teamCode = "TEAM1",
+      inUsersCustomList = false,
     )
 
     assertThat(result.accommodationSummaries).isEqualTo(
@@ -258,6 +264,7 @@ class CaseTransformerTest {
       assignedTo = assignedTo,
       limitedAccess = false,
       teamCode = "TeamX",
+      inUsersCustomList = false,
     )
 
     assertThat(result).isEqualTo(
@@ -276,6 +283,7 @@ class CaseTransformerTest {
         limitedAccess = false,
         accommodationSummaries = accommodationSummaries,
         teamCode = "TeamX",
+        inUsersCustomList = false,
       ),
     )
   }
@@ -288,16 +296,17 @@ class CaseTransformerTest {
       assignedTo = null,
       limitedAccess = null,
       teamCode = "TeamX",
+      inUsersCustomList = false,
     )
 
-    assertThat(result).isEqualTo(CaseDto(crn = crn, userAccess = UserAccess.FULL, limitedAccess = null, teamCode = "TeamX"))
+    assertThat(result).isEqualTo(CaseDto(crn = crn, userAccess = UserAccess.FULL, limitedAccess = null, teamCode = "TeamX", inUsersCustomList = false))
   }
 
   @Test
   fun `should transform a crn to a limited case dto`() {
     val assignedTo = AssignedToDto(forename = "Staff", surname = "Member")
     assertThat(
-      toLimitedCaseDto(crn, teamCode = "TeamX", assignedTo = assignedTo),
+      toLimitedCaseDto(crn, teamCode = "TeamX", assignedTo = assignedTo, inUsersCustomList = false),
     ).isEqualTo(
       CaseDto(
         crn = crn,
@@ -305,6 +314,7 @@ class CaseTransformerTest {
         limitedAccess = true,
         teamCode = "TeamX",
         assignedTo = assignedTo,
+        inUsersCustomList = false,
       ),
     )
   }
@@ -317,6 +327,7 @@ class CaseTransformerTest {
   private fun assertCaseOrchestrationTransform(
     caseOrchestrationDto: CaseOrchestrationDto,
     expectedCaseDto: CaseDto,
+    inUsersCustomList: Boolean = false,
   ) {
     val result = toCaseDto(
       crn = crn,
@@ -325,6 +336,7 @@ class CaseTransformerTest {
       case = caseOrchestrationDto.case,
       sexualOffenceRegistrations = caseOrchestrationDto.sexualOffenceRegistrations,
       userAccess = UserAccess.FULL,
+      inUsersCustomList = inUsersCustomList,
     )
 
     assertThat(result).isEqualTo(expectedCaseDto)
@@ -348,6 +360,7 @@ class CaseTransformerTest {
     photoUrl = null,
     userAccess = UserAccess.FULL,
     limitedAccess = false,
+    inUsersCustomList = false,
   )
 
   private val orchestratedCaseDto = buildCaseOrchestrationDto(crn = crn)

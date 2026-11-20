@@ -1,11 +1,14 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.cache.interceptor.SimpleKey
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.FULL_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
@@ -18,6 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ExternalPremisesV2Dto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -32,6 +36,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OnboardedTeamEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
@@ -59,6 +64,7 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
 
   private val eventType = IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED.typeName
   private val eventDescription = "test event"
+  private val caseListCacheKey = SimpleKey(USERNAME_OF_LOGGED_IN_DELIUS_USER, USERNAME_OF_LOGGED_IN_DELIUS_USER, null)
   private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/v2/crn/$crn/tier"
 
   @BeforeEach
@@ -67,6 +73,13 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
     databaseUtils.truncate(SAS_CASE, DUTY_TO_REFER, INBOX_EVENT, OUTBOX_EVENT, ONBOARDED_TEAM)
     onboardedTeamRepository.save(OnboardedTeamEntity(teamCode = buildTeam().code))
     createSasSystemUser()
+    cacheManager.setCacheNames(listOf(FULL_CASE_LIST))
+    cacheManager.getCache(FULL_CASE_LIST)!!.put(caseListCacheKey, listOf(buildCase(crn = crn)))
+  }
+
+  @AfterEach
+  fun tearDown() {
+    cacheManager.setCacheNames(null)
   }
 
   @Test
@@ -93,6 +106,7 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
       expectedAssignedTo = responses.case!!.staff,
       expectedCaseId = existing.id,
     )
+    assertCaseListCacheCleared()
     assertThat(testSentryService.exceptions).isEmpty()
   }
 
@@ -116,6 +130,7 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
     testInboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
     assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNull()
+    assertThat(cacheManager.getCache(FULL_CASE_LIST)!!.get(caseListCacheKey)).isNotNull
     assertThat(testSentryService.exceptions).isEmpty()
   }
 
@@ -184,7 +199,12 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
       expectedRoshLevelCode = responses.case!!.roshLevel!!.code,
       expectedAssignedTo = responses.case!!.staff,
     )
+    assertCaseListCacheCleared()
     assertThat(testSentryService.exceptions).isEmpty()
+  }
+
+  private fun assertCaseListCacheCleared() {
+    assertThat(cacheManager.getCache(FULL_CASE_LIST)!!.get(caseListCacheKey)).isNull()
   }
 
   private fun stubCaseSummary() = ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(

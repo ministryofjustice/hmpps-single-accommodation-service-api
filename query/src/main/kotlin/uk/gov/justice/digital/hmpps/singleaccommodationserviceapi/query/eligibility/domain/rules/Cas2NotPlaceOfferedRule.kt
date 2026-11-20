@@ -9,10 +9,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2NotPlaceOfferedRule : Rule {
-  override val description = "FAIL if the CAS2 assessment status is not Place Offered"
+  override val description = "FAIL if the CAS2 assessment status is not 'Place Offered'"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.cas2Application?.submittedApplication?.latestAssessmentStatus != Cas2AssessmentStatus.PLACE_OFFERED
+    val isFail = data.cas2Application?.application?.submittedApplication?.latestAssessmentStatus != Cas2AssessmentStatus.PLACE_OFFERED
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 
     return RuleResult(

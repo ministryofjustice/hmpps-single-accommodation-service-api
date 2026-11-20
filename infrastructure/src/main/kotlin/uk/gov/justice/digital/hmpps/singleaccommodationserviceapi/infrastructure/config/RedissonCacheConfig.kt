@@ -19,9 +19,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_RESIDENCE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_URL_TEMPLATES
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_URL_TEMPLATES
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_URL_TEMPLATES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
@@ -142,9 +142,9 @@ private fun commonCacheManager(
     GET_CAS3_REFERRAL to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
     GET_CAS_1_CURRENT_APPLICATION to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
     GET_CAS_1_RESIDENCE to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
-    GET_CAS_2_APPLICATION to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
+    GET_CAS_2_CURRENT_APPLICATION to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
     GET_CAS_3_CURRENT_PREMISES to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
-    GET_CAS_3_APPLICATION to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
+    GET_CAS_3_CURRENT_APPLICATION to CacheConfig(casTtl.toMillis(), casMaxIdle.toMillis()),
     GET_CAS_1_URL_TEMPLATES to CacheConfig(86_400_000, 43_200_000),
     GET_CAS_2_URL_TEMPLATES to CacheConfig(86_400_000, 43_200_000),
     GET_CAS_3_URL_TEMPLATES to CacheConfig(86_400_000, 43_200_000),

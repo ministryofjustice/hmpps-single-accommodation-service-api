@@ -13,7 +13,7 @@ class Cas1NotRejectedRequestRuleSet(
     rejectedRequest,
   )
 
-  override val name: String = "PASS if placement is not rejected"
+  override val name: String = "PASS if the CAS1 request for placement status is not 'Rejected'"
 
   override fun getRules(): List<Rule> = rules
 }

@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class CurrentAccommodationTypeIsCas2RuleTest {
-  private val description = "FAIL if person is in CAS2"
+  private val description = "FAIL if the person is in CAS2"
 
   @Test
   fun `person is in CAS2 so rule fails`() {

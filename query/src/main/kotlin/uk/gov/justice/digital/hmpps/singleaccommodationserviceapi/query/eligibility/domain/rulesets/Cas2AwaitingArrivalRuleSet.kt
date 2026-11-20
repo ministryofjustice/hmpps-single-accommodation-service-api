@@ -7,13 +7,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2AwaitingArrivalRuleSet(
-  cas2NotAwaitingArrival: Cas2NotAwaitingArrivalRule,
+  notAwaitingArrival: Cas2NotAwaitingArrivalRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(
-    cas2NotAwaitingArrival,
+    notAwaitingArrival,
   )
 
-  override val name: String = "PASS if the CAS2 assessment status is Awaiting Arrival"
+  override val name: String = "PASS if the CAS2 assessment status is 'Awaiting Arrival'"
 
   override fun getRules(): List<Rule> = rules
 }

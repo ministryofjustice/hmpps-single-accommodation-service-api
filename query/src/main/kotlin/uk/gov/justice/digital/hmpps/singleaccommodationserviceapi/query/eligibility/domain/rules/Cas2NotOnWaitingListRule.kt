@@ -9,10 +9,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2NotOnWaitingListRule : Rule {
-  override val description = "FAIL if the CAS2 assessment status is not On Waiting List"
+  override val description = "FAIL if the CAS2 assessment status is not 'On Waiting List'"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.cas2Application?.submittedApplication?.latestAssessmentStatus != Cas2AssessmentStatus.ON_WAITING_LIST
+    val isFail = data.cas2Application?.application?.submittedApplication?.latestAssessmentStatus != Cas2AssessmentStatus.ON_WAITING_LIST
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 
     return RuleResult(

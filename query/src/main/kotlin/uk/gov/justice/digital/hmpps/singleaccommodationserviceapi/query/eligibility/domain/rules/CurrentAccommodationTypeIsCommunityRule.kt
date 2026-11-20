@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class CurrentAccommodationTypeIsCommunityRule : Rule {
-  override val description = "FAIL if person is in the community"
+  override val description = "FAIL if the person is in the community"
   override val failureReason = FailureReason.IN_COMMUNITY
 
   override fun evaluate(data: DomainData): RuleResult {

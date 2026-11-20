@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -17,6 +18,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateCustomCaseListCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.util.normaliseCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
@@ -48,12 +51,17 @@ class UserCaseListController(
     @RequestParam(required = false) peopleType: PeopleType?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> = ResponseEntity.ok(
     userCaseListQueryService.getUserCaseList(
-      listType = CaseListType.CUSTOM,
       searchTerm = searchTerm,
       riskLevel = riskLevel,
       teamCode = teamCode,
       peopleType = peopleType,
     ),
+  )
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @GetMapping("/case-list/search-history")
+  fun getSearchHistoryCaseList(): ResponseEntity<ApiResponseDto<List<CaseDto>>> = ResponseEntity.ok(
+    userCaseListQueryService.getSearchHistoryCaseList(),
   )
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
@@ -68,7 +76,7 @@ class UserCaseListController(
     @Size(min = 1, max = 500, message = "Enter 500 CRNs or fewer")
     crns: List<String>,
   ): ResponseEntity<Void> {
-    val normalisedCrns = crns.map { it.trim().uppercase() }
+    val normalisedCrns = crns.map { it.normaliseCrn() }
     val invalidCrns = normalisedCrns.filterNot { CRN_REGEX.matches(it) }
 
     if (invalidCrns.isNotEmpty()) {
@@ -81,5 +89,25 @@ class UserCaseListController(
     caseApplicationService.createValidatedCases(distinctCrns)
     userCaseListApplicationService.createUserCaseList(user.id, CaseListType.CUSTOM, distinctCrns)
     return ResponseEntity(HttpStatus.CREATED)
+  }
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @PatchMapping("/case-list/custom")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  fun updateCustomCaseList(
+    @RequestBody
+    command: UpdateCustomCaseListCommand,
+  ): ResponseEntity<Void> {
+    val normalisedCrn = command.crn.normaliseCrn()
+
+    if (!CRN_REGEX.matches(normalisedCrn)) {
+      throw ValidationException("$CRN_FORMAT_MESSAGE. $normalisedCrn is not a valid CRN format")
+    }
+
+    val user = userService.authorizeAndRetrieveUser()
+
+    caseApplicationService.createValidatedCases(listOf(normalisedCrn))
+    userCaseListApplicationService.addCaseToCustomList(user.id, normalisedCrn)
+    return ResponseEntity(HttpStatus.NO_CONTENT)
   }
 }

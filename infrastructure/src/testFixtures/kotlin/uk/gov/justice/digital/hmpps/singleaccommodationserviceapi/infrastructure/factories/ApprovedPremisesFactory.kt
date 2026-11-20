@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2MarkedAsArrived
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
@@ -53,13 +54,21 @@ fun buildCas2SubmittedApplicationSummary(
   submittedAt: OffsetDateTime = OffsetDateTime.now(),
   offerDeclinedReason: String? = null,
   cancelledReason: String? = null,
-  markedArrivedDateTime: Instant? = null,
+  markedArrived: Cas2MarkedAsArrived? = null,
 ) = Cas2SubmittedApplicationSummary(
   submittedAt = submittedAt,
   latestAssessmentStatus = latestAssessmentStatus,
   offerDeclinedReason = offerDeclinedReason,
   cancelledReason = cancelledReason,
-  markedAsArrivedDateTime = markedArrivedDateTime,
+  markedAsArrived = markedArrived,
+)
+
+fun buildCas2MarkedAsArrived(
+  dateTime: Instant = Instant.now(),
+  arrivedByUsername: String = "testTester",
+) = Cas2MarkedAsArrived(
+  dateTime = dateTime,
+  arrivedByUsername = arrivedByUsername,
 )
 
 fun buildCas2Staff(
@@ -96,6 +105,7 @@ fun buildCas1Staff(
 
 fun buildCas3Application(
   id: UUID = UUID.randomUUID(),
+  createdAt: OffsetDateTime = OffsetDateTime.now(),
   applicationStatus: Cas3ApplicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
   submittedApplication: Cas3SubmittedApplication? = when (applicationStatus) {
     Cas3ApplicationStatus.IN_PROGRESS -> null
@@ -106,6 +116,7 @@ fun buildCas3Application(
   uiUrl: String = "https://cas3-ui/referrals/$id/full",
 ) = Cas3Application(
   id = id,
+  createdAt = createdAt,
   applicationStatus = applicationStatus,
   submittedApplication = submittedApplication,
   uiUrl = uiUrl,

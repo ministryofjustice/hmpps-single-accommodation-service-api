@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_IF_EXISTS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_RESIDENCE
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_PRISONER
@@ -95,7 +95,7 @@ class CaseMutationOrchestrationService(
     loadCas1Residence = { approvedPremisesClient.getCas1Residence(crn) },
     loadCas3CurrentPremises = { approvedPremisesClient.getCas3CurrentPremises(crn) },
     loadCas1Application = { approvedPremisesClient.getCurrentCas1ApplicationInternal(crn) },
-    loadCas3Application = { approvedPremisesClient.getSuitableCas3ApplicationInternal(crn) },
+    loadCas3Application = { approvedPremisesClient.getCas3CurrentApplicationInternal(crn) },
     loadCase = { sasAndDeliusClient.getCase(crn) },
     loadPrisoner = prisonNumber?.let { num -> { prisonerSearchClient.getPrisoner(num) } },
   )
@@ -117,7 +117,7 @@ class CaseMutationOrchestrationService(
       put(GET_CAS_1_RESIDENCE, loadCas1Residence)
       put(GET_CAS_3_CURRENT_PREMISES, loadCas3CurrentPremises)
       put(GET_CAS_1_CURRENT_APPLICATION, loadCas1Application)
-      put(GET_CAS_3_APPLICATION, loadCas3Application)
+      put(GET_CAS_3_CURRENT_APPLICATION, loadCas3Application)
       put(GET_CASE_IF_EXISTS, loadCase)
       loadPrisoner?.let { put(GET_PRISONER, it) }
     }
@@ -134,7 +134,7 @@ class CaseMutationOrchestrationService(
         cas1Residence = results.getResult<Cas1PlacementV2>(GET_CAS_1_RESIDENCE),
         cas3CurrentPremises = results.getResult<Cas3BookingPremises>(GET_CAS_3_CURRENT_PREMISES),
         cas1Application = results.getResult<Cas1ApplicationV2>(GET_CAS_1_CURRENT_APPLICATION),
-        cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION),
+        cas3Application = results.getResult<Cas3Application>(GET_CAS_3_CURRENT_APPLICATION),
         prisoner = results.getResult<Prisoner>(GET_PRISONER),
         case = results.getResult<Case>(GET_CASE_IF_EXISTS),
       ),

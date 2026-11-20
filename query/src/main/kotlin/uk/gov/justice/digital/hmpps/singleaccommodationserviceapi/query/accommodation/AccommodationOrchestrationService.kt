@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_RESIDENCE
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_PRISONER
@@ -110,7 +110,7 @@ class AccommodationOrchestrationService(
       put(GET_CAS_1_RESIDENCE) { approvedPremisesCachingService.getCas1Residence(crn) }
       put(GET_CAS_3_CURRENT_PREMISES) { approvedPremisesCachingService.getCas3CurrentPremises(crn) }
       put(GET_CAS_1_CURRENT_APPLICATION) { approvedPremisesCachingService.getCurrentCas1Application(crn) }
-      put(GET_CAS_3_APPLICATION) { approvedPremisesCachingService.getSuitableCas3Application(crn) }
+      put(GET_CAS_3_CURRENT_APPLICATION) { approvedPremisesCachingService.getCas3CurrentApplication(crn) }
       prisonNumber?.let { num -> put(GET_PRISONER) { prisonerSearchCachingService.getPrisoner(num) } }
     }
     val results = aggregatorService.orchestrateAsyncCalls(
@@ -120,7 +120,7 @@ class AccommodationOrchestrationService(
     val prisoner = results.getResult<Prisoner>(GET_PRISONER)
     val cpr = results.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD_BY_CRN)
     val cas1Application = results.getResult<Cas1ApplicationV2>(GET_CAS_1_CURRENT_APPLICATION)
-    val cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
+    val cas3Application = results.getResult<Cas3Application>(GET_CAS_3_CURRENT_APPLICATION)
     val cas1Residence = results.getResult<Cas1PlacementV2>(GET_CAS_1_RESIDENCE)
     val cas3CurrentPremises = results.getResult<Cas3BookingPremises>(GET_CAS_3_CURRENT_PREMISES)
 

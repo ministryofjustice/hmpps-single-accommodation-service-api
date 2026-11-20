@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -22,6 +23,7 @@ class PersonCommunityManagerAllocatedEventHandler(
   private val onboardedTeamRepository: OnboardedTeamRepository,
   private val caseRepository: CaseRepository,
   private val caseRefreshRequestService: CaseRefreshRequestService,
+  private val sasAndDeliusCachingService: SasAndDeliusCachingService,
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -36,6 +38,7 @@ class PersonCommunityManagerAllocatedEventHandler(
 
     caseRepository.findByCrn(crn)?.let {
       caseRefreshRequestService.requestLiveRefresh(it.id)
+      clearCaseListCache(inboxEvent, crn)
       return InboxEventHandler.Result.PROCESSED
     }
 
@@ -46,9 +49,19 @@ class PersonCommunityManagerAllocatedEventHandler(
         listOf(CrnToPrisonNumber(case.crn, case.nomsId)),
         refreshPriority = CaseRefreshPriority.LIVE,
       )
+      clearCaseListCache(inboxEvent, crn)
       InboxEventHandler.Result.PROCESSED
     } else {
       InboxEventHandler.Result.IGNORED
+    }
+  }
+
+  private fun clearCaseListCache(inboxEvent: InboxEventHandler.InboxEvent, crn: String) {
+    try {
+      sasAndDeliusCachingService.cacheClearOnFullCaseList()
+      log.info("Cleared case list cache for PERSON_COMMUNITY_MANAGER_ALLOCATED inbox event: [{}], crn: [{}]", inboxEvent.id, crn)
+    } catch (e: Exception) {
+      log.warn("Failed to clear case list cache for PERSON_COMMUNITY_MANAGER_ALLOCATED inbox event: [{}], crn: [{}]", inboxEvent.id, crn, e)
     }
   }
 }

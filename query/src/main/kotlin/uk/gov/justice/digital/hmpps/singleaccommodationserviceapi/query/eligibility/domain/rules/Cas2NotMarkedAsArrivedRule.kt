@@ -8,10 +8,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2NotMarkedAsArrivedRule : Rule {
-  override val description = "FAIL if the CAS2 arrival timestamp is missing"
+  override val description = "FAIL if the person has not arrived"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.cas2Application?.submittedApplication?.markedAsArrivedDateTime == null
+    val isFail = data.cas2Application?.application?.submittedApplication?.markedAsArrived == null
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 
     return RuleResult(

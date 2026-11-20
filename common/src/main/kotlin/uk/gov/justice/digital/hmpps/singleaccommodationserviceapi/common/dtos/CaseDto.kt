@@ -21,6 +21,7 @@ data class CaseDto(
   val accommodationSummaries: AccommodationSummariesDto? = null,
   val sexualOffenceRegistrations: List<SexualOffenceRegistrationCode> = emptyList(),
   val teamCode: String? = null,
+  val inUsersCustomList: Boolean,
 )
 
 enum class SexualOffenceRegistrationCode(val code: String, val description: String) {

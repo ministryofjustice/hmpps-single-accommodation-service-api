@@ -33,6 +33,7 @@ open class ProposedAccommodationEntity(
   var accommodationStatusId: UUID?,
   @Enumerated(EnumType.STRING)
   var verificationStatus: VerificationStatus?,
+  var verificationReason: String?,
   @Enumerated(EnumType.STRING)
   var nextAccommodationStatus: NextAccommodationStatus?,
   @DiffIgnore

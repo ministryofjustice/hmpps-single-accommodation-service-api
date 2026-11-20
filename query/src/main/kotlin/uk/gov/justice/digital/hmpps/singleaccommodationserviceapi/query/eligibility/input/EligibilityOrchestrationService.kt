@@ -8,8 +8,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_IF_EXISTS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_RESIDENCE
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_APPLICATION
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_CURRENT_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CRS
@@ -52,8 +52,8 @@ class EligibilityOrchestrationService(
       put(GET_CASE_IF_EXISTS) { sasAndDeliusCachingService.getCase(crn) }
       put(GET_SEXUAL_OFFENCE_REGISTRATIONS) { sasAndDeliusCachingService.getSexualOffenceRegistrations(crn) }
       put(GET_CAS_1_CURRENT_APPLICATION) { approvedPremisesCachingService.getCurrentCas1Application(crn) }
-      put(GET_CAS_2_APPLICATION) { approvedPremisesCachingService.getSuitableCas2Application(crn) }
-      put(GET_CAS_3_APPLICATION) { approvedPremisesCachingService.getSuitableCas3Application(crn) }
+      put(GET_CAS_2_CURRENT_APPLICATION) { approvedPremisesCachingService.getCas2CurrentApplication(crn) }
+      put(GET_CAS_3_CURRENT_APPLICATION) { approvedPremisesCachingService.getCas3CurrentApplication(crn) }
       put(GET_CRS) { commissionedRehabilitativeServicesCachingService.getCrs(crn) }
       put(GET_CAS_1_RESIDENCE) { approvedPremisesCachingService.getCas1Residence(crn) }
       put(GET_CAS_3_CURRENT_PREMISES) { approvedPremisesCachingService.getCas3CurrentPremises(crn) }
@@ -68,8 +68,8 @@ class EligibilityOrchestrationService(
     val case = results.getResult<Case>(GET_CASE_IF_EXISTS)
     val sexualOffenceRegistrations = results.getResult<SexualOffenceRegistrations>(GET_SEXUAL_OFFENCE_REGISTRATIONS)
     val cas1Application = results.getResult<Cas1ApplicationV2>(GET_CAS_1_CURRENT_APPLICATION)
-    val cas2Application = results.getResult<Cas2Application>(GET_CAS_2_APPLICATION)
-    val cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
+    val cas2Application = results.getResult<Cas2Application>(GET_CAS_2_CURRENT_APPLICATION)
+    val cas3Application = results.getResult<Cas3Application>(GET_CAS_3_CURRENT_APPLICATION)
     val crs = results.getResult<List<CommissionedRehabilitativeServices>>(GET_CRS)
     val prisoner = results.getResult<Prisoner>(GET_PRISONER)
     val cas1Residence = results.getResult<Cas1PlacementV2>(GET_CAS_1_RESIDENCE)

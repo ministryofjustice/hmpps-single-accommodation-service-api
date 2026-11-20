@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas1PlacementNotActiveRule : Rule {
-  override val description = "FAIL if current placement is not active"
+  override val description = "FAIL if the CAS1 placement status is not 'Arrived' or 'Upcoming'"
 
   override fun evaluate(data: DomainData): RuleResult {
     val activeStatuses = listOf(

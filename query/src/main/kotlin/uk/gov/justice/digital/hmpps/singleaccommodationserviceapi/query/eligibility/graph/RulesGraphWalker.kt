@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionNode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeInfo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.OutcomeNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleSetNode
@@ -18,11 +19,11 @@ class RulesGraphWalker {
   val usedNodeIds = mutableMapOf<String, Any>()
   val edges = mutableListOf<GraphEdge>()
 
-  fun walk(provider: EligibilityTreeProvider): RulesGraph = walk(treeName(provider), provider.tree())
+  fun walk(provider: EligibilityTreeProvider): RulesGraph = walk(treeName(provider), provider.tree(), provider.treeInfo)
 
-  fun walk(treeName: String, root: DecisionNode): RulesGraph {
+  fun walk(treeName: String, root: DecisionNode, info: EligibilityTreeInfo? = null): RulesGraph {
     visit(root)
-    return RulesGraph(treeName, nodes.values.toList(), edges)
+    return RulesGraph(treeName, nodes.values.toList(), edges, info)
   }
 
   fun visit(node: DecisionNode) {
@@ -115,6 +116,7 @@ class RulesGraphWalker {
     id = ensureUniqueId("outcome_" + slug(graphKey()), this),
     title = description,
     kind = GraphNodeKind.OUTCOME,
+    sourcePath = sourceLinkPath(this::class),
   )
 
   private fun ContextUpdater.toContextUpdaterNode(key: Any, destinationId: String) = GraphNode(
@@ -123,6 +125,7 @@ class RulesGraphWalker {
     kind = GraphNodeKind.CONTEXT_UPDATER,
     onPassContextUpdater = null,
     onFailContextUpdater = null,
+    sourcePath = sourceLinkPath(this::class),
   )
 
   // Ids come from the class name, or for anonymous (e.g. constant) updaters the status enum names they set,

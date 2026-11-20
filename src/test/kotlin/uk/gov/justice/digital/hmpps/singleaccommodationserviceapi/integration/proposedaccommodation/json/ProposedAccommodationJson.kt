@@ -40,6 +40,7 @@ fun expectedGetProposedAccommodationsResponse(
       "description": "${firstAccommodationTypeEntity.name}"
     },
     "verificationStatus" : "${firstVerificationStatus.name}",
+    "verificationReason" : null,
     "nextAccommodationStatus" : "${firstNextAccommodationStatus.name}",
     "address" : {
       "postcode" : "W1 8XX",
@@ -64,6 +65,7 @@ fun expectedGetProposedAccommodationsResponse(
       "description": "${secondAccommodationTypeEntity.name}"
     },
     "verificationStatus" : "${secondVerificationStatus.name}",
+    "verificationReason" : null,
     "nextAccommodationStatus" : "${secondNextAccommodationStatus.name}",
     "address" : {
       "postcode" : "RG26 5AG",
@@ -117,6 +119,7 @@ fun expectedGetProposedAccommodationsResponse(
         "crn":"$crn",
         "accommodationType": $expectedAccommodationType,
         "verificationStatus" : "${expectedVerificationStatus.name}",
+        "verificationReason" : null,
         "nextAccommodationStatus" : "${expectedNextAccommodationStatus.name}",
         "address" : {
           "postcode" : "$expectedPostcode",
@@ -157,6 +160,7 @@ fun expectedGetProposedAccommodationByIdResponse(
     "description": "Living in the home of a friend, family member or partner: settled"
   },
   "verificationStatus" : "PASSED",
+  "verificationReason" : "Verification passed",
   "nextAccommodationStatus" : "YES",
   "address" : {
     "postcode" : "W1 8XX",
@@ -179,6 +183,7 @@ fun expectedGetProposedAccommodationByIdResponse(
 fun proposedAddressesRequestBody(
   accommodationTypeCode: String?,
   verificationStatus: String,
+  verificationReason: String? = null,
   nextAccommodationStatus: String,
   subBuildingName: String? = "test sub building name",
   buildingName: String? = "test building name",
@@ -200,6 +205,7 @@ fun proposedAddressesRequestBody(
   {
     "accommodationTypeCode" : $accommodationTypeConverted,
     "verificationStatus" : "$verificationStatus",
+    "verificationReason" : ${convertNullable(verificationReason)},
     "nextAccommodationStatus" : "$nextAccommodationStatus",
     "address" : {
       "postcode" : "$postcode",
@@ -249,6 +255,7 @@ fun expectedProposedAddressesResponseBody(
   accommodationTypeCode: String,
   accommodationTypeDescription: String,
   verificationStatus: String,
+  verificationReason: String,
   nextAccommodationStatus: String,
   postcode: String,
   subBuildingName: String,
@@ -270,6 +277,7 @@ fun expectedProposedAddressesResponseBody(
     "description": "$accommodationTypeDescription"
   },
   "verificationStatus" : "$verificationStatus",
+  "verificationReason" : "$verificationReason",
   "nextAccommodationStatus" : "$nextAccommodationStatus",
   "address" : {
     "postcode" : "$postcode",

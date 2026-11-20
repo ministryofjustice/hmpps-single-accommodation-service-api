@@ -759,7 +759,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
         ),
       ),
     )
-    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(
+    ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(
       crn = crn,
       response = cas3Application,
     )
@@ -817,7 +817,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = buildCas1ApplicationV2())
-    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = buildCas3Application())
+    ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(crn = crn, response = buildCas3Application())
     createAndSaveProposedAccommodation(proposedAccommodationId = proposedAccommodationId)
 
     webTestClient.get().uri("/cases/{crn}/accommodations/next", crn)
@@ -841,7 +841,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
-    ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3CurrentApplicationNoContentResponse(crn = crn)
 
     webTestClient.get().uri("/cases/{crn}/accommodations/next", crn)
       .withDeliusUserJwt()

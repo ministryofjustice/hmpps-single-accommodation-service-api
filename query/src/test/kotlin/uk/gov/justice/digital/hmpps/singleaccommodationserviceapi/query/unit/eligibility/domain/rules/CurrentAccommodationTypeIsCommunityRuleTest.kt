@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class CurrentAccommodationTypeIsCommunityRuleTest {
-  private val description = "FAIL if person is in the community"
+  private val description = "FAIL if the person is in the community"
 
   @ParameterizedTest
   @FieldSource("communityCodes")

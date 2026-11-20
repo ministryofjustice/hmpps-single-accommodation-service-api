@@ -40,12 +40,14 @@ class ProposedAccommodationAggregateTest {
 
   private val accommodationDetails = buildProposedAccommodationDto(
     verificationStatus = VerificationStatus.PASSED,
+    verificationReason = "Verification reason",
   )
 
   @Test
   fun `should createProposedAccommodation and not add AccommodationUpdatedDomainEvent domain event to list`() {
     val aggregate = hydrateAndCreateProposedAccommodation(
       verificationStatus = VerificationStatus.PASSED,
+      verificationReason = "Verification reason",
       nextAccommodationStatus = NextAccommodationStatus.YES,
       startDate = startDate,
       endDate = endDate,
@@ -54,6 +56,7 @@ class ProposedAccommodationAggregateTest {
     assertThat(aggregateSnapshot.cprAddressId).isNull()
     assertThat(aggregateSnapshot.accommodationType).isEqualTo(accommodationDetails.accommodationType)
     assertThat(aggregateSnapshot.verificationStatus).isEqualTo(accommodationDetails.verificationStatus)
+    assertThat(aggregateSnapshot.verificationReason).isEqualTo(accommodationDetails.verificationReason)
     assertThat(aggregateSnapshot.nextAccommodationStatus).isEqualTo(accommodationDetails.nextAccommodationStatus)
     assertThat(aggregateSnapshot.address.postcode).isEqualTo(accommodationDetails.address.postcode)
     assertThat(aggregateSnapshot.address.subBuildingName).isEqualTo(accommodationDetails.address.subBuildingName)
@@ -86,6 +89,7 @@ class ProposedAccommodationAggregateTest {
     val aggregateSnapshot = aggregate.snapshot()
     assertThat(aggregateSnapshot.cprAddressId).isNull()
     assertThat(aggregateSnapshot.verificationStatus).isEqualTo(VerificationStatus.NOT_CHECKED_YET)
+    assertThat(aggregateSnapshot.verificationReason).isNull()
     assertThat(aggregateSnapshot.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
     assertThat(aggregateSnapshot.accommodationType).isEqualTo(accommodationDetails.accommodationType)
     assertThat(aggregateSnapshot.address.postcode).isEqualTo(accommodationDetails.address.postcode)
@@ -119,6 +123,7 @@ class ProposedAccommodationAggregateTest {
     val aggregate = hydrateAndCreateProposedAccommodation(
       currentAccommodation = currentAccommodation,
       verificationStatus = VerificationStatus.PASSED,
+      verificationReason = "Verification Reason",
       nextAccommodationStatus = NextAccommodationStatus.YES,
       startDate = startDate,
       endDate = endDate,
@@ -255,6 +260,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = "NEW POSTCODE",
@@ -291,6 +297,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
@@ -332,6 +339,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = newAccommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
@@ -368,6 +376,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
@@ -403,6 +412,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
@@ -435,6 +445,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = "NEW POSTCODE",
@@ -469,6 +480,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = "NEW POSTCODE",
@@ -507,6 +519,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = nextAccommodationStatus,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
@@ -543,6 +556,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.FAILED,
+      newVerificationReason = "Verification failed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
@@ -582,6 +596,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.NO,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
@@ -1076,6 +1091,7 @@ class ProposedAccommodationAggregateTest {
         code = AddressStatusCode.PR1.name,
       ),
       verificationStatus = VerificationStatus.PASSED,
+      verificationReason = null,
       nextAccommodationStatus = NextAccommodationStatus.YES,
       address = AccommodationAddressDetails(
         postcode = "initial postcode",
@@ -1156,6 +1172,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = null,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
@@ -1194,6 +1211,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = null,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
@@ -1233,6 +1251,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = null,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
@@ -1272,6 +1291,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = newAccommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
@@ -1311,6 +1331,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = null,
       newVerificationStatus = VerificationStatus.PASSED,
+      newVerificationReason = "Verification passed",
       newNextAccommodationStatus = NextAccommodationStatus.YES,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
@@ -1403,6 +1424,7 @@ class ProposedAccommodationAggregateTest {
         code = AddressStatusCode.PR1.name,
       ),
       verificationStatus = VerificationStatus.PASSED,
+      verificationReason = null,
       nextAccommodationStatus = NextAccommodationStatus.YES,
       address = AccommodationAddressDetails(
         postcode = "initial postcode",
@@ -1499,6 +1521,7 @@ class ProposedAccommodationAggregateTest {
     accommodationType = accommodationType,
     accommodationStatus = accommodationStatus,
     verificationStatus = verificationStatus,
+    verificationReason = null,
     nextAccommodationStatus = nextAccommodationStatus,
     address = AccommodationAddressDetails(
       postcode = accommodationDetails.address.postcode,
@@ -1524,6 +1547,7 @@ class ProposedAccommodationAggregateTest {
     currentAccommodation: AccommodationSummaryDto? = null,
     accommodationSource: AccommodationSource = AccommodationSource.SAS,
     verificationStatus: VerificationStatus,
+    verificationReason: String? = null,
     nextAccommodationStatus: NextAccommodationStatus,
     noFixedAbode: Boolean = false,
     startDate: LocalDate,
@@ -1538,6 +1562,7 @@ class ProposedAccommodationAggregateTest {
     aggregate.updateProposedAccommodation(
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = verificationStatus,
+      newVerificationReason = verificationReason,
       newNextAccommodationStatus = nextAccommodationStatus,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,

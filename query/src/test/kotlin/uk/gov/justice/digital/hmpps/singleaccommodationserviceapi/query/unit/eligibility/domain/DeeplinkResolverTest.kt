@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 
@@ -120,8 +121,10 @@ class DeeplinkResolverTest {
 
     @Test
     fun `CAS2_VIEW_APPLICATION resolves to the application uiUrl`() {
-      val cas2Application = buildCas2Application(
-        uiUrl = cas2ApplicationViewUrl,
+      val cas2Application = buildCas2ApplicationDomainData(
+        application = buildCas2Application(
+          uiUrl = cas2ApplicationViewUrl,
+        ),
       )
       val result = resolver.resolve(
         buildServiceResultNew(

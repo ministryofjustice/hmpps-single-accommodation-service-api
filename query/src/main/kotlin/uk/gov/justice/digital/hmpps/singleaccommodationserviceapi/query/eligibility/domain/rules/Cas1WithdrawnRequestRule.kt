@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas1WithdrawnRequestRule : Rule {
-  override val description = "FAIL if request for placement is withdrawn"
+  override val description = "FAIL if the CAS1 request for placement status is 'Withdrawn'"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.cas1Application?.currentOutcome?.requestForPlacement?.status == Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN
