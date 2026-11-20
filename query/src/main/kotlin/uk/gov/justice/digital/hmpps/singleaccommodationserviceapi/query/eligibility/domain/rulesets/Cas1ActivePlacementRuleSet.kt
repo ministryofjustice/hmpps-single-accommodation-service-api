@@ -13,7 +13,7 @@ class Cas1ActivePlacementRuleSet(
     placementNotActive,
   )
 
-  override val name: String = "PASS if placement is active"
+  override val name: String = "PASS if the CAS1 placement status is 'Arrived' or 'Upcoming'"
 
   override fun getRules(): List<Rule> = rules
 }

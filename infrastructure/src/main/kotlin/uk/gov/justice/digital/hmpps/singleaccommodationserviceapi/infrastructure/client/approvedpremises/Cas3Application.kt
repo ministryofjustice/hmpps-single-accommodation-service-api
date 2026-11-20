@@ -3,10 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import com.fasterxml.jackson.annotation.JsonCreator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.util.requireXor
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 
 data class Cas3Application(
   val id: UUID,
+  val createdAt: OffsetDateTime,
   val applicationStatus: Cas3ApplicationStatus,
   val submittedApplication: Cas3SubmittedApplication?,
   val uiUrl: String,

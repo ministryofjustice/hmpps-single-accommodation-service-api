@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class DtrNotPresentRule : Rule {
-  override val description = "FAIL if DTR status is not present"
+  override val description = "FAIL if the DTR status is missing"
 
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,

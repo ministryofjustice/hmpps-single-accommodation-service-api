@@ -39,6 +39,42 @@ class UserServiceTest {
   lateinit var userService: UserService
 
   @Nested
+  inner class GetStaffNameFromUsername {
+    private val username = "SOMEPERSON"
+
+    @Test
+    fun `returns Delius staff display name`() {
+      val user = buildUserEntity(
+        username = username,
+        forename = "Some",
+        surname = "Person",
+        authSource = AuthSource.DELIUS,
+      )
+      every {
+        userRepository.findByUsernameAndAuthSource(Username(username), AuthSource.DELIUS)
+      } returns user
+
+      val result = userService.getStaffNameFromUsername(username)
+
+      assertThat(result).isEqualTo("Some Person")
+      verify(exactly = 1) {
+        userRepository.findByUsernameAndAuthSource(Username(username), AuthSource.DELIUS)
+      }
+    }
+
+    @Test
+    fun `returns null when Delius user no longer exists`() {
+      every {
+        userRepository.findByUsernameAndAuthSource(Username(username), AuthSource.DELIUS)
+      } returns null
+
+      val result = userService.getStaffNameFromUsername(username)
+
+      assertThat(result).isNull()
+    }
+  }
+
+  @Nested
   inner class GetAndUpsertDeliusUser {
     private val username = Username("SOMEPERSON")
 

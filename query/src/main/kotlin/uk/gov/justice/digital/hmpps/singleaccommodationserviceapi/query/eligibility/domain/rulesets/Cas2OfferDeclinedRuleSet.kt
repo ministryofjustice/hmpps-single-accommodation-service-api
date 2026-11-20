@@ -7,13 +7,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2OfferDeclinedRuleSet(
-  cas2NotOfferDeclined: Cas2NotOfferDeclinedRule,
+  notOfferDeclined: Cas2NotOfferDeclinedRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(
-    cas2NotOfferDeclined,
+    notOfferDeclined,
   )
 
-  override val name: String = "PASS if the CAS2 assessment status is Offer Declined"
+  override val name: String = "PASS if the CAS2 assessment status is 'Offer Declined'"
 
   override fun getRules(): List<Rule> = rules
 }

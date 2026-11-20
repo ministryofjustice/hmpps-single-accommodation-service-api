@@ -36,7 +36,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseListType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListEntryRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
@@ -66,6 +68,9 @@ class CaseQueryServiceTest {
   lateinit var caseRepository: CaseRepository
 
   @MockK
+  lateinit var userCaseListEntryRepository: UserCaseListEntryRepository
+
+  @MockK
   lateinit var limitedAccessService: LimitedAccessService
 
   lateinit var caseQueryService: CaseQueryService
@@ -76,9 +81,13 @@ class CaseQueryServiceTest {
       caseOrchestrationService = caseOrchestrationService,
       limitedAccessService = limitedAccessService,
       userService = userService,
+      userCaseListEntryRepository = userCaseListEntryRepository,
       caseRepository = caseRepository,
       clock = clock,
     )
+    every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
+    every { userCaseListEntryRepository.findLatestCrnsBySasUserIdAndListType(any(), CaseListType.CUSTOM) } returns emptyList()
+    every { userCaseListEntryRepository.findCustomListCrnsBySasUserId(any()) } returns emptySet()
     every { limitedAccessService.throwIfUserAccessFailed(any()) } just runs
   }
 
@@ -213,6 +222,7 @@ class CaseQueryServiceTest {
       assignedTo = null,
       userAccess = UserAccess.LIMITED,
       limitedAccess = true,
+      inUsersCustomList = false,
     )
 
     private fun getCaseDtos(
@@ -298,6 +308,7 @@ class CaseQueryServiceTest {
             currentAccommodation = currentAccommodation,
           ),
           teamCode = "TeamX",
+          inUsersCustomList = false,
         ),
       )
     }
@@ -333,6 +344,7 @@ class CaseQueryServiceTest {
           userAccess = UserAccess.FULL,
           limitedAccess = false,
           teamCode = "TeamX",
+          inUsersCustomList = false,
         ),
       )
     }
@@ -460,6 +472,7 @@ class CaseQueryServiceTest {
           tier = caseOrchestrationDto.tier,
           sexualOffenceRegistrations = caseOrchestrationDto.sexualOffenceRegistrations,
           userAccess = UserAccess.FULL,
+          inUsersCustomList = false,
         ),
       )
       assertThat(result.upstreamFailures).isEmpty()
@@ -483,7 +496,7 @@ class CaseQueryServiceTest {
 
       val result = caseQueryService.getCase(crnOne)
 
-      assertThat(result.data).isEqualTo(CaseDto(crn = crnOne, userAccess = UserAccess.LIMITED, limitedAccess = true))
+      assertThat(result.data).isEqualTo(CaseDto(crn = crnOne, userAccess = UserAccess.LIMITED, limitedAccess = true, inUsersCustomList = false))
     }
 
     @Test
@@ -512,7 +525,7 @@ class CaseQueryServiceTest {
 
       val result = caseQueryService.getCase(crnOne)
 
-      assertThat(result.data).isEqualTo(CaseDto(crn = crnOne, userAccess = UserAccess.LIMITED, limitedAccess = true))
+      assertThat(result.data).isEqualTo(CaseDto(crn = crnOne, userAccess = UserAccess.LIMITED, limitedAccess = true, inUsersCustomList = false))
     }
 
     @Test
@@ -521,7 +534,7 @@ class CaseQueryServiceTest {
 
       val result = caseQueryService.getCase(crnOne)
 
-      assertThat(result.data).isEqualTo(CaseDto(crn = crnOne, userAccess = UserAccess.UNKNOWN, limitedAccess = null))
+      assertThat(result.data).isEqualTo(CaseDto(crn = crnOne, userAccess = UserAccess.UNKNOWN, limitedAccess = null, inUsersCustomList = false))
     }
 
     private fun stubGetCase(

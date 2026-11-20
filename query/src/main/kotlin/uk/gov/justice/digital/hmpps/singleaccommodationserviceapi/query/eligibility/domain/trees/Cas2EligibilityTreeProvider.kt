@@ -15,21 +15,22 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2AwaitingArrivalRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2CancelledRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2MarkedAsArrivedRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2MoreInformationNeededRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2MoreInformationRequestedRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2OfferAcceptedRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2OfferDeclinedRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2OnWaitingListRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2PlaceOfferedRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2PresentRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.Cas2SubmittedRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.CurrentAccommodationEligibleForCas2RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.CurrentAccommodationNotCas2Cas3OrCommunityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.HasRoshLevelRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.LeavingWithin15DaysRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NoNextAccommodationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.NotInPrisonWithoutReleaseDateRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.PersonEligibleRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ReleaseDateEligibleRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.ReleaseWithin15DaysRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.RoshEligibleRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DecisionTreeBuilder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeInfo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
@@ -37,33 +38,39 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas2EligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
-  private val releaseWithin15Days: ReleaseWithin15DaysRuleSet,
-  private val upcomingContextUpdater: Cas2UpcomingContextUpdater,
-  private val activeAssessmentRuleSet: Cas2ActiveRuleSet,
-  private val personEligible: PersonEligibleRuleSet,
-  private val releaseDateEligible: ReleaseDateEligibleRuleSet,
-  private val currentAccommodationEligible: CurrentAccommodationEligibleForCas2RuleSet,
-  private val noNextAccommodation: NoNextAccommodationRuleSet,
-  private val roshEligible: RoshEligibleRuleSet,
-  private val awaitingArrivalRuleSet: Cas2AwaitingArrivalRuleSet,
-  private val markedAsArrivedRuleSet: Cas2MarkedAsArrivedRuleSet,
-  private val placeOfferedRuleSet: Cas2PlaceOfferedRuleSet,
-  private val offerAcceptedRuleSet: Cas2OfferAcceptedRuleSet,
-  private val onWaitingListRuleSet: Cas2OnWaitingListRuleSet,
-  private val moreInformationNeededRuleSet: Cas2MoreInformationNeededRuleSet,
-  private val presentRuleSet: Cas2PresentRuleSet,
-  private val assessedRuleSet: Cas2AssessedRuleSet,
-  private val submittedRuleSet: Cas2SubmittedRuleSet,
-  private val notStartedContextUpdater: Cas2NotStartedContextUpdater,
-  private val notSubmittedContextUpdater: Cas2NotSubmittedContextUpdater,
-  private val cancelledContextUpdater: Cas2CancelledContextUpdater,
-  private val withdrawnContextUpdater: Cas2WithdrawnContextUpdater,
-  private val offerDeclinedContextUpdater: Cas2OfferDeclinedContextUpdater,
-  private val offerDeclinedRuleSet: Cas2OfferDeclinedRuleSet,
-  private val cancelledRuleSet: Cas2CancelledRuleSet,
+  private val leavingWithin15DaysRuleSet: LeavingWithin15DaysRuleSet,
+  private val cas2UpcomingContextUpdater: Cas2UpcomingContextUpdater,
+  private val cas2ActiveRuleSet: Cas2ActiveRuleSet,
+  private val personEligibleRuleSet: PersonEligibleRuleSet,
+  private val notInPrisonWithoutReleaseDateRuleSet: NotInPrisonWithoutReleaseDateRuleSet,
+  private val currentAccommodationNotCas2Cas3OrCommunityRuleSet: CurrentAccommodationNotCas2Cas3OrCommunityRuleSet,
+  private val noNextAccommodationRuleSet: NoNextAccommodationRuleSet,
+  private val hasRoshLevelRuleSet: HasRoshLevelRuleSet,
+  private val cas2AwaitingArrivalRuleSet: Cas2AwaitingArrivalRuleSet,
+  private val cas2MarkedAsArrivedRuleSet: Cas2MarkedAsArrivedRuleSet,
+  private val cas2PlaceOfferedRuleSet: Cas2PlaceOfferedRuleSet,
+  private val cas2OfferAcceptedRuleSet: Cas2OfferAcceptedRuleSet,
+  private val cas2OnWaitingListRuleSet: Cas2OnWaitingListRuleSet,
+  private val cas2MoreInformationRequestedRuleSet: Cas2MoreInformationRequestedRuleSet,
+  private val cas2PresentRuleSet: Cas2PresentRuleSet,
+  private val cas2AssessedRuleSet: Cas2AssessedRuleSet,
+  private val cas2SubmittedRuleSet: Cas2SubmittedRuleSet,
+  private val cas2NotStartedContextUpdater: Cas2NotStartedContextUpdater,
+  private val cas2NotSubmittedContextUpdater: Cas2NotSubmittedContextUpdater,
+  private val cas2CancelledContextUpdater: Cas2CancelledContextUpdater,
+  private val cas2WithdrawnContextUpdater: Cas2WithdrawnContextUpdater,
+  private val cas2OfferDeclinedContextUpdater: Cas2OfferDeclinedContextUpdater,
+  private val cas2OfferDeclinedRuleSet: Cas2OfferDeclinedRuleSet,
+  private val cas2CancelledRuleSet: Cas2CancelledRuleSet,
 ) : EligibilityTreeProvider {
 
   private val tree: DecisionNode by lazy { build() }
+
+  override val treeInfo = EligibilityTreeInfo(
+    fullName = "Community Accommodation Tier 2 – ISR",
+    description = "Works out whether the person is eligible for CAS2 (ISR) accommodation and where they are in the process, from application through assessment, offer and arrival.",
+    displayOrder = 2,
+  )
 
   override fun tree(): DecisionNode = tree
 
@@ -99,112 +106,112 @@ class Cas2EligibilityTreeProvider(
     val submitted = builder.outcome(
       ServiceResultNew(ServiceStatusNew.CAS2_SUBMITTED),
     )
-    val roshEligibleNode = builder
-      .ruleSet(roshEligible)
+    val hasRoshLevelRuleSetNode = builder
+      .ruleSet(hasRoshLevelRuleSet)
       .onPass(confirmed)
       .onFail(notEligible)
       .build()
 
-    val noNextAccommodationNode = builder
-      .ruleSet(noNextAccommodation)
-      .onPass(roshEligibleNode)
+    val noNextAccommodationRuleSetNode = builder
+      .ruleSet(noNextAccommodationRuleSet)
+      .onPass(hasRoshLevelRuleSetNode)
       .onFail(notEligible)
       .build()
 
-    val currentAccommodationEligibleNode = builder
-      .ruleSet(currentAccommodationEligible)
-      .onPass(noNextAccommodationNode)
+    val currentAccommodationNotCas2Cas3OrCommunityRuleSetNode = builder
+      .ruleSet(currentAccommodationNotCas2Cas3OrCommunityRuleSet)
+      .onPass(noNextAccommodationRuleSetNode)
       .onFail(notEligible)
       .build()
 
-    val releaseDateEligibleNode = builder
-      .ruleSet(releaseDateEligible)
-      .onPass(currentAccommodationEligibleNode)
+    val notInPrisonWithoutReleaseDateRuleSetNode = builder
+      .ruleSet(notInPrisonWithoutReleaseDateRuleSet)
+      .onPass(currentAccommodationNotCas2Cas3OrCommunityRuleSetNode)
       .onFail(notEligible)
       .build()
 
-    val personEligibleNode = builder
-      .ruleSet(personEligible)
-      .onPass(releaseDateEligibleNode)
+    val personEligibleRuleSetNode = builder
+      .ruleSet(personEligibleRuleSet)
+      .onPass(notInPrisonWithoutReleaseDateRuleSetNode)
       .onFail(notEligible)
       .build()
 
-    val moreInformationNeededRuleSetNode = builder
-      .ruleSet(moreInformationNeededRuleSet)
+    val cas2MoreInformationRequestedRuleSetNode = builder
+      .ruleSet(cas2MoreInformationRequestedRuleSet)
       .onPass(moreInformationNeeded)
       .onFail(awaitingDecision)
       .build()
 
-    val onWaitingListRuleSetNode = builder
-      .ruleSet(onWaitingListRuleSet)
+    val cas2OnWaitingListRuleSetNode = builder
+      .ruleSet(cas2OnWaitingListRuleSet)
       .onPass(onWaitingList)
-      .onFail(moreInformationNeededRuleSetNode)
+      .onFail(cas2MoreInformationRequestedRuleSetNode)
       .build()
 
-    val placeOfferedRuleSetNode = builder
-      .ruleSet(placeOfferedRuleSet)
+    val cas2PlaceOfferedRuleSetNode = builder
+      .ruleSet(cas2PlaceOfferedRuleSet)
       .onPass(placeOffered)
-      .onFail(onWaitingListRuleSetNode)
+      .onFail(cas2OnWaitingListRuleSetNode)
       .build()
 
-    val offerAcceptedRuleSetNode = builder
-      .ruleSet(offerAcceptedRuleSet)
+    val cas2OfferAcceptedRuleSetNode = builder
+      .ruleSet(cas2OfferAcceptedRuleSet)
       .onPass(offerAccepted)
-      .onFail(placeOfferedRuleSetNode)
+      .onFail(cas2PlaceOfferedRuleSetNode)
       .build()
 
-    val awaitingArrivalRuleSetNode = builder
-      .ruleSet(awaitingArrivalRuleSet)
+    val cas2AwaitingArrivalRuleSetNode = builder
+      .ruleSet(cas2AwaitingArrivalRuleSet)
       .onPass(awaitingArrival)
-      .onFail(offerAcceptedRuleSetNode)
+      .onFail(cas2OfferAcceptedRuleSetNode)
       .build()
 
-    val markedAsArrivedRuleSetNode = builder
-      .ruleSet(markedAsArrivedRuleSet)
+    val cas2MarkedAsArrivedRuleSetNode = builder
+      .ruleSet(cas2MarkedAsArrivedRuleSet)
       .onPass(arrived)
-      .onFail(awaitingArrivalRuleSetNode)
+      .onFail(cas2AwaitingArrivalRuleSetNode)
       .build()
 
-    val cancelledRuleSetNode = builder
-      .ruleSet(cancelledRuleSet)
-      .onPass(personEligibleNode).applyContextUpdaterOnPass(cancelledContextUpdater)
-      .onFail(personEligibleNode).applyContextUpdaterOnFailure(withdrawnContextUpdater)
+    val cas2CancelledRuleSetNode = builder
+      .ruleSet(cas2CancelledRuleSet)
+      .onPass(personEligibleRuleSetNode).applyContextUpdaterOnPass(cas2CancelledContextUpdater)
+      .onFail(personEligibleRuleSetNode).applyContextUpdaterOnFailure(cas2WithdrawnContextUpdater)
       .build()
 
-    val offerDeclinedRuleSetNode = builder
-      .ruleSet(offerDeclinedRuleSet)
-      .onPass(personEligibleNode).applyContextUpdaterOnPass(offerDeclinedContextUpdater)
-      .onFail(cancelledRuleSetNode)
+    val cas2OfferDeclinedRuleSetNode = builder
+      .ruleSet(cas2OfferDeclinedRuleSet)
+      .onPass(personEligibleRuleSetNode).applyContextUpdaterOnPass(cas2OfferDeclinedContextUpdater)
+      .onFail(cas2CancelledRuleSetNode)
       .build()
 
-    val activeAssessmentNode = builder
-      .ruleSet(activeAssessmentRuleSet)
-      .onPass(markedAsArrivedRuleSetNode)
-      .onFail(offerDeclinedRuleSetNode)
+    val cas2ActiveRuleSetNode = builder
+      .ruleSet(cas2ActiveRuleSet)
+      .onPass(cas2MarkedAsArrivedRuleSetNode)
+      .onFail(cas2OfferDeclinedRuleSetNode)
       .build()
 
-    val assessedRuleSetNode = builder
-      .ruleSet(assessedRuleSet)
-      .onPass(activeAssessmentNode)
+    val cas2AssessedRuleSetNode = builder
+      .ruleSet(cas2AssessedRuleSet)
+      .onPass(cas2ActiveRuleSetNode)
       .onFail(submitted)
       .build()
 
-    val submittedRuleSetNode = builder
-      .ruleSet(submittedRuleSet)
-      .onPass(assessedRuleSetNode)
-      .onFail(personEligibleNode).applyContextUpdaterOnFailure(notSubmittedContextUpdater)
+    val cas2SubmittedRuleSetNode = builder
+      .ruleSet(cas2SubmittedRuleSet)
+      .onPass(cas2AssessedRuleSetNode)
+      .onFail(personEligibleRuleSetNode).applyContextUpdaterOnFailure(cas2NotSubmittedContextUpdater)
       .build()
 
-    val presentRuleSetNode = builder
-      .ruleSet(presentRuleSet)
-      .onPass(submittedRuleSetNode)
-      .onFail(personEligibleNode).applyContextUpdaterOnFailure(notStartedContextUpdater)
+    val cas2PresentRuleSetNode = builder
+      .ruleSet(cas2PresentRuleSet)
+      .onPass(cas2SubmittedRuleSetNode)
+      .onFail(personEligibleRuleSetNode).applyContextUpdaterOnFailure(cas2NotStartedContextUpdater)
       .build()
 
     return builder
-      .ruleSet(releaseWithin15Days)
-      .onPass(presentRuleSetNode)
-      .onFail(personEligibleNode).applyContextUpdaterOnFailure(upcomingContextUpdater)
+      .ruleSet(leavingWithin15DaysRuleSet)
+      .onPass(cas2PresentRuleSetNode)
+      .onFail(personEligibleRuleSetNode).applyContextUpdaterOnFailure(cas2UpcomingContextUpdater)
       .build()
   }
 }

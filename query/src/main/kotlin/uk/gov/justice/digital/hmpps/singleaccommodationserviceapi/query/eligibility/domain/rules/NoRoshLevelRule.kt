@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class NoRoshLevelRule : Rule {
-  override val description = "FAIL if person has no ROSH level"
+  override val description = "FAIL if the person has no ROSH level"
   override val failureReason = FailureReason.HAS_NO_ROSH_LEVEL
 
   override fun evaluate(data: DomainData): RuleResult {

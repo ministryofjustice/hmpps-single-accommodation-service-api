@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 
 class HasSexualOffenceRegistrationsRuleTest {
   private val rule = HasSexualOffenceRegistrationsRule()
-  private val description = "FAIL if person has sexual offence registrations."
+  private val description = "FAIL if the person has sexual offence registrations"
 
   @ParameterizedTest
   @ValueSource(ints = [1, 2])

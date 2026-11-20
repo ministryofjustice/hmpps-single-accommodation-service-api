@@ -7,9 +7,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2ActiveRuleSet(
-  cas2NotActive: Cas2NotActiveRule,
+  notActive: Cas2NotActiveRule,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(cas2NotActive)
+  private val rules: List<Rule> = listOf(notActive)
   override val name: String = "PASS if the CAS2 assessment status is active"
   override fun getRules(): List<Rule> = rules
 }

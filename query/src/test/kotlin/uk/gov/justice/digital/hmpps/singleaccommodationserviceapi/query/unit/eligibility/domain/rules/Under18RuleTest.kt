@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.Mu
 import java.time.LocalDate
 
 class Under18RuleTest {
-  private val description = "FAIL if person is under 18 years old"
+  private val description = "FAIL if the person is under 18 years old"
   private val clock = MutableClock()
 
   @Test

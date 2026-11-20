@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2NotActiveRule : Rule {
-  override val description = "FAIL if assessment is inactive"
+  override val description = "FAIL if the CAS2 assessment status is not active"
 
   override fun evaluate(data: DomainData): RuleResult {
     val activeStatuses = listOf(
@@ -21,7 +21,7 @@ class Cas2NotActiveRule : Rule {
       Cas2AssessmentStatus.AWAITING_ARRIVAL,
     )
 
-    val isFail = data.cas2Application?.submittedApplication?.latestAssessmentStatus !in activeStatuses
+    val isFail = data.cas2Application?.application?.submittedApplication?.latestAssessmentStatus !in activeStatuses
 
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 

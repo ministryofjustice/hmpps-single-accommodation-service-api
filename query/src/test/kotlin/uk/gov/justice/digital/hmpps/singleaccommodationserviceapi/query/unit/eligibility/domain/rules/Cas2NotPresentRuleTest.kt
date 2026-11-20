@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas2NotPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas2NotPresentRuleTest {
@@ -17,8 +18,10 @@ class Cas2NotPresentRuleTest {
   fun `submitted application present passes`() {
     val result = rule.evaluate(
       buildDomainData(
-        cas2Application = buildCas2Application(
-          submittedApplication = buildCas2SubmittedApplicationSummary(),
+        cas2Application = buildCas2ApplicationDomainData(
+          application = buildCas2Application(
+            submittedApplication = buildCas2SubmittedApplicationSummary(),
+          ),
         ),
       ),
     )
@@ -29,7 +32,7 @@ class Cas2NotPresentRuleTest {
   @Test
   fun `application present without submission passes`() {
     val result = rule.evaluate(
-      buildDomainData(cas2Application = buildCas2Application(submittedApplication = null)),
+      buildDomainData(cas2Application = buildCas2ApplicationDomainData(buildCas2Application(submittedApplication = null))),
     )
 
     assertThat(result).isEqualTo(RuleResult(description, RuleStatus.PASS))

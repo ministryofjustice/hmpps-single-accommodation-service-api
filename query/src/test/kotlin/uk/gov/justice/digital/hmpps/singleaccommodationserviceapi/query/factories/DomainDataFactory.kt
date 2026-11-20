@@ -11,8 +11,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.RoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas1ApplicationDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 import java.time.LocalDate
 
@@ -26,7 +28,7 @@ fun buildDomainData(
   currentAccommodationTypeEntity: AccommodationTypeEntity? = null,
   nextAccommodations: List<AccommodationSummaryDto> = emptyList(),
   cas1Application: Cas1ApplicationDomainData? = null,
-  cas2Application: Cas2Application? = null,
+  cas2Application: Cas2ApplicationDomainData? = null,
   cas3Application: Cas3Application? = null,
   dutyToRefer: DutyToReferDto? = null,
   commissionedRehabilitativeServices: CommissionedRehabilitativeServices? = null,
@@ -56,4 +58,12 @@ fun buildCas1ApplicationDomainData(
   application = application,
   currentOutcome = currentOutcome,
   historyExcludingCurrentOutcome = historyExcludingCurrentOutcome,
+)
+
+fun buildCas2ApplicationDomainData(
+  application: Cas2Application = buildCas2Application(),
+  staffNameMarkedAsArrived: String? = null,
+) = Cas2ApplicationDomainData(
+  application = application,
+  staffNameMarkedAsArrived = staffNameMarkedAsArrived,
 )

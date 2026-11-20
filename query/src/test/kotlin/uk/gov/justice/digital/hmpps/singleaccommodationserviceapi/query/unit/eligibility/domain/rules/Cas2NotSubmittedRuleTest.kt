@@ -7,17 +7,20 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas2NotSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.OffsetDateTime
 
 class Cas2NotSubmittedRuleTest {
-  private val description = "FAIL if the referral is unsubmitted"
+  private val description = "FAIL if the CAS2 application has not been submitted"
 
   @Test
   fun `application is submitted so rule passes`() {
     val data = buildDomainData(
-      cas2Application = buildCas2Application(
-        submittedApplication = buildCas2SubmittedApplicationSummary(submittedAt = OffsetDateTime.now()),
+      cas2Application = buildCas2ApplicationDomainData(
+        application = buildCas2Application(
+          submittedApplication = buildCas2SubmittedApplicationSummary(submittedAt = OffsetDateTime.now()),
+        ),
       ),
     )
 
@@ -34,8 +37,10 @@ class Cas2NotSubmittedRuleTest {
   @Test
   fun `application is unsubmitted so rule fails`() {
     val data = buildDomainData(
-      cas2Application = buildCas2Application(
-        submittedApplication = null,
+      cas2Application = buildCas2ApplicationDomainData(
+        application = buildCas2Application(
+          submittedApplication = null,
+        ),
       ),
     )
 

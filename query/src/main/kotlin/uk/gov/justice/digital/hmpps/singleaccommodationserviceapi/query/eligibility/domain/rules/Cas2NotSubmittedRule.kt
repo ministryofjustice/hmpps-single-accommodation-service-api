@@ -8,10 +8,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2NotSubmittedRule : Rule {
-  override val description = "FAIL if the referral is unsubmitted"
+  override val description = "FAIL if the CAS2 application has not been submitted"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.cas2Application?.submittedApplication?.submittedAt == null
+    val isFail = data.cas2Application?.application?.submittedApplication?.submittedAt == null
 
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 

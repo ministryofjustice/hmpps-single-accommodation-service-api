@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas1WithdrawnRequestRuleTest {
-  private val description = "FAIL if request for placement is withdrawn"
+  private val description = "FAIL if the CAS1 request for placement status is 'Withdrawn'"
 
   @Test
   fun `withdrawn request for placement fails`() {

@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas1DepartedPlacementRuleTest {
-  private val description = "FAIL if current placement is departed"
+  private val description = "FAIL if the CAS1 placement status is 'Departed'"
 
   @Test
   fun `departed placement fails`() {

@@ -23,6 +23,7 @@ fun buildCaseDto(
   limitedAccess: Boolean = false,
   accommodationSummaries: AccommodationSummariesDto? = null,
   teamCode: String? = null,
+  inUsersCustomList: Boolean = false,
 ) = CaseDto(
   forename = forename,
   middleNames = middleNames,
@@ -39,6 +40,7 @@ fun buildCaseDto(
   limitedAccess = limitedAccess,
   accommodationSummaries = accommodationSummaries,
   teamCode = teamCode,
+  inUsersCustomList = inUsersCustomList,
 )
 
 fun buildAssignedToDto(

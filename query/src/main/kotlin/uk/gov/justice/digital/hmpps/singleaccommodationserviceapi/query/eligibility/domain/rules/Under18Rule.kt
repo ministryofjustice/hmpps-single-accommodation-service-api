@@ -11,7 +11,7 @@ import java.time.LocalDate
 
 @Component
 class Under18Rule(val clock: Clock) : Rule {
-  override val description = "FAIL if person is under 18 years old"
+  override val description = "FAIL if the person is under 18 years old"
   override val failureReason = FailureReason.UNDER_18
 
   override fun evaluate(data: DomainData): RuleResult {

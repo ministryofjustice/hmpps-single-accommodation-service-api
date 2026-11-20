@@ -2,10 +2,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 
 data class Cas3ApplicationDto(
   val id: UUID,
+  val createdAt: OffsetDateTime,
   val applicationStatus: Cas3ApplicationStatus,
   val applicationSubmittedDate: LocalDate?,
   val applicationSubmittedBy: Cas3StaffDto?,

@@ -25,7 +25,8 @@ fun expectedGetCaseResponse(): String = """
     "limitedAccess": false,
     "sexualOffenceRegistrations": ["ARSO"],
     "accommodationSummaries": null,
-    "teamCode": null
+    "teamCode": null,
+    "inUsersCustomList": false
   }
 }
 """.trimIndent()

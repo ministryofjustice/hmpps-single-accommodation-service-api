@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCaseListEntryRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
@@ -27,6 +28,7 @@ class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
   private val limitedAccessService: LimitedAccessService,
   private val userService: UserService,
+  private val userCaseListEntryRepository: UserCaseListEntryRepository,
   private val caseRepository: CaseRepository,
   private val clock: Clock,
 ) {
@@ -58,6 +60,7 @@ class CaseQueryService(
     username: String?,
   ): List<CaseDto> {
     val caseEntitiesByCrn = caseRepository.mapByCrns(cases.map { it.case.crn })
+    val customListCrns = userCaseListEntryRepository.findCustomListCrnsBySasUserId(userService.authorizeAndRetrieveUser().id)
 
     return cases.map { (case, userAccess) ->
       val entity = caseEntitiesByCrn[case.crn]
@@ -72,6 +75,7 @@ class CaseQueryService(
             assignedTo = assignedTo,
             limitedAccess = case.limitedAccess ?: false,
             teamCode = case.team.code,
+            inUsersCustomList = case.crn in customListCrns,
           )
         }
 
@@ -79,6 +83,7 @@ class CaseQueryService(
           case.crn,
           teamCode = case.team.code,
           assignedTo = assignedTo,
+          inUsersCustomList = case.crn in customListCrns,
         )
       }
     }.filterCases(
@@ -99,6 +104,8 @@ class CaseQueryService(
     hasMandatoryCaseData(orchestrationResult)
     limitedAccessService.throwIfUserAccessFailed(orchestrationResult.upstreamFailures)
 
+    val customListCrns = userCaseListEntryRepository.findCustomListCrnsBySasUserId(user.id)
+
     val caseOrchestrationDto = orchestrationResult.data
     val data = toCaseDto(
       crn,
@@ -107,6 +114,7 @@ class CaseQueryService(
       caseOrchestrationDto.tier,
       caseOrchestrationDto.sexualOffenceRegistrations,
       caseOrchestrationDto.getUserAccess(),
+      inUsersCustomList = crn in customListCrns,
     ).obfuscateIfLimitedAccess()
     return toApiResponseDto(data = data, upstreamFailures = orchestrationResult.upstreamFailures)
   }

@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2AssessmentStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2CohortDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2MarkedAsArrivedDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2SubmittedApplicationSummaryDto
@@ -47,10 +48,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummaryV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2MarkedAsArrived
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Staff
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBookingCancellation
@@ -60,6 +60,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.statusLastUpdated
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas1ApplicationDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as Cas1ApplicationStatusInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus as Cas1PlacementStatusInfra
@@ -210,6 +211,7 @@ object EligibilityTransformer {
 
     Cas3ApplicationDto(
       id = application.id,
+      createdAt = application.createdAt,
       applicationStatus = toCas3ApplicationStatus(application.applicationStatus),
       assessmentStatus = toCas3AssessmentStatus(submittedApplication?.assessmentStatus),
       bookingStatus = toCas3BookingStatus(latestBooking?.status),
@@ -250,15 +252,15 @@ object EligibilityTransformer {
   }
 
   private fun toCas2ApplicationDto(
-    cas2Application: Cas2Application?,
+    cas2Application: Cas2ApplicationDomainData?,
   ) = cas2Application?.let { application ->
     Cas2ApplicationDto(
-      uiUrl = application.uiUrl,
-      id = application.id,
-      submittedApplication = toCas2SubmittedApplicationSummaryDto(application.submittedApplication),
-      createdAt = application.createdAt,
-      createdBy = toCas2StaffDto(application.createdBy),
-      cohort = toCas2CohortDto(application.cohort),
+      uiUrl = application.application.uiUrl,
+      id = application.application.id,
+      submittedApplication = toCas2SubmittedApplicationSummaryDto(application),
+      createdAt = application.application.createdAt,
+      createdBy = toCas2StaffDto(application.application.createdBy),
+      cohort = toCas2CohortDto(application.application.cohort),
     )
   }
 
@@ -368,14 +370,25 @@ object EligibilityTransformer {
   )
 
   private fun toCas2SubmittedApplicationSummaryDto(
-    submittedApplication: Cas2SubmittedApplicationSummary?,
-  ) = submittedApplication?.let {
+    cas2Application: Cas2ApplicationDomainData?,
+  ) = cas2Application?.application?.submittedApplication?.let {
     Cas2SubmittedApplicationSummaryDto(
       submittedAt = it.submittedAt,
       latestAssessmentStatus = toCas2AssessmentStatusDto(it.latestAssessmentStatus),
       offerDeclinedReason = it.offerDeclinedReason,
       cancelledReason = it.cancelledReason,
-      markedAsArrivedDateTime = it.markedAsArrivedDateTime,
+      markedAsArrived = toCas2MarkedAsArrivedDto(it.markedAsArrived, cas2Application.staffNameMarkedAsArrived),
+    )
+  }
+
+  private fun toCas2MarkedAsArrivedDto(
+    markedAsArrived: Cas2MarkedAsArrived?,
+    staffNameMarkedAsArrived: String?,
+  ) = markedAsArrived?.let {
+    Cas2MarkedAsArrivedDto(
+      dateTime = it.dateTime,
+      arrivedByUsername = it.arrivedByUsername,
+      arrivedByName = staffNameMarkedAsArrived,
     )
   }
 

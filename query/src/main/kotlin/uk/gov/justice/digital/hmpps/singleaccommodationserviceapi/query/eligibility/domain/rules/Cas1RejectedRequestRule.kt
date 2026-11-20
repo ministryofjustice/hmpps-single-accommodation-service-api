@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas1RejectedRequestRule : Rule {
-  override val description = "FAIL if request for placement is rejected"
+  override val description = "FAIL if the CAS1 request for placement status is 'Rejected'"
 
   override fun evaluate(data: DomainData): RuleResult {
     val isFail = data.cas1Application?.currentOutcome?.requestForPlacement?.status == Cas1RequestForPlacementStatus.REQUEST_REJECTED

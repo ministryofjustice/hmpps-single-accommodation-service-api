@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1RequestForPlacementSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas2ApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas2MarkedAsArrivedDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas2StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas2SubmittedApplicationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ApplicationDto
@@ -51,6 +52,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummaryV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2MarkedAsArrived
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBooking
@@ -67,6 +69,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityTransformer.toNotRequiredServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResultNew
@@ -75,6 +78,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDtoNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
+import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -211,6 +215,45 @@ class EligibilityTransformerTest {
 
       assertThat(result).isEqualTo(expectedServiceResultOrder)
     }
+  }
+
+  @Test
+  fun `transforms CAS2 arrival details including the resolved staff name`() {
+    val dateTime = Instant.parse("2026-11-10T12:00:00Z")
+    val arrivedByUsername = "ARRIVED_BY"
+    val arrivedByName = "Arrived By"
+    val cas2Application = buildCas2Application(
+      submittedApplication = buildCas2SubmittedApplicationSummary(
+        latestAssessmentStatus = Cas2AssessmentStatus.AWAITING_ARRIVAL,
+        markedArrived = buildCas2MarkedAsArrived(
+          dateTime = dateTime,
+          arrivedByUsername = arrivedByUsername,
+        ),
+      ),
+    )
+    val data = buildDomainData(
+      cas2Application = buildCas2ApplicationDomainData(cas2Application, staffNameMarkedAsArrived = arrivedByName),
+    )
+
+    val result = toEligibilityDto(
+      crn = "CRN123",
+      cas1 = buildServiceResultNew(),
+      cas2 = buildServiceResultNew(),
+      cas3 = buildServiceResultNew(),
+      dtr = buildServiceResultNew(),
+      crs = buildServiceResultNew(),
+      pa = buildServiceResultNew(),
+      data = data,
+    )
+
+    assertThat(result.cas2.cas2Application?.submittedApplication?.markedAsArrived)
+      .isEqualTo(
+        buildCas2MarkedAsArrivedDto(
+          dateTime = dateTime,
+          arrivedByUsername = arrivedByUsername,
+          arrivedByName = arrivedByName,
+        ),
+      )
   }
 
   @Test
@@ -454,6 +497,7 @@ class EligibilityTransformerTest {
     val cas3ApplicationDto = buildCas3ApplicationDto(
       applicationStatus = Cas3ApplicationStatus.SUBMITTED,
       id = cas3Application.id,
+      createdAt = cas3Application.createdAt,
       applicationSubmittedDate = LocalDate.parse("2023-01-01"),
       applicationSubmittedBy = buildCas3StaffDto(),
       applicationRejectedReason = "Problem with application",
@@ -493,7 +537,7 @@ class EligibilityTransformerTest {
         currentOutcome = cas1Application.submittedApplication!!.upcomingRequestForPlacement,
         historyExcludingCurrentOutcome = cas1Application.submittedApplication!!.requestForPlacementHistory,
       ),
-      cas2Application = cas2Application,
+      cas2Application = buildCas2ApplicationDomainData(cas2Application),
       cas3Application = cas3Application,
       dutyToRefer = dutyToReferDto,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,

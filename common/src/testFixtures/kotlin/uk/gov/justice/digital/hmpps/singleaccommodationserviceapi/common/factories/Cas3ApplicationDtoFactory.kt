@@ -9,10 +9,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3PremisesSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3StaffDto
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 
 fun buildCas3ApplicationDto(
   id: UUID = UUID.randomUUID(),
+  createdAt: OffsetDateTime = OffsetDateTime.now(),
   applicationStatus: Cas3ApplicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
   assessmentStatus: Cas3AssessmentStatus? = null,
   bookingStatus: Cas3BookingStatus? = null,
@@ -26,6 +28,7 @@ fun buildCas3ApplicationDto(
   cancellation: Cas3ExternalPreviousBookingCancellationDto? = null,
 ) = Cas3ApplicationDto(
   id = id,
+  createdAt = createdAt,
   applicationStatus = applicationStatus,
   bookingStatus = bookingStatus,
   assessmentStatus = assessmentStatus,

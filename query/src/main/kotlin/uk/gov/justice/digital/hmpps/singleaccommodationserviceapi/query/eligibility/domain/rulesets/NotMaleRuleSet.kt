@@ -7,13 +7,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class NotMaleRuleSet(
-  isMale: MaleRule,
+  male: MaleRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(
-    isMale,
+    male,
   )
 
-  override val name: String = "Not Male"
+  override val name: String = "PASS if the person is not Male"
 
   override fun getRules(): List<Rule> = rules
 }
