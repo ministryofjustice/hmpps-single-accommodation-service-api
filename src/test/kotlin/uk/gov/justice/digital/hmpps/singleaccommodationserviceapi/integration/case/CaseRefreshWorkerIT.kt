@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkRefreshCasesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshCompletionService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailure
@@ -39,6 +40,9 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
 
   @Autowired
   lateinit var caseRefreshWorker: CaseRefreshWorker
+
+  @Autowired
+  lateinit var adminBulkRefreshCasesService: AdminBulkRefreshCasesService
 
   @Autowired
   lateinit var caseRefreshCompletionService: CaseRefreshCompletionService
@@ -64,6 +68,51 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
   @AfterEach
   fun teardown() {
     clock.reset()
+  }
+
+  @Test
+  fun `replays only failed refresh requests and clears their retry and claim metadata`() {
+    val requests = CaseRefreshRequestStatus.entries.associateWith { status ->
+      val case = caseRepository.save(buildCaseEntity())
+      caseRefreshRequestService.requestLiveRefresh(case.id)
+      val request = caseRefreshRequestRepository.findById(case.id).orElseThrow().apply {
+        this.status = status
+        attemptCount = 5
+        nextAttemptAt = now.plusSeconds(3600)
+        failedAt = now
+        lastFailureCategory = CaseRefreshFailureCategory.UPSTREAM_TIMEOUT
+        lastFailureDetail = "Tier timed out"
+        processingGeneration = generation
+        claimedAt = now
+        claimId = UUID.randomUUID()
+      }
+      caseRefreshRequestRepository.saveAndFlush(request)
+    }
+    val result = adminBulkRefreshCasesService.replayFailedRefreshRequests().data
+
+    assertThat(result.refreshRequestsReplayed).isEqualTo(1)
+    val failedInitialRequest = requests.getValue(CaseRefreshRequestStatus.FAILED)
+    val replayedRequest = caseRefreshRequestRepository.findById(failedInitialRequest.caseId).orElseThrow()
+    assertThat(replayedRequest.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
+    assertThat(replayedRequest.nextAttemptAt).isEqualTo(now)
+    assertThat(replayedRequest.attemptCount).isZero()
+    assertThat(replayedRequest.failedAt).isNull()
+    assertThat(replayedRequest.lastFailureCategory).isNull()
+    assertThat(replayedRequest.lastFailureDetail).isNull()
+    assertThat(replayedRequest.processingGeneration).isNull()
+    assertThat(replayedRequest.claimedAt).isNull()
+    assertThat(replayedRequest.claimId).isNull()
+    assertThat(replayedRequest.generation).isEqualTo(failedInitialRequest.generation)
+    assertThat(replayedRequest.priority).isEqualTo(failedInitialRequest.priority)
+    assertThat(replayedRequest.requestedAt).isEqualTo(failedInitialRequest.requestedAt)
+
+    val unchangedRequests = requests
+      .filterKeys { it != CaseRefreshRequestStatus.FAILED }
+      .map { (_, initialRequest) -> caseRefreshRequestRepository.findById(initialRequest.caseId).orElseThrow() to initialRequest }
+    assertThat(unchangedRequests).allSatisfy { (request, initialRequest) ->
+      assertThat(request).usingRecursiveComparison().isEqualTo(initialRequest)
+    }
+    assertThat(adminBulkRefreshCasesService.replayFailedRefreshRequests().data.refreshRequestsReplayed).isZero()
   }
 
   @Test
@@ -139,6 +188,51 @@ class CaseRefreshWorkerIT : DomainEventIntegrationTestBase() {
     assertThat(request.attemptCount).isEqualTo(1)
     assertThat(request.lastFailureCategory)
       .isEqualTo(CaseRefreshFailureCategory.UPSTREAM_CLIENT_ERROR)
+  }
+
+  @Test
+  fun `deletes refresh request when core person record returns 404`() {
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
+    CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crn)
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"))
+
+    val result = caseRefreshWorker.process()
+
+    assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("A")
+    assertThat(result.refreshedCount).isZero()
+    assertThat(result.failedCount).isZero()
+    assertThat(result.caseNotFoundCount).isEqualTo(1)
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+  }
+
+  @Test
+  fun `retains a newer refresh request when core person record returns 404 during processing`() {
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
+    CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crn)
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "B"), delayMs = 200)
+
+    val workerRun = CompletableFuture.supplyAsync { caseRefreshWorker.process() }
+    waitFor {
+      assertThat(caseRefreshRequestRepository.findAll().single().status)
+        .isEqualTo(CaseRefreshRequestStatus.PROCESSING)
+    }
+
+    caseRefreshRequestService.requestLiveRefresh(case.id)
+    val result = workerRun.get(5, TimeUnit.SECONDS)
+
+    val retainedRequest = caseRefreshRequestRepository.findAll().single()
+    assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("A")
+    assertThat(result.refreshedCount).isZero()
+    assertThat(result.failedCount).isZero()
+    assertThat(result.caseNotFoundCount).isEqualTo(1)
+    assertThat(result.staleClaimCount).isZero()
+    assertThat(retainedRequest.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
+    assertThat(retainedRequest.generation).isEqualTo(2)
+    assertThat(retainedRequest.processingGeneration).isNull()
+    assertThat(retainedRequest.claimedAt).isNull()
+    assertThat(retainedRequest.claimId).isNull()
   }
 
   @Test
