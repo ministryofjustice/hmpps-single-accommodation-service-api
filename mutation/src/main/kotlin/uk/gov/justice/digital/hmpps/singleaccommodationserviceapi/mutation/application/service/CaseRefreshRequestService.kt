@@ -83,6 +83,20 @@ class CaseRefreshRequestService(
   }
 
   @Transactional
+  fun deleteOwnedRequestOrReleaseForNewerGeneration(claim: Claim): FailureDisposition = when (val request = findOwnedRequest(claim)) {
+    null -> FailureDisposition.IGNORED_STALE_CLAIM
+
+    else -> {
+      if (request.generation != claim.generation) {
+        lifecycleService.releaseForNewerGeneration(request)
+      } else {
+        caseRefreshRequestRepository.delete(request)
+      }
+      FailureDisposition.HANDLED
+    }
+  }
+
+  @Transactional
   fun recordFailure(
     claim: Claim,
     failure: CaseRefreshFailure,

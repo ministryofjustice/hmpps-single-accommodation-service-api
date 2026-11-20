@@ -18,10 +18,7 @@ class CaseRefreshProcessor(
   fun process(claim: CaseRefreshRequestService.Claim): Result = when (val loadOutcome = loadProjection(claim)) {
     is LoadOutcome.Loaded -> complete(claim, loadOutcome.projection)
     is LoadOutcome.Failed -> when (loadOutcome.failure.category) {
-      CaseRefreshFailureCategory.CORE_PERSON_RECORD_NOT_FOUND -> {
-        caseRefreshRequestService.deleteOwnedRequest(claim)
-        Result.CaseNotFound
-      }
+      CaseRefreshFailureCategory.CORE_PERSON_RECORD_NOT_FOUND -> handleMissingCorePersonRecord(claim)
       else -> recordFailure(claim, loadOutcome.failure)
     }
     LoadOutcome.CaseNotFound -> {
@@ -68,6 +65,13 @@ class CaseRefreshProcessor(
   } catch (exception: Exception) {
     log.error("Unexpected error completing Case projection refresh [caseId={}]", claim.caseId, exception)
     recordFailure(claim, failureClassifier.unexpected(exception))
+  }
+
+  private fun handleMissingCorePersonRecord(claim: CaseRefreshRequestService.Claim): Result = when (
+    caseRefreshRequestService.deleteOwnedRequestOrReleaseForNewerGeneration(claim)
+  ) {
+    CaseRefreshRequestService.FailureDisposition.HANDLED -> Result.CaseNotFound
+    CaseRefreshRequestService.FailureDisposition.IGNORED_STALE_CLAIM -> Result.IgnoredStaleClaim
   }
 
   private fun recordFailure(

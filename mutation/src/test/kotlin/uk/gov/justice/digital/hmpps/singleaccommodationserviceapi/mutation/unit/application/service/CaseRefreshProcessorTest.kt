@@ -21,14 +21,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshFailureCategory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshCompletionService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailure
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailureClassifier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshProcessor
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
-import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.*
+import java.util.*
 
 @ExtendWith(MockKExtension::class)
 class CaseRefreshProcessorTest {
@@ -65,7 +59,7 @@ class CaseRefreshProcessorTest {
   }
 
   @Test
-  fun `removes owned request when core person record is missing`() {
+  fun `removes owned request when core person record is missing and claim generation is current`() {
     val claim = CaseRefreshRequestService.Claim(UUID.randomUUID(), 1L, UUID.randomUUID(), CaseRefreshPriority.BULK)
     val caseEntity = buildCaseEntity { withCrn("X12345") }
     every { caseRepository.findWithIdentifiersById(claim.caseId) } returns caseEntity
@@ -93,12 +87,54 @@ class CaseRefreshProcessorTest {
       category = CaseRefreshFailureCategory.CORE_PERSON_RECORD_NOT_FOUND,
       detail = "getCorePersonRecordByCrn: 404 Not Found",
     )
-    every { caseRefreshRequestService.deleteOwnedRequest(claim) } just runs
+    every {
+      caseRefreshRequestService.deleteOwnedRequestOrReleaseForNewerGeneration(claim)
+    } returns CaseRefreshRequestService.FailureDisposition.HANDLED
 
     val result = processor.process(claim)
 
     assertThat(result).isEqualTo(CaseRefreshProcessor.Result.CaseNotFound)
-    verify(exactly = 1) { caseRefreshRequestService.deleteOwnedRequest(claim) }
+    verify(exactly = 1) { caseRefreshRequestService.deleteOwnedRequestOrReleaseForNewerGeneration(claim) }
+    verify(exactly = 0) { caseRefreshRequestService.recordFailure(any(), any()) }
+  }
+
+  @Test
+  fun `ignores stale claim when core person record is missing and newer generation exists`() {
+    val claim = CaseRefreshRequestService.Claim(UUID.randomUUID(), 1L, UUID.randomUUID(), CaseRefreshPriority.BULK)
+    val caseEntity = buildCaseEntity { withCrn("X12345") }
+    every { caseRepository.findWithIdentifiersById(claim.caseId) } returns caseEntity
+    every { caseOrchestrationService.getCurrentCaseResult("X12345", any()) } returns OrchestrationResultDto(
+      data = CaseMutationOrchestrationDto(
+        crn = "X12345",
+        cpr = null,
+        tier = null,
+        prisoner = null,
+        cas1Residence = null,
+        cas3CurrentPremises = null,
+        cas1Application = null,
+        cas3Application = null,
+        case = null,
+      ),
+      upstreamFailures = listOf(
+        UpstreamFailure(
+          callKey = ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN,
+          type = FailureType.UPSTREAM_HTTP_ERROR,
+          errorDetail = ErrorDetail(HttpStatus.NOT_FOUND, "404 Not Found"),
+        ),
+      ),
+    )
+    every { failureClassifier.classify(any()) } returns CaseRefreshFailure(
+      category = CaseRefreshFailureCategory.CORE_PERSON_RECORD_NOT_FOUND,
+      detail = "getCorePersonRecordByCrn: 404 Not Found",
+    )
+    every {
+      caseRefreshRequestService.deleteOwnedRequestOrReleaseForNewerGeneration(claim)
+    } returns CaseRefreshRequestService.FailureDisposition.IGNORED_STALE_CLAIM
+
+    val result = processor.process(claim)
+
+    assertThat(result).isEqualTo(CaseRefreshProcessor.Result.IgnoredStaleClaim)
+    verify(exactly = 1) { caseRefreshRequestService.deleteOwnedRequestOrReleaseForNewerGeneration(claim) }
     verify(exactly = 0) { caseRefreshRequestService.recordFailure(any(), any()) }
   }
 }

@@ -8,11 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshFailureCategory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailure
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailureClassifier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshProperties
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRetryDecision
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRetryPolicy
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.*
 import java.time.Duration
 import java.time.Instant
 
@@ -99,6 +95,26 @@ class CaseRefreshRetryPolicyTest {
   fun `classifier treats missing core person record as permanent`() {
     val failure = classifier.classify(
       listOf(
+        upstreamFailure(
+          type = FailureType.UPSTREAM_HTTP_ERROR,
+          status = HttpStatus.NOT_FOUND,
+          callKey = ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN,
+        ),
+      ),
+    )
+
+    assertThat(failure.category).isEqualTo(CaseRefreshFailureCategory.CORE_PERSON_RECORD_NOT_FOUND)
+  }
+
+  @Test
+  fun `classifier prioritises missing core person record when both cpr and tier return 404`() {
+    val failure = classifier.classify(
+      listOf(
+        upstreamFailure(
+          type = FailureType.UPSTREAM_HTTP_ERROR,
+          status = HttpStatus.NOT_FOUND,
+          callKey = ApiCallKeys.GET_TIER_V3,
+        ),
         upstreamFailure(
           type = FailureType.UPSTREAM_HTTP_ERROR,
           status = HttpStatus.NOT_FOUND,

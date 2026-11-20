@@ -59,7 +59,8 @@ class CaseRefreshFailureClassifier {
     require(failures.isNotEmpty()) { "At least one upstream failure is required" }
 
     val classifiedFailures = failures.map(::classify)
-    val selectedFailure = classifiedFailures.firstOrNull { !it.category.isRetryable() }
+    val selectedFailure = classifiedFailures.firstOrNull { it.category == CaseRefreshFailureCategory.CORE_PERSON_RECORD_NOT_FOUND }
+      ?: classifiedFailures.firstOrNull { !it.category.isRetryable() }
       ?: classifiedFailures.first()
 
     return selectedFailure.copy(
