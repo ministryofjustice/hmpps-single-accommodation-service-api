@@ -64,7 +64,6 @@ class CaseRefreshQueueMonitorTest {
         pendingWaitingRetry = 2,
         processing = 3,
         processingAbandoned = 4,
-        failed = 5,
         oldestDueWaitSeconds = 6.5,
         oldestDueAgeSeconds = 7.5,
       ),
@@ -79,12 +78,24 @@ class CaseRefreshQueueMonitorTest {
         "pendingWaitingRetry" to 2.0,
         "processing" to 3.0,
         "processingAbandoned" to 4.0,
-        "failed" to 5.0,
         "oldestDueWaitSeconds" to 6.5,
         "oldestDueAgeSeconds" to 7.5,
       ),
     )
     assertThat(eventFor("BULK").measurements).containsEntry("pendingDue", 10.0)
+  }
+
+  @Test
+  fun `sends a failed total summed from the failure category counts including uncategorised failures`() {
+    every { caseRefreshRequestRepository.findFailedCountsByCategory() } returns listOf(
+      failedCountRow(priority = "LIVE", failureCategory = "UPSTREAM_TIMEOUT", failed = 2),
+      failedCountRow(priority = "LIVE", failureCategory = "CURRENT_TIER_NOT_FOUND", failed = 1),
+      failedCountRow(priority = "LIVE", failureCategory = null, failed = 3),
+    )
+
+    monitorAt(now).publishQueueStats()
+
+    assertThat(eventFor("LIVE").measurements).containsEntry("failed", 6.0)
     assertThat(eventFor("BULK").measurements).containsEntry("failed", 0.0)
   }
 
@@ -152,7 +163,6 @@ class CaseRefreshQueueMonitorTest {
     pendingWaitingRetry: Long = 0,
     processing: Long = 0,
     processingAbandoned: Long = 0,
-    failed: Long = 0,
     oldestDueWaitSeconds: Double = 0.0,
     oldestDueAgeSeconds: Double = 0.0,
   ) = mockk<CaseRefreshQueueStatsRow> {
@@ -161,7 +171,6 @@ class CaseRefreshQueueMonitorTest {
     every { getPendingWaitingRetry() } returns pendingWaitingRetry
     every { getProcessing() } returns processing
     every { getProcessingAbandoned() } returns processingAbandoned
-    every { getFailed() } returns failed
     every { getOldestDueWaitSeconds() } returns oldestDueWaitSeconds
     every { getOldestDueAgeSeconds() } returns oldestDueAgeSeconds
   }

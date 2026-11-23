@@ -40,8 +40,8 @@ class CaseRefreshQueueMonitor(
 
     CaseRefreshPriority.entries.forEach { priority ->
       val stats = statsByPriority[priority.name]
-      val failedCountsByCategory = failedCountsByPriority[priority.name].orEmpty()
-        .associate { it.getFailureCategory() to it.getFailed() }
+      val failedCounts = failedCountsByPriority[priority.name].orEmpty()
+      val failedCountsByCategory = failedCounts.associate { it.getFailureCategory() to it.getFailed() }
 
       val failedByCategory = CaseRefreshFailureCategory.entries.associate { category ->
         category.measurementKey() to (failedCountsByCategory[category.name] ?: 0L).toDouble()
@@ -58,7 +58,7 @@ class CaseRefreshQueueMonitor(
           "pendingWaitingRetry" to (stats?.getPendingWaitingRetry() ?: 0L).toDouble(),
           "processing" to (stats?.getProcessing() ?: 0L).toDouble(),
           "processingAbandoned" to (stats?.getProcessingAbandoned() ?: 0L).toDouble(),
-          "failed" to (stats?.getFailed() ?: 0L).toDouble(),
+          "failed" to failedCounts.sumOf { it.getFailed() }.toDouble(),
           "oldestDueWaitSeconds" to (stats?.getOldestDueWaitSeconds() ?: 0.0),
           "oldestDueAgeSeconds" to (stats?.getOldestDueAgeSeconds() ?: 0.0),
         ) + failedByCategory,
