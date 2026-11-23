@@ -17,8 +17,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.CsvReader
 import java.time.LocalDate
 import java.time.ZoneOffset
-import kotlin.text.isNotBlank
-import kotlin.text.split
 
 class EligibilityScenariosCrsTest : EligibilityScenarioTestBase() {
 
@@ -57,7 +55,6 @@ class EligibilityScenariosCrsTest : EligibilityScenarioTestBase() {
   @Test
   fun `should calculate eligibility for crs for all scenarios`() {
     val scenarios = loadCrsScenarios()
-
     runScenarios(scenarios) { s ->
 
       clock.setNow(s.referenceDate)

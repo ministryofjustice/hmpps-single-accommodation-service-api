@@ -5,7 +5,7 @@ import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultV2
 import java.time.LocalDate
 
 class EligibilityDtoNewTest {
@@ -26,7 +26,7 @@ class EligibilityDtoNewTest {
     serviceStatus: ServiceStatusV2,
   ) {
     val thrown = catchThrowable {
-      buildServiceResultNew(
+      buildServiceResultV2(
         serviceStatus = serviceStatus,
         actionStartDate = LocalDate.now(),
       )
@@ -50,7 +50,7 @@ class EligibilityDtoNewTest {
     serviceStatus: ServiceStatusV2,
   ) {
     val thrown = catchThrowable {
-      buildServiceResultNew(
+      buildServiceResultV2(
         serviceStatus = serviceStatus,
         actionStartDate = null,
       )
@@ -75,7 +75,7 @@ class EligibilityDtoNewTest {
     serviceStatus: ServiceStatusV2,
   ) {
     val thrown = catchThrowable {
-      buildServiceResultNew(
+      buildServiceResultV2(
         serviceStatus = serviceStatus,
         actionStartDate = null,
       )
@@ -100,7 +100,7 @@ class EligibilityDtoNewTest {
     serviceStatus: ServiceStatusV2,
   ) {
     val thrown = catchThrowable {
-      buildServiceResultNew(
+      buildServiceResultV2(
         serviceStatus = serviceStatus,
         actionStartDate = LocalDate.now(),
       )

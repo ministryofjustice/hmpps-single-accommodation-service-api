@@ -27,8 +27,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityV2ToOldTransformer.toEligibilityDtoOld
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityV2Dto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPpcServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPpcServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 
 @ExtendWith(MockKExtension::class)
@@ -104,8 +104,8 @@ class EligibilityServiceTest {
 
       val eligibility = buildEligibilityV2Dto(
         crn = crn,
-        ppc = buildPpcServiceResultNew(
-          serviceResult = buildServiceResultNew(ServiceStatusV2.PPC_NOT_STARTED),
+        ppc = buildPpcServiceResultV2(
+          serviceResult = buildServiceResultV2(ServiceStatusV2.PPC_NOT_STARTED),
           actionPosition = -1,
         ),
       )

@@ -99,6 +99,12 @@ class Cas3EligibilityTreeProvider(
       ServiceResultV2(ServiceStatusV2.CAS3_SUBMITTED),
     )
 
+    val leavingWithin15DaysRuleSetNode = builder
+      .ruleSet(leavingWithin15DaysRuleSet)
+      .onPass(confirmed)
+      .onFail(confirmed).applyContextUpdaterOnFailure(cas3UpcomingContextUpdater)
+      .build()
+
     val notMaleRuleSetNode = builder
       .ruleSet(notMaleRuleSet)
       .onPass(confirmed).applyContextUpdaterOnPass(cas3CannotStartNotMaleContextUpdater)
@@ -107,7 +113,7 @@ class Cas3EligibilityTreeProvider(
 
     val dtrNotExpiredAndCrsLiveRuleSetNode = builder
       .ruleSet(dtrNotExpiredAndCrsLiveRuleSet)
-      .onPass(confirmed)
+      .onPass(leavingWithin15DaysRuleSetNode)
       .onFail(notMaleRuleSetNode)
       .build()
 
@@ -183,16 +189,10 @@ class Cas3EligibilityTreeProvider(
       .onFail(currentAccommodationPrisonCas1OrCas2RuleSetNode).applyContextUpdaterOnFailure(cas3NotStartedNewContextUpdater)
       .build()
 
-    val cas3HasBookingRuleSetNode = builder
+    return builder
       .ruleSet(cas3HasBookingRuleSet)
       .onPass(cas3ActiveBookingRuleSetNode)
       .onFail(cas3AssessmentNotClosedRuleSetNode)
-      .build()
-
-    return builder
-      .ruleSet(leavingWithin15DaysRuleSet)
-      .onPass(cas3HasBookingRuleSetNode)
-      .onFail(currentAccommodationPrisonCas1OrCas2RuleSetNode).applyContextUpdaterOnFailure(cas3UpcomingContextUpdater)
       .build()
   }
 }

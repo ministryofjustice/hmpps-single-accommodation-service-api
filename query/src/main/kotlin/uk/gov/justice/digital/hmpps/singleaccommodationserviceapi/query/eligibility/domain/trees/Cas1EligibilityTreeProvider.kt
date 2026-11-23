@@ -118,9 +118,15 @@ class Cas1EligibilityTreeProvider(
     val infoRequested = builder.outcome(
       ServiceResultV2(ServiceStatusV2.CAS1_INFO_REQUESTED),
     )
+    val leavingWithin28WeeksRuleSetNode = builder
+      .ruleSet(leavingWithin28WeeksRuleSet)
+      .onPass(confirmed)
+      .onFail(confirmed).applyContextUpdaterOnFailure(cas1UpcomingContextUpdater)
+      .build()
+
     val hasRoshLevelRuleSetNode = builder
       .ruleSet(hasRoshLevelRuleSet)
-      .onPass(confirmed)
+      .onPass(leavingWithin28WeeksRuleSetNode)
       .onFail(notEligible)
       .build()
 
@@ -232,16 +238,10 @@ class Cas1EligibilityTreeProvider(
       .onFail(arrived)
       .build()
 
-    val cas1ActivePlacementRuleSetNode = builder
+    return builder
       .ruleSet(cas1ActivePlacementRuleSet)
       .onPass(cas1NotArrivedPlacementRuleSetNode)
       .onFail(cas1ApplicationPresentAndNotExpiredRuleSetNode)
-      .build()
-
-    return builder
-      .ruleSet(leavingWithin28WeeksRuleSet)
-      .onPass(cas1ActivePlacementRuleSetNode)
-      .onFail(notMaleRuleSetNode).applyContextUpdaterOnFailure(cas1UpcomingContextUpdater)
       .build()
   }
 }

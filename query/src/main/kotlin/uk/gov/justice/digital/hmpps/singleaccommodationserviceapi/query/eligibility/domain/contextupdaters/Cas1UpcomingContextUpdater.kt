@@ -12,6 +12,8 @@ class Cas1UpcomingContextUpdater : ContextUpdater() {
 
   val upcoming = "upcoming"
 
+  override val terminalNode = true
+
   override val outcomes = mapOf(
     upcoming to ServiceResultSpec(
       serviceStatus = ServiceStatusV2.CAS1_UPCOMING,
