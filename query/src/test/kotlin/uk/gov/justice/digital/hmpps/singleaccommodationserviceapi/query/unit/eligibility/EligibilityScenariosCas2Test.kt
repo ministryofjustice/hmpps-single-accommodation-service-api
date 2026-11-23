@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
@@ -50,7 +50,7 @@ class EligibilityScenariosCas2Test : EligibilityScenarioTestBase() {
               currentAccommodationType = accommodationType,
               currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
               tierScore = tierScore,
-              expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
+              expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusV2.valueOf(it) },
               expectedCas2Url = row["expectedCas2Url"],
               u18 = row["u18"]?.toBoolean(),
               hasSexualOffenceRegistrations = row["hasSexualOffenceRegistrations"]!!.lowercase().toBooleanStrict(),
@@ -85,7 +85,7 @@ class EligibilityScenariosCas2Test : EligibilityScenarioTestBase() {
             isEligible = row["isEligible"]!!.lowercase().toBooleanStrict(),
             submittedAt = row["submittedAt"]?.toLocalDate(),
             cas2ApplicationStatus = applicationStatus,
-            expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
+            expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusV2.valueOf(it) },
             expectedCas2Url = row["expectedCas2Url"],
             markedAsArrived = row["markedAsArrived"]!!.toBoolean(),
           )
@@ -289,7 +289,7 @@ class EligibilityScenariosCas2Test : EligibilityScenarioTestBase() {
     val riskLevel: RiskLevel?,
     val currentAccommodationType: String?,
     val currentAccommodationEndDate: LocalDate?,
-    val expectedCas2Status: ServiceStatusNew?,
+    val expectedCas2Status: ServiceStatusV2?,
     val expectedCas2Url: String?,
     val u18: Boolean?,
     val hasSexualOffenceRegistrations: Boolean,
@@ -304,7 +304,7 @@ class EligibilityScenariosCas2Test : EligibilityScenarioTestBase() {
     val isEligible: Boolean,
     val submittedAt: LocalDate?,
     val cas2ApplicationStatus: Cas2AssessmentStatus?,
-    val expectedCas2Status: ServiceStatusNew?,
+    val expectedCas2Status: ServiceStatusV2?,
     val expectedCas2Url: String?,
     val markedAsArrived: Boolean,
   )

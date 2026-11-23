@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rulesets.DtrAcceptedRuleSet
@@ -46,10 +46,10 @@ class DtrEligibilityTreeProvider(
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
     val notRequired = builder.notRequired(ServiceType.DTR)
-    val notStarted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_STARTED))
-    val submitted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_SUBMITTED))
-    val accepted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_ACCEPTED))
-    val notAccepted = builder.outcome(ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_ACCEPTED))
+    val notStarted = builder.outcome(ServiceResultV2(serviceStatus = ServiceStatusV2.DTR_NOT_STARTED))
+    val submitted = builder.outcome(ServiceResultV2(serviceStatus = ServiceStatusV2.DTR_SUBMITTED))
+    val accepted = builder.outcome(ServiceResultV2(serviceStatus = ServiceStatusV2.DTR_ACCEPTED))
+    val notAccepted = builder.outcome(ServiceResultV2(serviceStatus = ServiceStatusV2.DTR_NOT_ACCEPTED))
 
     // runs when person is eligible (no next accommodation) and has no active dtrPresentNotWithdrawnOrExpiredRuleSet
     val leavingWithin8WeeksRuleSetNode = builder

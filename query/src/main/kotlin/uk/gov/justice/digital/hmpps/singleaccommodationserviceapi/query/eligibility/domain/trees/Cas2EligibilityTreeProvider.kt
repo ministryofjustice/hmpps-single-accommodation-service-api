@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas2CancelledContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas2NotStartedContextUpdater
@@ -83,28 +83,28 @@ class Cas2EligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS2)
     val placeOffered = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS2_PLACE_OFFERED),
+      ServiceResultV2(ServiceStatusV2.CAS2_PLACE_OFFERED),
     )
     val awaitingDecision = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS2_AWAITING_DECISION),
+      ServiceResultV2(ServiceStatusV2.CAS2_AWAITING_DECISION),
     )
     val offerAccepted = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS2_OFFER_ACCEPTED),
+      ServiceResultV2(ServiceStatusV2.CAS2_OFFER_ACCEPTED),
     )
     val onWaitingList = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS2_ON_WAITING_LIST),
+      ServiceResultV2(ServiceStatusV2.CAS2_ON_WAITING_LIST),
     )
     val moreInformationNeeded = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS2_MORE_INFORMATION_NEEDED),
+      ServiceResultV2(ServiceStatusV2.CAS2_MORE_INFORMATION_NEEDED),
     )
     val awaitingArrival = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS2_AWAITING_ARRIVAL),
+      ServiceResultV2(ServiceStatusV2.CAS2_AWAITING_ARRIVAL),
     )
     val arrived = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS2_ARRIVED),
+      ServiceResultV2(ServiceStatusV2.CAS2_ARRIVED),
     )
     val submitted = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS2_SUBMITTED),
+      ServiceResultV2(ServiceStatusV2.CAS2_SUBMITTED),
     )
     val hasRoshLevelRuleSetNode = builder
       .ruleSet(hasRoshLevelRuleSet)

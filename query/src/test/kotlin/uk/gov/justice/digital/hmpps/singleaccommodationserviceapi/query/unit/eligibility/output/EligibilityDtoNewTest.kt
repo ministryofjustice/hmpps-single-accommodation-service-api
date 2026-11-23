@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 import java.time.LocalDate
 
@@ -12,7 +12,7 @@ class EligibilityDtoNewTest {
 
   @ParameterizedTest
   @EnumSource(
-    value = ServiceStatusNew::class,
+    value = ServiceStatusV2::class,
     names = [
       "CAS1_UPCOMING",
       "CAS2_UPCOMING",
@@ -23,7 +23,7 @@ class EligibilityDtoNewTest {
     ],
   )
   fun `Upcoming service status should always have an action start date - valid`(
-    serviceStatus: ServiceStatusNew,
+    serviceStatus: ServiceStatusV2,
   ) {
     val thrown = catchThrowable {
       buildServiceResultNew(
@@ -36,7 +36,7 @@ class EligibilityDtoNewTest {
 
   @ParameterizedTest
   @EnumSource(
-    value = ServiceStatusNew::class,
+    value = ServiceStatusV2::class,
     names = [
       "CAS1_UPCOMING",
       "CAS2_UPCOMING",
@@ -47,7 +47,7 @@ class EligibilityDtoNewTest {
     ],
   )
   fun `Upcoming service status should always have an action start date - invalid`(
-    serviceStatus: ServiceStatusNew,
+    serviceStatus: ServiceStatusV2,
   ) {
     val thrown = catchThrowable {
       buildServiceResultNew(
@@ -60,7 +60,7 @@ class EligibilityDtoNewTest {
 
   @ParameterizedTest
   @EnumSource(
-    value = ServiceStatusNew::class,
+    value = ServiceStatusV2::class,
     mode = EnumSource.Mode.EXCLUDE,
     names = [
       "CAS1_UPCOMING",
@@ -72,7 +72,7 @@ class EligibilityDtoNewTest {
     ],
   )
   fun `Non-Upcoming service status should never have an action start date - valid`(
-    serviceStatus: ServiceStatusNew,
+    serviceStatus: ServiceStatusV2,
   ) {
     val thrown = catchThrowable {
       buildServiceResultNew(
@@ -85,7 +85,7 @@ class EligibilityDtoNewTest {
 
   @ParameterizedTest
   @EnumSource(
-    value = ServiceStatusNew::class,
+    value = ServiceStatusV2::class,
     mode = EnumSource.Mode.EXCLUDE,
     names = [
       "CAS1_UPCOMING",
@@ -97,7 +97,7 @@ class EligibilityDtoNewTest {
     ],
   )
   fun `Non-Upcoming service status should never have an action start date - invalid`(
-    serviceStatus: ServiceStatusNew,
+    serviceStatus: ServiceStatusV2,
   ) {
     val thrown = catchThrowable {
       buildServiceResultNew(

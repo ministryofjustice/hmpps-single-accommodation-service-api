@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
 
 class RuleSetNodeBuilder(
   private var name: String,
@@ -37,7 +37,7 @@ class RuleSetNodeBuilder(
     return this
   }
 
-  fun setConstantServiceResultOnFailure(result: ServiceResultNew): RuleSetNodeBuilder {
+  fun setConstantServiceResultOnFailure(result: ServiceResultV2): RuleSetNodeBuilder {
     onFailContextUpdater = ContextUpdater.constant(result)
     return this
   }

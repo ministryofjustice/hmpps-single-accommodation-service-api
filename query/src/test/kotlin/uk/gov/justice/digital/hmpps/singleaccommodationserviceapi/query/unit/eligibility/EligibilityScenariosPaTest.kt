@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
@@ -45,7 +45,7 @@ class EligibilityScenariosPaTest : EligibilityScenarioTestBase() {
           hasNextAccommodation = row["hasNextAccommodation"]!!,
           isSubmittedCas1 = row["isSubmittedCas1"]!!,
           isSubmittedCas3 = row["isSubmittedCas3"]!!,
-          expectedPaStatus = row["expectedPaStatus"]?.let { ServiceStatusNew.valueOf(it) },
+          expectedPaStatus = row["expectedPaStatus"]?.let { ServiceStatusV2.valueOf(it) },
           expectedFailureReasons = row["expectedFailureReasons"]
             ?.takeIf { it.isNotBlank() }
             ?.split(",")
@@ -134,7 +134,7 @@ class EligibilityScenariosPaTest : EligibilityScenarioTestBase() {
     val hasNextAccommodation: String,
     val isSubmittedCas1: String,
     val isSubmittedCas3: String,
-    val expectedPaStatus: ServiceStatusNew?,
+    val expectedPaStatus: ServiceStatusV2?,
     val expectedFailureReasons: List<FailureReason>,
   )
 }

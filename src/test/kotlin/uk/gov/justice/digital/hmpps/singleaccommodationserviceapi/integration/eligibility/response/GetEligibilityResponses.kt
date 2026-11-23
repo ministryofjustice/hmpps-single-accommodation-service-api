@@ -640,3 +640,1075 @@ fun expectedGetEligibilityResponseCannotStartYet(
    }
 }
 """.trimIndent()
+
+fun expectedGetEligibilityV2Response(
+  crn: String,
+  cas1CreatedAt: String,
+  cas1SubmittedAt: String,
+  cas1ExpiresAt: String,
+  requestSubmittedAt: String,
+  expectedArrivalDate: String,
+  expectedDepartureDate: String,
+  placementStartDate: String,
+  placementEndDate: String,
+  cas3CreatedAt: String,
+  dtrId: String,
+  areaId: String,
+  areaName: String,
+  dtrSubmissionDate: String,
+  dtrCreatedAt: String,
+  crsUrl: String,
+  crsSubmissionDate: String,
+): String = """
+{
+  "data": {
+    "crn": "$crn",
+    "cas1": {
+      "serviceResult": {
+        "serviceStatus": "CAS1_PLACEMENT_CANCELLED",
+        "actionStartDate": null,
+        "url": "https://cas1-ui/applications/e6b202ce-c214-4b87-98f5-111111111111",
+        "failureReasons": []
+      },
+      "actionPosition": 1,
+      "cas1Application": {
+        "uiUrl": "https://cas1-ui/applications/e6b202ce-c214-4b87-98f5-111111111111",
+        "application": {
+          "id": "e6b202ce-c214-4b87-98f5-111111111111",
+          "status": "PLACEMENT_ALLOCATED",
+          "createdAt": "$cas1CreatedAt",
+          "createdBy": {
+            "name": "Bob",
+            "username": "Bob123",
+            "staffCode": "123"
+          },
+          "submittedAt": "$cas1SubmittedAt",
+          "expiresAt": "$cas1ExpiresAt"
+        },
+        "assessment": {
+          "decision": "ACCEPTED",
+          "rejectionRationale": null
+        },
+        "requestForPlacement": {
+          "status": "PLACEMENT_BOOKED",
+          "decision": "ACCEPTED",
+          "rejectionReason": null,
+          "submittedBy": {
+            "name": "Bob",
+            "username": "Bob123",
+            "staffCode": "123"
+          },
+          "submittedAt": "$requestSubmittedAt",
+          "withdrawalReason": null,
+          "withdrawalDate": null,
+          "expectedArrivalDate": "$expectedArrivalDate",
+          "durationDays": 12
+        },
+        "placement": {
+          "status": "CANCELLED",
+          "actualArrivalDate": null,
+          "actualDepartureDate": null,
+          "expectedDepartureDate": "$expectedDepartureDate",
+          "cancellationReason": "Oops",
+          "premises": {
+            "startDate": "$placementStartDate",
+            "endDate": "$placementEndDate",
+            "addressLine1": "Test House",
+            "addressLine2": "Test Road",
+            "town": "Test Town",
+            "postcode": "Test Postcode"
+          }
+        },
+        "placementHistory": [],
+        "id": "e6b202ce-c214-4b87-98f5-111111111111",
+        "applicationStatus": "PLACEMENT_ALLOCATED",
+        "requestForPlacementStatus": "PLACEMENT_BOOKED",
+        "placementStatus": "CANCELLED"
+      }
+    },
+    "cas2": {
+      "serviceResult": {
+        "serviceStatus": "CAS2_CANCELLED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas2Application": {
+        "uiUrl": "https://cas2-ui/applications/e6b202ce-c214-4b87-98f7-111111111111",
+        "id": "e6b202ce-c214-4b87-98f7-111111111111",
+        "createdAt": "2024-01-01T12:00:00Z",
+        "createdBy": {
+          "name": "Anne",
+          "username": "anne.smith",
+          "deliusStaffCode": "ANNE",
+          "nomisStaffId": null,
+          "userType": "DELIUS"
+        },
+        "submittedApplication": {
+          "latestAssessmentStatus": "CANCELLED",
+          "offerDeclinedReason": null,
+          "cancelledReason": "cancelled reason",
+          "submittedAt": "2024-01-02T12:00:00Z",
+          "markedAsArrived": null
+        },
+        "cohort": "INTENSIVE_SUPERVISION_COURTS"
+      }
+    },
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "CAS3_BOOKING_CANCELLED",
+        "actionStartDate": null,
+        "url": "https://cas3-ui/referrals/e6b202ce-c214-4b87-98f6-111111111111/full",
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas3Application": {
+        "id": "e6b202ce-c214-4b87-98f6-111111111111",
+        "createdAt": "$cas3CreatedAt",
+        "applicationStatus": "SUBMITTED",
+        "applicationSubmittedDate": "2023-01-01",
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": "Oops",
+        "assessmentStatus": "REJECTED",
+        "bookingStatus": "CANCELLED",
+        "cancellation": {
+          "cancellationDate": "2023-01-03",
+          "cancellationReason": "Mistake"
+        },
+        "bookingProvisionalOfferSentDate": "2023-01-02",
+        "previousBookings": [
+          {
+            "bookingStatus": "CANCELLED",
+            "cancellation": {
+              "cancellationDate": "2023-01-03",
+              "cancellationReason": "Mistake"
+            }
+          }
+        ],
+        "premises": {
+          "name": "Test Premises",
+          "startDate": "2023-01-04",
+          "endDate": "2023-01-05",
+          "addressLine1": "123 Test Street",
+          "addressLine2": "Test Road",
+          "town": "Test Town",
+          "postcode": "Test Postcode"
+        },
+        "uiUrl": "https://cas3-ui/referrals/e6b202ce-c214-4b87-98f6-111111111111/full"
+      }
+    },
+    "dtr": {
+      "serviceResult": {
+        "serviceStatus": "DTR_SUBMITTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 0,
+      "caseId": "e6b202ce-c214-4b87-98f5-111111111112",
+      "submission": {
+        "id": "$dtrId",
+        "localAuthority": {
+          "localAuthorityAreaId": "$areaId",
+          "localAuthorityAreaName": "$areaName"
+        },
+        "referenceNumber": "DTR-REF-001",
+        "submissionDate": "$dtrSubmissionDate",
+        "createdBy": "Test Data Setup User",
+        "createdAt": "$dtrCreatedAt",
+        "withdrawalReason": null,
+        "withdrawalReasonOther": null,
+        "outcomeReason": null,
+        "submissionNote": null,
+        "outcomeNote": null
+      }
+    },
+    "crs": {
+      "serviceResult": {
+        "serviceStatus": "CRS_SUBMITTED",
+        "actionStartDate": null,
+        "url": "$crsUrl",
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "commissionedRehabilitativeServices": {
+        "status": "LIVE",
+        "submissionDate": "$crsSubmissionDate"
+      }
+    },
+    "pa": {
+      "serviceResult": {
+        "serviceStatus": "PA_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "SUITABLE_CAS1_APPLICATION",
+          "SUITABLE_CAS3_APPLICATION"
+        ]
+      },
+      "actionPosition": -1
+    }
+  }
+}
+""".trimIndent()
+
+fun expectedGetEligibilityV2Cas3BlockedResponse(
+  crn: String,
+  cas3CreatedAt: String,
+  crsUrl: String,
+  crsSubmissionDate: String,
+): String = """
+{
+  "data": {
+    "crn": "$crn",
+    "cas1": {
+      "serviceResult": {
+        "serviceStatus": "CAS1_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "MALE_NOT_HIGH_RISK_TIER"
+        ]
+      },
+      "actionPosition": -1,
+      "cas1Application": null
+    },
+    "cas2": {
+      "serviceResult": {
+        "serviceStatus": "CAS2_NOT_STARTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 1,
+      "cas2Application": null
+    },
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "CAS3_CANNOT_START_YET_SUBMIT_DTR",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "DTR_REFERRAL_EXPIRED"
+        ]
+      },
+      "actionPosition": -1,
+      "cas3Application": {
+        "id": "e6b202ce-c214-4b87-98f6-111111111111",
+        "createdAt": "$cas3CreatedAt",
+        "applicationStatus": "REJECTED",
+        "applicationSubmittedDate": "2025-01-02",
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": null,
+        "assessmentStatus": null,
+        "bookingStatus": null,
+        "cancellation": null,
+        "bookingProvisionalOfferSentDate": null,
+        "previousBookings": [],
+        "premises": null,
+        "uiUrl": "https://cas3-ui/referrals/e6b202ce-c214-4b87-98f6-111111111111/full"
+      }
+    },
+    "dtr": {
+      "serviceResult": {
+        "serviceStatus": "DTR_NOT_STARTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 0,
+      "caseId": null,
+      "submission": null
+    },
+    "crs": {
+      "serviceResult": {
+        "serviceStatus": "CRS_SUBMITTED",
+        "actionStartDate": null,
+        "url": "$crsUrl",
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "commissionedRehabilitativeServices": {
+        "status": "LIVE",
+        "submissionDate": "$crsSubmissionDate"
+      }
+    },
+    "pa": {
+      "serviceResult": {
+        "serviceStatus": "PA_NOT_STARTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 2
+    }
+  }
+}
+""".trimIndent()
+
+fun expectedGetEligibilityV2TierNotFoundResponse(
+  crn: String,
+  cas1CreatedAt: String,
+  cas1SubmittedAt: String,
+  requestSubmittedAt: String,
+  expectedArrivalDate: String,
+  expectedDepartureDate: String,
+  cas3CreatedAt: String,
+  dtrId: String,
+  areaId: String,
+  areaName: String,
+  dtrSubmissionDate: String,
+  dtrCreatedAt: String,
+  crsUrl: String,
+  crsSubmissionDate: String,
+): String = """
+{
+  "data": {
+    "crn": "$crn",
+    "cas1": {
+      "serviceResult": {
+        "serviceStatus": "CAS1_ARRIVED",
+        "actionStartDate": null,
+        "url": "https://cas1-ui/applications/e6b202ce-c214-4b87-98f5-111111111111",
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas1Application": {
+        "uiUrl": "https://cas1-ui/applications/e6b202ce-c214-4b87-98f5-111111111111",
+        "application": {
+          "id": "e6b202ce-c214-4b87-98f5-111111111111",
+          "status": "PLACEMENT_ALLOCATED",
+          "createdAt": "$cas1CreatedAt",
+          "createdBy": {
+            "name": "Test Tester",
+            "username": "testTester",
+            "staffCode": "1234"
+          },
+          "submittedAt": "$cas1SubmittedAt",
+          "expiresAt": null
+        },
+        "assessment": null,
+        "requestForPlacement": {
+          "status": "PLACEMENT_BOOKED",
+          "decision": null,
+          "rejectionReason": null,
+          "submittedBy": {
+            "name": "Test Tester",
+            "username": "testTester",
+            "staffCode": "1234"
+          },
+          "submittedAt": "$requestSubmittedAt",
+          "withdrawalReason": null,
+          "withdrawalDate": null,
+          "expectedArrivalDate": "$expectedArrivalDate",
+          "durationDays": null
+        },
+        "placement": {
+          "status": "ARRIVED",
+          "actualArrivalDate": null,
+          "actualDepartureDate": null,
+          "expectedDepartureDate": "$expectedDepartureDate",
+          "cancellationReason": null,
+          "premises": {
+            "startDate": "2025-01-01",
+            "endDate": "2025-07-01",
+            "addressLine1": "TEST HOUSE",
+            "addressLine2": null,
+            "town": null,
+            "postcode": "TEST POSTCODE"
+          }
+        },
+        "placementHistory": [],
+        "id": "e6b202ce-c214-4b87-98f5-111111111111",
+        "applicationStatus": "PLACEMENT_ALLOCATED",
+        "requestForPlacementStatus": "PLACEMENT_BOOKED",
+        "placementStatus": "ARRIVED"
+      }
+    },
+    "cas2": {
+      "serviceResult": {
+        "serviceStatus": "CAS2_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "INVALID_TIER"
+        ]
+      },
+      "actionPosition": -1,
+      "cas2Application": null
+    },
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "CAS3_SUBMITTED",
+        "actionStartDate": null,
+        "url": "https://cas3-ui/referrals/e6b202ce-c214-4b87-98f6-111111111111/full",
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas3Application": {
+        "id": "e6b202ce-c214-4b87-98f6-111111111111",
+        "createdAt": "$cas3CreatedAt",
+        "applicationStatus": "SUBMITTED",
+        "applicationSubmittedDate": "2025-01-02",
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": null,
+        "assessmentStatus": "UNALLOCATED",
+        "bookingStatus": null,
+        "cancellation": null,
+        "bookingProvisionalOfferSentDate": null,
+        "previousBookings": [],
+        "premises": null,
+        "uiUrl": "https://cas3-ui/referrals/e6b202ce-c214-4b87-98f6-111111111111/full"
+      }
+    },
+    "dtr": {
+      "serviceResult": {
+        "serviceStatus": "DTR_SUBMITTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 0,
+      "caseId": "e6b202ce-c214-4b87-98f5-111111111112",
+      "submission": {
+        "id": "$dtrId",
+        "localAuthority": {
+          "localAuthorityAreaId": "$areaId",
+          "localAuthorityAreaName": "$areaName"
+        },
+        "referenceNumber": "DTR-REF-001",
+        "submissionDate": "$dtrSubmissionDate",
+        "createdBy": "Test Data Setup User",
+        "createdAt": "$dtrCreatedAt",
+        "withdrawalReason": null,
+        "withdrawalReasonOther": null,
+        "outcomeReason": null,
+        "submissionNote": null,
+        "outcomeNote": null
+      }
+    },
+    "crs": {
+      "serviceResult": {
+        "serviceStatus": "CRS_SUBMITTED",
+        "actionStartDate": null,
+        "url": "$crsUrl",
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "commissionedRehabilitativeServices": {
+        "status": "LIVE",
+        "submissionDate": "$crsSubmissionDate"
+      }
+    },
+    "pa": {
+      "serviceResult": {
+        "serviceStatus": "PA_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "SUITABLE_CAS1_APPLICATION",
+          "SUITABLE_CAS3_APPLICATION"
+        ]
+      },
+      "actionPosition": -1
+    }
+  }
+}
+""".trimIndent()
+
+fun expectedGetEligibilityV2TierErrorResponse(
+  crn: String,
+  wireMockBaseUrl: String,
+): String = """
+{
+  "data": {
+    "crn": "$crn",
+    "cas1": {
+      "serviceResult": {
+        "serviceStatus": "CAS1_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas1Application": null
+    },
+    "cas2": {
+      "serviceResult": {
+        "serviceStatus": "CAS2_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas2Application": null
+    },
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "CAS3_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas3Application": null
+    },
+    "dtr": {
+      "serviceResult": {
+        "serviceStatus": "DTR_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "caseId": null,
+      "submission": null
+    },
+    "crs": {
+      "serviceResult": {
+        "serviceStatus": "CRS_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "commissionedRehabilitativeServices": null
+    },
+    "pa": {
+      "serviceResult": {
+        "serviceStatus": "PA_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1
+    }
+  },
+  "upstreamFailures": [
+    {
+      "endpoint": "getTierV3ByCrn",
+      "failureType": "UPSTREAM_HTTP_ERROR",
+      "httpResponseStatus": "500 INTERNAL_SERVER_ERROR",
+      "message": "500 Internal Server Error from GET $wireMockBaseUrl/v3/crn/$crn/tier",
+      "identifier": null
+    }
+  ]
+}
+""".trimIndent()
+
+fun expectedGetEligibilityV2FailureReasonResponse(
+  crn: String,
+  cas3CreatedAt: String,
+  dtrId: String,
+  areaId: String,
+  areaName: String,
+  dtrSubmissionDate: String,
+  dtrCreatedAt: String,
+  crsUrl: String,
+  crsSubmissionDate: String,
+): String = """
+{
+  "data": {
+    "crn": "$crn",
+    "cas1": {
+      "serviceResult": {
+        "serviceStatus": "CAS1_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "MALE_NOT_HIGH_RISK_TIER"
+        ]
+      },
+      "actionPosition": -1,
+      "cas1Application": {
+        "uiUrl": "https://cas1-ui/applications/e6b202ce-c214-4b87-98f5-111111111111",
+        "application": {
+          "id": "e6b202ce-c214-4b87-98f5-111111111111",
+          "status": "REJECTED",
+          "createdAt": "2023-01-01T12:00:00Z",
+          "createdBy": {
+            "name": "Test Tester",
+            "username": "testTester",
+            "staffCode": "1234"
+          },
+          "submittedAt": null,
+          "expiresAt": null
+        },
+        "assessment": null,
+        "requestForPlacement": null,
+        "placement": null,
+        "placementHistory": [],
+        "id": "e6b202ce-c214-4b87-98f5-111111111111",
+        "applicationStatus": "REJECTED",
+        "requestForPlacementStatus": null,
+        "placementStatus": null
+      }
+    },
+    "cas2": {
+      "serviceResult": {
+        "serviceStatus": "CAS2_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "HAS_NO_ROSH_LEVEL"
+        ]
+      },
+      "actionPosition": -1,
+      "cas2Application": null
+    },
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "CAS3_SUBMITTED",
+        "actionStartDate": null,
+        "url": "https://cas3-ui/referrals/e6b202ce-c214-4b87-98f6-111111111111/full",
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas3Application": {
+        "id": "e6b202ce-c214-4b87-98f6-111111111111",
+        "createdAt": "$cas3CreatedAt",
+        "applicationStatus": "SUBMITTED",
+        "applicationSubmittedDate": "2025-01-02",
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": null,
+        "assessmentStatus": "UNALLOCATED",
+        "bookingStatus": null,
+        "cancellation": null,
+        "bookingProvisionalOfferSentDate": null,
+        "previousBookings": [],
+        "premises": null,
+        "uiUrl": "https://cas3-ui/referrals/e6b202ce-c214-4b87-98f6-111111111111/full"
+      }
+    },
+    "dtr": {
+      "serviceResult": {
+        "serviceStatus": "DTR_SUBMITTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 0,
+      "caseId": "e6b202ce-c214-4b87-98f5-111111111112",
+      "submission": {
+        "id": "$dtrId",
+        "localAuthority": {
+          "localAuthorityAreaId": "$areaId",
+          "localAuthorityAreaName": "$areaName"
+        },
+        "referenceNumber": "DTR-REF-001",
+        "submissionDate": "$dtrSubmissionDate",
+        "createdBy": "Test Data Setup User",
+        "createdAt": "$dtrCreatedAt",
+        "withdrawalReason": null,
+        "withdrawalReasonOther": null,
+        "outcomeReason": null,
+        "submissionNote": null,
+        "outcomeNote": null
+      }
+    },
+    "crs": {
+      "serviceResult": {
+        "serviceStatus": "CRS_SUBMITTED",
+        "actionStartDate": null,
+        "url": "$crsUrl",
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "commissionedRehabilitativeServices": {
+        "status": "LIVE",
+        "submissionDate": "$crsSubmissionDate"
+      }
+    },
+    "pa": {
+      "serviceResult": {
+        "serviceStatus": "PA_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "SUITABLE_CAS3_APPLICATION"
+        ]
+      },
+      "actionPosition": -1
+    }
+  }
+}
+""".trimIndent()
+
+fun expectedGetEligibilityV2NoPrisonerResponse(
+  crn: String,
+  cas3CreatedAt: String,
+  crsUrl: String,
+  crsSubmissionDate: String,
+): String = """
+{
+  "data": {
+    "crn": "$crn",
+    "cas1": {
+      "serviceResult": {
+        "serviceStatus": "CAS1_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "HAS_NO_ROSH_LEVEL"
+        ]
+      },
+      "actionPosition": -1,
+      "cas1Application": null
+    },
+    "cas2": {
+      "serviceResult": {
+        "serviceStatus": "CAS2_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "HAS_NO_ROSH_LEVEL"
+        ]
+      },
+      "actionPosition": -1,
+      "cas2Application": null
+    },
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "CAS3_SUBMITTED",
+        "actionStartDate": null,
+        "url": "https://cas3-ui/referrals/e6b202ce-c214-4b87-98f6-111111111111/full",
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas3Application": {
+        "id": "e6b202ce-c214-4b87-98f6-111111111111",
+        "createdAt": "$cas3CreatedAt",
+        "applicationStatus": "SUBMITTED",
+        "applicationSubmittedDate": "2025-01-02",
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": null,
+        "assessmentStatus": "UNALLOCATED",
+        "bookingStatus": null,
+        "cancellation": null,
+        "bookingProvisionalOfferSentDate": null,
+        "previousBookings": [],
+        "premises": null,
+        "uiUrl": "https://cas3-ui/referrals/e6b202ce-c214-4b87-98f6-111111111111/full"
+      }
+    },
+    "dtr": {
+      "serviceResult": {
+        "serviceStatus": "DTR_NOT_STARTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 0,
+      "caseId": null,
+      "submission": null
+    },
+    "crs": {
+      "serviceResult": {
+        "serviceStatus": "CRS_SUBMITTED",
+        "actionStartDate": null,
+        "url": "$crsUrl",
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "commissionedRehabilitativeServices": {
+        "status": "LIVE",
+        "submissionDate": "$crsSubmissionDate"
+      }
+    },
+    "pa": {
+      "serviceResult": {
+        "serviceStatus": "PA_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "SUITABLE_CAS3_APPLICATION"
+        ]
+      },
+      "actionPosition": -1
+    }
+  }
+}
+""".trimIndent()
+
+fun expectedGetEligibilityV2ApplicationsNotFoundResponse(
+  crn: String,
+  wireMockBaseUrl: String,
+): String = """
+{
+  "data": {
+    "crn": "$crn",
+    "cas1": {
+      "serviceResult": {
+        "serviceStatus": "CAS1_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas1Application": null
+    },
+    "cas2": {
+      "serviceResult": {
+        "serviceStatus": "CAS2_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas2Application": null
+    },
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "CAS3_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas3Application": null
+    },
+    "dtr": {
+      "serviceResult": {
+        "serviceStatus": "DTR_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "caseId": null,
+      "submission": null
+    },
+    "crs": {
+      "serviceResult": {
+        "serviceStatus": "CRS_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "commissionedRehabilitativeServices": null
+    },
+    "pa": {
+      "serviceResult": {
+        "serviceStatus": "PA_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1
+    }
+  },
+  "upstreamFailures": [
+    {
+      "endpoint": "getCas1CurrentApplication",
+      "failureType": "UPSTREAM_HTTP_ERROR",
+      "httpResponseStatus": "404 NOT_FOUND",
+      "message": "404 Not Found from GET $wireMockBaseUrl/cas1/external/cases/$crn/applications/current",
+      "identifier": null
+    },
+    {
+      "endpoint": "getCas2CurrentApplication",
+      "failureType": "UPSTREAM_HTTP_ERROR",
+      "httpResponseStatus": "404 NOT_FOUND",
+      "message": "404 Not Found from GET $wireMockBaseUrl/cas2/external/cases/$crn/applications/current",
+      "identifier": null
+    },
+    {
+      "endpoint": "getCas3CurrentApplication",
+      "failureType": "UPSTREAM_HTTP_ERROR",
+      "httpResponseStatus": "404 NOT_FOUND",
+      "message": "404 Not Found from GET $wireMockBaseUrl/cas3/external/cases/$crn/applications/current",
+      "identifier": null
+    }
+  ]
+}
+""".trimIndent()
+
+fun expectedGetEligibilityV2ApplicationsNoContentResponse(
+  crn: String,
+  crsUrl: String,
+  crsSubmissionDate: String,
+): String = """
+{
+  "data": {
+    "crn": "$crn",
+    "cas1": {
+      "serviceResult": {
+        "serviceStatus": "CAS1_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "MALE_NOT_HIGH_RISK_TIER"
+        ]
+      },
+      "actionPosition": -1,
+      "cas1Application": null
+    },
+    "cas2": {
+      "serviceResult": {
+        "serviceStatus": "CAS2_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "INVALID_TIER"
+        ]
+      },
+      "actionPosition": -1,
+      "cas2Application": null
+    },
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "CAS3_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": [
+          "HAS_NO_ROSH_LEVEL"
+        ]
+      },
+      "actionPosition": -1,
+      "cas3Application": null
+    },
+    "dtr": {
+      "serviceResult": {
+        "serviceStatus": "DTR_NOT_STARTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 0,
+      "caseId": null,
+      "submission": null
+    },
+    "crs": {
+      "serviceResult": {
+        "serviceStatus": "CRS_SUBMITTED",
+        "actionStartDate": null,
+        "url": "$crsUrl",
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "commissionedRehabilitativeServices": {
+        "status": "LIVE",
+        "submissionDate": "$crsSubmissionDate"
+      }
+    },
+    "pa": {
+      "serviceResult": {
+        "serviceStatus": "PA_NOT_STARTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 1
+    }
+  }
+}
+""".trimIndent()
+
+fun expectedGetEligibilityV2PremisesNotFoundResponse(
+  crn: String,
+  wireMockBaseUrl: String,
+): String = """
+{
+  "data": {
+    "crn": "$crn",
+    "cas1": {
+      "serviceResult": {
+        "serviceStatus": "CAS1_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas1Application": null
+    },
+    "cas2": {
+      "serviceResult": {
+        "serviceStatus": "CAS2_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas2Application": null
+    },
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "CAS3_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "cas3Application": null
+    },
+    "dtr": {
+      "serviceResult": {
+        "serviceStatus": "DTR_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "caseId": null,
+      "submission": null
+    },
+    "crs": {
+      "serviceResult": {
+        "serviceStatus": "CRS_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1,
+      "commissionedRehabilitativeServices": null
+    },
+    "pa": {
+      "serviceResult": {
+        "serviceStatus": "PA_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1
+    }
+  },
+  "upstreamFailures": [
+    {
+      "endpoint": "getCas1ResidentPlacement",
+      "failureType": "UPSTREAM_HTTP_ERROR",
+      "httpResponseStatus": "404 NOT_FOUND",
+      "message": "404 Not Found from GET $wireMockBaseUrl/cas1/external/cases/$crn/residence",
+      "identifier": null
+    },
+    {
+      "endpoint": "getCas3CurrentPremises",
+      "failureType": "UPSTREAM_HTTP_ERROR",
+      "httpResponseStatus": "404 NOT_FOUND",
+      "message": "404 Not Found from GET $wireMockBaseUrl/cas3/external/cases/$crn/premises/current",
+      "identifier": null
+    }
+  ]
+}
+""".trimIndent()

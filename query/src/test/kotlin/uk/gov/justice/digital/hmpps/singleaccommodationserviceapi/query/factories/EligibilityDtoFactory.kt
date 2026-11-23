@@ -10,15 +10,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Co
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDtoNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityV2Dto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResultWrapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import java.time.LocalDate
 import java.util.UUID
 
-fun buildEligibilityDtoNew(
+fun buildEligibilityV2Dto(
   crn: String,
   cas1: Cas1ServiceResultWrapper = buildCas1ServiceResultNew(actionPosition = -1),
   cas2: Cas2ServiceResultWrapper = buildCas2ServiceResultNew(actionPosition = -1),
@@ -26,7 +26,7 @@ fun buildEligibilityDtoNew(
   dtr: DtrServiceResultWrapper = buildDtrServiceResultNew(actionPosition = -1),
   crs: CrsServiceResultWrapper = buildCrsServiceResultNew(actionPosition = -1),
   pa: PaServiceResultWrapper = buildPaServiceResultNew(actionPosition = -1),
-) = EligibilityDtoNew(
+) = EligibilityV2Dto(
   crn,
   cas1,
   cas2,
@@ -37,11 +37,11 @@ fun buildEligibilityDtoNew(
 )
 
 fun buildServiceResultNew(
-  serviceStatus: ServiceStatusNew = ServiceStatusNew.CAS1_NOT_ELIGIBLE,
+  serviceStatus: ServiceStatusV2 = ServiceStatusV2.CAS1_NOT_ELIGIBLE,
   url: String? = null,
   failureReasons: List<FailureReason> = emptyList(),
   actionStartDate: LocalDate? = null,
-) = ServiceResultNew(
+) = ServiceResultV2(
   serviceStatus = serviceStatus,
   url = url,
   failureReasons = failureReasons,
@@ -49,7 +49,7 @@ fun buildServiceResultNew(
 )
 
 fun buildCas1ServiceResultNew(
-  serviceResult: ServiceResultNew = buildServiceResultNew(ServiceStatusNew.CAS1_NOT_ELIGIBLE),
+  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.CAS1_NOT_ELIGIBLE),
   cas1Application: Cas1ApplicationDto? = null,
   actionPosition: Int,
 ) = Cas1ServiceResultWrapper(
@@ -59,7 +59,7 @@ fun buildCas1ServiceResultNew(
 )
 
 fun buildCas2ServiceResultNew(
-  serviceResult: ServiceResultNew = buildServiceResultNew(ServiceStatusNew.CAS2_NOT_ELIGIBLE),
+  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.CAS2_NOT_ELIGIBLE),
   cas2Application: Cas2ApplicationDto? = null,
   actionPosition: Int,
 ) = Cas2ServiceResultWrapper(
@@ -69,7 +69,7 @@ fun buildCas2ServiceResultNew(
 )
 
 fun buildCas3ServiceResultNew(
-  serviceResult: ServiceResultNew = buildServiceResultNew(ServiceStatusNew.CAS3_NOT_ELIGIBLE),
+  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.CAS3_NOT_ELIGIBLE),
   cas3Application: Cas3ApplicationDto? = null,
   actionPosition: Int,
 ) = Cas3ServiceResultWrapper(
@@ -79,7 +79,7 @@ fun buildCas3ServiceResultNew(
 )
 
 fun buildDtrServiceResultNew(
-  serviceResult: ServiceResultNew = buildServiceResultNew(ServiceStatusNew.DTR_NOT_ELIGIBLE),
+  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.DTR_NOT_ELIGIBLE),
   caseId: UUID? = null,
   submission: DtrSubmissionDto? = null,
   actionPosition: Int,
@@ -91,7 +91,7 @@ fun buildDtrServiceResultNew(
 )
 
 fun buildCrsServiceResultNew(
-  serviceResult: ServiceResultNew = buildServiceResultNew(ServiceStatusNew.CRS_NOT_ELIGIBLE),
+  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.CRS_NOT_ELIGIBLE),
   commissionedRehabilitativeServices: CommissionedRehabilitativeServicesDto? = null,
   actionPosition: Int,
 ) = CrsServiceResultWrapper(
@@ -101,7 +101,7 @@ fun buildCrsServiceResultNew(
 )
 
 fun buildPaServiceResultNew(
-  serviceResult: ServiceResultNew = buildServiceResultNew(ServiceStatusNew.PA_NOT_ELIGIBLE),
+  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.PA_NOT_ELIGIBLE),
   actionPosition: Int = -1,
 ) = PaServiceResultWrapper(
   serviceResult = serviceResult,

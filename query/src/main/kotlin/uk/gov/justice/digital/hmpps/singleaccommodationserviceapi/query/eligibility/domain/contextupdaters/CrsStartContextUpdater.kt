@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
@@ -20,11 +20,11 @@ class CrsStartContextUpdater(
 
   override val outcomes = mapOf(
     notStartedMale to ServiceResultSpec(
-      serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL,
+      serviceStatus = ServiceStatusV2.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL,
       url = url,
     ),
     notStartedNonMale to ServiceResultSpec(
-      serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_REFERRAL,
+      serviceStatus = ServiceStatusV2.CRS_NOT_STARTED_REFERRAL,
       url = url,
     ),
   )
