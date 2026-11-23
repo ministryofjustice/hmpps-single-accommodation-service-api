@@ -148,6 +148,8 @@ The steps are also available in the pull request checklist[PULL_REQUEST_TEMPLATE
 
 ## Rules Engine
 
+`GET /cases/{crn}/v2/eligibility` returns `EligibilityV2Dto` in the standard API response envelope. It exposes service-specific status codes (such as `CAS1_NOT_ELIGIBLE`) and per-service action positions instead of a top-level `caseActions` list. The original `GET /cases/{crn}/eligibility` retains its existing response format. Both endpoints require the probation practitioner role.
+
 The eligibility rules engine is in the codebase, you can extract a markdown version, (complete with mermaid diagrams) of the rules engine by running the following command:
 
 ```bash

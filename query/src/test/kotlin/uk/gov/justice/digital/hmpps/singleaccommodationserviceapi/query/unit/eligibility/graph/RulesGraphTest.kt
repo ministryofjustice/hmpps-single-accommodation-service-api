@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1StartContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.rules.Cas1NoApplicationRule
@@ -73,7 +73,7 @@ class RulesGraphTest {
       val updater = object : ContextUpdater() {
         override val terminalNode = true
         override val description = "Terminal updater"
-        override fun toServiceResult(context: EvaluationContext) = ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED)
+        override fun toServiceResult(context: EvaluationContext) = ServiceResultV2(serviceStatus = ServiceStatusV2.CAS1_NOT_STARTED)
       }
       val hidden = builder.notEligible(ServiceType.CAS1)
       val confirmed = builder.confirmed()
@@ -216,7 +216,7 @@ class RulesGraphTest {
             name = "Upcoming",
           ),
         )
-        .applyContextUpdaterOnPass(ContextUpdater.constant(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED)))
+        .applyContextUpdaterOnPass(ContextUpdater.constant(ServiceResultV2(serviceStatus = ServiceStatusV2.CAS1_NOT_STARTED)))
         .onPassAndFail(confirmed).propagateContextOnFailure()
         .build()
 
@@ -251,7 +251,7 @@ class RulesGraphTest {
       val upcoming = builder
         .ruleSet(StubRuleSet(rules = listOf(StubRule("window")), name = "Upcoming"))
         .onPassAndFail(confirmed)
-        .setConstantServiceResultOnFailure(ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED))
+        .setConstantServiceResultOnFailure(ServiceResultV2(serviceStatus = ServiceStatusV2.CAS1_NOT_STARTED))
         .build()
 
       val graph = RulesGraphWalker().walk("DTR", upcoming)

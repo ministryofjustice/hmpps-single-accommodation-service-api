@@ -5,8 +5,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDtoNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityV2Dto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_RESIDENCE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_CURRENT_APPLICATION
@@ -24,9 +24,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.EligibilityOrchestrationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityNewToOldTransformer.toEligibilityDtoOld
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityTransformer.toFailedEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityV2ToOldTransformer.toEligibilityDtoOld
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 
 @Service
@@ -45,6 +45,11 @@ class EligibilityService(
   private val log = LoggerFactory.getLogger(this::class.java)
 
   fun getEligibility(crn: String): ApiResponseDto<EligibilityDto> {
+    val response = getEligibilityV2(crn)
+    return ApiResponseDto(data = toEligibilityDtoOld(response.data), upstreamFailures = response.upstreamFailures)
+  }
+
+  fun getEligibilityV2(crn: String): ApiResponseDto<EligibilityV2Dto> {
     log.debug("Calculating eligibility for CRN: {} using external APIs", crn)
 
     val caseEntity = caseRepository.findByCrn(crn)
@@ -67,16 +72,16 @@ class EligibilityService(
 
       val failedEligibilityDto = toFailedEligibilityDto(crn)
 
-      return toApiResponseDto(data = toEligibilityDtoOld(failedEligibilityDto), upstreamFailures = failuresRelevantToRulesEngine)
+      return toApiResponseDto(data = failedEligibilityDto, upstreamFailures = failuresRelevantToRulesEngine)
     }
 
     val data = domainDataFactory.buildDomainData(crn, eligibilityOrchestrationDto.data, caseEntity)
     val eligibility = getEligibility(data)
 
-    return toApiResponseDto(data = toEligibilityDtoOld(eligibility), upstreamFailures = emptyList())
+    return toApiResponseDto(data = eligibility)
   }
 
-  fun getEligibility(data: DomainData): EligibilityDtoNew {
+  fun getEligibility(data: DomainData): EligibilityV2Dto {
     log.debug(
       "Eligibility input data: crn={}, tierScore={}, sex={}, currentAccommodationEndDate={}, currentAccommodationStatus={}, currentAccommodationType={}, nextAccommodationsSize={}",
       data.crn,
@@ -107,12 +112,12 @@ class EligibilityService(
     ).also { log.debug("Eligibility result for CRN {}: {}", data.crn, it) }
   }
 
-  internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResultNew {
+  internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResultV2 {
     val result = provider.tree().eval(provider.initialContext(data))
     return deeplinkResolver.resolve(result, data)
   }
 
-  private fun evaluate(line: String, data: DomainData, provider: EligibilityTreeProvider): ServiceResultNew {
+  private fun evaluate(line: String, data: DomainData, provider: EligibilityTreeProvider): ServiceResultV2 {
     log.debug("Calculating {} eligibility for CRN: {}}", line, data.crn)
     return evaluate(provider, data).also {
       log.debug(
