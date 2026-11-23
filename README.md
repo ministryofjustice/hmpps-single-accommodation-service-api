@@ -156,7 +156,7 @@ The eligibility rules engine is in the codebase, you can extract a markdown vers
 ./gradlew :query:generateEligibilityRulesGraphs
 ```
 
-the file generated is viewable [here](./docs/eligibility-rules-graph.md)
+This task generates both the [Markdown graph with Mermaid diagrams](./docs/eligibility-rules-graph.md) and the [interactive HTML graph](./docs/eligibility-rules-graph.html). When the graphs change, review and commit both generated files.
 
 View the [interactive eligibility rules graph](https://ministryofjustice.github.io/hmpps-single-accommodation-service-api/eligibility-rules-graph.html).
 GitHub Pages must be configured to deploy from `main` and `/docs`; `docs/.nojekyll` disables Jekyll processing for these static files without changing the existing application deployment workflows.
@@ -172,4 +172,4 @@ To update the current local API branch instead, install Node.js and authenticate
 
 The selected run must have an unexpired preview artifact. The script refuses to overwrite locally changed preview or graph files.
 
-The pre-push hook in `scripts/hooks/pre-push` regenerates this graph and blocks the push if it differs from the committed version. Review and commit the updated graph before pushing again. Gradle's `copyGitHooks` task installs the script locally (also run automatically by root `compileKotlin`).
+The pre-push hook in `scripts/hooks/pre-push` regenerates both graphs and warns if either differs from its committed version. The warning itself does not block the push. Gradle's `copyGitHooks` task installs the script locally (also run automatically by root `compileKotlin`).

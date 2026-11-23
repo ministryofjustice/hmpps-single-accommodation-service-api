@@ -9,6 +9,9 @@ data class CaseAction(
 )
 
 enum class CaseActionType {
+  // PPC
+  START_PPC,
+
   // CAS1
   CREATE_PLACEMENT,
   PROVIDE_INFORMATION,

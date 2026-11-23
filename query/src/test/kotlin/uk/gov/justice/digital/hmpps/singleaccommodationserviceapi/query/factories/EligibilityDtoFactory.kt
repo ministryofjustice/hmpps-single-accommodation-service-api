@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityV2Dto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResultWrapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PpcServiceResultWrapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import java.time.LocalDate
@@ -26,6 +27,7 @@ fun buildEligibilityV2Dto(
   dtr: DtrServiceResultWrapper = buildDtrServiceResultNew(actionPosition = -1),
   crs: CrsServiceResultWrapper = buildCrsServiceResultNew(actionPosition = -1),
   pa: PaServiceResultWrapper = buildPaServiceResultNew(actionPosition = -1),
+  ppc: PpcServiceResultWrapper = buildPpcServiceResultNew(actionPosition = -1),
 ) = EligibilityV2Dto(
   crn,
   cas1,
@@ -34,6 +36,7 @@ fun buildEligibilityV2Dto(
   dtr,
   crs,
   pa,
+  ppc,
 )
 
 fun buildServiceResultNew(
@@ -104,6 +107,14 @@ fun buildPaServiceResultNew(
   serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.PA_NOT_ELIGIBLE),
   actionPosition: Int = -1,
 ) = PaServiceResultWrapper(
+  serviceResult = serviceResult,
+  actionPosition = actionPosition,
+)
+
+fun buildPpcServiceResultNew(
+  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.PPC_NOT_REQUIRED),
+  actionPosition: Int = -1,
+) = PpcServiceResultWrapper(
   serviceResult = serviceResult,
   actionPosition = actionPosition,
 )

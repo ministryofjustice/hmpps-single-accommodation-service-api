@@ -230,8 +230,20 @@ fun expectedGetEligibilityResponse(
             "blockingStatusReason": null
          }
       },
+      "ppc":{
+         "serviceResult":{
+            "serviceStatus":"PPC_NOT_STARTED",
+            "action":{"type":"START_PPC","startDate":null,"service":"PPC"},
+            "link":"Start public protection checker",
+            "url":null,
+            "linkType":"PPC_START_CHECKER",
+            "failureReasons":[],
+            "blockingStatusReason":null
+         }
+      },
       "caseActions":[
          {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type":"START_PPC","startDate":null,"service":"PPC"},
          {"type":"CREATE_PLACEMENT","startDate":null, "service": "CAS1"}
       ]
    }
@@ -313,6 +325,17 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "link":null,
             "url":null,
             "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         }
+      },
+      "ppc":{
+         "serviceResult":{
+            "serviceStatus":"PPC_NOT_STARTED",
+            "action":{"type":"START_PPC","startDate":null,"service":"PPC"},
+            "link":"Start public protection checker",
+            "url":null,
+            "linkType":"PPC_START_CHECKER",
             "failureReasons":[],
             "blockingStatusReason":null
          }
@@ -516,8 +539,20 @@ fun expectedGetEligibilityResponseTierNotFound(
             "blockingStatusReason":null
          }
       },
+      "ppc":{
+         "serviceResult":{
+            "serviceStatus":"PPC_NOT_STARTED",
+            "action":{"type":"START_PPC","startDate":null,"service":"PPC"},
+            "link":"Start public protection checker",
+            "url":null,
+            "linkType":"PPC_START_CHECKER",
+            "failureReasons":[],
+            "blockingStatusReason":null
+         }
+      },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type":"START_PPC","startDate":null,"service":"PPC"}
       ]
    }
 }
@@ -632,8 +667,20 @@ fun expectedGetEligibilityResponseCannotStartYet(
             "blockingStatusReason":null
          }
       },
+      "ppc":{
+         "serviceResult":{
+            "serviceStatus":"PPC_NOT_STARTED",
+            "action":{"type":"START_PPC","startDate":null,"service":"PPC"},
+            "link":"Start public protection checker",
+            "url":null,
+            "linkType":"PPC_START_CHECKER",
+            "failureReasons":[],
+            "blockingStatusReason":null
+         }
+      },
       "caseActions":[
          {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null, "service": "DTR"},
+         {"type":"START_PPC","startDate":null,"service":"PPC"},
          {"type": "START_CAS2_REFERRAL", "startDate": null, "service": "CAS2"},
          {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null, "service": "PA"}
       ]
@@ -670,7 +717,7 @@ fun expectedGetEligibilityV2Response(
         "url": "https://cas1-ui/applications/e6b202ce-c214-4b87-98f5-111111111111",
         "failureReasons": []
       },
-      "actionPosition": 1,
+      "actionPosition": 2,
       "cas1Application": {
         "uiUrl": "https://cas1-ui/applications/e6b202ce-c214-4b87-98f5-111111111111",
         "application": {
@@ -852,6 +899,15 @@ fun expectedGetEligibilityV2Response(
         ]
       },
       "actionPosition": -1
+    },
+    "ppc": {
+      "serviceResult": {
+        "serviceStatus": "PPC_NOT_STARTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 1
     }
   }
 }
@@ -885,7 +941,7 @@ fun expectedGetEligibilityV2Cas3BlockedResponse(
         "url": null,
         "failureReasons": []
       },
-      "actionPosition": 1,
+      "actionPosition": 2,
       "cas2Application": null
     },
     "cas3": {
@@ -949,7 +1005,16 @@ fun expectedGetEligibilityV2Cas3BlockedResponse(
         "url": null,
         "failureReasons": []
       },
-      "actionPosition": 2
+      "actionPosition": 3
+    },
+    "ppc": {
+      "serviceResult": {
+        "serviceStatus": "PPC_NOT_STARTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 1
     }
   }
 }
@@ -1124,6 +1189,15 @@ fun expectedGetEligibilityV2TierNotFoundResponse(
         ]
       },
       "actionPosition": -1
+    },
+    "ppc": {
+      "serviceResult": {
+        "serviceStatus": "PPC_NOT_STARTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 1
     }
   }
 }
@@ -1190,6 +1264,15 @@ fun expectedGetEligibilityV2TierErrorResponse(
     "pa": {
       "serviceResult": {
         "serviceStatus": "PA_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1
+    },
+    "ppc": {
+      "serviceResult": {
+        "serviceStatus": "PPC_NOT_STARTED",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1346,6 +1429,15 @@ fun expectedGetEligibilityV2FailureReasonResponse(
         ]
       },
       "actionPosition": -1
+    },
+    "ppc": {
+      "serviceResult": {
+        "serviceStatus": "PPC_NOT_STARTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 1
     }
   }
 }
@@ -1446,6 +1538,15 @@ fun expectedGetEligibilityV2NoPrisonerResponse(
         ]
       },
       "actionPosition": -1
+    },
+    "ppc": {
+      "serviceResult": {
+        "serviceStatus": "PPC_NOT_STARTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": 1
     }
   }
 }
@@ -1512,6 +1613,15 @@ fun expectedGetEligibilityV2ApplicationsNotFoundResponse(
     "pa": {
       "serviceResult": {
         "serviceStatus": "PA_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1
+    },
+    "ppc": {
+      "serviceResult": {
+        "serviceStatus": "PPC_NOT_STARTED",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1620,6 +1730,15 @@ fun expectedGetEligibilityV2ApplicationsNoContentResponse(
         "url": null,
         "failureReasons": []
       },
+      "actionPosition": 2
+    },
+    "ppc": {
+      "serviceResult": {
+        "serviceStatus": "PPC_NOT_STARTED",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
       "actionPosition": 1
     }
   }
@@ -1687,6 +1806,15 @@ fun expectedGetEligibilityV2PremisesNotFoundResponse(
     "pa": {
       "serviceResult": {
         "serviceStatus": "PA_NOT_ELIGIBLE",
+        "actionStartDate": null,
+        "url": null,
+        "failureReasons": []
+      },
+      "actionPosition": -1
+    },
+    "ppc": {
+      "serviceResult": {
+        "serviceStatus": "PPC_NOT_STARTED",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []

@@ -80,6 +80,12 @@ class DomainDataFactory(
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = suitableCrsReferral,
       sexualOffenceRegistrations = eligibilityOrchestrationDto.sexualOffenceRegistrations,
+      ppcAnswers = getPpcAnswers(crn),
     )
+  }
+
+  internal fun getPpcAnswers(crn: String): PublicProtectionCheckerAnswers? {
+    // TODO: Load the saved PPC answers for this CRN once PPC persistence is implemented.
+    return null
   }
 }

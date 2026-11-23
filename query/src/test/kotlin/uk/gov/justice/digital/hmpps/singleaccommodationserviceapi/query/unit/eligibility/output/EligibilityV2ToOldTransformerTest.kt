@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PpcServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
@@ -54,6 +55,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityV2Dto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPpcServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -145,6 +147,12 @@ class EligibilityV2ToOldTransformerTest {
       Arguments.of(ServiceStatusV2.PA_COMPLETED, ServiceStatus.COMPLETED),
       Arguments.of(ServiceStatusV2.PA_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
       Arguments.of(ServiceStatusV2.PA_NOT_STARTED, ServiceStatus.NOT_STARTED),
+
+      Arguments.of(ServiceStatusV2.PPC_NOT_STARTED, ServiceStatus.PPC_NOT_STARTED),
+      Arguments.of(ServiceStatusV2.PPC_NOT_REQUIRED, ServiceStatus.NOT_REQUIRED),
+      Arguments.of(ServiceStatusV2.PPC_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
+      Arguments.of(ServiceStatusV2.PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED, ServiceStatus.PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED),
+      Arguments.of(ServiceStatusV2.PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED, ServiceStatus.PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED),
     )
   }
 
@@ -296,6 +304,10 @@ class EligibilityV2ToOldTransformerTest {
       serviceStatus = ServiceStatusV2.PA_NOT_STARTED,
       url = "pa/test",
     )
+    val ppc = buildServiceResultNew(
+      serviceStatus = ServiceStatusV2.PPC_NOT_STARTED,
+      url = "ppc/test",
+    )
 
     val cas1ServiceResult = buildCas1ServiceResultNew(
       serviceResult = cas1,
@@ -327,6 +339,10 @@ class EligibilityV2ToOldTransformerTest {
       serviceResult = pa,
       actionPosition = 5,
     )
+    val ppcServiceResult = buildPpcServiceResultNew(
+      serviceResult = ppc,
+      actionPosition = 6,
+    )
     val caseActions = listOf(
       CaseAction(type = CaseActionType.SUBMIT_DTR_REFERRAL, startDate = LocalDate.parse("2023-01-01"), service = ServiceType.DTR),
       CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.parse("2023-01-03"), service = ServiceType.CAS1),
@@ -334,6 +350,7 @@ class EligibilityV2ToOldTransformerTest {
       CaseAction(type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL, startDate = LocalDate.parse("2023-01-04"), service = ServiceType.CRS),
       CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = null, service = ServiceType.CAS3),
       CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null, service = ServiceType.PA),
+      CaseAction(type = CaseActionType.START_PPC, startDate = null, service = ServiceType.PPC),
     )
     val eligibilityDtoOld = EligibilityDto(
       crn = crn,
@@ -434,6 +451,21 @@ class EligibilityV2ToOldTransformerTest {
         ),
       ),
       caseActions = caseActions,
+      ppc = PpcServiceResult(
+        serviceResult = ServiceResult(
+          serviceStatus = ServiceStatus.PPC_NOT_STARTED,
+          action = CaseAction(
+            type = ppcServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = ppcServiceResult.serviceResult.actionStartDate,
+            service = ppcServiceResult.serviceResult.serviceStatus.service,
+          ),
+          link = ppc.serviceStatus.link?.text,
+          url = ppc.url,
+          linkType = ppc.serviceStatus.link?.type,
+          failureReasons = ppc.failureReasons,
+          blockingStatusReason = ppc.serviceStatus.blockingStatusReason,
+        ),
+      ),
     )
 
     val eligibilityDto = buildEligibilityV2Dto(
@@ -444,6 +476,7 @@ class EligibilityV2ToOldTransformerTest {
       dtr = dtrServiceResult,
       crs = crsServiceResult,
       pa = paServiceResult,
+      ppc = ppcServiceResult,
     )
 
     val result = toEligibilityDtoOld(
