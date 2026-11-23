@@ -117,10 +117,10 @@ CI publishes both contracts with the same SAS app version and branch for CPR pro
 ## Infrastructure
 
 The service is deployed to the [MoJ Cloud Platform](https://user-guide.cloud-platform.service.justice.gov.uk). This is
-managed by Kubernetes and Helm Charts which reside within this repo at [`./helm_deploy`](./helm_deploy/approved-premises-api/).
+managed by Kubernetes and Helm Charts which reside within this repo at [`./helm_deploy`](./helm_deploy/).
 
 To get set up with Kubernetes and configure your system so that the `kubectl` command authenticates, see this
-[[MoJ guide to generating a 'kube' config](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/getting-started/kubectl-config.html#generating-a-kubeconfig-file)].
+[MoJ guide to generating a 'kube' config](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/getting-started/kubectl-config.html#generating-a-kubeconfig-file).
 
 You should then be able to run `kubectl` commands, e.g. to list the 'pods' in a given 'namespace':
 
@@ -144,7 +144,7 @@ Confluence](https://dsdmoj.atlassian.net/wiki/spaces/AP/pages/5001478252/CAS+Env
 ## Release process
 
 Our release process aligns with the other CAS teams and as such [lives in Confluence](https://dsdmoj.atlassian.net/wiki/spaces/AP/pages/4247847062/Release+process).
-The steps are also available in the pull request checklist[PULL_REQUEST_TEMPLATE](/.github/PULL_REQUEST_TEMPLATE/full_template.md).
+The steps are also available in the [pull request checklist](./.github/pull_request_template.md).
 
 ## Rules Engine
 
@@ -159,6 +159,8 @@ The eligibility rules engine is in the codebase, you can extract a markdown vers
 This task generates both the [Markdown graph with Mermaid diagrams](./docs/eligibility-rules-graph.md) and the [interactive HTML graph](./docs/eligibility-rules-graph.html). When the graphs change, review and commit both generated files.
 
 View the [interactive eligibility rules graph](https://ministryofjustice.github.io/hmpps-single-accommodation-service-api/eligibility-rules-graph.html).
+Each tree's sidebar contains its architecture decision record, or a message if none exists. Put tree ADRs in `docs/architecture/decisions/treeadrs` using the filename `<tree>-tree-explanation-YYYY-MM-DD.md` (for example, `cas1-tree-explanation-2026-11-23.md`). Each must contain a `Date: YYYY-MM-DD` line; when a tree has multiple ADRs, the graph uses the latest declared date, not the filename date. ADRs for the same tree must have distinct declared dates. Regenerate the graph after changing an ADR.
+The home page and sidebar warn when the latest committed change to that tree's `<tree>-eligibility-scenarios.csv` or `<tree>-application-scenarios.csv` is later than the ADR's declared date. This is a prompt to review the ADR, not proof it is incorrect. The graph generator considers committed changes only: regenerate the graph after committing scenario changes to update the warning. For a shallow checkout, it fetches the missing history from `origin` before checking dates, which requires access to the remote.
 Use **Search...** in the tree toolbar to highlight all matching nodes and dim the rest of the graph, including in **Simulate** mode. The search includes node labels, rule descriptions and failure reasons; outside simulation, click a node to see its details and incoming paths.
 In **Simulate** mode, click a node with rules to set them all to FAIL, or all to PASS if they are already all failing. You can still toggle individual rules in the sidebar.
 GitHub Pages must be configured to deploy from `main` and `/docs`; `docs/.nojekyll` disables Jekyll processing for these static files without changing the existing application deployment workflows.

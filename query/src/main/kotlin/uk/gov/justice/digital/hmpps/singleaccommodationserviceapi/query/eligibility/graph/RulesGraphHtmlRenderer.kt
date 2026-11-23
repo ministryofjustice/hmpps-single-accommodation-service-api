@@ -1,8 +1,50 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph
 
+import org.commonmark.ext.gfm.tables.TablesExtension
+import org.commonmark.parser.Parser
+import org.commonmark.renderer.html.HtmlRenderer
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
+import java.nio.file.Files
+import java.nio.file.Path
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
+import java.util.Locale
+import kotlin.io.path.extension
+import kotlin.io.path.name
+
+data class TreeAdr(val date: LocalDate, val markdown: String)
+
+fun loadTreeAdrs(directory: Path): Map<String, TreeAdr> {
+  require(Files.isDirectory(directory)) { "Tree ADR directory does not exist: $directory" }
+  val filename = Regex("""^([a-z0-9]+)-tree-explanation-(\d{4}-\d{2}-\d{2})\.md${'$'}""", RegexOption.IGNORE_CASE)
+  val dateLine = Regex("""(?m)^Date:[ \t]*(\d{4}-\d{2}-\d{2})[ \t]*\r?${'$'}""")
+  val adrs = mutableMapOf<String, TreeAdr>()
+  val seenDates = mutableSetOf<Pair<String, LocalDate>>()
+  Files.list(directory).use { paths ->
+    paths.filter { Files.isRegularFile(it) && it.extension.equals("md", ignoreCase = true) }.sorted().forEach { path ->
+      val match = requireNotNull(filename.matchEntire(path.name)) { "Invalid tree ADR filename: $path" }
+      val treeName = match.groupValues[1].uppercase(Locale.ROOT)
+      try {
+        LocalDate.parse(match.groupValues[2])
+      } catch (ex: DateTimeParseException) {
+        throw IllegalArgumentException("Invalid tree ADR filename date: $path", ex)
+      }
+      val markdown = Files.readString(path)
+      val dateText = requireNotNull(dateLine.find(markdown)) { "Missing Date: YYYY-MM-DD in tree ADR: $path" }.groupValues[1]
+      val date = try {
+        LocalDate.parse(dateText)
+      } catch (ex: DateTimeParseException) {
+        throw IllegalArgumentException("Invalid tree ADR date in $path: $dateText", ex)
+      }
+      val current = adrs[treeName]
+      require(seenDates.add(treeName to date)) { "Multiple ADRs for $treeName have the same date: $date" }
+      if (current == null || date > current.date) adrs[treeName] = TreeAdr(date, markdown)
+    }
+  }
+  return adrs
+}
 
 /**
  * Renders the eligibility rules graphs as a standalone, interactive HTML page using Cytoscape.js.
@@ -13,13 +55,22 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
 
   private val jsonMapper = JsonMapper.builder().build()
   private val cardPreview = requireNotNull(javaClass.getResource("/eligibility/status-card-preview.html")).readText()
+  private val markdownExtensions = listOf(TablesExtension.create())
+  private val markdownParser = Parser.builder().extensions(markdownExtensions).build()
+  private val markdownRenderer = HtmlRenderer.builder().extensions(markdownExtensions).escapeHtml(true).sanitizeUrls(true).build()
 
-  override fun render(graphs: List<RulesGraph>): String {
-    val json = jsonMapper.writeValueAsString(toJson(graphs)).replace("</", "<\\/")
+  override fun render(graphs: List<RulesGraph>): String = render(graphs, emptyMap())
+
+  fun render(graphs: List<RulesGraph>, adrs: Map<String, TreeAdr>, scenarioChangeDates: Map<String, LocalDate> = emptyMap()): String {
+    val json = jsonMapper.writeValueAsString(toJson(graphs, adrs, scenarioChangeDates)).replace("</", "<\\/")
     return TEMPLATE.replace("__STATUS_CARD_PREVIEW__", cardPreview).replace(DATA_PLACEHOLDER, json)
   }
 
-  internal fun toJson(graphs: List<RulesGraph>): Map<String, Any?> = mapOf(
+  internal fun toJson(
+    graphs: List<RulesGraph>,
+    adrs: Map<String, TreeAdr> = emptyMap(),
+    scenarioChangeDates: Map<String, LocalDate> = emptyMap(),
+  ): Map<String, Any?> = mapOf(
     "statuses" to ServiceStatusV2.entries.associate { status ->
       status.name to mapOf(
         "service" to status.service.name,
@@ -35,6 +86,13 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
         "fullName" to graph.info?.fullName,
         "description" to graph.info?.description,
         "displayOrder" to graph.info?.displayOrder,
+        "adr" to adrs[graph.treeName]?.let { adr ->
+          mapOf(
+            "date" to adr.date.toString(),
+            "html" to markdownRenderer.render(markdownParser.parse(adr.markdown)),
+            "scenarioChangeDate" to scenarioChangeDates[graph.treeName]?.takeIf { it > adr.date }?.toString(),
+          )
+        },
         "nodes" to graph.nodes.map { node ->
           mapOf(
             "id" to node.id,
@@ -108,6 +166,11 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
   #panel h2 { margin-top: 0; font-size: 18px; word-break: break-word; }
   #panel h3 { font-size: 15px; margin-bottom: 4px; }
   #panel h4 { font-size: 14px; margin: 8px 0 4px; }
+  #tree-adr { border-bottom: 1px solid #ddd; padding-bottom: 12px; margin-bottom: 12px; }
+  #tree-adr summary { cursor: pointer; font-weight: bold; }
+  #tree-adr .adr-content { overflow-wrap: anywhere; }
+  #tree-adr pre { overflow-x: auto; }
+  .adr-warning { border-left: 4px solid #d4351c; padding: 8px; background: #fdf2f2; }
   #panel .kind { margin: 0 0 2px; }
   #panel .route { border-top: 1px solid #ddd; margin-top: 12px; padding-top: 4px; }
   #panel-content > .trace-outcomes, #panel .route .trace-outcomes { margin: 8px 0 12px; }
@@ -171,7 +234,7 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
   </div>
   <div id="cy"></div>
 </div>
-<div id="panel"><div id="tree-heading"></div><div id="panel-content"></div></div>
+<div id="panel"><div id="tree-heading"></div><div id="tree-adr"></div><div id="panel-content"></div></div>
 
 <script type="application/json" id="graph-data">$DATA_PLACEHOLDER</script>
 __STATUS_CARD_PREVIEW__
@@ -180,6 +243,7 @@ __STATUS_CARD_PREVIEW__
   const panel = document.getElementById('panel');
   const togglePanelButton = document.getElementById('toggle-panel');
   const treeHeading = document.getElementById('tree-heading');
+  const treeAdr = document.getElementById('tree-adr');
   const treeSelect = document.getElementById('tree');
   const panelContent = document.getElementById('panel-content');
   const searchInput = document.getElementById('tree-search-input');
@@ -729,6 +793,13 @@ __STATUS_CARD_PREVIEW__
     const tree = data.trees.find(t => t.name === name);
     treeHeading.innerHTML = '<h1>' + esc(name) + (tree.fullName ? ' – ' + esc(tree.fullName) : '') + '</h1>' +
       (tree.description ? '<p class="muted">' + esc(tree.description) + '</p>' : '');
+    treeAdr.innerHTML = tree.adr ?
+      (tree.adr.scenarioChangeDate ? '<p class="adr-warning"><strong>This ADR may be out of date.</strong> ' +
+        'The scenario CSVs were last changed on ' + esc(tree.adr.scenarioChangeDate) +
+        ', after the ADR date.</p>' : '') +
+      '<details><summary>Architecture decision record (' + esc(tree.adr.date) + ')</summary><div class="adr-content">' +
+        tree.adr.html + '</div></details>' :
+      '<p class="muted">No architecture decision record is available for this tree.</p>';
     treeSelect.value = name;
     document.title = name + (tree.fullName ? ' – ' + tree.fullName : '') + ' – Eligibility rules graph';
     updateUrl();
@@ -747,6 +818,7 @@ __STATUS_CARD_PREVIEW__
   document.getElementById('tree-cards').innerHTML = orderedTrees.map(t => {
     return '<button class="tree-card" data-tree="' + esc(t.name) + '"><h2>' + esc(t.name) + '</h2>' +
       '<p class="full-name">' + esc(t.fullName) + '</p><p>' + esc(t.description) + '</p>' +
+      (t.adr?.scenarioChangeDate ? '<p class="adr-warning"><strong>This ADR may be out of date.</strong></p>' : '') +
       '<p class="muted">' + t.nodes.filter(n => n.kind === 'RULE_SET').length + ' rule sets, ' +
       t.nodes.filter(n => n.kind === 'OUTCOME').length + ' outcomes</p></button>';
   }).join('');
