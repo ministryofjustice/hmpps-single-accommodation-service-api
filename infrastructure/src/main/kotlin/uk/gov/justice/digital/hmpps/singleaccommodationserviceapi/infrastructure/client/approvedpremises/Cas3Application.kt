@@ -10,7 +10,7 @@ data class Cas3Application(
   val id: UUID,
   val createdAt: OffsetDateTime,
   val applicationStatus: Cas3ApplicationStatus,
-  val applicationSubmittedBy: Cas3Staff,
+  val createdBy: Cas3Staff,
   val submittedApplication: Cas3SubmittedApplication?,
   val uiUrl: String,
 ) {

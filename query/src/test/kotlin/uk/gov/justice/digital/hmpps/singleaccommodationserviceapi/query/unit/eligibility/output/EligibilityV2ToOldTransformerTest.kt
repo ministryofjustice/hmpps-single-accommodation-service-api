@@ -251,7 +251,7 @@ class EligibilityV2ToOldTransformerTest {
     val cas3ApplicationDto = buildCas3ApplicationDto(
       applicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
       applicationSubmittedDate = LocalDate.parse("2023-01-01"),
-      applicationSubmittedBy = buildCas3StaffDto(),
+      createdBy = buildCas3StaffDto(),
       applicationRejectedReason = "Problem with application",
       assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
       bookingStatus = Cas3BookingStatus.NOT_MINUS_ARRIVED,

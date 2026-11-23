@@ -380,7 +380,7 @@ class EligibilityTransformerTest {
     val cas3Application = buildCas3Application(
       applicationStatus = InfraCas3ApplicationStatus.SUBMITTED,
       id = UUID.randomUUID(),
-      applicationSubmittedBy = buildCas3Staff(name = "Application Creator"),
+      createdBy = buildCas3Staff(name = "Application Creator"),
       submittedApplication = buildCas3SubmittedApplication(
         submittedDate = LocalDate.parse("2023-01-01"),
         submittedBy = buildCas3Staff(name = "Submitted By"),
@@ -516,7 +516,7 @@ class EligibilityTransformerTest {
       id = cas3Application.id,
       createdAt = cas3Application.createdAt,
       applicationSubmittedDate = LocalDate.parse("2023-01-01"),
-      applicationSubmittedBy = buildCas3StaffDto(name = "Application Creator"),
+      createdBy = buildCas3StaffDto(name = "Application Creator"),
       applicationRejectedReason = "Problem with application",
       assessmentStatus = Cas3AssessmentStatus.REJECTED,
       bookingStatus = Cas3BookingStatus.CANCELLED,
@@ -649,7 +649,7 @@ class EligibilityTransformerTest {
       id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
       createdAt = OffsetDateTime.parse("2026-11-18T10:00:00Z"),
       applicationStatus = InfraCas3ApplicationStatus.IN_PROGRESS,
-      applicationSubmittedBy = buildCas3Staff(
+      createdBy = buildCas3Staff(
         name = "Draft Creator",
         username = "draft.creator",
         staffCode = "DRAFT01",
@@ -673,7 +673,7 @@ class EligibilityTransformerTest {
         id = application.id,
         createdAt = application.createdAt,
         applicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
-        applicationSubmittedBy = buildCas3StaffDto(
+        createdBy = buildCas3StaffDto(
           name = "Draft Creator",
           username = "draft.creator",
           staffCode = "DRAFT01",

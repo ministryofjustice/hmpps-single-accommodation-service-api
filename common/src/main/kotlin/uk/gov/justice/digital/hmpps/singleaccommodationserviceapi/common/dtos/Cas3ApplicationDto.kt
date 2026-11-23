@@ -10,7 +10,7 @@ data class Cas3ApplicationDto(
   val createdAt: OffsetDateTime,
   val applicationStatus: Cas3ApplicationStatus,
   val applicationSubmittedDate: LocalDate?,
-  val applicationSubmittedBy: Cas3StaffDto?,
+  val createdBy: Cas3StaffDto?,
   val applicationRejectedReason: String?,
   val assessmentStatus: Cas3AssessmentStatus?,
   val bookingStatus: Cas3BookingStatus?,
