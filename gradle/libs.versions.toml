@@ -19,6 +19,7 @@ postgres = "42.7.14"
 sentry = "8.65.0"
 pact = "4.7.7"
 sar-test-support = "2.10.0"
+commonmark = "0.24.0"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
@@ -76,3 +77,5 @@ flyway-postgres = { module = "org.flywaydb:flyway-database-postgresql" }
 # Timeline auditing
 javers = { module = "org.javers:javers-spring-boot-starter-sql", version.ref = "javers" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
+commonmark = { module = "org.commonmark:commonmark", version.ref = "commonmark" }
+commonmark-tables = { module = "org.commonmark:commonmark-ext-gfm-tables", version.ref = "commonmark" }
