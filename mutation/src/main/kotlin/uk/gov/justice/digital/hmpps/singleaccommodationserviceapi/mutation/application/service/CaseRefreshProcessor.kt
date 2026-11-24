@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshFailureCategory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 
 @Service
@@ -16,7 +17,10 @@ class CaseRefreshProcessor(
 
   fun process(claim: CaseRefreshRequestService.Claim): Result = when (val loadOutcome = loadProjection(claim)) {
     is LoadOutcome.Loaded -> complete(claim, loadOutcome.projection)
-    is LoadOutcome.Failed -> recordFailure(claim, loadOutcome.failure)
+    is LoadOutcome.Failed -> when (loadOutcome.failure.category) {
+      CaseRefreshFailureCategory.CORE_PERSON_RECORD_NOT_FOUND -> handleMissingCorePersonRecord(claim)
+      else -> recordFailure(claim, loadOutcome.failure)
+    }
     LoadOutcome.CaseNotFound -> {
       // the case was archived/deleted before processing; drop the request so it isn't reclaimed repeatedly
       caseRefreshRequestService.deleteOwnedRequest(claim)
@@ -61,6 +65,13 @@ class CaseRefreshProcessor(
   } catch (exception: Exception) {
     log.error("Unexpected error completing Case projection refresh [caseId={}]", claim.caseId, exception)
     recordFailure(claim, failureClassifier.unexpected(exception))
+  }
+
+  private fun handleMissingCorePersonRecord(claim: CaseRefreshRequestService.Claim): Result = when (
+    caseRefreshRequestService.deleteOwnedRequestOrReleaseForNewerGeneration(claim)
+  ) {
+    CaseRefreshRequestService.FailureDisposition.HANDLED -> Result.CaseNotFound
+    CaseRefreshRequestService.FailureDisposition.IGNORED_STALE_CLAIM -> Result.IgnoredStaleClaim
   }
 
   private fun recordFailure(

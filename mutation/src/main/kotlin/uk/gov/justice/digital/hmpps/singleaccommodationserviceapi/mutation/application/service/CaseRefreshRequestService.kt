@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @Service
 class CaseRefreshRequestService(
@@ -52,6 +52,9 @@ class CaseRefreshRequestService(
   }
 
   @Transactional
+  fun replayFailedRequests(): Int = caseRefreshRequestRepository.replayFailedRequests(nextAttemptAt = Instant.now(clock))
+
+  @Transactional
   fun claimPending(maxRequests: Int, abandonedClaimTimeout: Duration): List<Claim> {
     val claimedAt = Instant.now(clock)
     return caseRefreshRequestRepository.findClaimable(
@@ -77,6 +80,20 @@ class CaseRefreshRequestService(
   @Transactional
   fun deleteOwnedRequest(claim: Claim) {
     findOwnedRequest(claim)?.let { caseRefreshRequestRepository.delete(it) }
+  }
+
+  @Transactional
+  fun deleteOwnedRequestOrReleaseForNewerGeneration(claim: Claim): FailureDisposition = when (val request = findOwnedRequest(claim)) {
+    null -> FailureDisposition.IGNORED_STALE_CLAIM
+
+    else -> {
+      if (request.generation != claim.generation) {
+        lifecycleService.releaseForNewerGeneration(request)
+      } else {
+        caseRefreshRequestRepository.delete(request)
+      }
+      FailureDisposition.HANDLED
+    }
   }
 
   @Transactional

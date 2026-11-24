@@ -52,6 +52,11 @@ This keeps the alerting simple and avoids sending one alert per failed row.
 - Sends an alert if any failed case refresh requests are found
 - Implementation: `CaseRefreshFailureMonitor`
 
+Failed case refresh requests can be replayed through `POST /admin/replay-failed-refresh-requests (requires ROLE_SAS_ADMIN_RW)`.
+This resets only `FAILED` requests to `PENDING`, makes them immediately eligible for processing, and clears retry and claim metadata.
+The response reports the number of requests reset; `CaseRefreshWorker` processes them asynchronously.
+Pending and processing requests are unchanged.
+
 ## Scheduling
 
 The monitors are currently configured to run **daily at midday UTC**:
