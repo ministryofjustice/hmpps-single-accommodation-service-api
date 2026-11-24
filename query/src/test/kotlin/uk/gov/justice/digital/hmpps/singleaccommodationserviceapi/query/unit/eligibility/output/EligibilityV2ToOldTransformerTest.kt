@@ -48,15 +48,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityV2ToOldTransformer.toEligibilityDtoOld
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityV2ToOldTransformer.toServiceStatusOld
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResultV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityV2Dto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPpcServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPpcServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultV2
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.stream.Stream
@@ -276,70 +276,70 @@ class EligibilityV2ToOldTransformerTest {
 
     val crn = "FAKECRN1"
 
-    val crs = buildServiceResultNew(
+    val crs = buildServiceResultV2(
       serviceStatus = ServiceStatusV2.CRS_UPCOMING_ACCOMMODATION_REFERRAL,
       url = "crs/test",
       actionStartDate = LocalDate.parse("2023-01-04"),
     )
-    val cas1 = buildServiceResultNew(
+    val cas1 = buildServiceResultV2(
       serviceStatus = ServiceStatusV2.CAS1_UPCOMING,
       url = "cas1/test",
       actionStartDate = LocalDate.parse("2023-01-03"),
     )
-    val cas2 = buildServiceResultNew(
+    val cas2 = buildServiceResultV2(
       serviceStatus = ServiceStatusV2.CAS2_UPCOMING,
       url = "cas2/test",
       actionStartDate = LocalDate.parse("2023-01-02"),
     )
-    val cas3 = buildServiceResultNew(
+    val cas3 = buildServiceResultV2(
       serviceStatus = ServiceStatusV2.CAS3_NOT_STARTED,
       url = "cas3/test",
     )
-    val dtr = buildServiceResultNew(
+    val dtr = buildServiceResultV2(
       serviceStatus = ServiceStatusV2.DTR_UPCOMING,
       url = "dtr/test",
       actionStartDate = LocalDate.parse("2023-01-01"),
     )
-    val pa = buildServiceResultNew(
+    val pa = buildServiceResultV2(
       serviceStatus = ServiceStatusV2.PA_NOT_STARTED,
       url = "pa/test",
     )
-    val ppc = buildServiceResultNew(
+    val ppc = buildServiceResultV2(
       serviceStatus = ServiceStatusV2.PPC_NOT_STARTED,
       url = "ppc/test",
     )
 
-    val cas1ServiceResult = buildCas1ServiceResultNew(
+    val cas1ServiceResult = buildCas1ServiceResultV2(
       serviceResult = cas1,
       cas1Application = cas1ApplicationDto,
       actionPosition = 1,
     )
-    val cas2ServiceResult = buildCas2ServiceResultNew(
+    val cas2ServiceResult = buildCas2ServiceResultV2(
       serviceResult = cas2,
       cas2Application = cas2ApplicationDto,
       actionPosition = 2,
     )
-    val cas3ServiceResult = buildCas3ServiceResultNew(
+    val cas3ServiceResult = buildCas3ServiceResultV2(
       serviceResult = cas3,
       cas3Application = cas3ApplicationDto,
       actionPosition = 4,
     )
-    val dtrServiceResult = buildDtrServiceResultNew(
+    val dtrServiceResult = buildDtrServiceResultV2(
       serviceResult = dtr,
       caseId = dutyToReferDto.caseId,
       submission = dutyToReferDto.submission,
       actionPosition = 0,
     )
-    val crsServiceResult = buildCrsServiceResultNew(
+    val crsServiceResult = buildCrsServiceResultV2(
       serviceResult = crs,
       commissionedRehabilitativeServices = commissionedRehabilitativeServicesDto,
       actionPosition = 3,
     )
-    val paServiceResult = buildPaServiceResultNew(
+    val paServiceResult = buildPaServiceResultV2(
       serviceResult = pa,
       actionPosition = 5,
     )
-    val ppcServiceResult = buildPpcServiceResultNew(
+    val ppcServiceResult = buildPpcServiceResultV2(
       serviceResult = ppc,
       actionPosition = 6,
     )

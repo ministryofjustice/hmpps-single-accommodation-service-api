@@ -54,9 +54,15 @@ class CrsEligibilityTreeProvider(
       ServiceResultV2(serviceStatus = ServiceStatusV2.CRS_SUBMITTED, url = url),
     )
 
+    val leavingWithin12WeeksRuleSetNode = builder
+      .ruleSet(leavingWithin12WeeksRuleSet)
+      .onPass(confirmed)
+      .onFail(confirmed).applyContextUpdaterOnFailure(crsUpcomingContextUpdater)
+      .build()
+
     val noNextAccommodationRuleSetNode = builder
       .ruleSet(noNextAccommodationRuleSet)
-      .onPass(confirmed)
+      .onPass(leavingWithin12WeeksRuleSetNode)
       .onFail(notRequired)
       .build()
 
@@ -66,16 +72,10 @@ class CrsEligibilityTreeProvider(
       .onFail(notRequired)
       .build()
 
-    val crsLiveRuleSetNode = builder
+    return builder
       .ruleSet(crsLiveRuleSet)
       .onPass(submitted)
       .onFail(notSettledRuleSetNode).applyContextUpdaterOnFailure(crsStartContextUpdater)
-      .build()
-
-    return builder
-      .ruleSet(leavingWithin12WeeksRuleSet)
-      .onPass(crsLiveRuleSetNode)
-      .onFail(notSettledRuleSetNode).applyContextUpdaterOnFailure(crsUpcomingContextUpdater)
       .build()
   }
 }

@@ -21,13 +21,13 @@ import java.util.UUID
 
 fun buildEligibilityV2Dto(
   crn: String,
-  cas1: Cas1ServiceResultWrapper = buildCas1ServiceResultNew(actionPosition = -1),
-  cas2: Cas2ServiceResultWrapper = buildCas2ServiceResultNew(actionPosition = -1),
-  cas3: Cas3ServiceResultWrapper = buildCas3ServiceResultNew(actionPosition = -1),
-  dtr: DtrServiceResultWrapper = buildDtrServiceResultNew(actionPosition = -1),
-  crs: CrsServiceResultWrapper = buildCrsServiceResultNew(actionPosition = -1),
-  pa: PaServiceResultWrapper = buildPaServiceResultNew(actionPosition = -1),
-  ppc: PpcServiceResultWrapper = buildPpcServiceResultNew(actionPosition = -1),
+  cas1: Cas1ServiceResultWrapper = buildCas1ServiceResultV2(actionPosition = -1),
+  cas2: Cas2ServiceResultWrapper = buildCas2ServiceResultV2(actionPosition = -1),
+  cas3: Cas3ServiceResultWrapper = buildCas3ServiceResultV2(actionPosition = -1),
+  dtr: DtrServiceResultWrapper = buildDtrServiceResultV2(actionPosition = -1),
+  crs: CrsServiceResultWrapper = buildCrsServiceResultV2(actionPosition = -1),
+  pa: PaServiceResultWrapper = buildPaServiceResultV2(actionPosition = -1),
+  ppc: PpcServiceResultWrapper = buildPpcServiceResultV2(actionPosition = -1),
 ) = EligibilityV2Dto(
   crn,
   cas1,
@@ -39,7 +39,7 @@ fun buildEligibilityV2Dto(
   ppc,
 )
 
-fun buildServiceResultNew(
+fun buildServiceResultV2(
   serviceStatus: ServiceStatusV2 = ServiceStatusV2.CAS1_NOT_ELIGIBLE,
   url: String? = null,
   failureReasons: List<FailureReason> = emptyList(),
@@ -51,8 +51,8 @@ fun buildServiceResultNew(
   actionStartDate = actionStartDate,
 )
 
-fun buildCas1ServiceResultNew(
-  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.CAS1_NOT_ELIGIBLE),
+fun buildCas1ServiceResultV2(
+  serviceResult: ServiceResultV2 = buildServiceResultV2(ServiceStatusV2.CAS1_NOT_ELIGIBLE),
   cas1Application: Cas1ApplicationDto? = null,
   actionPosition: Int,
 ) = Cas1ServiceResultWrapper(
@@ -61,8 +61,8 @@ fun buildCas1ServiceResultNew(
   actionPosition = actionPosition,
 )
 
-fun buildCas2ServiceResultNew(
-  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.CAS2_NOT_ELIGIBLE),
+fun buildCas2ServiceResultV2(
+  serviceResult: ServiceResultV2 = buildServiceResultV2(ServiceStatusV2.CAS2_NOT_ELIGIBLE),
   cas2Application: Cas2ApplicationDto? = null,
   actionPosition: Int,
 ) = Cas2ServiceResultWrapper(
@@ -71,8 +71,8 @@ fun buildCas2ServiceResultNew(
   actionPosition = actionPosition,
 )
 
-fun buildCas3ServiceResultNew(
-  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.CAS3_NOT_ELIGIBLE),
+fun buildCas3ServiceResultV2(
+  serviceResult: ServiceResultV2 = buildServiceResultV2(ServiceStatusV2.CAS3_NOT_ELIGIBLE),
   cas3Application: Cas3ApplicationDto? = null,
   actionPosition: Int,
 ) = Cas3ServiceResultWrapper(
@@ -81,8 +81,8 @@ fun buildCas3ServiceResultNew(
   actionPosition = actionPosition,
 )
 
-fun buildDtrServiceResultNew(
-  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.DTR_NOT_ELIGIBLE),
+fun buildDtrServiceResultV2(
+  serviceResult: ServiceResultV2 = buildServiceResultV2(ServiceStatusV2.DTR_NOT_ELIGIBLE),
   caseId: UUID? = null,
   submission: DtrSubmissionDto? = null,
   actionPosition: Int,
@@ -93,8 +93,8 @@ fun buildDtrServiceResultNew(
   actionPosition = actionPosition,
 )
 
-fun buildCrsServiceResultNew(
-  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.CRS_NOT_ELIGIBLE),
+fun buildCrsServiceResultV2(
+  serviceResult: ServiceResultV2 = buildServiceResultV2(ServiceStatusV2.CRS_NOT_ELIGIBLE),
   commissionedRehabilitativeServices: CommissionedRehabilitativeServicesDto? = null,
   actionPosition: Int,
 ) = CrsServiceResultWrapper(
@@ -103,16 +103,16 @@ fun buildCrsServiceResultNew(
   actionPosition = actionPosition,
 )
 
-fun buildPaServiceResultNew(
-  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.PA_NOT_ELIGIBLE),
+fun buildPaServiceResultV2(
+  serviceResult: ServiceResultV2 = buildServiceResultV2(ServiceStatusV2.PA_NOT_ELIGIBLE),
   actionPosition: Int = -1,
 ) = PaServiceResultWrapper(
   serviceResult = serviceResult,
   actionPosition = actionPosition,
 )
 
-fun buildPpcServiceResultNew(
-  serviceResult: ServiceResultV2 = buildServiceResultNew(ServiceStatusV2.PPC_NOT_REQUIRED),
+fun buildPpcServiceResultV2(
+  serviceResult: ServiceResultV2 = buildServiceResultV2(ServiceStatusV2.PPC_NOT_REQUIRED),
   actionPosition: Int = -1,
 ) = PpcServiceResultWrapper(
   serviceResult = serviceResult,

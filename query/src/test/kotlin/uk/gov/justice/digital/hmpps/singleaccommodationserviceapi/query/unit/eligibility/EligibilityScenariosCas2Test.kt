@@ -194,7 +194,6 @@ class EligibilityScenariosCas2Test : EligibilityScenarioTestBase() {
   @Test
   fun `should calculate application for cas2 for all scenarios`() {
     val scenarios = loadCas2ApplicationScenarios()
-
     runScenarios(scenarios) { s ->
 
       clock.setNow(s.referenceDate)

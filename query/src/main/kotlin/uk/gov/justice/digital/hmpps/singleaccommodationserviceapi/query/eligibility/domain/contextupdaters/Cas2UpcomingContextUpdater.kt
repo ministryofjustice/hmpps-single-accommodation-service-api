@@ -10,6 +10,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class Cas2UpcomingContextUpdater : ContextUpdater() {
   val upcoming = "upcoming"
 
+  override val terminalNode = true
+
   override val outcomes = mapOf(
     upcoming to ServiceResultSpec(
       serviceStatus = ServiceStatusV2.CAS2_UPCOMING,

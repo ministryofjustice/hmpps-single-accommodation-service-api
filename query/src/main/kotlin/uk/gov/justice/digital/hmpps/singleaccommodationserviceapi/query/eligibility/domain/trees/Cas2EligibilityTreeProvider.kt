@@ -106,9 +106,15 @@ class Cas2EligibilityTreeProvider(
     val submitted = builder.outcome(
       ServiceResultV2(ServiceStatusV2.CAS2_SUBMITTED),
     )
+    val leavingWithin15DaysRuleSetNode = builder
+      .ruleSet(leavingWithin15DaysRuleSet)
+      .onPass(confirmed)
+      .onFail(confirmed).applyContextUpdaterOnFailure(cas2UpcomingContextUpdater)
+      .build()
+
     val hasRoshLevelRuleSetNode = builder
       .ruleSet(hasRoshLevelRuleSet)
-      .onPass(confirmed)
+      .onPass(leavingWithin15DaysRuleSetNode)
       .onFail(notEligible)
       .build()
 
@@ -202,16 +208,10 @@ class Cas2EligibilityTreeProvider(
       .onFail(personEligibleRuleSetNode).applyContextUpdaterOnFailure(cas2NotSubmittedContextUpdater)
       .build()
 
-    val cas2PresentRuleSetNode = builder
+    return builder
       .ruleSet(cas2PresentRuleSet)
       .onPass(cas2SubmittedRuleSetNode)
       .onFail(personEligibleRuleSetNode).applyContextUpdaterOnFailure(cas2NotStartedContextUpdater)
-      .build()
-
-    return builder
-      .ruleSet(leavingWithin15DaysRuleSet)
-      .onPass(cas2PresentRuleSetNode)
-      .onFail(personEligibleRuleSetNode).applyContextUpdaterOnFailure(cas2UpcomingContextUpdater)
       .build()
   }
 }

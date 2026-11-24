@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class CrsUpcomingContextUpdater : ContextUpdater() {
 
+  override val terminalNode = true
+
   val upcomingMale = "upcomingMale"
   val upcomingNonMale = "upcomingNonMale"
 
