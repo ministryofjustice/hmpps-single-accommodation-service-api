@@ -65,7 +65,7 @@ class Cas3EligibilityTreeProvider(
   private val tree: DecisionNode by lazy { build() }
 
   override val treeInfo = EligibilityTreeInfo(
-    fullName = "Temporary Accommodation",
+    fullName = "Temporary accommodation",
     description = "Works out whether the person is eligible for CAS3 temporary accommodation and tracks the referral, assessment and bedspace booking status.",
     displayOrder = 3,
   )

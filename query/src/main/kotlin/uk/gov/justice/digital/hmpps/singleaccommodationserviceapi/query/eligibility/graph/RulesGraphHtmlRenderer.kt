@@ -216,8 +216,8 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
 <body class="home">
 <div id="home">
   <h1>Eligibility rules graphs</h1>
-  <p class="intro">Each service has a decision tree that works out a person's status for that service from their case data.
-  Choose a tree to explore its rule sets, context updaters and outcomes, or to simulate how a case moves through it.</p>
+  <p class="intro">Each service has a decision tree that works out a person's status from their case data.
+  Choose a service to see its tree and explore its rule sets, context updaters and outcomes, or to simulate how a case moves through it.</p>
   <div id="tree-cards"></div>
 </div>
 <div id="main">

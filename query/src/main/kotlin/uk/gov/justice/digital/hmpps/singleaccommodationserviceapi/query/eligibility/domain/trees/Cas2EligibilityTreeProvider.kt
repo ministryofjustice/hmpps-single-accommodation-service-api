@@ -67,7 +67,7 @@ class Cas2EligibilityTreeProvider(
   private val tree: DecisionNode by lazy { build() }
 
   override val treeInfo = EligibilityTreeInfo(
-    fullName = "Community Accommodation Tier 2 – ISR",
+    fullName = "Short-term accommodation (ISR)",
     description = "Works out whether the person is eligible for CAS2 (ISR) accommodation and where they are in the process, from application through assessment, offer and arrival.",
     displayOrder = 2,
   )
