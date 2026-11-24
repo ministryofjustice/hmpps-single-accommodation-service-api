@@ -22,7 +22,6 @@ object EligibilityV2ToOldTransformer {
   ) = when (serviceStatus) {
     ServiceStatusV2.PPC_NOT_STARTED -> ServiceStatus.PPC_NOT_STARTED
     ServiceStatusV2.PPC_NOT_REQUIRED -> ServiceStatus.NOT_REQUIRED
-    ServiceStatusV2.PPC_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
     ServiceStatusV2.PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED -> ServiceStatus.PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED
     ServiceStatusV2.PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED -> ServiceStatus.PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED
     ServiceStatusV2.CAS1_APPLICATION_REJECTED -> ServiceStatus.APPLICATION_REJECTED
@@ -76,7 +75,6 @@ object EligibilityV2ToOldTransformer {
     ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_CRS -> ServiceStatus.CANNOT_START_YET
     ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR -> ServiceStatus.CANNOT_START_YET
 
-    ServiceStatusV2.CRS_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
     ServiceStatusV2.CRS_NOT_REQUIRED -> ServiceStatus.NOT_REQUIRED
     ServiceStatusV2.CRS_NOT_STARTED_REFERRAL -> ServiceStatus.NOT_STARTED
     ServiceStatusV2.CRS_SUBMITTED -> ServiceStatus.SUBMITTED
@@ -86,7 +84,6 @@ object EligibilityV2ToOldTransformer {
 
     ServiceStatusV2.DTR_ACCEPTED -> ServiceStatus.ACCEPTED
     ServiceStatusV2.DTR_NOT_ACCEPTED -> ServiceStatus.NOT_ACCEPTED
-    ServiceStatusV2.DTR_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
     ServiceStatusV2.DTR_NOT_REQUIRED -> ServiceStatus.NOT_REQUIRED
     ServiceStatusV2.DTR_NOT_STARTED -> ServiceStatus.NOT_STARTED
     ServiceStatusV2.DTR_SUBMITTED -> ServiceStatus.SUBMITTED
@@ -95,6 +92,13 @@ object EligibilityV2ToOldTransformer {
     ServiceStatusV2.PA_COMPLETED -> ServiceStatus.COMPLETED
     ServiceStatusV2.PA_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
     ServiceStatusV2.PA_NOT_STARTED -> ServiceStatus.NOT_STARTED
+    ServiceStatusV2.PPC_UPSTREAM_ERROR -> ServiceStatus.UPSTREAM_ERROR
+    ServiceStatusV2.CAS1_UPSTREAM_ERROR -> ServiceStatus.UPSTREAM_ERROR
+    ServiceStatusV2.CAS2_UPSTREAM_ERROR -> ServiceStatus.UPSTREAM_ERROR
+    ServiceStatusV2.CAS3_UPSTREAM_ERROR -> ServiceStatus.UPSTREAM_ERROR
+    ServiceStatusV2.CRS_UPSTREAM_ERROR -> ServiceStatus.UPSTREAM_ERROR
+    ServiceStatusV2.DTR_UPSTREAM_ERROR -> ServiceStatus.UPSTREAM_ERROR
+    ServiceStatusV2.PA_UPSTREAM_ERROR -> ServiceStatus.UPSTREAM_ERROR
   }
 
   fun toEligibilityDtoOld(

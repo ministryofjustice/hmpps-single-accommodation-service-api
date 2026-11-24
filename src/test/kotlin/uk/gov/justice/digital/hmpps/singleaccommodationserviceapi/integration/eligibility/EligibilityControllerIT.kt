@@ -465,7 +465,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should send back upstream failures and a not eligible service result when there are upstream failures`() {
+    fun `should send back upstream failures and upstream error service results when there are upstream failures`() {
       val upstreamUrl = TierStubs.getTierServerErrorResponse(crn = crn)
 
       webTestClient.get().uri("/cases/{crn}/eligibility", crn)
@@ -559,10 +559,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
         .withDeliusUserJwt()
         .exchangeSuccessfully()
         .expectBody()
-        .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
-        .jsonPath("$.data.cas2.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
-        .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
-        .jsonPath("$.data.ppc.serviceResult.serviceStatus").isEqualTo("PPC_NOT_STARTED")
+        .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
+        .jsonPath("$.data.cas2.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
+        .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
+        .jsonPath("$.data.ppc.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
         .jsonPath("$.data.cas1.cas1Application").isEmpty()
         .jsonPath("$.data.cas2.cas2Application").isEmpty()
         .jsonPath("$.data.cas3.cas3Application").isEmpty()
@@ -609,9 +609,9 @@ class EligibilityControllerIT : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
-        .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
-        .jsonPath("$.data.ppc.serviceResult.serviceStatus").isEqualTo("PPC_NOT_STARTED")
+        .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
+        .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
+        .jsonPath("$.data.ppc.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
         .jsonPath("$.upstreamFailures.length()").isEqualTo(2)
         .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getCas1ResidentPlacement")
         .jsonPath("$.upstreamFailures[1].endpoint").isEqualTo("getCas3CurrentPremises")
@@ -889,7 +889,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should send back upstream failures and a not eligible service result when there are upstream failures`() {
+    fun `should send back upstream failures and upstream error service results when there are upstream failures`() {
       TierStubs.getTierServerErrorResponse(crn = crn)
 
       webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)

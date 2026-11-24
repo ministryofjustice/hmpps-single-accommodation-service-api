@@ -82,7 +82,7 @@ fun buildCas3ServiceResultV2(
 )
 
 fun buildDtrServiceResultV2(
-  serviceResult: ServiceResultV2 = buildServiceResultV2(ServiceStatusV2.DTR_NOT_ELIGIBLE),
+  serviceResult: ServiceResultV2 = buildServiceResultV2(ServiceStatusV2.DTR_NOT_REQUIRED),
   caseId: UUID? = null,
   submission: DtrSubmissionDto? = null,
   actionPosition: Int,
@@ -94,7 +94,7 @@ fun buildDtrServiceResultV2(
 )
 
 fun buildCrsServiceResultV2(
-  serviceResult: ServiceResultV2 = buildServiceResultV2(ServiceStatusV2.CRS_NOT_ELIGIBLE),
+  serviceResult: ServiceResultV2 = buildServiceResultV2(ServiceStatusV2.CRS_NOT_REQUIRED),
   commissionedRehabilitativeServices: CommissionedRehabilitativeServicesDto? = null,
   actionPosition: Int,
 ) = CrsServiceResultWrapper(
