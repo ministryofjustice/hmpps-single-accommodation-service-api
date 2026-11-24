@@ -23,7 +23,7 @@ class PaEligibilityTreeProvider(
   private val tree: DecisionNode by lazy { build() }
 
   override val treeInfo = EligibilityTreeInfo(
-    fullName = "Proposed Accommodation",
+    fullName = "Proposed accommodation",
     description = "Works out whether the person has proposed (next) accommodation and whether any CAS1 or CAS3 applications are still active.",
     displayOrder = 6,
   )

@@ -71,7 +71,7 @@ class Cas1EligibilityTreeProvider(
 
   override val treeInfo = EligibilityTreeInfo(
     fullName = "Approved Premises",
-    description = "Works out whether the person is eligible for an Approved Premises (CAS1) placement and where they are in the process, from application and assessment through to request for placement and placement status.",
+    description = "Works out whether the person is eligible for an Approved Premises (CAS1) placement and where they are in the process, from application and assessment through placement request and status.",
     displayOrder = 1,
   )
 
