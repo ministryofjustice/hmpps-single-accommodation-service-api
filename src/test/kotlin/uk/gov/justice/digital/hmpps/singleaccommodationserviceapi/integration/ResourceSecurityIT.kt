@@ -121,6 +121,8 @@ private val userControllerMap: Map<String, Set<String>> =
     "GET /user/teams" to defaultRoles,
     "GET /users/me" to defaultRoles,
     "GET /users/me/team-members" to defaultRoles,
+    "GET /users/me/preferences" to defaultRoles,
+    "PATCH /users/me/preferences" to defaultRoles,
   )
 
 private val dutyToReferControllerMap: Map<String, Set<String>> =
