@@ -10,15 +10,23 @@ print_usage() {
   echo "  update-status-card-preview - update the local status card preview"
   echo ""
   echo "Synopsis:"
-  echo "  $0 [ui-branch]"
+  echo "  $0 [--preview-only] [ui-branch]"
   echo ""
   echo "Description:"
   echo "  Downloads the preview from the latest successful UI pipeline run on the branch (default: main)."
+  echo "  --preview-only updates the preview without generating the eligibility rules graphs."
   echo ""
   echo "Examples:"
   echo "  $0"
   echo "  $0 my-branch"
+  echo "  $0 --preview-only"
 }
+
+PREVIEW_ONLY=false
+if [ "${1:-}" = "--preview-only" ]; then
+  PREVIEW_ONLY=true
+  shift
+fi
 
 if [ $# -gt 1 ]; then
   print_usage
@@ -81,7 +89,12 @@ if [ -n "$(git status --porcelain --untracked-files=all -- "$PREVIEW" "$GRAPH" "
 fi
 
 cp -- "$SOURCE" "$PREVIEW"
-if ! ./gradlew :query:generateEligibilityRulesGraphs --no-daemon; then
+if [ "$PREVIEW_ONLY" = true ]; then
+  echo "Updated the local status card preview. Eligibility rules graphs were not regenerated."
+  exit 0
+fi
+
+if ! ./gradlew :query:generateEligibilityRulesGraphs --no-daemon -PskipStatusCardPreviewRefresh; then
   echo "Error: Graph generation failed; the preview has been updated and graph files may be partially updated." >&2
   exit 1
 fi
