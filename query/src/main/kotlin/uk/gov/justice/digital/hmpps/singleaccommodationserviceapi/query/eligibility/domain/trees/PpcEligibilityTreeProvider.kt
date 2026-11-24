@@ -25,8 +25,8 @@ class PpcEligibilityTreeProvider(
   private val tree: DecisionNode by lazy { build() }
 
   override val treeInfo = EligibilityTreeInfo(
-    fullName = "Public Protection Checker",
-    description = "Reports whether the Public Protection Checker has been completed and whether a protection need was identified.",
+    fullName = "Public protection checker",
+    description = "Reports whether the public protection checker has been completed and whether a protection need was identified.",
     displayOrder = 7,
   )
 
