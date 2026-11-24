@@ -1,6 +1,6 @@
 # Document CAS1 Eligibility Rules and Application Journey Behaviour in FAMA
 
-Date: 2026-11-20
+ Date: 2026-11-20
 
 ## Status
 
@@ -25,7 +25,7 @@ This creates several scenarios that must be handled consistently, including:
 - A request for placement or an actual placement already exists.
 - Eligibility information is missing or incomplete.
 
-The purpose of this ADR is to document **how the current CAS1 journey operates within FAMA, why the design is appropriate and what consequences arise from the decisions**.
+The purpose of this AD R is to document **how the current CAS1 journey operates within FAMA, why the design is appropriate and what consequences arise from the decisions**.
 
 It also establishes a reference for future changes to the eligibility rules and application scenarios.
 
