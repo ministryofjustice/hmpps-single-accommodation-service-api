@@ -1,10 +1,10 @@
 # Document CAS1 Eligibility Rules and Application Journey Behaviour in FAMA
 
- Date: 2026-11-20
+Date: 2026-11-20
 
 ## Status
 
-Proposed
+ Proposed
 
 ## Context
 
