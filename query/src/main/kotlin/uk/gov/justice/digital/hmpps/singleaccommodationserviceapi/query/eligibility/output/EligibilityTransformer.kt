@@ -144,37 +144,37 @@ object EligibilityTransformer {
   ) = EligibilityV2Dto(
     crn = crn,
     cas1 = Cas1ServiceResultWrapper(
-      serviceResult = toNotEligibleServiceResult(ServiceType.CAS1),
+      serviceResult = toUpstreamErrorServiceResult(ServiceType.CAS1),
       cas1Application = null,
       actionPosition = -1,
     ),
     cas2 = Cas2ServiceResultWrapper(
-      serviceResult = toNotEligibleServiceResult(ServiceType.CAS2),
+      serviceResult = toUpstreamErrorServiceResult(ServiceType.CAS2),
       cas2Application = null,
       actionPosition = -1,
     ),
     cas3 = Cas3ServiceResultWrapper(
-      serviceResult = toNotEligibleServiceResult(ServiceType.CAS3),
+      serviceResult = toUpstreamErrorServiceResult(ServiceType.CAS3),
       cas3Application = null,
       actionPosition = -1,
     ),
     dtr = DtrServiceResultWrapper(
-      serviceResult = toNotEligibleServiceResult(ServiceType.DTR),
+      serviceResult = toUpstreamErrorServiceResult(ServiceType.DTR),
       caseId = null,
       submission = null,
       actionPosition = -1,
     ),
     crs = CrsServiceResultWrapper(
-      serviceResult = toNotEligibleServiceResult(ServiceType.CRS),
+      serviceResult = toUpstreamErrorServiceResult(ServiceType.CRS),
       commissionedRehabilitativeServices = null,
       actionPosition = -1,
     ),
     pa = PaServiceResultWrapper(
-      serviceResult = toNotEligibleServiceResult(ServiceType.PA),
+      serviceResult = toUpstreamErrorServiceResult(ServiceType.PA),
       actionPosition = -1,
     ),
     ppc = PpcServiceResultWrapper(
-      serviceResult = ServiceResultV2(serviceStatus = ServiceStatusV2.PPC_NOT_STARTED),
+      serviceResult = toUpstreamErrorServiceResult(ServiceType.PPC),
       actionPosition = -1,
     ),
   )
@@ -184,14 +184,26 @@ object EligibilityTransformer {
     failureReasons = failureReasons,
   )
 
+  fun toUpstreamErrorServiceResult(service: ServiceType) = ServiceResultV2(
+    serviceStatus = toUpstreamErrorServiceStatus(service),
+  )
+
   fun toNotEligibleServiceStatus(service: ServiceType) = when (service) {
     ServiceType.CAS2 -> ServiceStatusV2.CAS2_NOT_ELIGIBLE
     ServiceType.CAS3 -> ServiceStatusV2.CAS3_NOT_ELIGIBLE
     ServiceType.CAS1 -> ServiceStatusV2.CAS1_NOT_ELIGIBLE
     ServiceType.PA -> ServiceStatusV2.PA_NOT_ELIGIBLE
-    ServiceType.DTR -> ServiceStatusV2.DTR_NOT_ELIGIBLE
-    ServiceType.CRS -> ServiceStatusV2.CRS_NOT_ELIGIBLE
-    ServiceType.PPC -> ServiceStatusV2.PPC_NOT_ELIGIBLE
+    else -> throw IllegalArgumentException("Unexpected not eligible service: $service")
+  }
+
+  fun toUpstreamErrorServiceStatus(service: ServiceType) = when (service) {
+    ServiceType.CAS2 -> ServiceStatusV2.CAS2_UPSTREAM_ERROR
+    ServiceType.CAS3 -> ServiceStatusV2.CAS3_UPSTREAM_ERROR
+    ServiceType.CAS1 -> ServiceStatusV2.CAS1_UPSTREAM_ERROR
+    ServiceType.PA -> ServiceStatusV2.PA_UPSTREAM_ERROR
+    ServiceType.DTR -> ServiceStatusV2.DTR_UPSTREAM_ERROR
+    ServiceType.CRS -> ServiceStatusV2.CRS_UPSTREAM_ERROR
+    ServiceType.PPC -> ServiceStatusV2.PPC_UPSTREAM_ERROR
   }
 
   fun toNotRequiredServiceResult(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultV2(

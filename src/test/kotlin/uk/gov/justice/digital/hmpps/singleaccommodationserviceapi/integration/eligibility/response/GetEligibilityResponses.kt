@@ -259,7 +259,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
       "crn":"$crn",
       "cas1":{
          "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
+            "serviceStatus":"UPSTREAM_ERROR",
             "action":null,
             "link":null,
             "url":null,
@@ -271,7 +271,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
       },
       "cas2":{
          "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
+            "serviceStatus":"UPSTREAM_ERROR",
             "action":null,
             "link":null,
             "url":null,
@@ -283,7 +283,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
       },
       "cas3":{
          "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
+            "serviceStatus":"UPSTREAM_ERROR",
             "action":null,
             "link":null,
             "url":null,
@@ -295,7 +295,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
       },
       "dtr":{
          "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
+            "serviceStatus":"UPSTREAM_ERROR",
             "action":null,
             "link":null,
             "url":null,
@@ -308,7 +308,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
       },
       "crs":{
          "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
+            "serviceStatus":"UPSTREAM_ERROR",
             "action":null,
             "link":null,
             "url":null,
@@ -320,7 +320,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
       },
       "pa":{
          "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
+            "serviceStatus":"UPSTREAM_ERROR",
             "action":null,
             "link":null,
             "url":null,
@@ -331,11 +331,11 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
       },
       "ppc":{
          "serviceResult":{
-            "serviceStatus":"PPC_NOT_STARTED",
-            "action":{"type":"START_PPC","startDate":null,"service":"PPC"},
-            "link":"Start public protection checker",
+            "serviceStatus":"UPSTREAM_ERROR",
+            "action":null,
+            "link":null,
             "url":null,
-            "linkType":"PPC_START_CHECKER",
+            "linkType":null,
             "failureReasons":[],
             "blockingStatusReason":null
          }
@@ -1212,7 +1212,7 @@ fun expectedGetEligibilityV2TierErrorResponse(
     "crn": "$crn",
     "cas1": {
       "serviceResult": {
-        "serviceStatus": "CAS1_NOT_ELIGIBLE",
+        "serviceStatus": "CAS1_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1222,7 +1222,7 @@ fun expectedGetEligibilityV2TierErrorResponse(
     },
     "cas2": {
       "serviceResult": {
-        "serviceStatus": "CAS2_NOT_ELIGIBLE",
+        "serviceStatus": "CAS2_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1232,7 +1232,7 @@ fun expectedGetEligibilityV2TierErrorResponse(
     },
     "cas3": {
       "serviceResult": {
-        "serviceStatus": "CAS3_NOT_ELIGIBLE",
+        "serviceStatus": "CAS3_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1242,7 +1242,7 @@ fun expectedGetEligibilityV2TierErrorResponse(
     },
     "dtr": {
       "serviceResult": {
-        "serviceStatus": "DTR_NOT_ELIGIBLE",
+        "serviceStatus": "DTR_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1253,7 +1253,7 @@ fun expectedGetEligibilityV2TierErrorResponse(
     },
     "crs": {
       "serviceResult": {
-        "serviceStatus": "CRS_NOT_ELIGIBLE",
+        "serviceStatus": "CRS_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1263,7 +1263,7 @@ fun expectedGetEligibilityV2TierErrorResponse(
     },
     "pa": {
       "serviceResult": {
-        "serviceStatus": "PA_NOT_ELIGIBLE",
+        "serviceStatus": "PA_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1272,7 +1272,7 @@ fun expectedGetEligibilityV2TierErrorResponse(
     },
     "ppc": {
       "serviceResult": {
-        "serviceStatus": "PPC_NOT_STARTED",
+        "serviceStatus": "PPC_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1561,7 +1561,7 @@ fun expectedGetEligibilityV2ApplicationsNotFoundResponse(
     "crn": "$crn",
     "cas1": {
       "serviceResult": {
-        "serviceStatus": "CAS1_NOT_ELIGIBLE",
+        "serviceStatus": "CAS1_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1571,7 +1571,7 @@ fun expectedGetEligibilityV2ApplicationsNotFoundResponse(
     },
     "cas2": {
       "serviceResult": {
-        "serviceStatus": "CAS2_NOT_ELIGIBLE",
+        "serviceStatus": "CAS2_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1581,7 +1581,7 @@ fun expectedGetEligibilityV2ApplicationsNotFoundResponse(
     },
     "cas3": {
       "serviceResult": {
-        "serviceStatus": "CAS3_NOT_ELIGIBLE",
+        "serviceStatus": "CAS3_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1591,7 +1591,7 @@ fun expectedGetEligibilityV2ApplicationsNotFoundResponse(
     },
     "dtr": {
       "serviceResult": {
-        "serviceStatus": "DTR_NOT_ELIGIBLE",
+        "serviceStatus": "DTR_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1602,7 +1602,7 @@ fun expectedGetEligibilityV2ApplicationsNotFoundResponse(
     },
     "crs": {
       "serviceResult": {
-        "serviceStatus": "CRS_NOT_ELIGIBLE",
+        "serviceStatus": "CRS_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1612,7 +1612,7 @@ fun expectedGetEligibilityV2ApplicationsNotFoundResponse(
     },
     "pa": {
       "serviceResult": {
-        "serviceStatus": "PA_NOT_ELIGIBLE",
+        "serviceStatus": "PA_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1621,7 +1621,7 @@ fun expectedGetEligibilityV2ApplicationsNotFoundResponse(
     },
     "ppc": {
       "serviceResult": {
-        "serviceStatus": "PPC_NOT_STARTED",
+        "serviceStatus": "PPC_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1754,7 +1754,7 @@ fun expectedGetEligibilityV2PremisesNotFoundResponse(
     "crn": "$crn",
     "cas1": {
       "serviceResult": {
-        "serviceStatus": "CAS1_NOT_ELIGIBLE",
+        "serviceStatus": "CAS1_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1764,7 +1764,7 @@ fun expectedGetEligibilityV2PremisesNotFoundResponse(
     },
     "cas2": {
       "serviceResult": {
-        "serviceStatus": "CAS2_NOT_ELIGIBLE",
+        "serviceStatus": "CAS2_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1774,7 +1774,7 @@ fun expectedGetEligibilityV2PremisesNotFoundResponse(
     },
     "cas3": {
       "serviceResult": {
-        "serviceStatus": "CAS3_NOT_ELIGIBLE",
+        "serviceStatus": "CAS3_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1784,7 +1784,7 @@ fun expectedGetEligibilityV2PremisesNotFoundResponse(
     },
     "dtr": {
       "serviceResult": {
-        "serviceStatus": "DTR_NOT_ELIGIBLE",
+        "serviceStatus": "DTR_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1795,7 +1795,7 @@ fun expectedGetEligibilityV2PremisesNotFoundResponse(
     },
     "crs": {
       "serviceResult": {
-        "serviceStatus": "CRS_NOT_ELIGIBLE",
+        "serviceStatus": "CRS_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1805,7 +1805,7 @@ fun expectedGetEligibilityV2PremisesNotFoundResponse(
     },
     "pa": {
       "serviceResult": {
-        "serviceStatus": "PA_NOT_ELIGIBLE",
+        "serviceStatus": "PA_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
@@ -1814,7 +1814,7 @@ fun expectedGetEligibilityV2PremisesNotFoundResponse(
     },
     "ppc": {
       "serviceResult": {
-        "serviceStatus": "PPC_NOT_STARTED",
+        "serviceStatus": "PPC_UPSTREAM_ERROR",
         "actionStartDate": null,
         "url": null,
         "failureReasons": []
