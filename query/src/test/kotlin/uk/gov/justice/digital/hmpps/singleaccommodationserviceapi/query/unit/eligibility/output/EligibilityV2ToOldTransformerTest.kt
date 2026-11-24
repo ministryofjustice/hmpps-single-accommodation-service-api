@@ -128,7 +128,6 @@ class EligibilityV2ToOldTransformerTest {
       Arguments.of(ServiceStatusV2.CAS3_ARRIVED, ServiceStatus.ARRIVED),
       Arguments.of(ServiceStatusV2.CAS3_UPCOMING, ServiceStatus.UPCOMING),
 
-      Arguments.of(ServiceStatusV2.CRS_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
       Arguments.of(ServiceStatusV2.CRS_NOT_REQUIRED, ServiceStatus.NOT_REQUIRED),
       Arguments.of(ServiceStatusV2.CRS_NOT_STARTED_REFERRAL, ServiceStatus.NOT_STARTED),
       Arguments.of(ServiceStatusV2.CRS_SUBMITTED, ServiceStatus.SUBMITTED),
@@ -138,7 +137,6 @@ class EligibilityV2ToOldTransformerTest {
 
       Arguments.of(ServiceStatusV2.DTR_ACCEPTED, ServiceStatus.ACCEPTED),
       Arguments.of(ServiceStatusV2.DTR_NOT_ACCEPTED, ServiceStatus.NOT_ACCEPTED),
-      Arguments.of(ServiceStatusV2.DTR_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
       Arguments.of(ServiceStatusV2.DTR_NOT_REQUIRED, ServiceStatus.NOT_REQUIRED),
       Arguments.of(ServiceStatusV2.DTR_NOT_STARTED, ServiceStatus.NOT_STARTED),
       Arguments.of(ServiceStatusV2.DTR_SUBMITTED, ServiceStatus.SUBMITTED),
@@ -150,9 +148,16 @@ class EligibilityV2ToOldTransformerTest {
 
       Arguments.of(ServiceStatusV2.PPC_NOT_STARTED, ServiceStatus.PPC_NOT_STARTED),
       Arguments.of(ServiceStatusV2.PPC_NOT_REQUIRED, ServiceStatus.NOT_REQUIRED),
-      Arguments.of(ServiceStatusV2.PPC_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
       Arguments.of(ServiceStatusV2.PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED, ServiceStatus.PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED),
       Arguments.of(ServiceStatusV2.PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED, ServiceStatus.PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED),
+
+      Arguments.of(ServiceStatusV2.CAS1_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
+      Arguments.of(ServiceStatusV2.CAS2_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
+      Arguments.of(ServiceStatusV2.CAS3_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
+      Arguments.of(ServiceStatusV2.CRS_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
+      Arguments.of(ServiceStatusV2.DTR_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
+      Arguments.of(ServiceStatusV2.PA_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
+      Arguments.of(ServiceStatusV2.PPC_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
     )
   }
 

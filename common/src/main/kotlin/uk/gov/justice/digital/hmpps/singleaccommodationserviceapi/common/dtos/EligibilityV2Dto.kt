@@ -130,6 +130,7 @@ enum class ServiceStatusV2(
   val uiStatusName: String,
 ) {
 
+  // PPC Service Statuses
   PPC_NOT_STARTED(
     service = ServiceType.PPC,
     proposedAction = CaseActionType.START_PPC,
@@ -140,10 +141,6 @@ enum class ServiceStatusV2(
     service = ServiceType.PPC,
     uiStatusName = "Not Required",
   ),
-  PPC_NOT_ELIGIBLE(
-    service = ServiceType.PPC,
-    uiStatusName = "Not Eligible",
-  ),
   PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED(
     service = ServiceType.PPC,
     uiStatusName = "Completed - Public Protection Required",
@@ -151,6 +148,10 @@ enum class ServiceStatusV2(
   PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED(
     service = ServiceType.PPC,
     uiStatusName = "Completed - Public Protection Not Required",
+  ),
+  PPC_UPSTREAM_ERROR(
+    service = ServiceType.PPC,
+    uiStatusName = "Upstream Error",
   ),
 
   // CAS1 Service Statuses
@@ -247,6 +248,10 @@ enum class ServiceStatusV2(
     service = ServiceType.CAS1,
     uiStatusName = "Not Eligible",
   ),
+  CAS1_UPSTREAM_ERROR(
+    service = ServiceType.CAS1,
+    uiStatusName = "Upstream Error",
+  ),
 
   // CAS2 Service Statuses
   CAS2_OFFER_DECLINED_OR_WITHDRAWN(
@@ -327,6 +332,10 @@ enum class ServiceStatusV2(
   CAS2_NOT_ELIGIBLE(
     service = ServiceType.CAS2,
     uiStatusName = "Not Eligible",
+  ),
+  CAS2_UPSTREAM_ERROR(
+    service = ServiceType.CAS2,
+    uiStatusName = "Upstream Error",
   ),
 
   // CAS3 Service Statuses
@@ -420,6 +429,10 @@ enum class ServiceStatusV2(
     service = ServiceType.CAS3,
     uiStatusName = "Not Eligible",
   ),
+  CAS3_UPSTREAM_ERROR(
+    service = ServiceType.CAS3,
+    uiStatusName = "Upstream Error",
+  ),
 
   // CRS Service Statuses
   CRS_NOT_STARTED_REFERRAL(
@@ -455,9 +468,9 @@ enum class ServiceStatusV2(
     service = ServiceType.CRS,
     uiStatusName = "Not Required",
   ),
-  CRS_NOT_ELIGIBLE(
+  CRS_UPSTREAM_ERROR(
     service = ServiceType.CRS,
-    uiStatusName = "Not Eligible",
+    uiStatusName = "Upstream Error",
   ),
 
   // DTR Service Statuses
@@ -491,9 +504,9 @@ enum class ServiceStatusV2(
     service = ServiceType.DTR,
     uiStatusName = "Not Required",
   ),
-  DTR_NOT_ELIGIBLE(
+  DTR_UPSTREAM_ERROR(
     service = ServiceType.DTR,
-    uiStatusName = "Not Eligible",
+    uiStatusName = "Upstream Error",
   ),
 
   // PA Service Statuses
@@ -509,6 +522,10 @@ enum class ServiceStatusV2(
   PA_COMPLETED(
     service = ServiceType.PA,
     uiStatusName = "Completed",
+  ),
+  PA_UPSTREAM_ERROR(
+    service = ServiceType.PA,
+    uiStatusName = "Upstream Error",
   ),
   ;
 

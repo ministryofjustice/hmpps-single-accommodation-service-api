@@ -781,8 +781,31 @@ class EligibilityTransformerTest {
     val crn = "FAKECRN1"
     val expectedEligibility = buildEligibilityV2Dto(
       crn = crn,
+      cas1 = buildCas1ServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.CAS1_UPSTREAM_ERROR),
+        actionPosition = -1,
+      ),
+      cas2 = buildCas2ServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.CAS2_UPSTREAM_ERROR),
+        actionPosition = -1,
+      ),
+      cas3 = buildCas3ServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.CAS3_UPSTREAM_ERROR),
+        actionPosition = -1,
+      ),
+      dtr = buildDtrServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.DTR_UPSTREAM_ERROR),
+        actionPosition = -1,
+      ),
+      crs = buildCrsServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.CRS_UPSTREAM_ERROR),
+        actionPosition = -1,
+      ),
+      pa = buildPaServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.PA_UPSTREAM_ERROR),
+      ),
       ppc = buildPpcServiceResultV2(
-        serviceResult = ServiceResultV2(ServiceStatusV2.PPC_NOT_STARTED),
+        serviceResult = buildServiceResultV2(ServiceStatusV2.PPC_UPSTREAM_ERROR),
       ),
     )
 
@@ -801,23 +824,11 @@ class EligibilityTransformerTest {
   }
 
   @Test
-  fun `should transform PPC to not eligible service status`() {
-    assertThat(toNotEligibleServiceResult(ServiceType.PPC))
-      .isEqualTo(buildServiceResultV2(ServiceStatusV2.PPC_NOT_ELIGIBLE))
-  }
-
-  @Test
   fun `should transform to not required service status`() {
     val expectedServiceStatus = buildServiceResultV2(ServiceStatusV2.DTR_NOT_REQUIRED)
 
     val actualEligibility = toNotRequiredServiceResult(ServiceType.DTR)
 
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
-  }
-
-  @Test
-  fun `should transform PPC to not required service status`() {
-    assertThat(toNotRequiredServiceResult(ServiceType.PPC))
-      .isEqualTo(buildServiceResultV2(ServiceStatusV2.PPC_NOT_REQUIRED))
   }
 }
