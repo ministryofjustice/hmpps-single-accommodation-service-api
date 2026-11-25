@@ -50,7 +50,7 @@ class CaseRefreshQueueMonitorTest {
     assertThat(events.map { it.name }).containsOnly("CaseRefreshQueueStats")
     assertThat(events.map { it.properties["priority"] }).containsExactlyInAnyOrder("LIVE", "BULK")
     events.forEach { event ->
-      assertThat(event.measurements).hasSize(13)
+      assertThat(event.measurements).hasSize(14)
       assertThat(event.measurements.values).containsOnly(0.0)
     }
   }
