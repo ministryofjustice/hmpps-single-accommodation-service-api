@@ -4,18 +4,18 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultV2
 
 class ContextUpdaterTest {
   private val context = EvaluationContext(
     data = buildDomainData(),
-    currentResult = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,
+    currentResult = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.CAS1_NOT_STARTED,
     ),
   )
 
@@ -30,9 +30,9 @@ class ContextUpdaterTest {
     fun `update passes failure reasons to toServiceResult context`() {
       var reasonsSeenByToServiceResult: List<FailureReason> = emptyList()
       val updater = object : ContextUpdater() {
-        override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
+        override fun toServiceResult(context: EvaluationContext): ServiceResultV2 {
           reasonsSeenByToServiceResult = context.currentResult!!.failureReasons
-          return buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
+          return buildServiceResultV2(serviceStatus = ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
         }
       }
 
@@ -44,7 +44,7 @@ class ContextUpdaterTest {
     @Test
     fun `update does not propagate failure reasons by default`() {
       val updater = object : ContextUpdater() {
-        override fun toServiceResult(context: EvaluationContext): ServiceResultNew = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
+        override fun toServiceResult(context: EvaluationContext): ServiceResultV2 = buildServiceResultV2(serviceStatus = ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
       }
 
       val result = updater.update(context, failureReasons)
@@ -57,7 +57,7 @@ class ContextUpdaterTest {
       val updater = object : ContextUpdater() {
         override val propagatesFailureReasons: Boolean = true
 
-        override fun toServiceResult(context: EvaluationContext): ServiceResultNew = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
+        override fun toServiceResult(context: EvaluationContext): ServiceResultV2 = buildServiceResultV2(serviceStatus = ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS)
       }
 
       val result = updater.update(context, failureReasons)
@@ -70,7 +70,7 @@ class ContextUpdaterTest {
   inner class CompanionObjectTests {
     @Test
     fun `constant updater replaces service result and does not propagate failure reasons`() {
-      val constantResult = buildServiceResultNew(serviceStatus = ServiceStatusNew.DTR_ACCEPTED)
+      val constantResult = buildServiceResultV2(serviceStatus = ServiceStatusV2.DTR_ACCEPTED)
 
       val result = ContextUpdater.constant(constantResult).update(context, failureReasons)
 

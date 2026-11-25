@@ -141,7 +141,10 @@ private val eventDetailsControllerMap: Map<String, Set<String>> =
   )
 
 private val eligibilityControllerMap: Map<String, Set<String>> =
-  mapOf("GET /cases/{crn}/eligibility" to defaultRoles)
+  mapOf(
+    "GET /cases/{crn}/eligibility" to defaultRoles,
+    "GET /cases/{crn}/v2/eligibility" to defaultRoles,
+  )
 
 private val proposedAccommodationControllerMap: Map<String, Set<String>> =
   mapOf(
@@ -198,6 +201,7 @@ private val adminJobControllerMap: Map<String, Set<String>> =
     "POST /admin/bulk-load-cases" to setOf("SAS_ADMIN_RW"),
     "POST /admin/bulk-refresh-cases-by-crn" to setOf("SAS_ADMIN_RW"),
     "POST /admin/bulk-refresh-all-cases" to setOf("SAS_ADMIN_RW"),
+    "POST /admin/replay-failed-refresh-requests" to setOf("SAS_ADMIN_RW"),
     "POST /admin/archive-cases-by-crn" to setOf("SAS_ADMIN_RW"),
     "PUT /admin/replay-failed-inbox-events" to setOf("SAS_ADMIN_RW"),
   )

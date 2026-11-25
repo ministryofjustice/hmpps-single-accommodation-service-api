@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1NotSubmittedContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.contextupdaters.Cas1RejectedContextUpdater
@@ -71,7 +71,7 @@ class Cas1EligibilityTreeProvider(
 
   override val treeInfo = EligibilityTreeInfo(
     fullName = "Approved Premises",
-    description = "Works out whether the person is eligible for an Approved Premises (CAS1) placement and where they are in the process, from application and assessment through to request for placement and placement status.",
+    description = "Works out whether the person is eligible for an Approved Premises (CAS1) placement and where they are in the process, from application and assessment through placement request and status.",
     displayOrder = 1,
   )
 
@@ -86,41 +86,47 @@ class Cas1EligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(ServiceType.CAS1)
     val placementBooked = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_BOOKED),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_BOOKED),
     )
     val arrived = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_ARRIVED),
+      ServiceResultV2(ServiceStatusV2.CAS1_ARRIVED),
     )
     val placementCancelled = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_CANCELLED),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_CANCELLED),
     )
     val placementRequestNotStarted = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_STARTED),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_NOT_STARTED),
     )
     val notArrived = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_NOT_ARRIVED),
+      ServiceResultV2(ServiceStatusV2.CAS1_NOT_ARRIVED),
     )
     val rejectedRequest = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_REJECTED),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_REJECTED),
     )
     val withdrawnRequest = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_WITHDRAWN),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_WITHDRAWN),
     )
     val placementRequestSubmitted = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_SUBMITTED),
     )
     val placementRequestNotSubmitted = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED),
+      ServiceResultV2(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED),
     )
     val applicationSubmitted = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_SUBMITTED),
+      ServiceResultV2(ServiceStatusV2.CAS1_SUBMITTED),
     )
     val infoRequested = builder.outcome(
-      ServiceResultNew(ServiceStatusNew.CAS1_INFO_REQUESTED),
+      ServiceResultV2(ServiceStatusV2.CAS1_INFO_REQUESTED),
     )
+    val leavingWithin28WeeksRuleSetNode = builder
+      .ruleSet(leavingWithin28WeeksRuleSet)
+      .onPass(confirmed)
+      .onFail(confirmed).applyContextUpdaterOnFailure(cas1UpcomingContextUpdater)
+      .build()
+
     val hasRoshLevelRuleSetNode = builder
       .ruleSet(hasRoshLevelRuleSet)
-      .onPass(confirmed)
+      .onPass(leavingWithin28WeeksRuleSetNode)
       .onFail(notEligible)
       .build()
 
@@ -232,16 +238,10 @@ class Cas1EligibilityTreeProvider(
       .onFail(arrived)
       .build()
 
-    val cas1ActivePlacementRuleSetNode = builder
+    return builder
       .ruleSet(cas1ActivePlacementRuleSet)
       .onPass(cas1NotArrivedPlacementRuleSetNode)
       .onFail(cas1ApplicationPresentAndNotExpiredRuleSetNode)
-      .build()
-
-    return builder
-      .ruleSet(leavingWithin28WeeksRuleSet)
-      .onPass(cas1ActivePlacementRuleSetNode)
-      .onFail(notMaleRuleSetNode).applyContextUpdaterOnFailure(cas1UpcomingContextUpdater)
       .build()
   }
 }

@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityTransformer.toNotEligibleServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityTransformer.toNotEligibleServiceStatus
@@ -27,7 +27,7 @@ class DecisionTreeBuilder(
   )
 
   /** Creates a terminal outcome node that returns a fixed ServiceResult. */
-  fun outcome(result: ServiceResultNew) = OutcomeNode(name = result.serviceStatus.uiStatusName, key = result.serviceStatus.name) { _ -> result }
+  fun outcome(result: ServiceResultV2) = OutcomeNode(name = result.serviceStatus.uiStatusName, key = result.serviceStatus.name) { _ -> result }
 
   /** Creates a terminal outcome node that returns the current context's ServiceResult. */
   fun confirmed() = OutcomeNode(name = "current status", key = "confirmed") { ctx ->
@@ -35,19 +35,18 @@ class DecisionTreeBuilder(
       "confirmed() reached without a currentResult being set - a context updater is missing earlier in the tree"
     }
     when (result.serviceStatus) {
-      ServiceStatusNew.CAS1_NOT_ELIGIBLE,
-      ServiceStatusNew.CAS2_NOT_ELIGIBLE,
-      ServiceStatusNew.CAS3_NOT_ELIGIBLE,
-      ServiceStatusNew.CRS_NOT_REQUIRED,
-      ServiceStatusNew.DTR_NOT_REQUIRED,
-      ServiceStatusNew.CRS_NOT_ELIGIBLE,
-      ServiceStatusNew.DTR_NOT_ELIGIBLE,
-      ServiceStatusNew.PA_NOT_ELIGIBLE,
-      ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION,
-      ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS,
-      ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION,
-      ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS,
-      ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR,
+      ServiceStatusV2.CAS1_NOT_ELIGIBLE,
+      ServiceStatusV2.CAS2_NOT_ELIGIBLE,
+      ServiceStatusV2.CAS3_NOT_ELIGIBLE,
+      ServiceStatusV2.CRS_NOT_REQUIRED,
+      ServiceStatusV2.DTR_NOT_REQUIRED,
+      ServiceStatusV2.PPC_NOT_REQUIRED,
+      ServiceStatusV2.PA_NOT_ELIGIBLE,
+      ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION,
+      ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS,
+      ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION,
+      ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_CRS,
+      ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR,
       -> result
 
       else -> result.copy(failureReasons = emptyList())

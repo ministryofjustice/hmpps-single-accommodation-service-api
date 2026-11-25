@@ -24,9 +24,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PpcServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
@@ -45,26 +46,27 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCommissionedRehabilitativeServicesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityNewToOldTransformer.toEligibilityDtoOld
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityNewToOldTransformer.toServiceStatusOld
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDtoNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityV2ToOldTransformer.toEligibilityDtoOld
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityV2ToOldTransformer.toServiceStatusOld
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityV2Dto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPpcServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultV2
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.stream.Stream
 
-class EligibilityNewToOldTransformerTest {
+class EligibilityV2ToOldTransformerTest {
 
   @ParameterizedTest
   @MethodSource("serviceStatuses")
   fun `should transform to old service status`(
-    serviceStatus: ServiceStatusNew,
+    serviceStatus: ServiceStatusV2,
     serviceStatusOld: ServiceStatus,
   ) {
     val result = toServiceStatusOld(
@@ -77,74 +79,85 @@ class EligibilityNewToOldTransformerTest {
   private companion object {
     @JvmStatic
     fun serviceStatuses(): Stream<Arguments> = Stream.of(
-      Arguments.of(ServiceStatusNew.CAS1_APPLICATION_REJECTED, ServiceStatus.APPLICATION_REJECTED),
-      Arguments.of(ServiceStatusNew.CAS1_ARRIVED, ServiceStatus.ARRIVED),
-      Arguments.of(ServiceStatusNew.CAS1_INFO_REQUESTED, ServiceStatus.INFO_REQUESTED),
-      Arguments.of(ServiceStatusNew.CAS1_NOT_ARRIVED, ServiceStatus.NOT_ARRIVED),
-      Arguments.of(ServiceStatusNew.CAS1_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
-      Arguments.of(ServiceStatusNew.CAS1_NOT_STARTED, ServiceStatus.NOT_STARTED),
-      Arguments.of(ServiceStatusNew.CAS1_NOT_SUBMITTED, ServiceStatus.NOT_SUBMITTED),
-      Arguments.of(ServiceStatusNew.CAS1_PLACEMENT_BOOKED, ServiceStatus.PLACEMENT_BOOKED),
-      Arguments.of(ServiceStatusNew.CAS1_PLACEMENT_CANCELLED, ServiceStatus.PLACEMENT_CANCELLED),
-      Arguments.of(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_STARTED, ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED),
-      Arguments.of(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_REJECTED, ServiceStatus.PLACEMENT_REQUEST_REJECTED),
-      Arguments.of(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED, ServiceStatus.PLACEMENT_REQUEST_SUBMITTED),
-      Arguments.of(ServiceStatusNew.CAS1_PLACEMENT_REQUEST_WITHDRAWN, ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN),
-      Arguments.of(ServiceStatusNew.CAS1_SUBMITTED, ServiceStatus.SUBMITTED),
-      Arguments.of(ServiceStatusNew.CAS1_UPCOMING, ServiceStatus.UPCOMING),
+      Arguments.of(ServiceStatusV2.CAS1_APPLICATION_REJECTED, ServiceStatus.APPLICATION_REJECTED),
+      Arguments.of(ServiceStatusV2.CAS1_ARRIVED, ServiceStatus.ARRIVED),
+      Arguments.of(ServiceStatusV2.CAS1_INFO_REQUESTED, ServiceStatus.INFO_REQUESTED),
+      Arguments.of(ServiceStatusV2.CAS1_NOT_ARRIVED, ServiceStatus.NOT_ARRIVED),
+      Arguments.of(ServiceStatusV2.CAS1_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
+      Arguments.of(ServiceStatusV2.CAS1_NOT_STARTED, ServiceStatus.NOT_STARTED),
+      Arguments.of(ServiceStatusV2.CAS1_NOT_SUBMITTED, ServiceStatus.NOT_SUBMITTED),
+      Arguments.of(ServiceStatusV2.CAS1_PLACEMENT_BOOKED, ServiceStatus.PLACEMENT_BOOKED),
+      Arguments.of(ServiceStatusV2.CAS1_PLACEMENT_CANCELLED, ServiceStatus.PLACEMENT_CANCELLED),
+      Arguments.of(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_NOT_STARTED, ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED),
+      Arguments.of(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_REJECTED, ServiceStatus.PLACEMENT_REQUEST_REJECTED),
+      Arguments.of(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_SUBMITTED, ServiceStatus.PLACEMENT_REQUEST_SUBMITTED),
+      Arguments.of(ServiceStatusV2.CAS1_PLACEMENT_REQUEST_WITHDRAWN, ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN),
+      Arguments.of(ServiceStatusV2.CAS1_SUBMITTED, ServiceStatus.SUBMITTED),
+      Arguments.of(ServiceStatusV2.CAS1_UPCOMING, ServiceStatus.UPCOMING),
 
-      Arguments.of(ServiceStatusNew.CAS2_AWAITING_ARRIVAL, ServiceStatus.AWAITING_ARRIVAL),
-      Arguments.of(ServiceStatusNew.CAS2_AWAITING_DECISION, ServiceStatus.AWAITING_DECISION),
-      Arguments.of(ServiceStatusNew.CAS2_CANCELLED, ServiceStatus.CANCELLED),
-      Arguments.of(ServiceStatusNew.CAS2_MORE_INFORMATION_NEEDED, ServiceStatus.MORE_INFORMATION_NEEDED),
-      Arguments.of(ServiceStatusNew.CAS2_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
-      Arguments.of(ServiceStatusNew.CAS2_NOT_STARTED, ServiceStatus.NOT_STARTED),
-      Arguments.of(ServiceStatusNew.CAS2_NOT_SUBMITTED, ServiceStatus.NOT_SUBMITTED),
-      Arguments.of(ServiceStatusNew.CAS2_OFFER_ACCEPTED, ServiceStatus.OFFER_ACCEPTED),
-      Arguments.of(ServiceStatusNew.CAS2_OFFER_DECLINED_OR_WITHDRAWN, ServiceStatus.OFFER_DECLINED_OR_WITHDRAWN),
-      Arguments.of(ServiceStatusNew.CAS2_ON_WAITING_LIST, ServiceStatus.ON_WAITING_LIST),
-      Arguments.of(ServiceStatusNew.CAS2_PLACE_OFFERED, ServiceStatus.PLACE_OFFERED),
-      Arguments.of(ServiceStatusNew.CAS2_SUBMITTED, ServiceStatus.SUBMITTED),
-      Arguments.of(ServiceStatusNew.CAS2_UPCOMING, ServiceStatus.UPCOMING),
-      Arguments.of(ServiceStatusNew.CAS2_WITHDRAWN, ServiceStatus.WITHDRAWN),
+      Arguments.of(ServiceStatusV2.CAS2_AWAITING_ARRIVAL, ServiceStatus.AWAITING_ARRIVAL),
+      Arguments.of(ServiceStatusV2.CAS2_AWAITING_DECISION, ServiceStatus.AWAITING_DECISION),
+      Arguments.of(ServiceStatusV2.CAS2_CANCELLED, ServiceStatus.CANCELLED),
+      Arguments.of(ServiceStatusV2.CAS2_MORE_INFORMATION_NEEDED, ServiceStatus.MORE_INFORMATION_NEEDED),
+      Arguments.of(ServiceStatusV2.CAS2_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
+      Arguments.of(ServiceStatusV2.CAS2_NOT_STARTED, ServiceStatus.NOT_STARTED),
+      Arguments.of(ServiceStatusV2.CAS2_NOT_SUBMITTED, ServiceStatus.NOT_SUBMITTED),
+      Arguments.of(ServiceStatusV2.CAS2_OFFER_ACCEPTED, ServiceStatus.OFFER_ACCEPTED),
+      Arguments.of(ServiceStatusV2.CAS2_OFFER_DECLINED_OR_WITHDRAWN, ServiceStatus.OFFER_DECLINED_OR_WITHDRAWN),
+      Arguments.of(ServiceStatusV2.CAS2_ON_WAITING_LIST, ServiceStatus.ON_WAITING_LIST),
+      Arguments.of(ServiceStatusV2.CAS2_PLACE_OFFERED, ServiceStatus.PLACE_OFFERED),
+      Arguments.of(ServiceStatusV2.CAS2_SUBMITTED, ServiceStatus.SUBMITTED),
+      Arguments.of(ServiceStatusV2.CAS2_UPCOMING, ServiceStatus.UPCOMING),
+      Arguments.of(ServiceStatusV2.CAS2_WITHDRAWN, ServiceStatus.WITHDRAWN),
 
-      Arguments.of(ServiceStatusNew.CAS3_BEDSPACE_OFFERED, ServiceStatus.BEDSPACE_OFFERED),
-      Arguments.of(ServiceStatusNew.CAS3_BOOKING_CANCELLED, ServiceStatus.BOOKING_CANCELLED),
-      Arguments.of(ServiceStatusNew.CAS3_BOOKING_CONFIRMED, ServiceStatus.BOOKING_CONFIRMED),
-      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION, ServiceStatus.CANNOT_START_YET),
-      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR, ServiceStatus.CANNOT_START_YET),
-      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS, ServiceStatus.CANNOT_START_YET),
-      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS, ServiceStatus.CANNOT_START_YET),
-      Arguments.of(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusV2.CAS3_BEDSPACE_OFFERED, ServiceStatus.BEDSPACE_OFFERED),
+      Arguments.of(ServiceStatusV2.CAS3_BOOKING_CANCELLED, ServiceStatus.BOOKING_CANCELLED),
+      Arguments.of(ServiceStatusV2.CAS3_BOOKING_CONFIRMED, ServiceStatus.BOOKING_CONFIRMED),
+      Arguments.of(ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_CRS, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS, ServiceStatus.CANNOT_START_YET),
+      Arguments.of(ServiceStatusV2.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION, ServiceStatus.CANNOT_START_YET),
 
-      Arguments.of(ServiceStatusNew.CAS3_NOT_ARRIVED, ServiceStatus.NOT_ARRIVED),
-      Arguments.of(ServiceStatusNew.CAS3_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
-      Arguments.of(ServiceStatusNew.CAS3_NOT_STARTED, ServiceStatus.NOT_STARTED),
-      Arguments.of(ServiceStatusNew.CAS3_NOT_SUBMITTED, ServiceStatus.NOT_SUBMITTED),
-      Arguments.of(ServiceStatusNew.CAS3_REJECTED, ServiceStatus.REJECTED),
-      Arguments.of(ServiceStatusNew.CAS3_SUBMITTED, ServiceStatus.SUBMITTED),
-      Arguments.of(ServiceStatusNew.CAS3_ARRIVED, ServiceStatus.ARRIVED),
-      Arguments.of(ServiceStatusNew.CAS3_UPCOMING, ServiceStatus.UPCOMING),
+      Arguments.of(ServiceStatusV2.CAS3_NOT_ARRIVED, ServiceStatus.NOT_ARRIVED),
+      Arguments.of(ServiceStatusV2.CAS3_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
+      Arguments.of(ServiceStatusV2.CAS3_NOT_STARTED, ServiceStatus.NOT_STARTED),
+      Arguments.of(ServiceStatusV2.CAS3_NOT_SUBMITTED, ServiceStatus.NOT_SUBMITTED),
+      Arguments.of(ServiceStatusV2.CAS3_REJECTED, ServiceStatus.REJECTED),
+      Arguments.of(ServiceStatusV2.CAS3_SUBMITTED, ServiceStatus.SUBMITTED),
+      Arguments.of(ServiceStatusV2.CAS3_ARRIVED, ServiceStatus.ARRIVED),
+      Arguments.of(ServiceStatusV2.CAS3_UPCOMING, ServiceStatus.UPCOMING),
 
-      Arguments.of(ServiceStatusNew.CRS_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
-      Arguments.of(ServiceStatusNew.CRS_NOT_REQUIRED, ServiceStatus.NOT_REQUIRED),
-      Arguments.of(ServiceStatusNew.CRS_NOT_STARTED_REFERRAL, ServiceStatus.NOT_STARTED),
-      Arguments.of(ServiceStatusNew.CRS_SUBMITTED, ServiceStatus.SUBMITTED),
-      Arguments.of(ServiceStatusNew.CRS_UPCOMING_ACCOMMODATION_REFERRAL, ServiceStatus.UPCOMING),
-      Arguments.of(ServiceStatusNew.CRS_UPCOMING_REFERRAL, ServiceStatus.UPCOMING),
-      Arguments.of(ServiceStatusNew.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL, ServiceStatus.NOT_STARTED),
+      Arguments.of(ServiceStatusV2.CRS_NOT_REQUIRED, ServiceStatus.NOT_REQUIRED),
+      Arguments.of(ServiceStatusV2.CRS_NOT_STARTED_REFERRAL, ServiceStatus.NOT_STARTED),
+      Arguments.of(ServiceStatusV2.CRS_SUBMITTED, ServiceStatus.SUBMITTED),
+      Arguments.of(ServiceStatusV2.CRS_UPCOMING_ACCOMMODATION_REFERRAL, ServiceStatus.UPCOMING),
+      Arguments.of(ServiceStatusV2.CRS_UPCOMING_REFERRAL, ServiceStatus.UPCOMING),
+      Arguments.of(ServiceStatusV2.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL, ServiceStatus.NOT_STARTED),
 
-      Arguments.of(ServiceStatusNew.DTR_ACCEPTED, ServiceStatus.ACCEPTED),
-      Arguments.of(ServiceStatusNew.DTR_NOT_ACCEPTED, ServiceStatus.NOT_ACCEPTED),
-      Arguments.of(ServiceStatusNew.DTR_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
-      Arguments.of(ServiceStatusNew.DTR_NOT_REQUIRED, ServiceStatus.NOT_REQUIRED),
-      Arguments.of(ServiceStatusNew.DTR_NOT_STARTED, ServiceStatus.NOT_STARTED),
-      Arguments.of(ServiceStatusNew.DTR_SUBMITTED, ServiceStatus.SUBMITTED),
-      Arguments.of(ServiceStatusNew.DTR_UPCOMING, ServiceStatus.UPCOMING),
+      Arguments.of(ServiceStatusV2.DTR_ACCEPTED, ServiceStatus.ACCEPTED),
+      Arguments.of(ServiceStatusV2.DTR_NOT_ACCEPTED, ServiceStatus.NOT_ACCEPTED),
+      Arguments.of(ServiceStatusV2.DTR_NOT_REQUIRED, ServiceStatus.NOT_REQUIRED),
+      Arguments.of(ServiceStatusV2.DTR_NOT_STARTED, ServiceStatus.NOT_STARTED),
+      Arguments.of(ServiceStatusV2.DTR_SUBMITTED, ServiceStatus.SUBMITTED),
+      Arguments.of(ServiceStatusV2.DTR_UPCOMING, ServiceStatus.UPCOMING),
 
-      Arguments.of(ServiceStatusNew.PA_COMPLETED, ServiceStatus.COMPLETED),
-      Arguments.of(ServiceStatusNew.PA_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
-      Arguments.of(ServiceStatusNew.PA_NOT_STARTED, ServiceStatus.NOT_STARTED),
+      Arguments.of(ServiceStatusV2.PA_COMPLETED, ServiceStatus.COMPLETED),
+      Arguments.of(ServiceStatusV2.PA_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
+      Arguments.of(ServiceStatusV2.PA_NOT_STARTED, ServiceStatus.NOT_STARTED),
+
+      Arguments.of(ServiceStatusV2.PPC_NOT_STARTED, ServiceStatus.PPC_NOT_STARTED),
+      Arguments.of(ServiceStatusV2.PPC_NOT_REQUIRED, ServiceStatus.NOT_REQUIRED),
+      Arguments.of(ServiceStatusV2.PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED, ServiceStatus.PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED),
+      Arguments.of(ServiceStatusV2.PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED, ServiceStatus.PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED),
+
+      Arguments.of(ServiceStatusV2.CAS1_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
+      Arguments.of(ServiceStatusV2.CAS2_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
+      Arguments.of(ServiceStatusV2.CAS3_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
+      Arguments.of(ServiceStatusV2.CRS_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
+      Arguments.of(ServiceStatusV2.DTR_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
+      Arguments.of(ServiceStatusV2.PA_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
+      Arguments.of(ServiceStatusV2.PPC_UPSTREAM_ERROR, ServiceStatus.UPSTREAM_ERROR),
     )
   }
 
@@ -268,64 +281,72 @@ class EligibilityNewToOldTransformerTest {
 
     val crn = "FAKECRN1"
 
-    val crs = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CRS_UPCOMING_ACCOMMODATION_REFERRAL,
+    val crs = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.CRS_UPCOMING_ACCOMMODATION_REFERRAL,
       url = "crs/test",
       actionStartDate = LocalDate.parse("2023-01-04"),
     )
-    val cas1 = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS1_UPCOMING,
+    val cas1 = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.CAS1_UPCOMING,
       url = "cas1/test",
       actionStartDate = LocalDate.parse("2023-01-03"),
     )
-    val cas2 = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS2_UPCOMING,
+    val cas2 = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.CAS2_UPCOMING,
       url = "cas2/test",
       actionStartDate = LocalDate.parse("2023-01-02"),
     )
-    val cas3 = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
+    val cas3 = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.CAS3_NOT_STARTED,
       url = "cas3/test",
     )
-    val dtr = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.DTR_UPCOMING,
+    val dtr = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.DTR_UPCOMING,
       url = "dtr/test",
       actionStartDate = LocalDate.parse("2023-01-01"),
     )
-    val pa = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.PA_NOT_STARTED,
+    val pa = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.PA_NOT_STARTED,
       url = "pa/test",
     )
+    val ppc = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.PPC_NOT_STARTED,
+      url = "ppc/test",
+    )
 
-    val cas1ServiceResult = buildCas1ServiceResultNew(
+    val cas1ServiceResult = buildCas1ServiceResultV2(
       serviceResult = cas1,
       cas1Application = cas1ApplicationDto,
       actionPosition = 1,
     )
-    val cas2ServiceResult = buildCas2ServiceResultNew(
+    val cas2ServiceResult = buildCas2ServiceResultV2(
       serviceResult = cas2,
       cas2Application = cas2ApplicationDto,
       actionPosition = 2,
     )
-    val cas3ServiceResult = buildCas3ServiceResultNew(
+    val cas3ServiceResult = buildCas3ServiceResultV2(
       serviceResult = cas3,
       cas3Application = cas3ApplicationDto,
       actionPosition = 4,
     )
-    val dtrServiceResult = buildDtrServiceResultNew(
+    val dtrServiceResult = buildDtrServiceResultV2(
       serviceResult = dtr,
       caseId = dutyToReferDto.caseId,
       submission = dutyToReferDto.submission,
       actionPosition = 0,
     )
-    val crsServiceResult = buildCrsServiceResultNew(
+    val crsServiceResult = buildCrsServiceResultV2(
       serviceResult = crs,
       commissionedRehabilitativeServices = commissionedRehabilitativeServicesDto,
       actionPosition = 3,
     )
-    val paServiceResult = buildPaServiceResultNew(
+    val paServiceResult = buildPaServiceResultV2(
       serviceResult = pa,
       actionPosition = 5,
+    )
+    val ppcServiceResult = buildPpcServiceResultV2(
+      serviceResult = ppc,
+      actionPosition = 6,
     )
     val caseActions = listOf(
       CaseAction(type = CaseActionType.SUBMIT_DTR_REFERRAL, startDate = LocalDate.parse("2023-01-01"), service = ServiceType.DTR),
@@ -334,6 +355,7 @@ class EligibilityNewToOldTransformerTest {
       CaseAction(type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL, startDate = LocalDate.parse("2023-01-04"), service = ServiceType.CRS),
       CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = null, service = ServiceType.CAS3),
       CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null, service = ServiceType.PA),
+      CaseAction(type = CaseActionType.START_PPC, startDate = null, service = ServiceType.PPC),
     )
     val eligibilityDtoOld = EligibilityDto(
       crn = crn,
@@ -434,9 +456,24 @@ class EligibilityNewToOldTransformerTest {
         ),
       ),
       caseActions = caseActions,
+      ppc = PpcServiceResult(
+        serviceResult = ServiceResult(
+          serviceStatus = ServiceStatus.PPC_NOT_STARTED,
+          action = CaseAction(
+            type = ppcServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = ppcServiceResult.serviceResult.actionStartDate,
+            service = ppcServiceResult.serviceResult.serviceStatus.service,
+          ),
+          link = ppc.serviceStatus.link?.text,
+          url = ppc.url,
+          linkType = ppc.serviceStatus.link?.type,
+          failureReasons = ppc.failureReasons,
+          blockingStatusReason = ppc.serviceStatus.blockingStatusReason,
+        ),
+      ),
     )
 
-    val eligibilityDto = buildEligibilityDtoNew(
+    val eligibilityDto = buildEligibilityV2Dto(
       crn = crn,
       cas1 = cas1ServiceResult,
       cas2 = cas2ServiceResult,
@@ -444,6 +481,7 @@ class EligibilityNewToOldTransformerTest {
       dtr = dtrServiceResult,
       crs = crsServiceResult,
       pa = paServiceResult,
+      ppc = ppcServiceResult,
     )
 
     val result = toEligibilityDtoOld(

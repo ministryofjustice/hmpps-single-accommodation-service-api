@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer.toUpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -20,11 +21,20 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.DtrEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.PaEligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.PpcEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainDataFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.EligibilityOrchestrationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityNewToOldTransformer.toEligibilityDtoOld
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDtoNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityV2ToOldTransformer.toEligibilityDtoOld
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityV2Dto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPpcServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 
 @ExtendWith(MockKExtension::class)
@@ -59,6 +69,9 @@ class EligibilityServiceTest {
 
   @MockK
   private lateinit var paTree: PaEligibilityTreeProvider
+
+  @MockK
+  private lateinit var ppcTree: PpcEligibilityTreeProvider
 
   @InjectMockKs
   private lateinit var eligibilityService: EligibilityService
@@ -95,7 +108,36 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.getEligibility(crn)
 
-      val eligibility = buildEligibilityDtoNew(crn)
+      val eligibility = buildEligibilityV2Dto(
+        crn = crn,
+        cas1 = buildCas1ServiceResultV2(
+          serviceResult = buildServiceResultV2(ServiceStatusV2.CAS1_UPSTREAM_ERROR),
+          actionPosition = -1,
+        ),
+        cas2 = buildCas2ServiceResultV2(
+          serviceResult = buildServiceResultV2(ServiceStatusV2.CAS2_UPSTREAM_ERROR),
+          actionPosition = -1,
+        ),
+        cas3 = buildCas3ServiceResultV2(
+          serviceResult = buildServiceResultV2(ServiceStatusV2.CAS3_UPSTREAM_ERROR),
+          actionPosition = -1,
+        ),
+        dtr = buildDtrServiceResultV2(
+          serviceResult = buildServiceResultV2(ServiceStatusV2.DTR_UPSTREAM_ERROR),
+          actionPosition = -1,
+        ),
+        crs = buildCrsServiceResultV2(
+          serviceResult = buildServiceResultV2(ServiceStatusV2.CRS_UPSTREAM_ERROR),
+          actionPosition = -1,
+        ),
+        pa = buildPaServiceResultV2(
+          serviceResult = buildServiceResultV2(ServiceStatusV2.PA_UPSTREAM_ERROR),
+        ),
+        ppc = buildPpcServiceResultV2(
+          serviceResult = buildServiceResultV2(ServiceStatusV2.PPC_UPSTREAM_ERROR),
+          actionPosition = -1,
+        ),
+      )
 
       val expected = ApiResponseDto(
         data = toEligibilityDtoOld(eligibility),

@@ -1,8 +1,50 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph
 
+import org.commonmark.ext.gfm.tables.TablesExtension
+import org.commonmark.parser.Parser
+import org.commonmark.renderer.html.HtmlRenderer
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
+import java.nio.file.Files
+import java.nio.file.Path
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
+import java.util.Locale
+import kotlin.io.path.extension
+import kotlin.io.path.name
+
+data class TreeAdr(val date: LocalDate, val markdown: String)
+
+fun loadTreeAdrs(directory: Path): Map<String, TreeAdr> {
+  require(Files.isDirectory(directory)) { "Tree ADR directory does not exist: $directory" }
+  val filename = Regex("""^([a-z0-9]+)-tree-explanation-(\d{4}-\d{2}-\d{2})\.md${'$'}""", RegexOption.IGNORE_CASE)
+  val dateLine = Regex("""(?m)^Date:[ \t]*(\d{4}-\d{2}-\d{2})[ \t]*\r?${'$'}""")
+  val adrs = mutableMapOf<String, TreeAdr>()
+  val seenDates = mutableSetOf<Pair<String, LocalDate>>()
+  Files.list(directory).use { paths ->
+    paths.filter { Files.isRegularFile(it) && it.extension.equals("md", ignoreCase = true) }.sorted().forEach { path ->
+      val match = requireNotNull(filename.matchEntire(path.name)) { "Invalid tree ADR filename: $path" }
+      val treeName = match.groupValues[1].uppercase(Locale.ROOT)
+      try {
+        LocalDate.parse(match.groupValues[2])
+      } catch (ex: DateTimeParseException) {
+        throw IllegalArgumentException("Invalid tree ADR filename date: $path", ex)
+      }
+      val markdown = Files.readString(path)
+      val dateText = requireNotNull(dateLine.find(markdown)) { "Missing Date: YYYY-MM-DD in tree ADR: $path" }.groupValues[1]
+      val date = try {
+        LocalDate.parse(dateText)
+      } catch (ex: DateTimeParseException) {
+        throw IllegalArgumentException("Invalid tree ADR date in $path: $dateText", ex)
+      }
+      val current = adrs[treeName]
+      require(seenDates.add(treeName to date)) { "Multiple ADRs for $treeName have the same date: $date" }
+      if (current == null || date > current.date) adrs[treeName] = TreeAdr(date, markdown)
+    }
+  }
+  return adrs
+}
 
 /**
  * Renders the eligibility rules graphs as a standalone, interactive HTML page using Cytoscape.js.
@@ -13,14 +55,23 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
 
   private val jsonMapper = JsonMapper.builder().build()
   private val cardPreview = requireNotNull(javaClass.getResource("/eligibility/status-card-preview.html")).readText()
+  private val markdownExtensions = listOf(TablesExtension.create())
+  private val markdownParser = Parser.builder().extensions(markdownExtensions).build()
+  private val markdownRenderer = HtmlRenderer.builder().extensions(markdownExtensions).escapeHtml(true).sanitizeUrls(true).build()
 
-  override fun render(graphs: List<RulesGraph>): String {
-    val json = jsonMapper.writeValueAsString(toJson(graphs)).replace("</", "<\\/")
+  override fun render(graphs: List<RulesGraph>): String = render(graphs, emptyMap())
+
+  fun render(graphs: List<RulesGraph>, adrs: Map<String, TreeAdr>, scenarioChangeDates: Map<String, LocalDate> = emptyMap()): String {
+    val json = jsonMapper.writeValueAsString(toJson(graphs, adrs, scenarioChangeDates)).replace("</", "<\\/")
     return TEMPLATE.replace("__STATUS_CARD_PREVIEW__", cardPreview).replace(DATA_PLACEHOLDER, json)
   }
 
-  internal fun toJson(graphs: List<RulesGraph>): Map<String, Any?> = mapOf(
-    "statuses" to ServiceStatusNew.entries.associate { status ->
+  internal fun toJson(
+    graphs: List<RulesGraph>,
+    adrs: Map<String, TreeAdr> = emptyMap(),
+    scenarioChangeDates: Map<String, LocalDate> = emptyMap(),
+  ): Map<String, Any?> = mapOf(
+    "statuses" to ServiceStatusV2.entries.associate { status ->
       status.name to mapOf(
         "service" to status.service.name,
         "text" to status.uiStatusName,
@@ -35,6 +86,13 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
         "fullName" to graph.info?.fullName,
         "description" to graph.info?.description,
         "displayOrder" to graph.info?.displayOrder,
+        "adr" to adrs[graph.treeName]?.let { adr ->
+          mapOf(
+            "date" to adr.date.toString(),
+            "html" to markdownRenderer.render(markdownParser.parse(adr.markdown)),
+            "scenarioChangeDate" to scenarioChangeDates[graph.treeName]?.takeIf { it > adr.date }?.toString(),
+          )
+        },
         "nodes" to graph.nodes.map { node ->
           mapOf(
             "id" to node.id,
@@ -99,6 +157,8 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
   #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   #toolbar { padding: 8px 12px; border-bottom: 1px solid #ddd; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: #f7f7f7; }
   #toolbar label { font-size: 13px; }
+  #tree-search-input::placeholder { color: #666; opacity: 1; }
+  #tree-search-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   #cy { flex: 1; }
   #panel { width: 546px; border-left: 1px solid #ddd; overflow-y: auto; padding: 12px 16px; font-size: 14px; }
   #panel.expanded { width: 760px; }
@@ -106,6 +166,11 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
   #panel h2 { margin-top: 0; font-size: 18px; word-break: break-word; }
   #panel h3 { font-size: 15px; margin-bottom: 4px; }
   #panel h4 { font-size: 14px; margin: 8px 0 4px; }
+  #tree-adr { border-bottom: 1px solid #ddd; padding-bottom: 12px; margin-bottom: 12px; }
+  #tree-adr summary { cursor: pointer; font-weight: bold; }
+  #tree-adr .adr-content { overflow-wrap: anywhere; }
+  #tree-adr pre { overflow-x: auto; }
+  .adr-warning { border-left: 4px solid #d4351c; padding: 8px; background: #fdf2f2; }
   #panel .kind { margin: 0 0 2px; }
   #panel .route { border-top: 1px solid #ddd; margin-top: 12px; padding-top: 4px; }
   #panel-content > .trace-outcomes, #panel .route .trace-outcomes { margin: 8px 0 12px; }
@@ -151,8 +216,8 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
 <body class="home">
 <div id="home">
   <h1>Eligibility rules graphs</h1>
-  <p class="intro">Each service has a decision tree that works out a person's status for that service from their case data.
-  Choose a tree to explore its rule sets, context updaters and outcomes, or to simulate how a case moves through it.</p>
+  <p class="intro">Each service has a decision tree that works out a person's status from their case data.
+  Choose a service to see its tree and explore its rule sets, context updaters and outcomes, or to simulate how a case moves through it.</p>
   <div id="tree-cards"></div>
 </div>
 <div id="main">
@@ -162,10 +227,14 @@ object RulesGraphHtmlRenderer : RulesGraphRenderer {
     <button id="reset">Clear highlight</button>
     <button id="toggle-panel" aria-controls="panel" aria-expanded="false">Expand panel</button>
     <label><input type="checkbox" id="simulate"> <b>Simulate</b></label>
+    <div id="tree-search" role="search" aria-label="Search current tree">
+      <input id="tree-search-input" type="search" aria-label="Find a node or rule" placeholder="Search...">
+      <span id="tree-search-status" role="status"></span>
+    </div>
   </div>
   <div id="cy"></div>
 </div>
-<div id="panel"><div id="tree-heading"></div><div id="panel-content"></div></div>
+<div id="panel"><div id="tree-heading"></div><div id="tree-adr"></div><div id="panel-content"></div></div>
 
 <script type="application/json" id="graph-data">$DATA_PLACEHOLDER</script>
 __STATUS_CARD_PREVIEW__
@@ -174,8 +243,11 @@ __STATUS_CARD_PREVIEW__
   const panel = document.getElementById('panel');
   const togglePanelButton = document.getElementById('toggle-panel');
   const treeHeading = document.getElementById('tree-heading');
+  const treeAdr = document.getElementById('tree-adr');
   const treeSelect = document.getElementById('tree');
   const panelContent = document.getElementById('panel-content');
+  const searchInput = document.getElementById('tree-search-input');
+  const searchStatus = document.getElementById('tree-search-status');
 
   const orderedTrees = [...data.trees].sort((a, b) =>
     (a.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.displayOrder ?? Number.MAX_SAFE_INTEGER));
@@ -205,12 +277,15 @@ __STATUS_CARD_PREVIEW__
       { selector: 'edge[label = "PASS"]', style: { 'line-color': '${RulesGraphColours.PASS}', 'target-arrow-color': '${RulesGraphColours.PASS}', 'color': '${RulesGraphColours.PASS}' } },
       { selector: 'edge[label = "FAIL"]', style: { 'line-color': '${RulesGraphColours.FAIL}', 'target-arrow-color': '${RulesGraphColours.FAIL}', 'color': '${RulesGraphColours.FAIL}' } },
       { selector: 'edge[label = "CONTINUE"]', style: { 'line-color': '${RulesGraphColours.CONTINUE}', 'target-arrow-color': '${RulesGraphColours.CONTINUE}', 'color': '${RulesGraphColours.CONTINUE}' } },
-      { selector: '.faded', style: { 'opacity': 0.15 } },
-      { selector: 'node:selected', style: { 'border-width': 5, 'border-color': '${RulesGraphColours.SELECTED}' } },
+      { selector: '.faded, .search-faded', style: { 'opacity': 0.15 } },
+      { selector: 'node:selected, node.search-match', style: {
+        'border-width': 5, 'border-color': '${RulesGraphColours.SELECTED}' } },
       { selector: 'node.onpath', style: { 'border-width': 6, 'border-color': '${RulesGraphColours.HIGHLIGHT}' } },
       { selector: 'edge.onpath', style: { 'width': 6, 'z-index': 10 } },
       { selector: 'node.sim-fail', style: { 'background-color': '${RulesGraphColours.SIMULATION_FAIL}' } },
       { selector: 'node.sim-pass', style: { 'background-color': '${RulesGraphColours.SIMULATION_PASS}' } },
+      { selector: 'node.search-match', style: {
+        'opacity': 1, 'z-index': 20, 'border-width': 5, 'border-color': '${RulesGraphColours.SELECTED}' } },
     ],
   });
 
@@ -229,6 +304,10 @@ __STATUS_CARD_PREVIEW__
     cy.add(currentTree.edges.map((e, i) => ({ group: 'edges', data: {
       id: 'e' + i, source: e.from, target: e.to, label: e.label } })));
     runLayout();
+    showTreeOverview();
+  }
+
+  function showTreeOverview() {
     panelContent.innerHTML = '<p class="muted">' + currentTree.nodes.length + ' nodes, ' +
       currentTree.edges.length + ' edges. Click a node to see its rules, context updaters and outcomes, ' +
       'and to highlight every path from the root to it.</p>';
@@ -238,8 +317,48 @@ __STATUS_CARD_PREVIEW__
   const nodeLink = n => sourceTextLink(n.title, n.sourcePath);
   const nodeById = id => currentTree.nodes.find(x => x.id === id);
 
+  function outcomePreviewHtml(outcome, reasons, inTrace = false) {
+    const meta = data.statuses[outcome.status];
+    if (!meta) return '<p>Card preview unavailable for status ' + esc(outcome.status) + '.</p>';
+
+    const unavailable = () => {
+      const serviceName = orderedTrees.find(tree => tree.name === meta.service)?.fullName || meta.service;
+      const heading = inTrace ? '<h3>' + esc(meta.text) + '</h3><h4>Cards</h4>' : '';
+      return heading + '<p>' + esc(serviceName) + ': <b>' + esc(meta.text) +
+        '</b>. The UI has no corresponding eligibility card.</p>' + outcomeActionHtml(outcome, meta);
+    };
+
+    let preview;
+    try {
+      preview = statusCardPreview(outcome, reasons);
+    } catch (error) {
+      if (error.message === 'Unsupported UI status: ' + outcome.status ||
+          error.message === 'No eligibility card for service: ' + meta.service) return unavailable();
+      throw error;
+    }
+
+    const template = document.createElement('template');
+    template.innerHTML = preview || '';
+    const heading = template.content.querySelector('.sas-card__head h3');
+    // Older UI exports can render a card with an empty heading for an unsupported service.
+    if (!preview?.trim() || (heading && !heading.textContent.trim())) return unavailable();
+
+    return preview + outcomeActionHtml(outcome, meta);
+  }
+
+  function outcomeActionHtml(outcome, meta) {
+    try {
+      return statusActionPreview(outcome);
+    } catch (error) {
+      if (error.message === 'Missing UI action label: ' + meta.actionType) {
+        return '<p class="card-action"><b>Action:</b> Not implemented in the UI.</p>';
+      }
+      throw error;
+    }
+  }
+
   const cardHtml = (outcome, reasons) => '<div class="trace-outcomes"><div class="result">' +
-    statusCardPreview(outcome, reasons) + statusActionPreview(outcome) + '</div></div>';
+    outcomePreviewHtml(outcome, reasons) + '</div></div>';
   const ruleLink = r => sourceTextLink(r.description, r.sourcePath);
   const updaterFor = route => route.label === 'PASS' ? route.ruleSet.onPass : route.ruleSet.onFail;
   const routeCause = (route, rule) => nodeLink(route.ruleSet) + ' ' + badge(route.label) + (rule ? ' – ' + ruleLink(rule) : '');
@@ -381,6 +500,61 @@ __STATUS_CARD_PREVIEW__
     cy.$(':selected').unselect();
   }
 
+  function selectNode(node) {
+    clearHighlight();
+    node.select();
+    highlightPathsTo(node);
+    showNode(node.id());
+  }
+
+  const normalizeSearch = text => (text ?? '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+  function findTreeMatches(nodes, query) {
+    const words = query.split(' ');
+    return nodes.filter(node => {
+      const fields = [node.title, node.label, node.id,
+        ...node.rules.flatMap(rule => [rule.description, rule.failureReason, rule.className])];
+      return fields.some(field => {
+        const text = normalizeSearch(field);
+        return text.includes(query) || words.every(word => text.includes(word));
+      });
+    });
+  }
+
+  function clearSearchHighlight() {
+    cy.elements().removeClass('search-match search-faded');
+    searchStatus.textContent = '';
+  }
+
+  function resetSearch() {
+    clearSearchHighlight();
+    searchInput.value = '';
+  }
+
+  function applySearch() {
+    clearSearchHighlight();
+    const query = normalizeSearch(searchInput.value);
+    if (!query) return;
+    const matches = findTreeMatches(currentTree.nodes, query);
+    if (!matches.length) {
+      searchStatus.textContent = 'No match in this tree.';
+      return;
+    }
+    cy.elements().addClass('search-faded');
+    matches.forEach(match => cy.getElementById(match.id).removeClass('search-faded').addClass('search-match'));
+    searchStatus.textContent = matches.length + (matches.length === 1 ? ' matching node.' : ' matching nodes.');
+  }
+
+  searchInput.addEventListener('input', () => {
+    if (!simMode && normalizeSearch(searchInput.value)) {
+      clearHighlight();
+      showTreeOverview();
+    }
+    applySearch();
+  });
+
   // ---------- Simulation ----------
   // Mirrors RuleSetNode.eval / RulesEngine.execute: a RuleSet PASSes only if none of its rules FAIL,
   // then follows the PASS/FAIL edge (via its context updater, if any) until an outcome is reached.
@@ -451,7 +625,7 @@ __STATUS_CARD_PREVIEW__
     }
     const previousRuleSet = res.steps.filter(s => s.node.kind === 'RULE_SET').pop();
     const reasons = (previousRuleSet?.failed || []).map(r => r.failureReason).filter(Boolean);
-    return html + outcomes.map(o => statusCardPreview(o, reasons) + statusActionPreview(o)).join('') + '</div>';
+    return html + outcomes.map(o => outcomePreviewHtml(o, reasons, true)).join('') + '</div>';
   }
 
   function failureDescription(rules) {
@@ -553,9 +727,13 @@ __STATUS_CARD_PREVIEW__
   }
   panel.addEventListener('click', handleSimulationClick);
 
-  function setSimMode(on) {
+  function updateSimMode(on) {
     simMode = on;
     simCheckbox.checked = on;
+  }
+
+  function setSimMode(on) {
+    updateSimMode(on);
     if (on) {
       renderSim();
     } else {
@@ -563,23 +741,41 @@ __STATUS_CARD_PREVIEW__
       showTree(currentTree.name);
       updateUrl();
     }
+    applySearch();
   }
   simCheckbox.addEventListener('change', evt => setSimMode(evt.target.checked));
 
+  function scrollToSimulationRule(id) {
+    document.getElementById('sim-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   cy.on('tap', 'node', evt => {
     if (simMode) {
-      const group = document.getElementById('sim-' + evt.target.id());
-      if (group) {
-        group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const id = evt.target.id();
+      const rules = nodeById(id).rules;
+      if (rules.length) {
+        const allFailing = rules.every(rule => failing.has(rule.className));
+        rules.forEach(rule => {
+          if (allFailing) failing.delete(rule.className);
+          else failing.add(rule.className);
+        });
+        renderSim();
+        scrollToSimulationRule(id);
       }
       return;
     }
-    clearHighlight(); evt.target.select(); highlightPathsTo(evt.target); showNode(evt.target.id());
+    resetSearch();
+    selectNode(evt.target);
   });
-  cy.on('tap', evt => { if (evt.target === cy && !simMode) clearHighlight(); });
+  cy.on('tap', evt => {
+    if (evt.target === cy && !simMode) { resetSearch(); clearHighlight(); }
+  });
 
   document.getElementById('fit').addEventListener('click', () => cy.fit(undefined, 30));
-  document.getElementById('reset').addEventListener('click', () => { if (simMode) setSimMode(false); else clearHighlight(); });
+  document.getElementById('reset').addEventListener('click', () => {
+    resetSearch();
+    if (simMode) setSimMode(false); else clearHighlight();
+  });
   togglePanelButton.addEventListener('click', () => {
     const expanded = panel.classList.toggle('expanded');
     togglePanelButton.setAttribute('aria-expanded', String(expanded));
@@ -590,21 +786,28 @@ __STATUS_CARD_PREVIEW__
     document.body.classList.remove('home');
     cy.resize();
     failing.clear();
-    simMode = false;
-    simCheckbox.checked = false;
+    resetSearch();
+    updateSimMode(false);
     clearHighlight();
     showTree(name);
     const tree = data.trees.find(t => t.name === name);
     treeHeading.innerHTML = '<h1>' + esc(name) + (tree.fullName ? ' – ' + esc(tree.fullName) : '') + '</h1>' +
       (tree.description ? '<p class="muted">' + esc(tree.description) + '</p>' : '');
+    treeAdr.innerHTML = tree.adr ?
+      (tree.adr.scenarioChangeDate ? '<p class="adr-warning"><strong>This ADR may be out of date.</strong> ' +
+        'The scenario CSVs were last changed on ' + esc(tree.adr.scenarioChangeDate) +
+        ', after the ADR date.</p>' : '') +
+      '<details><summary>Architecture decision record (' + esc(tree.adr.date) + ')</summary><div class="adr-content">' +
+        tree.adr.html + '</div></details>' :
+      '<p class="muted">No architecture decision record is available for this tree.</p>';
     treeSelect.value = name;
     document.title = name + (tree.fullName ? ' – ' + tree.fullName : '') + ' – Eligibility rules graph';
     updateUrl();
   }
 
   function goHome() {
-    simMode = false;
-    simCheckbox.checked = false;
+    resetSearch();
+    updateSimMode(false);
     failing.clear();
     document.body.classList.add('home');
     treeSelect.value = '';
@@ -615,6 +818,7 @@ __STATUS_CARD_PREVIEW__
   document.getElementById('tree-cards').innerHTML = orderedTrees.map(t => {
     return '<button class="tree-card" data-tree="' + esc(t.name) + '"><h2>' + esc(t.name) + '</h2>' +
       '<p class="full-name">' + esc(t.fullName) + '</p><p>' + esc(t.description) + '</p>' +
+      (t.adr?.scenarioChangeDate ? '<p class="adr-warning"><strong>This ADR may be out of date.</strong></p>' : '') +
       '<p class="muted">' + t.nodes.filter(n => n.kind === 'RULE_SET').length + ' rule sets, ' +
       t.nodes.filter(n => n.kind === 'OUTCOME').length + ' outcomes</p></button>';
   }).join('');

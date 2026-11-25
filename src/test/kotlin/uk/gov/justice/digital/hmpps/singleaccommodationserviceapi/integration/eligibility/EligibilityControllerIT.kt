@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility
 
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -60,6 +61,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.el
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponseCannotStartYet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponseTierNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityUpstreamFailuresResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityV2ApplicationsNoContentResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityV2ApplicationsNotFoundResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityV2Cas3BlockedResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityV2FailureReasonResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityV2NoPrisonerResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityV2PremisesNotFoundResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityV2Response
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityV2TierErrorResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityV2TierNotFoundResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CommissionedRehabilitativeServicesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
@@ -68,6 +78,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -165,440 +176,866 @@ class EligibilityControllerIT : IntegrationTestBase() {
     )
   }
 
-  @Test
-  fun `should get eligibility for crn`() {
-    val tier = buildTier("A")
-    ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
-    val staff = Cas1Staff(
-      name = "Bob",
-      username = "Bob123",
-      staffCode = "123",
-    )
+  @Nested
+  inner class EligibilityForCrn {
 
-    val cas1RequestForPlacementOutcome = buildCas1ExternalRequestForPlacementOutcomeDto(
-      requestForPlacement = buildCas1RequestForPlacementSummaryV2(
-        status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-        decision = "accepted",
-        rejectionReason = null,
-        submittedBy = staff,
-        submittedAt = LocalDate.now(),
-        withdrawal = null,
-        expectedArrivalDate = LocalDate.now(),
-        durationDays = 12,
-      ),
-      placement = buildCas1PlacementV2(
-        status = Cas1PlacementStatus.CANCELLED,
-        canonicalArrivalDate = LocalDate.now(),
-        canonicalDepartureDate = LocalDate.now().plusMonths(6),
-        expectedArrivalDate = LocalDate.now(),
-        expectedDepartureDate = LocalDate.now().plusMonths(6),
-        cancellationReason = "Oops",
-        premises = buildCas1ExternalPremisesV2Dto(
-          addressLine1 = "Test House",
-          addressLine2 = "Test Road",
-          town = "Test Town",
-          postcode = "Test Postcode",
-        ),
-      ),
-    )
+    @Test
+    fun `should get eligibility for crn`() {
+      val tier = buildTier("A")
+      ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
+      val staff = Cas1Staff(
+        name = "Bob",
+        username = "Bob123",
+        staffCode = "123",
+      )
 
-    val cas1Application = buildCas1ApplicationV2(
-      uiUrl = cas1ApplicationUiUrl,
-      id = cas1ApplicationId,
-      status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      createdAt = OffsetDateTime.now(),
-      createdBy = staff,
-      expiresAt = LocalDate.now(),
-      submittedApplication = buildCas1SubmittedApplication(
-        submittedAt = OffsetDateTime.now(),
-        assessment = buildCas1AssessmentSummary(
+      val cas1RequestForPlacementOutcome = buildCas1ExternalRequestForPlacementOutcomeDto(
+        requestForPlacement = buildCas1RequestForPlacementSummaryV2(
+          status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
           decision = "accepted",
-          rejectionRationale = null,
+          rejectionReason = null,
+          submittedBy = staff,
+          submittedAt = LocalDate.now(),
+          withdrawal = null,
+          expectedArrivalDate = LocalDate.now(),
+          durationDays = 12,
         ),
-        requestForPlacementHistory = listOf(cas1RequestForPlacementOutcome),
-      ),
-    )
-
-    val cas2Application = buildCas2Application(
-      uiUrl = cas2ApplicationUiUrl,
-      id = cas2ApplicationId,
-      createdAt = OffsetDateTime.parse("2024-01-01T12:00:00.000Z"),
-      createdBy = buildCas2Staff(
-        name = "Anne",
-        username = "anne.smith",
-        deliusStaffCode = "ANNE",
-        nomisStaffId = null,
-        userType = "DELIUS",
-      ),
-      submittedApplication = buildCas2SubmittedApplicationSummary(
-        latestAssessmentStatus = Cas2AssessmentStatus.CANCELLED,
-        offerDeclinedReason = null,
-        cancelledReason = "cancelled reason",
-        submittedAt = OffsetDateTime.parse("2024-01-02T12:00:00.000Z"),
-      ),
-      cohort = "isc",
-    )
-
-    val cas3Application = buildCas3Application(
-      id = cas3ApplicationId,
-      applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-      submittedApplication = buildCas3SubmittedApplication(
-        submittedDate = LocalDate.parse("2023-01-01"),
-        submittedBy = buildCas3Staff(),
-        assessmentStatus = Cas3AssessmentStatus.REJECTED,
-        assessmentRejectionReason = "Oops",
-        latestBooking = buildCas3LatestBooking(
-          status = Cas3BookingStatus.CANCELLED,
-          provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
-          cancellation = buildCas3ExternalPreviousBookingCancellation(
-            cancellationDate = LocalDate.parse("2023-01-03"),
-            cancellationReason = "Mistake",
-          ),
-          premises = buildCas3PremisesSummary(
-            name = "Test Premises",
-            startDate = LocalDate.parse("2023-01-04"),
-            endDate = LocalDate.parse("2023-01-05"),
-            addressLine1 = "123 Test Street",
+        placement = buildCas1PlacementV2(
+          status = Cas1PlacementStatus.CANCELLED,
+          canonicalArrivalDate = LocalDate.now(),
+          canonicalDepartureDate = LocalDate.now().plusMonths(6),
+          expectedArrivalDate = LocalDate.now(),
+          expectedDepartureDate = LocalDate.now().plusMonths(6),
+          cancellationReason = "Oops",
+          premises = buildCas1ExternalPremisesV2Dto(
+            addressLine1 = "Test House",
             addressLine2 = "Test Road",
             town = "Test Town",
             postcode = "Test Postcode",
           ),
         ),
-        previousBookings = listOf(
-          buildCas3ExternalPreviousBooking(
-            bookingStatus = Cas3BookingStatus.CANCELLED,
+      )
+
+      val cas1Application = buildCas1ApplicationV2(
+        uiUrl = cas1ApplicationUiUrl,
+        id = cas1ApplicationId,
+        status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+        createdAt = OffsetDateTime.now(),
+        createdBy = staff,
+        expiresAt = LocalDate.now(),
+        submittedApplication = buildCas1SubmittedApplication(
+          submittedAt = OffsetDateTime.now(),
+          assessment = buildCas1AssessmentSummary(
+            decision = "accepted",
+            rejectionRationale = null,
+          ),
+          requestForPlacementHistory = listOf(cas1RequestForPlacementOutcome),
+        ),
+      )
+
+      val cas2Application = buildCas2Application(
+        uiUrl = cas2ApplicationUiUrl,
+        id = cas2ApplicationId,
+        createdAt = OffsetDateTime.parse("2024-01-01T12:00:00.000Z"),
+        createdBy = buildCas2Staff(
+          name = "Anne",
+          username = "anne.smith",
+          deliusStaffCode = "ANNE",
+          nomisStaffId = null,
+          userType = "DELIUS",
+        ),
+        submittedApplication = buildCas2SubmittedApplicationSummary(
+          latestAssessmentStatus = Cas2AssessmentStatus.CANCELLED,
+          offerDeclinedReason = null,
+          cancelledReason = "cancelled reason",
+          submittedAt = OffsetDateTime.parse("2024-01-02T12:00:00.000Z"),
+        ),
+        cohort = "isc",
+      )
+
+      val cas3Application = buildCas3Application(
+        id = cas3ApplicationId,
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        submittedApplication = buildCas3SubmittedApplication(
+          submittedDate = LocalDate.parse("2023-01-01"),
+          submittedBy = buildCas3Staff(),
+          assessmentStatus = Cas3AssessmentStatus.REJECTED,
+          assessmentRejectionReason = "Oops",
+          latestBooking = buildCas3LatestBooking(
+            status = Cas3BookingStatus.CANCELLED,
+            provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
             cancellation = buildCas3ExternalPreviousBookingCancellation(
               cancellationDate = LocalDate.parse("2023-01-03"),
               cancellationReason = "Mistake",
             ),
+            premises = buildCas3PremisesSummary(
+              name = "Test Premises",
+              startDate = LocalDate.parse("2023-01-04"),
+              endDate = LocalDate.parse("2023-01-05"),
+              addressLine1 = "123 Test Street",
+              addressLine2 = "Test Road",
+              town = "Test Town",
+              postcode = "Test Postcode",
+            ),
+          ),
+          previousBookings = listOf(
+            buildCas3ExternalPreviousBooking(
+              bookingStatus = Cas3BookingStatus.CANCELLED,
+              cancellation = buildCas3ExternalPreviousBookingCancellation(
+                cancellationDate = LocalDate.parse("2023-01-03"),
+                cancellationReason = "Mistake",
+              ),
+            ),
           ),
         ),
-      ),
-      uiUrl = cas3ReferralUiUrl,
-    )
+        uiUrl = cas3ReferralUiUrl,
+      )
 
-    ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(crn = crn, response = cas3Application)
-    ApprovedPremisesStubs.getCas2CurrentApplicationOKResponse(crn = crn, response = cas2Application)
-    ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = cas1Application)
+      ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(crn = crn, response = cas3Application)
+      ApprovedPremisesStubs.getCas2CurrentApplicationOKResponse(crn = crn, response = cas2Application)
+      ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = cas1Application)
 
-    TierStubs.getTierOKResponse(crn = crn, tier)
+      TierStubs.getTierOKResponse(crn = crn, tier)
 
-    val entity = buildCaseEntity(id = dutyToReferCaseId) {
-      withCrn(crn)
-      withPrisonNumber(prisonNumber)
-    }
-    caseRepository.save(entity)
-
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = entity.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        referenceNumber = "DTR-REF-001",
-        submissionDate = LocalDate.now().minusMonths(5),
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
-
-    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody<String>()
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(
-          expectedGetEligibilityResponse(
-            crn = crn,
-            cas1ApplicationId = cas1ApplicationId,
-            cas3ApplicationId = cas3ApplicationId,
-            cas3ApplicationCreatedAt = cas3Application.createdAt.asJsonValue(),
-            dutyToReferCaseId = dutyToReferCaseId,
-            dutyToReferId = existingEntity.id,
-            localAuthorityAreaId = localAuthorityArea.id,
-            localAuthorityAreaName = localAuthorityArea.name,
-            submissionDate = existingEntity.submissionDate.toString(),
-            referenceNumber = "DTR-REF-001",
-            createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-            createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
-            crsSubmissionDate = crsSubmissionDate.toString(),
-            cas1ApplicationUrl = cas1ApplicationUiUrl,
-            crsUrl = crsUrl,
-            cas3ReferralUrl = cas3ReferralUiUrl,
-            cas1ApplicationStartedAt = cas1Application.createdAt.asJsonValue(),
-            submittedAt = cas1Application.submittedApplication?.submittedAt?.asJsonValue().toString(),
-            requestSubmittedAt = cas1RequestForPlacementOutcome.requestForPlacement.submittedAt.toString(),
-            expectedArrivalDate = cas1RequestForPlacementOutcome.requestForPlacement.expectedArrivalDate.toString(),
-            expectedDepartureDate = cas1RequestForPlacementOutcome.placement?.expectedDepartureDate.toString(),
-            expiresAt = cas1Application.expiresAt.toString(),
-            startDate = cas1RequestForPlacementOutcome.placement!!.canonicalArrivalDate.toString(),
-            endDate = cas1RequestForPlacementOutcome.placement!!.canonicalDepartureDate.toString(),
-          ),
-        )
+      val entity = buildCaseEntity(id = dutyToReferCaseId) {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
       }
-  }
+      caseRepository.save(entity)
 
-  @Test
-  fun `should get eligibility for cas 3 blocking reason`() {
-    // eligible for CAS2 but not CAS1
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "E"))
-    ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
+      val existingEntity = dutyToReferRepository.save(
+        buildDutyToReferEntity(
+          caseId = entity.id,
+          localAuthorityAreaId = localAuthorityArea.id,
+          referenceNumber = "DTR-REF-001",
+          submissionDate = LocalDate.now().minusMonths(5),
+          status = EntityDtrStatus.SUBMITTED,
+        ),
+      )
 
-    val entity = buildCaseEntity(
-      id = dutyToReferCaseId,
-    ) {
-      withCrn(crn)
-      withPrisonNumber(prisonNumber)
+      webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetEligibilityResponse(
+              crn = crn,
+              cas1ApplicationId = cas1ApplicationId,
+              cas3ApplicationId = cas3ApplicationId,
+              cas3ApplicationCreatedAt = cas3Application.createdAt.asJsonValue(),
+              dutyToReferCaseId = dutyToReferCaseId,
+              dutyToReferId = existingEntity.id,
+              localAuthorityAreaId = localAuthorityArea.id,
+              localAuthorityAreaName = localAuthorityArea.name,
+              submissionDate = existingEntity.submissionDate.toString(),
+              referenceNumber = "DTR-REF-001",
+              createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+              createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
+              crsSubmissionDate = crsSubmissionDate.toString(),
+              cas1ApplicationUrl = cas1ApplicationUiUrl,
+              crsUrl = crsUrl,
+              cas3ReferralUrl = cas3ReferralUiUrl,
+              cas1ApplicationStartedAt = cas1Application.createdAt.asJsonValue(),
+              submittedAt = cas1Application.submittedApplication?.submittedAt?.asJsonValue().toString(),
+              requestSubmittedAt = cas1RequestForPlacementOutcome.requestForPlacement.submittedAt.toString(),
+              expectedArrivalDate = cas1RequestForPlacementOutcome.requestForPlacement.expectedArrivalDate.toString(),
+              expectedDepartureDate = cas1RequestForPlacementOutcome.placement?.expectedDepartureDate.toString(),
+              expiresAt = cas1Application.expiresAt.toString(),
+              startDate = cas1RequestForPlacementOutcome.placement!!.canonicalArrivalDate.toString(),
+              endDate = cas1RequestForPlacementOutcome.placement!!.canonicalDepartureDate.toString(),
+            ),
+          )
+        }
     }
-    caseRepository.save(entity)
 
-    PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.IN))
+    @Test
+    fun `should get eligibility for cas 3 blocking reason`() {
+      // eligible for CAS2 but not CAS1
+      TierStubs.getTierOKResponse(crn, buildTier(tierScore = "E"))
+      ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
 
-    val cas3Application = buildCas3Application(
-      id = cas3ApplicationId,
-      createdAt = cas3ApplicationCreatedAt,
-      applicationStatus = Cas3ApplicationStatus.REJECTED,
-      uiUrl = cas3ReferralUiUrl,
-      submittedApplication = buildCas3SubmittedApplication(
-        submittedDate = LocalDate.of(2025, 1, 2),
-      ),
-    )
-
-    ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(crn = crn, response = cas3Application)
-
-    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody<String>()
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(
-          expectedGetEligibilityResponseCannotStartYet(
-            crn = crn,
-            cas3ApplicationId = cas3ApplicationId,
-            cas3ApplicationCreatedAt = cas3Application.createdAt.asJsonValue(),
-            cas3Url = cas3ReferralUiUrl,
-            crsSubmissionDate = crsSubmissionDate.toString(),
-            crsUrl = crsUrl,
-          ),
-        )
+      val entity = buildCaseEntity(
+        id = dutyToReferCaseId,
+      ) {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
       }
-  }
+      caseRepository.save(entity)
 
-  @Test
-  fun `should continue evaluation and do not include 404 in upstream failures when tier returns not found`() {
-    val cas1Application = buildCas1ApplicationV2(
-      status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      id = cas1ApplicationId,
-      uiUrl = cas1ApplicationUiUrl,
-      submittedApplication = buildCas1SubmittedApplication(
-        upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
-          requestForPlacement = buildCas1RequestForPlacementSummaryV2(status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED),
-          placement = buildCas1PlacementV2(
-            status = Cas1PlacementStatus.ARRIVED,
-            canonicalArrivalDate = LocalDate.parse("2025-01-01"),
-            canonicalDepartureDate = LocalDate.parse("2025-07-01"),
+      PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.IN))
+
+      val cas3Application = buildCas3Application(
+        id = cas3ApplicationId,
+        createdAt = cas3ApplicationCreatedAt,
+        applicationStatus = Cas3ApplicationStatus.REJECTED,
+        uiUrl = cas3ReferralUiUrl,
+        submittedApplication = buildCas3SubmittedApplication(
+          submittedDate = LocalDate.of(2025, 1, 2),
+        ),
+      )
+
+      ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(crn = crn, response = cas3Application)
+
+      webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetEligibilityResponseCannotStartYet(
+              crn = crn,
+              cas3ApplicationId = cas3ApplicationId,
+              cas3ApplicationCreatedAt = cas3Application.createdAt.asJsonValue(),
+              cas3Url = cas3ReferralUiUrl,
+              crsSubmissionDate = crsSubmissionDate.toString(),
+              crsUrl = crsUrl,
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should continue evaluation and do not include 404 in upstream failures when tier returns not found`() {
+      val cas1Application = buildCas1ApplicationV2(
+        status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+        id = cas1ApplicationId,
+        uiUrl = cas1ApplicationUiUrl,
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+            requestForPlacement = buildCas1RequestForPlacementSummaryV2(status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED),
+            placement = buildCas1PlacementV2(
+              status = Cas1PlacementStatus.ARRIVED,
+              canonicalArrivalDate = LocalDate.parse("2025-01-01"),
+              canonicalDepartureDate = LocalDate.parse("2025-07-01"),
+            ),
           ),
         ),
-      ),
-    )
-    ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = cas1Application)
-    TierStubs.getTierNotFoundResponse(crn = crn)
+      )
+      ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = cas1Application)
+      TierStubs.getTierNotFoundResponse(crn = crn)
 
-    val entity = buildCaseEntity(id = dutyToReferCaseId) {
-      withCrn(crn)
-      withPrisonNumber(prisonNumber)
-    }
-    caseRepository.save(entity)
-
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = entity.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        referenceNumber = "DTR-REF-001",
-        submissionDate = LocalDate.now().minusMonths(5),
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
-
-    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody<String>()
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(
-          expectedGetEligibilityResponseTierNotFound(
-            crn = crn,
-            cas1ApplicationId = cas1ApplicationId,
-            cas3ApplicationId = cas3ApplicationId,
-            cas3ApplicationCreatedAt = cas3ApplicationCreatedAt.asJsonValue(),
-            dutyToReferCaseId = dutyToReferCaseId,
-            dutyToReferId = existingEntity.id,
-            localAuthorityAreaId = localAuthorityArea.id,
-            localAuthorityAreaName = localAuthorityArea.name,
-            submissionDate = existingEntity.submissionDate.toString(),
-            referenceNumber = "DTR-REF-001",
-            createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-            createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
-            crsSubmissionDate = crsSubmissionDate.toString(),
-            cas1ApplicationUrl = cas1ApplicationUiUrl,
-            crsUrl = crsUrl,
-            cas3ReferralUrl = cas3ReferralUiUrl,
-            cas1ApplicationStartedAt = cas1Application.createdAt.asJsonValue(),
-            cas1ApplicationSubmittedAt = cas1Application.submittedApplication?.submittedAt?.asJsonValue().toString(),
-            cas1RequestForPlacementExpectedArrivalDate = cas1Application.submittedApplication?.upcomingRequestForPlacement?.requestForPlacement?.expectedArrivalDate.toString(),
-            cas1PlacementExpectedDepartureDate = cas1Application.submittedApplication?.upcomingRequestForPlacement?.placement?.expectedDepartureDate.toString(),
-            cas1SubmittedAt = cas1Application.submittedApplication?.upcomingRequestForPlacement?.requestForPlacement?.submittedAt.toString(),
-          ),
-        )
+      val entity = buildCaseEntity(id = dutyToReferCaseId) {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
       }
-  }
+      caseRepository.save(entity)
 
-  @Test
-  fun `should send back upstream failures and a not eligible service result when there are upstream failures`() {
-    val upstreamUrl = TierStubs.getTierServerErrorResponse(crn = crn)
+      val existingEntity = dutyToReferRepository.save(
+        buildDutyToReferEntity(
+          caseId = entity.id,
+          localAuthorityAreaId = localAuthorityArea.id,
+          referenceNumber = "DTR-REF-001",
+          submissionDate = LocalDate.now().minusMonths(5),
+          status = EntityDtrStatus.SUBMITTED,
+        ),
+      )
 
-    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody<String>()
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(
-          expectedGetEligibilityUpstreamFailuresResponse(
-            crn,
-            upstreamUrl,
-          ),
-        )
+      webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetEligibilityResponseTierNotFound(
+              crn = crn,
+              cas1ApplicationId = cas1ApplicationId,
+              cas3ApplicationId = cas3ApplicationId,
+              cas3ApplicationCreatedAt = cas3ApplicationCreatedAt.asJsonValue(),
+              dutyToReferCaseId = dutyToReferCaseId,
+              dutyToReferId = existingEntity.id,
+              localAuthorityAreaId = localAuthorityArea.id,
+              localAuthorityAreaName = localAuthorityArea.name,
+              submissionDate = existingEntity.submissionDate.toString(),
+              referenceNumber = "DTR-REF-001",
+              createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+              createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
+              crsSubmissionDate = crsSubmissionDate.toString(),
+              cas1ApplicationUrl = cas1ApplicationUiUrl,
+              crsUrl = crsUrl,
+              cas3ReferralUrl = cas3ReferralUiUrl,
+              cas1ApplicationStartedAt = cas1Application.createdAt.asJsonValue(),
+              cas1ApplicationSubmittedAt = cas1Application.submittedApplication?.submittedAt?.asJsonValue().toString(),
+              cas1RequestForPlacementExpectedArrivalDate = cas1Application.submittedApplication?.upcomingRequestForPlacement?.requestForPlacement?.expectedArrivalDate.toString(),
+              cas1PlacementExpectedDepartureDate = cas1Application.submittedApplication?.upcomingRequestForPlacement?.placement?.expectedDepartureDate.toString(),
+              cas1SubmittedAt = cas1Application.submittedApplication?.upcomingRequestForPlacement?.requestForPlacement?.submittedAt.toString(),
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should send back upstream failures and upstream error service results when there are upstream failures`() {
+      val upstreamUrl = TierStubs.getTierServerErrorResponse(crn = crn)
+
+      webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetEligibilityUpstreamFailuresResponse(
+              crn,
+              upstreamUrl,
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should include failureReason when defined`() {
+      val cas1Application = buildCas1ApplicationV2(
+        status = Cas1ApplicationStatus.REJECTED,
+        id = cas1ApplicationId,
+        createdAt = OffsetDateTime.parse("2023-01-01T12:00:00.000Z"),
+      )
+
+      TierStubs.getTierOKResponse(crn = crn, buildTier("E"))
+      ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(
+        crn = crn,
+        response = cas1Application,
+      )
+
+      val entity = buildCaseEntity(id = dutyToReferCaseId) {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
       }
-  }
+      caseRepository.save(entity)
 
-  @Test
-  fun `should include failureReason when defined`() {
-    val cas1Application = buildCas1ApplicationV2(
-      status = Cas1ApplicationStatus.REJECTED,
-      id = cas1ApplicationId,
-      createdAt = OffsetDateTime.parse("2023-01-01T12:00:00.000Z"),
-    )
+      dutyToReferRepository.save(
+        buildDutyToReferEntity(
+          caseId = entity.id,
+          localAuthorityAreaId = localAuthorityArea.id,
+          referenceNumber = "DTR-REF-001",
+          submissionDate = LocalDate.now().minusMonths(5),
+          status = EntityDtrStatus.SUBMITTED,
+        ),
+      )
 
-    TierStubs.getTierOKResponse(crn = crn, buildTier("E"))
-    ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(
-      crn = crn,
-      response = cas1Application,
-    )
-
-    val entity = buildCaseEntity(id = dutyToReferCaseId) {
-      withCrn(crn)
-      withPrisonNumber(prisonNumber)
+      webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody()
+        .jsonPath("$.data.cas1.serviceResult.failureReasons[0]").isEqualTo("MALE_NOT_HIGH_RISK_TIER")
     }
-    caseRepository.save(entity)
 
-    dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = entity.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        referenceNumber = "DTR-REF-001",
-        submissionDate = LocalDate.now().minusMonths(5),
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    @Test
+    fun `should succeed when prisoner search returns 404`() {
+      PrisonerSearchStubs.getPrisonerNotFoundResponse(prisonNumber = prisonNumber)
+      TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
 
-    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody()
-      .jsonPath("$.data.cas1.serviceResult.failureReasons[0]").isEqualTo("MALE_NOT_HIGH_RISK_TIER")
-  }
+      val entity = buildCaseEntity(id = dutyToReferCaseId) {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      caseRepository.save(entity)
 
-  @Test
-  fun `should succeed when prisoner search returns 404`() {
-    PrisonerSearchStubs.getPrisonerNotFoundResponse(prisonNumber = prisonNumber)
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
-
-    val entity = buildCaseEntity(id = dutyToReferCaseId) {
-      withCrn(crn)
-      withPrisonNumber(prisonNumber)
+      webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
     }
-    caseRepository.save(entity)
 
-    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
+    @Test
+    fun `should succeed when case has no prison number`() {
+      TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
+
+      val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
+      caseRepository.save(entity)
+
+      webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+    }
+
+    @Test
+    fun `should send back failed eligibility when CAS applications returns 404`() {
+      ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn = crn)
+      ApprovedPremisesStubs.getCas2CurrentApplicationNotFoundResponse(crn = crn)
+      ApprovedPremisesStubs.getCas3CurrentApplicationNotFoundResponse(crn = crn)
+
+      TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+
+      webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody()
+        .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
+        .jsonPath("$.data.cas2.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
+        .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
+        .jsonPath("$.data.ppc.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
+        .jsonPath("$.data.cas1.cas1Application").isEmpty()
+        .jsonPath("$.data.cas2.cas2Application").isEmpty()
+        .jsonPath("$.data.cas3.cas3Application").isEmpty()
+        .jsonPath("$.upstreamFailures.length()").isEqualTo(3)
+        .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getCas1CurrentApplication")
+        .jsonPath("$.upstreamFailures[1].endpoint").isEqualTo("getCas2CurrentApplication")
+        .jsonPath("$.upstreamFailures[2].endpoint").isEqualTo("getCas3CurrentApplication")
+        .jsonPath("$.upstreamFailures[0].httpResponseStatus").isEqualTo("404 NOT_FOUND")
+        .jsonPath("$.upstreamFailures[1].httpResponseStatus").isEqualTo("404 NOT_FOUND")
+        .jsonPath("$.upstreamFailures[2].httpResponseStatus").isEqualTo("404 NOT_FOUND")
+    }
+
+    @Test
+    fun `should successfully get eligibility when CAS applications returns 204`() {
+      ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(crn = crn)
+      ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
+      ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
+      ApprovedPremisesStubs.getCas2CurrentApplicationNoContentResponse(crn = crn)
+      ApprovedPremisesStubs.getCas3CurrentApplicationNoContentResponse(crn = crn)
+
+      TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+
+      webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.cas1.cas1Application").isEmpty()
+        .jsonPath("$.data.cas2.cas2Application").isEmpty()
+        .jsonPath("$.data.cas3.cas3Application").isEmpty()
+        .jsonPath("$.data.ppc.serviceResult.serviceStatus").isEqualTo("PPC_NOT_STARTED")
+        .jsonPath("$.upstreamFailures").doesNotExist()
+    }
+
+    @Test
+    fun `should send back failed eligibility when CAS current premises returns 404`() {
+      ApprovedPremisesStubs.getCas1ResidenceNotFoundResponse(crn = crn)
+      ApprovedPremisesStubs.getCas3CurrentPremisesNotFoundResponse(crn = crn)
+
+      TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+
+      webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
+        .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
+        .jsonPath("$.data.ppc.serviceResult.serviceStatus").isEqualTo("UPSTREAM_ERROR")
+        .jsonPath("$.upstreamFailures.length()").isEqualTo(2)
+        .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getCas1ResidentPlacement")
+        .jsonPath("$.upstreamFailures[1].endpoint").isEqualTo("getCas3CurrentPremises")
+        .jsonPath("$.upstreamFailures[0].httpResponseStatus").isEqualTo("404 NOT_FOUND")
+        .jsonPath("$.upstreamFailures[1].httpResponseStatus").isEqualTo("404 NOT_FOUND")
+    }
   }
 
-  @Test
-  fun `should succeed when case has no prison number`() {
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
+  @Nested
+  inner class EligibilityForCrnV2 {
 
-    val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
-    caseRepository.save(entity)
+    @Test
+    fun `should get eligibility for crn`() {
+      val tier = buildTier("A")
+      ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
+      val staff = Cas1Staff(
+        name = "Bob",
+        username = "Bob123",
+        staffCode = "123",
+      )
 
-    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-  }
+      val cas1RequestForPlacementOutcome = buildCas1ExternalRequestForPlacementOutcomeDto(
+        requestForPlacement = buildCas1RequestForPlacementSummaryV2(
+          status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+          decision = "accepted",
+          rejectionReason = null,
+          submittedBy = staff,
+          submittedAt = LocalDate.now(),
+          withdrawal = null,
+          expectedArrivalDate = LocalDate.now(),
+          durationDays = 12,
+        ),
+        placement = buildCas1PlacementV2(
+          status = Cas1PlacementStatus.CANCELLED,
+          canonicalArrivalDate = LocalDate.now(),
+          canonicalDepartureDate = LocalDate.now().plusMonths(6),
+          expectedArrivalDate = LocalDate.now(),
+          expectedDepartureDate = LocalDate.now().plusMonths(6),
+          cancellationReason = "Oops",
+          premises = buildCas1ExternalPremisesV2Dto(
+            addressLine1 = "Test House",
+            addressLine2 = "Test Road",
+            town = "Test Town",
+            postcode = "Test Postcode",
+          ),
+        ),
+      )
 
-  @Test
-  fun `should send back failed eligibility when CAS applications returns 404`() {
-    ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn = crn)
-    ApprovedPremisesStubs.getCas2CurrentApplicationNotFoundResponse(crn = crn)
-    ApprovedPremisesStubs.getCas3CurrentApplicationNotFoundResponse(crn = crn)
+      val cas1Application = buildCas1ApplicationV2(
+        uiUrl = cas1ApplicationUiUrl,
+        id = cas1ApplicationId,
+        status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+        createdAt = OffsetDateTime.now(),
+        createdBy = staff,
+        expiresAt = LocalDate.now(),
+        submittedApplication = buildCas1SubmittedApplication(
+          submittedAt = OffsetDateTime.now(),
+          assessment = buildCas1AssessmentSummary(
+            decision = "accepted",
+            rejectionRationale = null,
+          ),
+          requestForPlacementHistory = listOf(cas1RequestForPlacementOutcome),
+        ),
+      )
 
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+      val cas2Application = buildCas2Application(
+        uiUrl = cas2ApplicationUiUrl,
+        id = cas2ApplicationId,
+        createdAt = OffsetDateTime.parse("2024-01-01T12:00:00.000Z"),
+        createdBy = buildCas2Staff(
+          name = "Anne",
+          username = "anne.smith",
+          deliusStaffCode = "ANNE",
+          nomisStaffId = null,
+          userType = "DELIUS",
+        ),
+        submittedApplication = buildCas2SubmittedApplicationSummary(
+          latestAssessmentStatus = Cas2AssessmentStatus.CANCELLED,
+          offerDeclinedReason = null,
+          cancelledReason = "cancelled reason",
+          submittedAt = OffsetDateTime.parse("2024-01-02T12:00:00.000Z"),
+        ),
+        cohort = "isc",
+      )
 
-    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody()
-      .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
-      .jsonPath("$.data.cas2.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
-      .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
-      .jsonPath("$.data.cas1.cas1Application").isEmpty()
-      .jsonPath("$.data.cas2.cas2Application").isEmpty()
-      .jsonPath("$.data.cas3.cas3Application").isEmpty()
-      .jsonPath("$.upstreamFailures.length()").isEqualTo(3)
-      .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getCas1CurrentApplication")
-      .jsonPath("$.upstreamFailures[1].endpoint").isEqualTo("getCas2CurrentApplication")
-      .jsonPath("$.upstreamFailures[2].endpoint").isEqualTo("getCas3CurrentApplication")
-      .jsonPath("$.upstreamFailures[0].httpResponseStatus").isEqualTo("404 NOT_FOUND")
-      .jsonPath("$.upstreamFailures[1].httpResponseStatus").isEqualTo("404 NOT_FOUND")
-      .jsonPath("$.upstreamFailures[2].httpResponseStatus").isEqualTo("404 NOT_FOUND")
-  }
+      val cas3Application = buildCas3Application(
+        id = cas3ApplicationId,
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        submittedApplication = buildCas3SubmittedApplication(
+          submittedDate = LocalDate.parse("2023-01-01"),
+          submittedBy = buildCas3Staff(),
+          assessmentStatus = Cas3AssessmentStatus.REJECTED,
+          assessmentRejectionReason = "Oops",
+          latestBooking = buildCas3LatestBooking(
+            status = Cas3BookingStatus.CANCELLED,
+            provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
+            cancellation = buildCas3ExternalPreviousBookingCancellation(
+              cancellationDate = LocalDate.parse("2023-01-03"),
+              cancellationReason = "Mistake",
+            ),
+            premises = buildCas3PremisesSummary(
+              name = "Test Premises",
+              startDate = LocalDate.parse("2023-01-04"),
+              endDate = LocalDate.parse("2023-01-05"),
+              addressLine1 = "123 Test Street",
+              addressLine2 = "Test Road",
+              town = "Test Town",
+              postcode = "Test Postcode",
+            ),
+          ),
+          previousBookings = listOf(
+            buildCas3ExternalPreviousBooking(
+              bookingStatus = Cas3BookingStatus.CANCELLED,
+              cancellation = buildCas3ExternalPreviousBookingCancellation(
+                cancellationDate = LocalDate.parse("2023-01-03"),
+                cancellationReason = "Mistake",
+              ),
+            ),
+          ),
+        ),
+        uiUrl = cas3ReferralUiUrl,
+      )
 
-  @Test
-  fun `should successfully get eligibility when CAS applications returns 204`() {
-    ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(crn = crn)
-    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
-    ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
-    ApprovedPremisesStubs.getCas2CurrentApplicationNoContentResponse(crn = crn)
-    ApprovedPremisesStubs.getCas3CurrentApplicationNoContentResponse(crn = crn)
+      ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(crn = crn, response = cas3Application)
+      ApprovedPremisesStubs.getCas2CurrentApplicationOKResponse(crn = crn, response = cas2Application)
+      ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = cas1Application)
 
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+      TierStubs.getTierOKResponse(crn = crn, tier)
 
-    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus().isOk
-      .expectBody()
-      .jsonPath("$.data.cas1.cas1Application").isEmpty()
-      .jsonPath("$.data.cas2.cas2Application").isEmpty()
-      .jsonPath("$.data.cas3.cas3Application").isEmpty()
-      .jsonPath("$.upstreamFailures").doesNotExist()
-  }
+      val entity = buildCaseEntity(id = dutyToReferCaseId) {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      caseRepository.save(entity)
 
-  @Test
-  fun `should send back failed eligibility when CAS current premises returns 404`() {
-    ApprovedPremisesStubs.getCas1ResidenceNotFoundResponse(crn = crn)
-    ApprovedPremisesStubs.getCas3CurrentPremisesNotFoundResponse(crn = crn)
+      val existingEntity = dutyToReferRepository.save(
+        buildDutyToReferEntity(
+          caseId = entity.id,
+          localAuthorityAreaId = localAuthorityArea.id,
+          referenceNumber = "DTR-REF-001",
+          submissionDate = LocalDate.now().minusMonths(5),
+          status = EntityDtrStatus.SUBMITTED,
+        ),
+      )
 
-    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+      webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetEligibilityV2Response(
+              crn = crn,
+              cas3CreatedAt = cas3Application.createdAt.asJsonValue(),
+              cas1CreatedAt = cas1Application.createdAt.asJsonValue(),
+              cas1SubmittedAt = cas1Application.submittedApplication!!.submittedAt.asJsonValue(),
+              cas1ExpiresAt = cas1Application.expiresAt.toString(),
+              requestSubmittedAt = cas1RequestForPlacementOutcome.requestForPlacement.submittedAt.toString(),
+              expectedArrivalDate = cas1RequestForPlacementOutcome.requestForPlacement.expectedArrivalDate.toString(),
+              expectedDepartureDate = cas1RequestForPlacementOutcome.placement!!.expectedDepartureDate.toString(),
+              placementStartDate = cas1RequestForPlacementOutcome.placement!!.canonicalArrivalDate.toString(),
+              placementEndDate = cas1RequestForPlacementOutcome.placement!!.canonicalDepartureDate.toString(),
+              dtrId = existingEntity.id.toString(),
+              areaId = localAuthorityArea.id.toString(),
+              areaName = localAuthorityArea.name,
+              dtrSubmissionDate = existingEntity.submissionDate.toString(),
+              dtrCreatedAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
+              crsUrl = crsUrl,
+              crsSubmissionDate = crsSubmissionDate.toString(),
+            ),
+          )
+        }
+    }
 
-    webTestClient.get().uri("/cases/{crn}/eligibility", crn)
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus().isOk
-      .expectBody()
-      .jsonPath("$.data.cas1.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
-      .jsonPath("$.data.cas3.serviceResult.serviceStatus").isEqualTo("NOT_ELIGIBLE")
-      .jsonPath("$.upstreamFailures.length()").isEqualTo(2)
-      .jsonPath("$.upstreamFailures[0].endpoint").isEqualTo("getCas1ResidentPlacement")
-      .jsonPath("$.upstreamFailures[1].endpoint").isEqualTo("getCas3CurrentPremises")
-      .jsonPath("$.upstreamFailures[0].httpResponseStatus").isEqualTo("404 NOT_FOUND")
-      .jsonPath("$.upstreamFailures[1].httpResponseStatus").isEqualTo("404 NOT_FOUND")
+    @Test
+    fun `should get eligibility for cas 3 blocking reason`() {
+      // eligible for CAS2 but not CAS1
+      TierStubs.getTierOKResponse(crn, buildTier(tierScore = "E"))
+      ProbationIntegrationDeliusStubs.getCaseByCrn(crn, buildCase(crn = crn, nomsNumber = prisonNumber))
+
+      val entity = buildCaseEntity(
+        id = dutyToReferCaseId,
+      ) {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      caseRepository.save(entity)
+
+      PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.IN))
+
+      val cas3Application = buildCas3Application(
+        id = cas3ApplicationId,
+        createdAt = cas3ApplicationCreatedAt,
+        applicationStatus = Cas3ApplicationStatus.REJECTED,
+        uiUrl = cas3ReferralUiUrl,
+        submittedApplication = buildCas3SubmittedApplication(
+          submittedDate = LocalDate.of(2025, 1, 2),
+        ),
+      )
+
+      ApprovedPremisesStubs.getCas3CurrentApplicationOKResponse(crn = crn, response = cas3Application)
+
+      webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetEligibilityV2Cas3BlockedResponse(crn, cas3ApplicationCreatedAt.asJsonValue(), crsUrl, crsSubmissionDate.toString()),
+          )
+        }
+    }
+
+    @Test
+    fun `should continue evaluation and do not include 404 in upstream failures when tier returns not found`() {
+      val cas1Application = buildCas1ApplicationV2(
+        status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+        id = cas1ApplicationId,
+        uiUrl = cas1ApplicationUiUrl,
+        submittedApplication = buildCas1SubmittedApplication(
+          upcomingRequestForPlacement = buildCas1ExternalRequestForPlacementOutcomeDto(
+            requestForPlacement = buildCas1RequestForPlacementSummaryV2(status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED),
+            placement = buildCas1PlacementV2(
+              status = Cas1PlacementStatus.ARRIVED,
+              canonicalArrivalDate = LocalDate.parse("2025-01-01"),
+              canonicalDepartureDate = LocalDate.parse("2025-07-01"),
+            ),
+          ),
+        ),
+      )
+      ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(crn = crn, response = cas1Application)
+      TierStubs.getTierNotFoundResponse(crn = crn)
+
+      val entity = buildCaseEntity(id = dutyToReferCaseId) {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      caseRepository.save(entity)
+
+      val existingEntity = dutyToReferRepository.save(
+        buildDutyToReferEntity(
+          caseId = entity.id,
+          localAuthorityAreaId = localAuthorityArea.id,
+          referenceNumber = "DTR-REF-001",
+          submissionDate = LocalDate.now().minusMonths(5),
+          status = EntityDtrStatus.SUBMITTED,
+        ),
+      )
+
+      webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          val placement = cas1Application.submittedApplication!!.upcomingRequestForPlacement!!
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetEligibilityV2TierNotFoundResponse(
+              crn = crn,
+              cas1CreatedAt = cas1Application.createdAt.asJsonValue(),
+              cas1SubmittedAt = cas1Application.submittedApplication!!.submittedAt.asJsonValue(),
+              requestSubmittedAt = placement.requestForPlacement.submittedAt.toString(),
+              expectedArrivalDate = placement.requestForPlacement.expectedArrivalDate.toString(),
+              expectedDepartureDate = placement.placement!!.expectedDepartureDate.toString(),
+              cas3CreatedAt = cas3ApplicationCreatedAt.asJsonValue(),
+              dtrId = existingEntity.id.toString(),
+              areaId = localAuthorityArea.id.toString(),
+              areaName = localAuthorityArea.name,
+              dtrSubmissionDate = existingEntity.submissionDate.toString(),
+              dtrCreatedAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
+              crsUrl = crsUrl,
+              crsSubmissionDate = crsSubmissionDate.toString(),
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should send back upstream failures and upstream error service results when there are upstream failures`() {
+      TierStubs.getTierServerErrorResponse(crn = crn)
+
+      webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value { assertThatJson(it!!).matchesExpectedJson(expectedGetEligibilityV2TierErrorResponse(crn, sasWiremock.baseUrl())) }
+    }
+
+    @Test
+    fun `should include failureReason when defined`() {
+      val cas1Application = buildCas1ApplicationV2(
+        status = Cas1ApplicationStatus.REJECTED,
+        id = cas1ApplicationId,
+        createdAt = OffsetDateTime.parse("2023-01-01T12:00:00.000Z"),
+      )
+
+      TierStubs.getTierOKResponse(crn = crn, buildTier("E"))
+      ApprovedPremisesStubs.getCas1CurrentApplicationOKResponse(
+        crn = crn,
+        response = cas1Application,
+      )
+
+      val entity = buildCaseEntity(id = dutyToReferCaseId) {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      caseRepository.save(entity)
+
+      val existingEntity = dutyToReferRepository.save(
+        buildDutyToReferEntity(
+          caseId = entity.id,
+          localAuthorityAreaId = localAuthorityArea.id,
+          referenceNumber = "DTR-REF-001",
+          submissionDate = LocalDate.now().minusMonths(5),
+          status = EntityDtrStatus.SUBMITTED,
+        ),
+      )
+
+      webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetEligibilityV2FailureReasonResponse(
+              crn = crn,
+              cas3CreatedAt = cas3ApplicationCreatedAt.asJsonValue(),
+              dtrId = existingEntity.id.toString(),
+              areaId = localAuthorityArea.id.toString(),
+              areaName = localAuthorityArea.name,
+              dtrSubmissionDate = existingEntity.submissionDate.toString(),
+              dtrCreatedAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
+              crsUrl = crsUrl,
+              crsSubmissionDate = crsSubmissionDate.toString(),
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should succeed when prisoner search returns 404`() {
+      PrisonerSearchStubs.getPrisonerNotFoundResponse(prisonNumber = prisonNumber)
+      TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
+
+      val entity = buildCaseEntity(id = dutyToReferCaseId) {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      caseRepository.save(entity)
+
+      webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetEligibilityV2NoPrisonerResponse(crn, cas3ApplicationCreatedAt.asJsonValue(), crsUrl, crsSubmissionDate.toString()),
+          )
+        }
+    }
+
+    @Test
+    fun `should succeed when case has no prison number`() {
+      TierStubs.getTierOKResponse(crn = crn, buildTier("A"))
+
+      val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
+      caseRepository.save(entity)
+
+      webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetEligibilityV2NoPrisonerResponse(crn, cas3ApplicationCreatedAt.asJsonValue(), crsUrl, crsSubmissionDate.toString()),
+          )
+        }
+    }
+
+    @Test
+    fun `should send back failed eligibility when CAS applications returns 404`() {
+      ApprovedPremisesStubs.getCas1CurrentApplicationNotFoundResponse(crn = crn)
+      ApprovedPremisesStubs.getCas2CurrentApplicationNotFoundResponse(crn = crn)
+      ApprovedPremisesStubs.getCas3CurrentApplicationNotFoundResponse(crn = crn)
+
+      TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+
+      webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value { assertThatJson(it!!).matchesExpectedJson(expectedGetEligibilityV2ApplicationsNotFoundResponse(crn, sasWiremock.baseUrl())) }
+    }
+
+    @Test
+    fun `should successfully get eligibility when CAS applications returns 204`() {
+      ApprovedPremisesStubs.getCas1ResidenceNoContentResponse(crn = crn)
+      ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
+      ApprovedPremisesStubs.getCas1CurrentApplicationNoContentResponse(crn = crn)
+      ApprovedPremisesStubs.getCas2CurrentApplicationNoContentResponse(crn = crn)
+      ApprovedPremisesStubs.getCas3CurrentApplicationNoContentResponse(crn = crn)
+
+      TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+
+      webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isOk
+        .expectBody<String>()
+        .value { assertThatJson(it!!).matchesExpectedJson(expectedGetEligibilityV2ApplicationsNoContentResponse(crn, crsUrl, crsSubmissionDate.toString())) }
+    }
+
+    @Test
+    fun `should send back failed eligibility when CAS current premises returns 404`() {
+      ApprovedPremisesStubs.getCas1ResidenceNotFoundResponse(crn = crn)
+      ApprovedPremisesStubs.getCas3CurrentPremisesNotFoundResponse(crn = crn)
+
+      TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+
+      webTestClient.get().uri("/cases/{crn}/v2/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isOk
+        .expectBody<String>()
+        .value { assertThatJson(it!!).matchesExpectedJson(expectedGetEligibilityV2PremisesNotFoundResponse(crn, sasWiremock.baseUrl())) }
+    }
   }
 }

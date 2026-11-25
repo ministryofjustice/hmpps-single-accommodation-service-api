@@ -5,7 +5,7 @@ import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2UrlTemplates
@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultV2
 
 class DeeplinkResolverTest {
   private val cas1ApplicationStartUrl = "CAS1_APPLICATION_START_URL"
@@ -40,8 +40,8 @@ class DeeplinkResolverTest {
     @Test
     fun `CAS1_START_APPLICATION resolves to the application start url template`() {
       val result = resolver.resolve(
-        buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.CAS1_NOT_STARTED,
         ),
         buildDomainData(),
       )
@@ -54,8 +54,8 @@ class DeeplinkResolverTest {
       every { approvedPremisesCachingService.getCas1UrlTemplates() } throws RuntimeException("boom")
 
       val result = resolver.resolve(
-        buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.CAS1_NOT_STARTED,
         ),
         buildDomainData(),
       )
@@ -69,8 +69,8 @@ class DeeplinkResolverTest {
         uiUrl = cas1ApplicationViewUrl,
       )
       val result = resolver.resolve(
-        buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS1_NOT_SUBMITTED,
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.CAS1_NOT_SUBMITTED,
         ),
         buildDomainData(cas1Application = buildCas1ApplicationDomainData(cas1Application, currentOutcome = null)),
       )
@@ -81,8 +81,8 @@ class DeeplinkResolverTest {
     @Test
     fun `CAS1_VIEW_APPLICATION with no application resolves to null url`() {
       val result = resolver.resolve(
-        buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS1_NOT_SUBMITTED,
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.CAS1_NOT_SUBMITTED,
         ),
         buildDomainData(cas1Application = null),
       )
@@ -96,8 +96,8 @@ class DeeplinkResolverTest {
     @Test
     fun `CAS2_START_APPLICATION resolves to the CAS2 application start url template`() {
       val result = resolver.resolve(
-        buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED,
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.CAS2_NOT_STARTED,
         ),
         buildDomainData(crn = crn),
       )
@@ -110,8 +110,8 @@ class DeeplinkResolverTest {
       every { approvedPremisesCachingService.getCas2UrlTemplates() } throws RuntimeException("boom")
 
       val result = resolver.resolve(
-        buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED,
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.CAS2_NOT_STARTED,
         ),
         buildDomainData(crn = crn),
       )
@@ -127,8 +127,8 @@ class DeeplinkResolverTest {
         ),
       )
       val result = resolver.resolve(
-        buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS2_NOT_SUBMITTED,
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.CAS2_NOT_SUBMITTED,
         ),
         buildDomainData(cas2Application = cas2Application, crn = crn),
       )
@@ -139,10 +139,26 @@ class DeeplinkResolverTest {
     @Test
     fun `CAS2_VIEW_APPLICATION with no application resolves to null url`() {
       val result = resolver.resolve(
-        buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS2_NOT_SUBMITTED,
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.CAS2_NOT_SUBMITTED,
         ),
         buildDomainData(cas2Application = null, crn = crn),
+      )
+
+      assertThat(result.url).isNull()
+    }
+  }
+
+  @Nested
+  inner class Ppc {
+    @Test
+    fun `PPC_START_CHECKER resolves to a null placeholder url`() {
+      val result = resolver.resolve(
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.PPC_NOT_STARTED,
+          url = "previous-url",
+        ),
+        buildDomainData(),
       )
 
       assertThat(result.url).isNull()
@@ -154,8 +170,8 @@ class DeeplinkResolverTest {
     @Test
     fun `CAS3_START_REFERRAL resolves to the CAS3 referral start url template`() {
       val result = resolver.resolve(
-        buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.CAS3_NOT_STARTED,
         ),
         buildDomainData(),
       )
@@ -168,8 +184,8 @@ class DeeplinkResolverTest {
       every { approvedPremisesCachingService.getCas3UrlTemplates() } throws RuntimeException("boom")
 
       val result = resolver.resolve(
-        buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.CAS3_NOT_STARTED,
         ),
         buildDomainData(),
       )
@@ -183,8 +199,8 @@ class DeeplinkResolverTest {
         uiUrl = cas3ReferralViewUrl,
       )
       val result = resolver.resolve(
-        buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS3_NOT_SUBMITTED,
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.CAS3_NOT_SUBMITTED,
         ),
         buildDomainData(cas3Application = cas3Application),
       )
@@ -195,8 +211,8 @@ class DeeplinkResolverTest {
     @Test
     fun `CAS3_VIEW_REFERRAL with no application resolves to null url`() {
       val result = resolver.resolve(
-        buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CAS3_NOT_SUBMITTED,
+        buildServiceResultV2(
+          serviceStatus = ServiceStatusV2.CAS3_NOT_SUBMITTED,
         ),
         buildDomainData(cas3Application = null),
       )
@@ -207,7 +223,7 @@ class DeeplinkResolverTest {
 
   @Test
   fun `null linkType leaves result unchanged`() {
-    val original = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_ELIGIBLE)
+    val original = buildServiceResultV2(serviceStatus = ServiceStatusV2.CAS1_NOT_ELIGIBLE)
     val result = resolver.resolve(original, buildDomainData())
 
     assertThat(result).isSameAs(original)

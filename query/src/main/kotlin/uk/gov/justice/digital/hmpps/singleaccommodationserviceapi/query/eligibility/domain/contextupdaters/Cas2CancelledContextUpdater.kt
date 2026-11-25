@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.EvaluationContext
 
@@ -13,7 +13,7 @@ class Cas2CancelledContextUpdater : ContextUpdater() {
 
   override val outcomes = mapOf(
     cancelled to ServiceResultSpec(
-      serviceStatus = ServiceStatusNew.CAS2_CANCELLED,
+      serviceStatus = ServiceStatusV2.CAS2_CANCELLED,
     ),
   )
 

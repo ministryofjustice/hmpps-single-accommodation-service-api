@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 
@@ -13,8 +13,9 @@ class DeeplinkResolver(
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  fun resolve(result: ServiceResultNew, data: DomainData): ServiceResultNew {
+  fun resolve(result: ServiceResultV2, data: DomainData): ServiceResultV2 {
     val url = when (result.serviceStatus.link?.type) {
+      LinkType.PPC_START_CHECKER -> null
       LinkType.CAS1_START_APPLICATION -> cas1UrlTemplates()?.cas1ApplicationStart
       LinkType.CAS1_VIEW_APPLICATION -> data.cas1Application?.application?.uiUrl
 

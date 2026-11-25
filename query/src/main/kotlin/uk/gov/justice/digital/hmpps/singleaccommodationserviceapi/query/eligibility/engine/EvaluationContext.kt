@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 
 /**
@@ -14,7 +14,7 @@ data class EvaluationContext(
   /**
    * Will be `null` until a [ContextUpdater] sets a concrete status
    */
-  val currentResult: ServiceResultNew?,
+  val currentResult: ServiceResultV2?,
   /**
    * Failure reasons from the most recent failing RuleSet without a fail [ContextUpdater].
    * Kept here so they survive even while [currentResult] is still `null`.

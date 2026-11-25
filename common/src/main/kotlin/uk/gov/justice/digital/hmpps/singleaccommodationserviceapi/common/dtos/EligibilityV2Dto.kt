@@ -1,10 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
+import com.fasterxml.jackson.annotation.JsonValue
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.util.requireXor
 import java.time.LocalDate
 import java.util.UUID
 
-data class EligibilityDtoNew(
+data class EligibilityV2Dto(
   val crn: String,
   val cas1: Cas1ServiceResultWrapper,
   val cas2: Cas2ServiceResultWrapper,
@@ -12,10 +13,11 @@ data class EligibilityDtoNew(
   val dtr: DtrServiceResultWrapper,
   val crs: CrsServiceResultWrapper,
   val pa: PaServiceResultWrapper,
+  val ppc: PpcServiceResultWrapper,
 )
 
-data class ServiceResultNew(
-  val serviceStatus: ServiceStatusNew,
+data class ServiceResultV2(
+  val serviceStatus: ServiceStatusV2,
   val actionStartDate: LocalDate? = null,
   val url: String? = null,
   val failureReasons: List<FailureReason> = emptyList(),
@@ -31,11 +33,11 @@ data class ServiceResultNew(
 }
 
 data class ServiceResultSpec(
-  val serviceStatus: ServiceStatusNew,
+  val serviceStatus: ServiceStatusV2,
   val url: String? = null,
   val failureReasons: List<FailureReason> = emptyList(),
 ) {
-  fun toResult(actionStartDate: LocalDate? = null) = ServiceResultNew(
+  fun toResult(actionStartDate: LocalDate? = null) = ServiceResultV2(
     serviceStatus = serviceStatus,
     actionStartDate = actionStartDate,
     url = url,
@@ -44,42 +46,47 @@ data class ServiceResultSpec(
 }
 
 interface ServiceResultWrapper {
-  val serviceResult: ServiceResultNew
+  val serviceResult: ServiceResultV2
   val actionPosition: Int
 }
 
 data class PaServiceResultWrapper(
-  override val serviceResult: ServiceResultNew,
+  override val serviceResult: ServiceResultV2,
+  override val actionPosition: Int,
+) : ServiceResultWrapper
+
+data class PpcServiceResultWrapper(
+  override val serviceResult: ServiceResultV2,
   override val actionPosition: Int,
 ) : ServiceResultWrapper
 
 data class DtrServiceResultWrapper(
-  override val serviceResult: ServiceResultNew,
+  override val serviceResult: ServiceResultV2,
   override val actionPosition: Int,
   val caseId: UUID?,
   val submission: DtrSubmissionDto?,
 ) : ServiceResultWrapper
 
 data class Cas1ServiceResultWrapper(
-  override val serviceResult: ServiceResultNew,
+  override val serviceResult: ServiceResultV2,
   override val actionPosition: Int,
   val cas1Application: Cas1ApplicationDto?,
 ) : ServiceResultWrapper
 
 data class Cas2ServiceResultWrapper(
-  override val serviceResult: ServiceResultNew,
+  override val serviceResult: ServiceResultV2,
   override val actionPosition: Int,
   val cas2Application: Cas2ApplicationDto?,
 ) : ServiceResultWrapper
 
 data class Cas3ServiceResultWrapper(
-  override val serviceResult: ServiceResultNew,
+  override val serviceResult: ServiceResultV2,
   override val actionPosition: Int,
   val cas3Application: Cas3ApplicationDto?,
 ) : ServiceResultWrapper
 
 data class CrsServiceResultWrapper(
-  override val serviceResult: ServiceResultNew,
+  override val serviceResult: ServiceResultV2,
   override val actionPosition: Int,
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServicesDto?,
 ) : ServiceResultWrapper
@@ -90,6 +97,8 @@ data class Link(
 )
 
 object EligibilityKeys {
+  const val START_PUBLIC_PROTECTION_CHECKER = "Start public protection checker"
+
   // CAS1/CAS2
   const val CREATE_NEW_PLACEMENT_REQUEST = "Create new placement request" // LINK TEXT
   const val CREATE_PLACEMENT_REQUEST = "Create placement request" // LINK TEXT
@@ -112,7 +121,7 @@ object EligibilityKeys {
   const val VIEW_REFER_AND_MONITOR = "View refer and monitor" // LINK TEXT
 }
 
-enum class ServiceStatusNew(
+enum class ServiceStatusV2(
   val service: ServiceType,
   val proposedAction: CaseActionType? = null,
   val link: Link? = null,
@@ -120,6 +129,30 @@ enum class ServiceStatusNew(
   val blockingStatusReason: BlockingReason? = null,
   val uiStatusName: String,
 ) {
+
+  // PPC Service Statuses
+  PPC_NOT_STARTED(
+    service = ServiceType.PPC,
+    proposedAction = CaseActionType.START_PPC,
+    link = Link(text = EligibilityKeys.START_PUBLIC_PROTECTION_CHECKER, type = LinkType.PPC_START_CHECKER),
+    uiStatusName = "Not Started",
+  ),
+  PPC_NOT_REQUIRED(
+    service = ServiceType.PPC,
+    uiStatusName = "Not Required",
+  ),
+  PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED(
+    service = ServiceType.PPC,
+    uiStatusName = "Completed - Public Protection Required",
+  ),
+  PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED(
+    service = ServiceType.PPC,
+    uiStatusName = "Completed - Public Protection Not Required",
+  ),
+  PPC_UPSTREAM_ERROR(
+    service = ServiceType.PPC,
+    uiStatusName = "Upstream Error",
+  ),
 
   // CAS1 Service Statuses
   CAS1_PLACEMENT_BOOKED(
@@ -215,6 +248,10 @@ enum class ServiceStatusNew(
     service = ServiceType.CAS1,
     uiStatusName = "Not Eligible",
   ),
+  CAS1_UPSTREAM_ERROR(
+    service = ServiceType.CAS1,
+    uiStatusName = "Upstream Error",
+  ),
 
   // CAS2 Service Statuses
   CAS2_OFFER_DECLINED_OR_WITHDRAWN(
@@ -295,6 +332,10 @@ enum class ServiceStatusNew(
   CAS2_NOT_ELIGIBLE(
     service = ServiceType.CAS2,
     uiStatusName = "Not Eligible",
+  ),
+  CAS2_UPSTREAM_ERROR(
+    service = ServiceType.CAS2,
+    uiStatusName = "Upstream Error",
   ),
 
   // CAS3 Service Statuses
@@ -388,6 +429,10 @@ enum class ServiceStatusNew(
     service = ServiceType.CAS3,
     uiStatusName = "Not Eligible",
   ),
+  CAS3_UPSTREAM_ERROR(
+    service = ServiceType.CAS3,
+    uiStatusName = "Upstream Error",
+  ),
 
   // CRS Service Statuses
   CRS_NOT_STARTED_REFERRAL(
@@ -423,9 +468,9 @@ enum class ServiceStatusNew(
     service = ServiceType.CRS,
     uiStatusName = "Not Required",
   ),
-  CRS_NOT_ELIGIBLE(
+  CRS_UPSTREAM_ERROR(
     service = ServiceType.CRS,
-    uiStatusName = "Not Eligible",
+    uiStatusName = "Upstream Error",
   ),
 
   // DTR Service Statuses
@@ -459,9 +504,9 @@ enum class ServiceStatusNew(
     service = ServiceType.DTR,
     uiStatusName = "Not Required",
   ),
-  DTR_NOT_ELIGIBLE(
+  DTR_UPSTREAM_ERROR(
     service = ServiceType.DTR,
-    uiStatusName = "Not Eligible",
+    uiStatusName = "Upstream Error",
   ),
 
   // PA Service Statuses
@@ -478,12 +523,21 @@ enum class ServiceStatusNew(
     service = ServiceType.PA,
     uiStatusName = "Completed",
   ),
+  PA_UPSTREAM_ERROR(
+    service = ServiceType.PA,
+    uiStatusName = "Upstream Error",
+  ),
   ;
 
-  override fun toString(): String = "ServiceStatusNew(name=${this.name}, service=$service, proposedAction=$proposedAction, link=$link, isUpcoming=$isUpcoming, blockingStatusReason=$blockingStatusReason, uiStatusName='$uiStatusName')"
+  // Serialize the enum name in API responses instead of the diagnostic toString() value.
+  @JsonValue
+  fun apiValue(): String = name
+
+  override fun toString(): String = "ServiceStatusV2(name=${this.name}, service=$service, proposedAction=$proposedAction, link=$link, isUpcoming=$isUpcoming, blockingStatusReason=$blockingStatusReason, uiStatusName='$uiStatusName')"
 }
 
 enum class LinkType {
+  PPC_START_CHECKER,
   CAS1_START_APPLICATION,
   CAS1_VIEW_APPLICATION,
   CAS2_START_APPLICATION,
@@ -523,6 +577,7 @@ enum class BlockingReason {
 }
 
 enum class ServiceType {
+  PPC,
   CAS1,
   CAS2,
   CAS3,

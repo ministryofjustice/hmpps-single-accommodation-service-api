@@ -18,8 +18,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
@@ -68,16 +68,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityTransformer.toNotEligibleServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.output.EligibilityTransformer.toNotRequiredServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ApplicationDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResultV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ApplicationDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResultV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDtoNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResultNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityV2Dto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPpcServiceResultV2
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultV2
 import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -94,29 +95,33 @@ class EligibilityTransformerTest {
   @Nested
   inner class GetServiceResultActionOrder {
     @Test
-    fun `should place in standard (DTR, CRS, CAS1, CAS2, CAS3, PA) order when status is not upcoming`() {
-      val dtr = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.DTR_NOT_STARTED,
+    fun `should place in standard (DTR, CRS, PPC, CAS1, CAS2, CAS3, PA) order when status is not upcoming`() {
+      val dtr = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.DTR_NOT_STARTED,
       )
-      val crs = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_REFERRAL,
+      val crs = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.CRS_NOT_STARTED_REFERRAL,
       )
-      val cas1 = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,
+      val cas1 = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.CAS1_NOT_STARTED,
       )
-      val cas2 = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED,
+      val cas2 = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.CAS2_NOT_STARTED,
       )
-      val cas3 = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
+      val cas3 = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.CAS3_NOT_STARTED,
       )
-      val pa = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.PA_NOT_STARTED,
+      val pa = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.PA_NOT_STARTED,
+      )
+      val ppc = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.PPC_NOT_STARTED,
       )
 
       val expectedServiceResultOrder = listOf(
         dtr,
         crs,
+        ppc,
         cas1,
         cas2,
         cas3,
@@ -130,6 +135,7 @@ class EligibilityTransformerTest {
         dtr = dtr,
         crs = crs,
         pa = pa,
+        ppc = ppc,
       )
 
       assertThat(result).isEqualTo(expectedServiceResultOrder)
@@ -137,26 +143,29 @@ class EligibilityTransformerTest {
 
     @Test
     fun `should miss out services with no action required`() {
-      val dtr = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.DTR_ACCEPTED,
+      val dtr = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.DTR_ACCEPTED,
       )
-      val crs = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CRS_SUBMITTED,
+      val crs = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.CRS_SUBMITTED,
       )
-      val cas1 = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS1_SUBMITTED,
+      val cas1 = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.CAS1_SUBMITTED,
       )
-      val cas2 = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS2_SUBMITTED,
+      val cas2 = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.CAS2_SUBMITTED,
       )
-      val cas3 = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS3_SUBMITTED,
+      val cas3 = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.CAS3_SUBMITTED,
       )
-      val pa = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.PA_COMPLETED,
+      val pa = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.PA_COMPLETED,
+      )
+      val ppc = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED,
       )
 
-      val expectedServiceResultOrder = emptyList<ServiceResultNew>()
+      val expectedServiceResultOrder = emptyList<ServiceResultV2>()
 
       val result = getServiceResultActionOrder(
         cas1 = cas1,
@@ -165,6 +174,7 @@ class EligibilityTransformerTest {
         dtr = dtr,
         crs = crs,
         pa = pa,
+        ppc = ppc,
       )
 
       assertThat(result).isEqualTo(expectedServiceResultOrder)
@@ -172,27 +182,30 @@ class EligibilityTransformerTest {
 
     @Test
     fun `should place in ascending order by start date when statuses are upcoming and then continue standard order for others`() {
-      val dtr = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.DTR_UPCOMING,
+      val dtr = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.DTR_UPCOMING,
         actionStartDate = LocalDate.of(2023, 1, 4),
       )
-      val crs = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CRS_UPCOMING_REFERRAL,
+      val crs = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.CRS_UPCOMING_REFERRAL,
         actionStartDate = LocalDate.of(2023, 1, 3),
       )
-      val cas1 = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS1_UPCOMING,
+      val cas1 = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.CAS1_UPCOMING,
         actionStartDate = LocalDate.of(2023, 1, 2),
       )
-      val cas2 = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS2_UPCOMING,
+      val cas2 = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.CAS2_UPCOMING,
         actionStartDate = LocalDate.of(2023, 1, 1),
       )
-      val cas3 = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
+      val cas3 = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.CAS3_NOT_STARTED,
       )
-      val pa = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.PA_NOT_STARTED,
+      val pa = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.PA_NOT_STARTED,
+      )
+      val ppc = buildServiceResultV2(
+        serviceStatus = ServiceStatusV2.PPC_NOT_STARTED,
       )
 
       val expectedServiceResultOrder = listOf(
@@ -200,6 +213,7 @@ class EligibilityTransformerTest {
         cas1,
         crs,
         dtr,
+        ppc,
         cas3,
         pa,
       )
@@ -211,6 +225,7 @@ class EligibilityTransformerTest {
         dtr = dtr,
         crs = crs,
         pa = pa,
+        ppc = ppc,
       )
 
       assertThat(result).isEqualTo(expectedServiceResultOrder)
@@ -237,12 +252,13 @@ class EligibilityTransformerTest {
 
     val result = toEligibilityDto(
       crn = "CRN123",
-      cas1 = buildServiceResultNew(),
-      cas2 = buildServiceResultNew(),
-      cas3 = buildServiceResultNew(),
-      dtr = buildServiceResultNew(),
-      crs = buildServiceResultNew(),
-      pa = buildServiceResultNew(),
+      cas1 = buildServiceResultV2(),
+      cas2 = buildServiceResultV2(),
+      cas3 = buildServiceResultV2(),
+      dtr = buildServiceResultV2(),
+      crs = buildServiceResultV2(),
+      pa = buildServiceResultV2(),
+      ppc = buildServiceResultV2(ServiceStatusV2.PPC_NOT_REQUIRED),
       data = data,
     )
 
@@ -543,57 +559,64 @@ class EligibilityTransformerTest {
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
     )
     val crn = "FAKECRN1"
-    val crs = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CRS_SUBMITTED,
+    val crs = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.CRS_SUBMITTED,
     )
-    val cas1 = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS1_INFO_REQUESTED,
+    val cas1 = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.CAS1_INFO_REQUESTED,
     )
-    val cas2 = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS2_MORE_INFORMATION_NEEDED,
+    val cas2 = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.CAS2_MORE_INFORMATION_NEEDED,
     )
-    val cas3 = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS3_NOT_SUBMITTED,
+    val cas3 = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.CAS3_NOT_SUBMITTED,
     )
-    val dtr = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.DTR_SUBMITTED,
+    val dtr = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.DTR_SUBMITTED,
     )
-    val pa = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.PA_COMPLETED,
+    val pa = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.PA_COMPLETED,
+    )
+    val ppc = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.PPC_NOT_STARTED,
     )
 
-    val cas1ServiceResult = buildCas1ServiceResultNew(
+    val cas1ServiceResult = buildCas1ServiceResultV2(
       serviceResult = cas1,
       cas1Application = cas1ApplicationDto,
-      actionPosition = 1,
-    )
-    val cas2ServiceResult = buildCas2ServiceResultNew(
-      serviceResult = cas2,
-      cas2Application = cas2ApplicationDto,
       actionPosition = 2,
     )
-    val cas3ServiceResult = buildCas3ServiceResultNew(
-      serviceResult = cas3,
-      cas3Application = cas3ApplicationDto,
+    val cas2ServiceResult = buildCas2ServiceResultV2(
+      serviceResult = cas2,
+      cas2Application = cas2ApplicationDto,
       actionPosition = 3,
     )
-    val dtrServiceResult = buildDtrServiceResultNew(
+    val cas3ServiceResult = buildCas3ServiceResultV2(
+      serviceResult = cas3,
+      cas3Application = cas3ApplicationDto,
+      actionPosition = 4,
+    )
+    val dtrServiceResult = buildDtrServiceResultV2(
       serviceResult = dtr,
       caseId = dutyToReferDto.caseId,
       submission = dutyToReferDto.submission,
       actionPosition = 0,
     )
-    val crsServiceResult = buildCrsServiceResultNew(
+    val crsServiceResult = buildCrsServiceResultV2(
       serviceResult = crs,
       commissionedRehabilitativeServices = commissionedRehabilitativeServicesDto,
       actionPosition = -1,
     )
-    val paServiceResult = buildPaServiceResultNew(
+    val paServiceResult = buildPaServiceResultV2(
       serviceResult = pa,
       actionPosition = -1,
     )
+    val ppcServiceResult = buildPpcServiceResultV2(
+      serviceResult = ppc,
+      actionPosition = 1,
+    )
 
-    val expectedEligibility = buildEligibilityDtoNew(
+    val expectedEligibility = buildEligibilityV2Dto(
       crn = crn,
       cas1 = cas1ServiceResult,
       cas2 = cas2ServiceResult,
@@ -601,6 +624,7 @@ class EligibilityTransformerTest {
       dtr = dtrServiceResult,
       crs = crsServiceResult,
       pa = paServiceResult,
+      ppc = ppcServiceResult,
     )
 
     val actualEligibility = toEligibilityDto(
@@ -611,6 +635,7 @@ class EligibilityTransformerTest {
       dtr = dtr,
       crs = crs,
       pa = pa,
+      ppc = ppc,
       data = domainData,
     )
 
@@ -632,12 +657,13 @@ class EligibilityTransformerTest {
 
       val cas1Application = toEligibilityDto(
         crn = "FAKECRN1",
-        cas1 = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_INFO_REQUESTED),
-        cas2 = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED),
-        cas3 = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED),
-        dtr = buildServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_STARTED),
-        crs = buildServiceResultNew(serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_REFERRAL),
-        pa = buildServiceResultNew(serviceStatus = ServiceStatusNew.PA_NOT_STARTED),
+        cas1 = buildServiceResultV2(serviceStatus = ServiceStatusV2.CAS1_INFO_REQUESTED),
+        cas2 = buildServiceResultV2(serviceStatus = ServiceStatusV2.CAS2_NOT_STARTED),
+        cas3 = buildServiceResultV2(serviceStatus = ServiceStatusV2.CAS3_NOT_STARTED),
+        dtr = buildServiceResultV2(serviceStatus = ServiceStatusV2.DTR_NOT_STARTED),
+        crs = buildServiceResultV2(serviceStatus = ServiceStatusV2.CRS_NOT_STARTED_REFERRAL),
+        pa = buildServiceResultV2(serviceStatus = ServiceStatusV2.PA_NOT_STARTED),
+        ppc = buildServiceResultV2(serviceStatus = ServiceStatusV2.PPC_NOT_REQUIRED),
         data = data,
       ).cas1.cas1Application!!
 
@@ -649,30 +675,31 @@ class EligibilityTransformerTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = ServiceStatusNew::class, names = ["DTR_SUBMITTED", "DTR_ACCEPTED", "DTR_NOT_ACCEPTED"], mode = EnumSource.Mode.EXCLUDE)
-  fun `does not surface the DTR submission unless the DTR result is SUBMITTED, ACCEPTED or NOT ACCEPTED`(serviceStatus: ServiceStatusNew) {
+  @EnumSource(value = ServiceStatusV2::class, names = ["DTR_SUBMITTED", "DTR_ACCEPTED", "DTR_NOT_ACCEPTED"], mode = EnumSource.Mode.EXCLUDE)
+  fun `does not surface the DTR submission unless the DTR result is SUBMITTED, ACCEPTED or NOT ACCEPTED`(serviceStatus: ServiceStatusV2) {
     val dutyToReferDto = buildDutyToReferDto(status = DtrStatus.WITHDRAWN)
     val data = buildDomainData(dutyToRefer = dutyToReferDto)
 
     val dtr = if (serviceStatus.isUpcoming) {
-      buildServiceResultNew(
+      buildServiceResultV2(
         serviceStatus = serviceStatus,
         actionStartDate = LocalDate.parse("2023-01-01"),
       )
     } else {
-      buildServiceResultNew(
+      buildServiceResultV2(
         serviceStatus = serviceStatus,
       )
     }
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
-      cas1 = buildServiceResultNew(),
-      cas2 = buildServiceResultNew(),
-      cas3 = buildServiceResultNew(),
+      cas1 = buildServiceResultV2(),
+      cas2 = buildServiceResultV2(),
+      cas3 = buildServiceResultV2(),
       dtr = dtr,
-      crs = buildServiceResultNew(),
-      pa = buildServiceResultNew(),
+      crs = buildServiceResultV2(),
+      pa = buildServiceResultV2(),
+      ppc = buildServiceResultV2(ServiceStatusV2.PPC_NOT_REQUIRED),
       data = data,
     )
 
@@ -681,20 +708,21 @@ class EligibilityTransformerTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = ServiceStatusNew::class, names = ["DTR_SUBMITTED", "DTR_ACCEPTED", "DTR_NOT_ACCEPTED"])
-  fun `surfaces the DTR submission when the DTR result is SUBMITTED, ACCEPTED or NOT ACCEPTED`(serviceStatus: ServiceStatusNew) {
+  @EnumSource(value = ServiceStatusV2::class, names = ["DTR_SUBMITTED", "DTR_ACCEPTED", "DTR_NOT_ACCEPTED"])
+  fun `surfaces the DTR submission when the DTR result is SUBMITTED, ACCEPTED or NOT ACCEPTED`(serviceStatus: ServiceStatusV2) {
     val dutyToReferDto = buildDutyToReferDto()
     val data = buildDomainData(dutyToRefer = dutyToReferDto)
-    val dtr = buildServiceResultNew(serviceStatus = serviceStatus)
+    val dtr = buildServiceResultV2(serviceStatus = serviceStatus)
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
-      cas1 = buildServiceResultNew(),
-      cas2 = buildServiceResultNew(),
-      cas3 = buildServiceResultNew(),
+      cas1 = buildServiceResultV2(),
+      cas2 = buildServiceResultV2(),
+      cas3 = buildServiceResultV2(),
       dtr = dtr,
-      crs = buildServiceResultNew(),
-      pa = buildServiceResultNew(),
+      crs = buildServiceResultV2(),
+      pa = buildServiceResultV2(),
+      ppc = buildServiceResultV2(ServiceStatusV2.PPC_NOT_REQUIRED),
       data = data,
     )
 
@@ -706,19 +734,20 @@ class EligibilityTransformerTest {
   fun `does not surface the CRS referral data unless the CRS result is SUBMITTED`() {
     val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
     val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
-    val crs = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CRS_UPCOMING_ACCOMMODATION_REFERRAL,
+    val crs = buildServiceResultV2(
+      serviceStatus = ServiceStatusV2.CRS_UPCOMING_ACCOMMODATION_REFERRAL,
       actionStartDate = LocalDate.parse("2023-01-01"),
     )
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
-      cas1 = buildServiceResultNew(),
-      cas2 = buildServiceResultNew(),
-      cas3 = buildServiceResultNew(),
-      dtr = buildServiceResultNew(),
+      cas1 = buildServiceResultV2(),
+      cas2 = buildServiceResultV2(),
+      cas3 = buildServiceResultV2(),
+      dtr = buildServiceResultV2(),
       crs = crs,
-      pa = buildServiceResultNew(),
+      pa = buildServiceResultV2(),
+      ppc = buildServiceResultV2(ServiceStatusV2.PPC_NOT_REQUIRED),
       data = data,
     )
 
@@ -730,16 +759,17 @@ class EligibilityTransformerTest {
     val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
     val commissionedRehabilitativeServicesDto = buildCommissionedRehabilitativeServicesDto()
     val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
-    val crs = buildServiceResultNew(serviceStatus = ServiceStatusNew.CRS_SUBMITTED)
+    val crs = buildServiceResultV2(serviceStatus = ServiceStatusV2.CRS_SUBMITTED)
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
-      cas1 = buildServiceResultNew(),
-      cas2 = buildServiceResultNew(),
-      cas3 = buildServiceResultNew(),
-      dtr = buildServiceResultNew(),
+      cas1 = buildServiceResultV2(),
+      cas2 = buildServiceResultV2(),
+      cas3 = buildServiceResultV2(),
+      dtr = buildServiceResultV2(),
       crs = crs,
-      pa = buildServiceResultNew(),
+      pa = buildServiceResultV2(),
+      ppc = buildServiceResultV2(ServiceStatusV2.PPC_NOT_REQUIRED),
       data = data,
     )
 
@@ -749,7 +779,35 @@ class EligibilityTransformerTest {
   @Test
   fun `should transform to failed eligibility`() {
     val crn = "FAKECRN1"
-    val expectedEligibility = buildEligibilityDtoNew(crn)
+    val expectedEligibility = buildEligibilityV2Dto(
+      crn = crn,
+      cas1 = buildCas1ServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.CAS1_UPSTREAM_ERROR),
+        actionPosition = -1,
+      ),
+      cas2 = buildCas2ServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.CAS2_UPSTREAM_ERROR),
+        actionPosition = -1,
+      ),
+      cas3 = buildCas3ServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.CAS3_UPSTREAM_ERROR),
+        actionPosition = -1,
+      ),
+      dtr = buildDtrServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.DTR_UPSTREAM_ERROR),
+        actionPosition = -1,
+      ),
+      crs = buildCrsServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.CRS_UPSTREAM_ERROR),
+        actionPosition = -1,
+      ),
+      pa = buildPaServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.PA_UPSTREAM_ERROR),
+      ),
+      ppc = buildPpcServiceResultV2(
+        serviceResult = buildServiceResultV2(ServiceStatusV2.PPC_UPSTREAM_ERROR),
+      ),
+    )
 
     val actualEligibility = toFailedEligibilityDto(crn)
 
@@ -758,7 +816,7 @@ class EligibilityTransformerTest {
 
   @Test
   fun `should transform to not eligible service status`() {
-    val expectedServiceStatus = buildServiceResultNew()
+    val expectedServiceStatus = buildServiceResultV2()
 
     val actualEligibility = toNotEligibleServiceResult(ServiceType.CAS1)
 
@@ -767,7 +825,7 @@ class EligibilityTransformerTest {
 
   @Test
   fun `should transform to not required service status`() {
-    val expectedServiceStatus = buildServiceResultNew(ServiceStatusNew.DTR_NOT_REQUIRED)
+    val expectedServiceStatus = buildServiceResultV2(ServiceStatusV2.DTR_NOT_REQUIRED)
 
     val actualEligibility = toNotRequiredServiceResult(ServiceType.DTR)
 

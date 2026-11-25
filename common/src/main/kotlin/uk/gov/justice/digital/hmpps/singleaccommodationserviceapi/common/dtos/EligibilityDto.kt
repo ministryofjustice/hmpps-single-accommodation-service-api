@@ -10,6 +10,7 @@ data class EligibilityDto(
   val dtr: DtrServiceResult,
   val crs: CrsServiceResult,
   val pa: PaServiceResult,
+  val ppc: PpcServiceResult,
   val caseActions: List<CaseAction>,
 )
 
@@ -24,6 +25,10 @@ data class ServiceResult(
 )
 
 data class PaServiceResult(
+  val serviceResult: ServiceResult,
+)
+
+data class PpcServiceResult(
   val serviceResult: ServiceResult,
 )
 
@@ -54,6 +59,10 @@ data class CrsServiceResult(
 )
 
 enum class ServiceStatus {
+  UPSTREAM_ERROR,
+  PPC_NOT_STARTED,
+  PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED,
+  PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED,
   UNKNOWN,
   OFFER_DECLINED_OR_WITHDRAWN,
   NOT_REQUIRED,

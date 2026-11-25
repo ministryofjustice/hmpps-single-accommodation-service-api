@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultV2
 import java.time.LocalDate
 
 /**
@@ -48,22 +48,22 @@ abstract class ContextUpdater {
     )
   }
 
-  protected abstract fun toServiceResult(context: EvaluationContext): ServiceResultNew
+  protected abstract fun toServiceResult(context: EvaluationContext): ServiceResultV2
 
-  protected fun outcome(key: String, actionStartDate: LocalDate? = null): ServiceResultNew = outcomes.getValue(key).toResult(actionStartDate)
+  protected fun outcome(key: String, actionStartDate: LocalDate? = null): ServiceResultV2 = outcomes.getValue(key).toResult(actionStartDate)
 
   companion object {
 
     val identity = object : ContextUpdater() {
       override val propagatesFailureReasons = true
       override val description = "identity"
-      override fun toServiceResult(context: EvaluationContext): ServiceResultNew = requireNotNull(context.currentResult) {
+      override fun toServiceResult(context: EvaluationContext): ServiceResultV2 = requireNotNull(context.currentResult) {
         "identity ContextUpdater requires currentResult to already be set, but it was null"
       }.copy(failureReasons = emptyList())
     }
 
     /** Always set the value of [EvaluationContext.currentResult] to the same given value */
-    fun constant(result: ServiceResultNew): ContextUpdater = object : ContextUpdater() {
+    fun constant(result: ServiceResultV2): ContextUpdater = object : ContextUpdater() {
       override val description = "Set current status to ${result.serviceStatus.uiStatusName}"
 
       override val outcomes = mapOf(
@@ -74,7 +74,7 @@ abstract class ContextUpdater {
         ),
       )
 
-      override fun toServiceResult(context: EvaluationContext): ServiceResultNew = result
+      override fun toServiceResult(context: EvaluationContext): ServiceResultV2 = result
     }
 
     /** Leaves the [EvaluationContext.currentResult] unchanged and propagates failure reasons. */
