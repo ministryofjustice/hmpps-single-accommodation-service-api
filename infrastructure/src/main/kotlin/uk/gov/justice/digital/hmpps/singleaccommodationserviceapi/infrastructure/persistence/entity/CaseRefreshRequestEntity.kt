@@ -42,6 +42,7 @@ enum class CaseRefreshPriority {
 }
 
 enum class CaseRefreshFailureCategory {
+  CORE_PERSON_RECORD_NOT_FOUND,
   CURRENT_TIER_NOT_FOUND,
   UPSTREAM_CLIENT_ERROR,
   UPSTREAM_SERVER_ERROR,
