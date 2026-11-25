@@ -9,7 +9,7 @@ import io.mockk.verify
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateUserPreferencesCommand
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserPreferenceName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserPreference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserPreferenceRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.UserPreferenceApplicationService
 import java.time.Clock
@@ -38,7 +38,7 @@ class UserPreferenceApplicationServiceTest {
     userPreferenceApplicationService.updatePreferences(userId, UpdateUserPreferencesCommand(tourDismissed = true))
 
     verify(exactly = 1) {
-      userPreferenceRepository.upsert(userId, UserPreferenceName.TOUR_DISMISSED, "true", now)
+      userPreferenceRepository.upsert(userId, UserPreference.TOUR_DISMISSED, "true", now)
     }
   }
 
@@ -49,7 +49,7 @@ class UserPreferenceApplicationServiceTest {
     userPreferenceApplicationService.updatePreferences(userId, UpdateUserPreferencesCommand(tourDismissed = false))
 
     verify(exactly = 1) {
-      userPreferenceRepository.upsert(userId, UserPreferenceName.TOUR_DISMISSED, "false", now)
+      userPreferenceRepository.upsert(userId, UserPreference.TOUR_DISMISSED, "false", now)
     }
   }
 

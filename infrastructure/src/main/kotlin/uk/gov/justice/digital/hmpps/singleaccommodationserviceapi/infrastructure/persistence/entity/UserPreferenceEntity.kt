@@ -13,9 +13,9 @@ import java.util.UUID
 class UserPreferenceEntity(
   @Id val id: UUID = UUID.randomUUID(),
   val sasUserId: UUID,
-  @Enumerated(EnumType.STRING) val preferenceName: UserPreferenceName,
-  val preferenceValue: String,
+  @Enumerated(EnumType.STRING) val name: UserPreference,
+  val value: String,
   val updatedAt: Instant = Instant.now(),
 )
 
-enum class UserPreferenceName { TOUR_DISMISSED }
+enum class UserPreference { TOUR_DISMISSED }

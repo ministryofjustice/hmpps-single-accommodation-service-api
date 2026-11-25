@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserPreferenceEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserPreferenceName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserPreference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserPreferenceRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.user.UserPreferencesQueryService
@@ -31,8 +31,8 @@ class UserPreferencesQueryServiceTest {
     every { userPreferenceRepository.findAllBySasUserId(user.id) } returns listOf(
       buildUserPreferenceEntity(
         sasUserId = user.id,
-        preferenceName = UserPreferenceName.TOUR_DISMISSED,
-        preferenceValue = "true",
+        name = UserPreference.TOUR_DISMISSED,
+        value = "true",
       ),
     )
 

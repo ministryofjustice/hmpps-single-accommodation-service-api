@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeam
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeamStaffMember
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserPreferenceEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserPreferenceName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserPreference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserPreferenceRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
@@ -259,8 +259,8 @@ class UserControllerIT : IntegrationTestBase() {
     userPreferenceRepository.save(
       buildUserPreferenceEntity(
         sasUserId = deliusUser.id,
-        preferenceName = UserPreferenceName.TOUR_DISMISSED,
-        preferenceValue = "true",
+        name = UserPreference.TOUR_DISMISSED,
+        value = "true",
       ),
     )
 
@@ -299,8 +299,8 @@ class UserControllerIT : IntegrationTestBase() {
 
     val saved = userPreferenceRepository.findAllBySasUserId(deliusUser.id)
     assertThat(saved).hasSize(1)
-    assertThat(saved.single().preferenceName).isEqualTo(UserPreferenceName.TOUR_DISMISSED)
-    assertThat(saved.single().preferenceValue).isEqualTo("true")
+    assertThat(saved.single().name).isEqualTo(UserPreference.TOUR_DISMISSED)
+    assertThat(saved.single().value).isEqualTo("true")
 
     webTestClient.get().uri("/users/me/preferences")
       .withDeliusUserJwt()
@@ -318,8 +318,8 @@ class UserControllerIT : IntegrationTestBase() {
     userPreferenceRepository.save(
       buildUserPreferenceEntity(
         sasUserId = deliusUser.id,
-        preferenceName = UserPreferenceName.TOUR_DISMISSED,
-        preferenceValue = "false",
+        name = UserPreference.TOUR_DISMISSED,
+        value = "false",
       ),
     )
 
@@ -332,7 +332,7 @@ class UserControllerIT : IntegrationTestBase() {
 
     val saved = userPreferenceRepository.findAllBySasUserId(deliusUser.id)
     assertThat(saved).hasSize(1)
-    assertThat(saved.single().preferenceValue).isEqualTo("true")
+    assertThat(saved.single().value).isEqualTo("true")
   }
 
   @Test
@@ -341,7 +341,7 @@ class UserControllerIT : IntegrationTestBase() {
     val deliusUser = createDeliusUser()
     HmppsAuthStubs.stubGrantToken()
     userPreferenceRepository.save(
-      buildUserPreferenceEntity(sasUserId = deliusUser.id, preferenceValue = "true"),
+      buildUserPreferenceEntity(sasUserId = deliusUser.id, value = "true"),
     )
 
     webTestClient.patch().uri("/users/me/preferences")
@@ -353,7 +353,7 @@ class UserControllerIT : IntegrationTestBase() {
 
     val saved = userPreferenceRepository.findAllBySasUserId(deliusUser.id)
     assertThat(saved).hasSize(1)
-    assertThat(saved.single().preferenceValue).isEqualTo("true")
+    assertThat(saved.single().value).isEqualTo("true")
   }
 
   @Test

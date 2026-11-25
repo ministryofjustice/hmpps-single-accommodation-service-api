@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateUserPreferencesCommand
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserPreferenceName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserPreference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserPreferenceRepository
 import java.time.Clock
 import java.util.UUID
@@ -16,7 +16,7 @@ class UserPreferenceApplicationService(
   @Transactional
   fun updatePreferences(userId: UUID, command: UpdateUserPreferencesCommand) {
     command.tourDismissed?.let {
-      userPreferenceRepository.upsert(userId, UserPreferenceName.TOUR_DISMISSED, it.toString(), clock.instant())
+      userPreferenceRepository.upsert(userId, UserPreference.TOUR_DISMISSED, it.toString(), clock.instant())
     }
   }
 }
