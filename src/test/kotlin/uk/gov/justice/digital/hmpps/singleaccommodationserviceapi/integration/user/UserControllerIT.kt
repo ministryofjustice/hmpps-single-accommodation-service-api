@@ -1,16 +1,23 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.user
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateUserPreferencesCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeam
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeamStaffMember
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserPreferenceEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserPreference
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserPreferenceRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_NOMIS_USER
@@ -19,9 +26,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 
 class UserControllerIT : IntegrationTestBase() {
+
+  @Autowired
+  private lateinit var userPreferenceRepository: UserPreferenceRepository
 
   @Test
   fun `returns list of teams for a user`() {
@@ -223,6 +234,142 @@ class UserControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isUnauthorized
+  }
+
+  @Test
+  fun `returns default values for user preferences when the user has no preferences`() {
+    databaseUtils.truncate(DatabaseUtils.SasTables.SAS_USER_PREFERENCE)
+    createDeliusUser()
+    HmppsAuthStubs.stubGrantToken()
+
+    val result = webTestClient.get().uri("/users/me/preferences")
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody<String>()
+      .returnResult().responseBody!!
+
+    assertThatJson(result).matchesExpectedJson("""{"data":{"tourDismissed":false}}""")
+  }
+
+  @Test
+  fun `returns tour dismissed as true in user preferences when user has dismissed the fama tour`() {
+    val deliusUser = createDeliusUser()
+    HmppsAuthStubs.stubGrantToken()
+
+    userPreferenceRepository.save(
+      buildUserPreferenceEntity(
+        sasUserId = deliusUser.id,
+        name = UserPreference.TOUR_DISMISSED,
+        value = "true",
+      ),
+    )
+
+    val result = webTestClient.get().uri("/users/me/preferences")
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody<String>()
+      .returnResult().responseBody!!
+
+    assertThatJson(result).matchesExpectedJson("""{"data":{"tourDismissed":true}}""")
+  }
+
+  @Test
+  fun `GET user preferences requires the probation practitioner role`() {
+    createDeliusUser()
+    HmppsAuthStubs.stubGrantToken()
+
+    webTestClient.get().uri("/users/me/preferences")
+      .withDeliusUserJwt(roles = listOf("SOME_INVALID_ROLE"))
+      .exchange()
+      .expectStatus().isForbidden
+  }
+
+  @Test
+  fun `PATCH user preferences creates the tour dismissed preference and returns it from GET`() {
+    databaseUtils.truncate(DatabaseUtils.SasTables.SAS_USER_PREFERENCE)
+    val deliusUser = createDeliusUser()
+    HmppsAuthStubs.stubGrantToken()
+
+    webTestClient.patch().uri("/users/me/preferences")
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(UpdateUserPreferencesCommand(tourDismissed = true))
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNoContent
+
+    val saved = userPreferenceRepository.findAllBySasUserId(deliusUser.id)
+    assertThat(saved).hasSize(1)
+    assertThat(saved.single().name).isEqualTo(UserPreference.TOUR_DISMISSED)
+    assertThat(saved.single().value).isEqualTo("true")
+
+    webTestClient.get().uri("/users/me/preferences")
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data.tourDismissed").isEqualTo(true)
+  }
+
+  @Test
+  fun `PATCH user preferences updates the existing preferences rather than adding additional preferences`() {
+    databaseUtils.truncate(DatabaseUtils.SasTables.SAS_USER_PREFERENCE)
+    val deliusUser = createDeliusUser()
+    HmppsAuthStubs.stubGrantToken()
+
+    userPreferenceRepository.save(
+      buildUserPreferenceEntity(
+        sasUserId = deliusUser.id,
+        name = UserPreference.TOUR_DISMISSED,
+        value = "false",
+      ),
+    )
+
+    webTestClient.patch().uri("/users/me/preferences")
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(UpdateUserPreferencesCommand(tourDismissed = true))
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNoContent
+
+    val saved = userPreferenceRepository.findAllBySasUserId(deliusUser.id)
+    assertThat(saved).hasSize(1)
+    assertThat(saved.single().value).isEqualTo("true")
+  }
+
+  @Test
+  fun `PATCH user preferences leaves existing preferences unchanged when none are supplied`() {
+    databaseUtils.truncate(DatabaseUtils.SasTables.SAS_USER_PREFERENCE)
+    val deliusUser = createDeliusUser()
+    HmppsAuthStubs.stubGrantToken()
+    userPreferenceRepository.save(
+      buildUserPreferenceEntity(sasUserId = deliusUser.id, value = "true"),
+    )
+
+    webTestClient.patch().uri("/users/me/preferences")
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(UpdateUserPreferencesCommand())
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNoContent
+
+    val saved = userPreferenceRepository.findAllBySasUserId(deliusUser.id)
+    assertThat(saved).hasSize(1)
+    assertThat(saved.single().value).isEqualTo("true")
+  }
+
+  @Test
+  fun `PATCH user preferences requires the probation practitioner role`() {
+    databaseUtils.truncate(DatabaseUtils.SasTables.SAS_USER_PREFERENCE)
+    val deliusUser = createDeliusUser()
+    HmppsAuthStubs.stubGrantToken()
+
+    webTestClient.patch().uri("/users/me/preferences")
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(UpdateUserPreferencesCommand(tourDismissed = true))
+      .withDeliusUserJwt(roles = listOf("SOME_INVALID_ROLE"))
+      .exchange()
+      .expectStatus().isForbidden
+
+    assertThat(userPreferenceRepository.findAllBySasUserId(deliusUser.id)).isEmpty()
   }
 
   private fun stubUserWithTeams(vararg teamCodes: String) {

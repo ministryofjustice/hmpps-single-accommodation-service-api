@@ -22,6 +22,7 @@ class DatabaseUtils(
     SAS_CASE_REFRESH_REQUEST("sas_case_refresh_request"),
     SAS_USER_CASE_LIST_ENTRY("sas_user_case_list_entry"),
     ONBOARDED_TEAM("onboarded_team"),
+    SAS_USER_PREFERENCE("sas_user_preference"),
   }
 
   @Transactional
