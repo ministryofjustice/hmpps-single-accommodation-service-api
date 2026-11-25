@@ -83,6 +83,9 @@ shedlock:
   case-refresh-worker:
     lock-at-most-for: 3s
     lock-at-least-for: 1ms
+  case-refresh-queue-monitor:
+    lock-at-most-for: 3s
+    lock-at-least-for: 1ms
 
 event:
   details-url:

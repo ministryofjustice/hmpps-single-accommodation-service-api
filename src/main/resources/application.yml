@@ -108,6 +108,9 @@ case-refresh:
   failed-monitor:
     cron: "0 0 12 * * *" #runs at midday, daily. This should be increased once we handle 503 errors.
     zone: UTC
+  queue-monitor:
+    cron: "0 * * * * *" #runs every minute, all day, so the overnight backlog is visible.
+    zone: Europe/London
 
 inbox-events:
   cleanup:
@@ -150,3 +153,6 @@ shedlock:
   case-refresh-worker:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S
+  case-refresh-queue-monitor:
+    lock-at-most-for: PT50S
+    lock-at-least-for: PT5S
