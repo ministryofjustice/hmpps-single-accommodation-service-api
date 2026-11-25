@@ -13,7 +13,11 @@
       "matchUpdateTypes": ["minor", "patch"],
       "excludePackageNames": [
         "io.swagger.parser.v3:swagger-parser",
-        "org.webjars:swagger-ui"
+        "org.webjars:swagger-ui",
+        "org.springdoc:springdoc-openapi-starter-webmvc-ui",
+        "uk.gov.justice.hmpps.gradle-spring-boot:uk.gov.justice.hmpps.gradle-spring-boot.gradle.plugin",
+        "uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter",
+        "uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test"
       ],
       "groupName": "minor and patch updates"
     }
