@@ -70,7 +70,10 @@ class CaseRefreshProcessor(
   private fun handleMissingCorePersonRecord(claim: CaseRefreshRequestService.Claim): Result = when (
     caseRefreshRequestService.deleteOwnedRequestOrReleaseForNewerGeneration(claim)
   ) {
-    CaseRefreshRequestService.FailureDisposition.HANDLED -> Result.CaseNotFound
+    CaseRefreshRequestService.FailureDisposition.HANDLED -> {
+      log.info("Treating case refresh as CaseNotFound after CPR returned 404 caseId={}", claim.caseId)
+      Result.CaseNotFound
+    }
     CaseRefreshRequestService.FailureDisposition.IGNORED_STALE_CLAIM -> Result.IgnoredStaleClaim
   }
 
