@@ -105,7 +105,7 @@ class CaseCreationServiceTest {
         every { caseRepository.findUnpersistedCrns(any()) } returns listOf(first.crn, third.crn)
         every { entityManager.persist(capture(entities)) } just runs
 
-        caseCreationService.saveUnpersistedCasesAsBlankRows(casesToCreate)
+        caseCreationService.saveUnpersistedCasesAsBlankRows(casesToCreate, requestRefresh = false)
 
         assertThat(entities).hasSize(2)
         assertThat(entities.map { it.latestCrn() }).containsExactly(first.crn, third.crn)
@@ -122,7 +122,7 @@ class CaseCreationServiceTest {
 
         every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
 
-        caseCreationService.saveUnpersistedCasesAsBlankRows(casesToCreate)
+        caseCreationService.saveUnpersistedCasesAsBlankRows(casesToCreate, requestRefresh = false)
 
         verify(exactly = 1) { caseRepository.findUnpersistedCrns(any()) }
         verify(exactly = 0) { entityManager.persist(any()) }
@@ -142,7 +142,7 @@ class CaseCreationServiceTest {
         every { caseRepository.findUnpersistedCrns(any()) } returns listOf(caseToCreate.crn)
         every { entityManager.persist(capture(entities)) } just runs
 
-        caseCreationService.saveUnpersistedCasesAsBlankRows(listOf(caseToCreate))
+        caseCreationService.saveUnpersistedCasesAsBlankRows(listOf(caseToCreate), requestRefresh = false)
 
         val entity = entities.single()
         assertThat(entity.firstName).isEqualTo("Joe")
@@ -160,7 +160,7 @@ class CaseCreationServiceTest {
         every { caseRepository.findUnpersistedCrns(any()) } returns listOf(caseToCreate.crn)
         every { entityManager.persist(capture(entities)) } just runs
 
-        caseCreationService.saveUnpersistedCasesAsBlankRows(listOf(caseToCreate))
+        caseCreationService.saveUnpersistedCasesAsBlankRows(listOf(caseToCreate), requestRefresh = false)
 
         val entity = entities.single()
         assertThat(entity.firstName).isNull()
@@ -168,6 +168,36 @@ class CaseCreationServiceTest {
         assertThat(entity.dateOfBirth).isNull()
         assertThat(entity.latestCrn()).isEqualTo("A111111")
         assertThat(entity.latestPrisonNumber()).isEqualTo("A1234BC")
+        verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
+      }
+
+      @Test
+      fun `requests a bulk refresh for only the rows it creates when requestRefresh is true`() {
+        val first = CaseToCreate(crn = "A111111", prisonNumber = "A1234BC")
+        val second = CaseToCreate(crn = "B222222", prisonNumber = "B1234BC")
+        val entities = mutableListOf<CaseEntity>()
+
+        every { caseRepository.findUnpersistedCrns(any()) } returns listOf(second.crn)
+        every { entityManager.persist(capture(entities)) } just runs
+
+        caseCreationService.saveUnpersistedCasesAsBlankRows(listOf(first, second), requestRefresh = true)
+
+        verifyOrder {
+          entityManager.persist(any())
+          caseRefreshRequestService.requestBulkRefresh(listOf(entities.single().id))
+        }
+      }
+
+      @Test
+      fun `requests a refresh for no cases when requestRefresh is true but every case is already persisted`() {
+        val caseToCreate = CaseToCreate(crn = "A111111", prisonNumber = "A1234BC")
+
+        every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
+
+        caseCreationService.saveUnpersistedCasesAsBlankRows(listOf(caseToCreate), requestRefresh = true)
+
+        verify(exactly = 0) { entityManager.persist(any()) }
+        verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(emptyList()) }
       }
     }
 
