@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.PublicProtectionCheckerRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
@@ -71,6 +72,9 @@ abstract class EligibilityScenarioTestBase {
 
     @Bean
     fun dutyToReferQueryService(): DutyToReferQueryService = mockk()
+
+    @Bean
+    fun publicProtectionCheckerRepository(): PublicProtectionCheckerRepository = mockk()
 
     @Bean
     fun userService(): UserService = mockk(relaxed = true)

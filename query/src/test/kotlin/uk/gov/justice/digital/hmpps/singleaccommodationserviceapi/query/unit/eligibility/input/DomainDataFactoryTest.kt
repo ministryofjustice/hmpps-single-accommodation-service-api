@@ -37,9 +37,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPublicProtectionCheckerEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.PublicProtectionCheckerRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.currentOutcome
@@ -67,6 +69,9 @@ class DomainDataFactoryTest {
 
   @MockK
   lateinit var userService: UserService
+
+  @MockK
+  lateinit var publicProtectionCheckerRepository: PublicProtectionCheckerRepository
 
   @InjectMockKs
   lateinit var factory: DomainDataFactory
@@ -137,9 +142,9 @@ class DomainDataFactoryTest {
       every { accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
       every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, prisoner, cas1Residence, cas3CurrentPremises) } returns currentAccommodation
+      val publicProtectionChecker = buildPublicProtectionCheckerEntity(sasCaseId = caseId)
+      every { publicProtectionCheckerRepository.findFirstBySasCaseIdOrderByCreatedAtDesc(caseId) } returns publicProtectionChecker
       val result = factory.buildDomainData(crn, orchestrationDto.data, caseEntity)
-
-      assertThat(result.ppcAnswers).isNull()
 
       val expected = buildDomainData(
         crn = crn,
@@ -156,7 +161,7 @@ class DomainDataFactoryTest {
         dutyToRefer = dutyToRefer,
         roshLevel = roshLevel,
         sexualOffenceRegistrations = registrations,
-        ppcAnswers = null,
+        publicProtectionChecker = publicProtectionChecker,
       )
 
       assertThat(result).isEqualTo(expected)

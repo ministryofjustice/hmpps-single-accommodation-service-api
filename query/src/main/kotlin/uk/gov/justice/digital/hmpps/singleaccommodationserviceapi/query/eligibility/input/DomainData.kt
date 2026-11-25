@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.RoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SexualOffenceRegistrations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.PublicProtectionCheckerEntity
 import java.time.LocalDate
 
 data class DomainData(
@@ -28,13 +29,7 @@ data class DomainData(
   val dutyToRefer: DutyToReferDto?,
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
   val sexualOffenceRegistrations: SexualOffenceRegistrations?,
-  val ppcAnswers: PublicProtectionCheckerAnswers?,
-)
-
-data class PublicProtectionCheckerAnswers(
-  val supervisionRequired: Boolean,
-  val controlMeasureSuitable: Boolean,
-  val practicalSupportSufficient: Boolean,
+  val publicProtectionChecker: PublicProtectionCheckerEntity?,
 )
 
 data class Cas1ApplicationDomainData(

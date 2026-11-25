@@ -7,11 +7,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
 
 @Component
-class PpcControlMeasureSuitableRule : Rule {
-  override val description = "FAIL if control measure suitable"
+class PpcControlMeasuresSuitableRule : Rule {
+  override val description = "FAIL if control measures suitable"
 
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (data.ppcAnswers?.controlMeasureSuitable == true) RuleStatus.FAIL else RuleStatus.PASS,
+    ruleStatus = if (data.publicProtectionChecker?.controlMeasuresSuitable == true) RuleStatus.FAIL else RuleStatus.PASS,
   )
 }

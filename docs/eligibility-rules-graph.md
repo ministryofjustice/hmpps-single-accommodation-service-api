@@ -821,7 +821,7 @@ FAIL if the CAS3 application is active</div>")
 %%{init: {"flowchart": {"wrappingWidth": 800}}}%%
 flowchart TD
   PASS_if_PPC_answers_have_been_submitted("<div style='text-align:left'>PASS if PPC answers have been submitted</div>")
-  PASS_if_Public_Protection_not_required("<div style='text-align:left'>FAIL if control measure suitable
+  PASS_if_Public_Protection_not_required("<div style='text-align:left'>FAIL if control measures suitable
 FAIL if supervision required
 FAIL if practical support sufficient</div>")
   PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED["<b>Completed - Public Protection Not Required</b>"]
@@ -852,7 +852,7 @@ FAIL if practical support sufficient</div>")
 
 
 **PASS if Public Protection not required** (RuleSet) `PpcPublicProtectionNotRequiredRuleSet`
-- [`PpcControlMeasureSuitableRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/PpcControlMeasureSuitableRule.kt): FAIL if control measure suitable
+- [`PpcControlMeasuresSuitableRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/PpcControlMeasuresSuitableRule.kt): FAIL if control measures suitable
 - [`PpcSupervisionRequiredRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/PpcSupervisionRequiredRule.kt): FAIL if supervision required
 - [`PpcPracticalSupportSufficientRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/rules/PpcPracticalSupportSufficientRule.kt): FAIL if practical support sufficient
 
@@ -938,7 +938,7 @@ FAIL if practical support sufficient</div>")
 | NoNextAccommodationRule | FAIL if the person has no next accommodation | PASS if the person has a next accommodation | PA |
 | NoRoshLevelRule | FAIL if the person has no ROSH level | PASS if the person has a ROSH level | CAS1, CAS2, CAS3 |
 | PpcAnswersNotPresentRule | FAIL if PPC answers have not been submitted | PASS if PPC answers have been submitted | PPC |
-| PpcControlMeasureSuitableRule | FAIL if control measure suitable | PASS if Public Protection not required | PPC |
+| PpcControlMeasuresSuitableRule | FAIL if control measures suitable | PASS if Public Protection not required | PPC |
 | PpcPracticalSupportSufficientRule | FAIL if practical support sufficient | PASS if Public Protection not required | PPC |
 | PpcSupervisionRequiredRule | FAIL if supervision required | PASS if Public Protection not required | PPC |
 | TierNotAToCRule | FAIL if the person's tier is not A, B or C | PASS if the person's tier is A, B or C | CAS1 |

@@ -12,6 +12,6 @@ class PpcPracticalSupportSufficientRule : Rule {
 
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (data.ppcAnswers?.practicalSupportSufficient == true) RuleStatus.FAIL else RuleStatus.PASS,
+    ruleStatus = if (data.publicProtectionChecker?.practicalSupportSufficient == true) RuleStatus.FAIL else RuleStatus.PASS,
   )
 }
