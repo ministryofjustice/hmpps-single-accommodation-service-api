@@ -659,12 +659,12 @@ class EligibilityTransformerTest {
 
     val actual = toEligibilityDto(
       crn = "FAKECRN1",
-      cas1 = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED),
-      cas2 = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED),
-      cas3 = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS3_NOT_SUBMITTED),
-      dtr = buildServiceResultNew(serviceStatus = ServiceStatusNew.DTR_NOT_STARTED),
-      crs = buildServiceResultNew(serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_REFERRAL),
-      pa = buildServiceResultNew(serviceStatus = ServiceStatusNew.PA_NOT_STARTED),
+      cas1 = buildServiceResultV2(serviceStatus = ServiceStatusV2.CAS1_NOT_STARTED),
+      cas2 = buildServiceResultV2(serviceStatus = ServiceStatusV2.CAS2_NOT_STARTED),
+      cas3 = buildServiceResultV2(serviceStatus = ServiceStatusV2.CAS3_NOT_SUBMITTED),
+      dtr = buildServiceResultV2(serviceStatus = ServiceStatusV2.DTR_NOT_STARTED),
+      crs = buildServiceResultV2(serviceStatus = ServiceStatusV2.CRS_NOT_STARTED_REFERRAL),
+      pa = buildServiceResultV2(serviceStatus = ServiceStatusV2.PA_NOT_STARTED),
       data = buildDomainData(cas3Application = application),
     ).cas3.cas3Application
 
