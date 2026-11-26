@@ -827,15 +827,15 @@ __STATUS_CARD_PREVIEW__
         const result = findRuleFailuresForNode(target);
         if (!result) {
           renderSim('No consistent simulation path reaches this node.');
-        } else {
-          failing.clear();
-          result.forEach(rule => failing.add(rule));
-          simTarget = null;
-          renderSim();
+          panel.scrollTop = 0;
+          return;
         }
+        failing.clear();
+        result.forEach(rule => failing.add(rule));
+        simTarget = null;
+        renderSim();
       }
-      const group = document.getElementById('sim-' + target);
-      if (group) group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      scrollToSimulationRule(target);
       return;
     }
     resetSearch();

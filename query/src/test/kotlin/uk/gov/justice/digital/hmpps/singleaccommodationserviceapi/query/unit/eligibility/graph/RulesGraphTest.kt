@@ -211,8 +211,9 @@ class RulesGraphTest {
         .contains("const currentPath = simulate().steps.some(step => step.node.id === target)")
         .contains("const allFailing = node.rules.every(rule => failing.has(rule.className))")
         .contains("const result = findRuleFailuresForNode(target)")
+        .contains("scrollToSimulationRule(target);")
+        .contains("renderSim('No consistent simulation path reaches this node.');\n          panel.scrollTop = 0;\n          return;")
         .doesNotContain("simTarget = target;")
-      assertThat(html).contains("group.scrollIntoView({ behavior: 'smooth', block: 'center' })")
     }
 
     @ParameterizedTest
