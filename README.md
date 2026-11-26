@@ -5,11 +5,14 @@ This is the backend for the Single Accommodation Service (SAS) FE
 ## Run application locally
 
 1. We need `redis` for cacheing - so you will need to run a local docker infrastructure
+
 ```shell
 docker compose up -d
 ```
 
-2. Decode the hmpps-single-accommodation-service-api secrets from the DEV namespace from `k8s` by running the following command:
+2. Decode the hmpps-single-accommodation-service-api secrets from the DEV namespace from `k8s` by running the following
+   command:
+
 ``` bash
 kubectl get secrets hmpps-single-accommodation-service-api --namespace hmpps-community-accommodation-dev -o json | jq ".data | map_values(@base64d)"
 ```
@@ -25,19 +28,24 @@ See `Infrastructure` section below for more information on running `kubectl`.
            ```
            SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-ID=<SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_ID>;SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-SECRET=<SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_SECRET>
            ```
-    - Swap out the `<SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_ID>` and `<SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_SECRET>` values above for the values returned from the `kubectl` command in step 2.
+    - Swap out the `<SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_ID>` and
+      `<SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_SECRET>` values above for the values returned from the `kubectl`
+      command in step 2.
     - `Run` the `SingleAccommodationServiceApi` run configuration again
-        - the result should be a running application (you should see in the application logs that it is deployed on port `8080`)
+        - the result should be a running application (you should see in the application logs that it is deployed on port
+          `8080`)
         - swagger documentation will also be available at `http://localhost:8080/swagger-ui/index.html`
 
 ## Run tests locally
 
 1. We need a test database running - so you will need to run a local docker infrastructure
+
 ```shell
 docker compose up -d
 ```
 
 2. The following `gradle command` will build the application and run the tests
+
 ```shell
 ./gradlew check
 ```
@@ -60,17 +68,20 @@ Run the CPR contract tests without Docker, AWS or a live CPR service:
 Both contracts use consumer `hmpps-single-accommodation-service-api` and are generated separately
 in `infrastructure/build/pacts`:
 
-| Contract | Provider | File | Format |
-| --- | --- | --- | --- |
-| HTTP API | `hmpps-person-record` | `hmpps-single-accommodation-service-api-hmpps-person-record.json` | Pact V4 |
-| Events | `hmpps-person-record-events` | `hmpps-single-accommodation-service-api-hmpps-person-record-events.json` | Pact V4 asynchronous messages |
+| Contract | Provider                     | File                                                                     | Format                        |
+|----------|------------------------------|--------------------------------------------------------------------------|-------------------------------|
+| HTTP API | `hmpps-person-record`        | `hmpps-single-accommodation-service-api-hmpps-person-record.json`        | Pact V4                       |
+| Events   | `hmpps-person-record-events` | `hmpps-single-accommodation-service-api-hmpps-person-record-events.json` | Pact V4 asynchronous messages |
 
 The event contract covers probation address created, updated and deleted events,
 and probation record updated, merged and deleted events.
 CI publishes both contracts with the same SAS app version and branch for CPR provider verification.
 
 ## Coding Notes
-1. At the early stages of this project it's best to look at `CaseController.getCases()` endpoint as this follows the standards set out below implementing the correct `n-tier architecture` required (i.e. `CaseController -> CaseService -> CaseOrchestration - AggregatorService`)
+
+1. At the early stages of this project it's best to look at `CaseController.getCases()` endpoint as this follows the
+   standards set out below implementing the correct `n-tier architecture` required (i.e.
+   `CaseController -> CaseService -> CaseOrchestration - AggregatorService`)
 2. Best practice testing standards have been included for this endpoint (inc. unit tests / integration tests)
 
 ### Standards
@@ -78,8 +89,10 @@ CI publishes both contracts with the same SAS app version and branch for CPR pro
 1. All HTTP calls to upstream services are made through the `AggregatorService`
     - The `AggregatorService` is located in the `aggregator` submodule of this repository
     - You will see examples of how this is achieved in the `CaseOrchestration` service
-    - Regardless of whether you are making a number of async calls, or a single synchronous one, the standard is to make all calls through the public function in the `AggregatorService`
-        - you should not need to make any changes to the `AggregatorService` — hopefully it gives you everything you need!
+    - Regardless of whether you are making a number of async calls, or a single synchronous one, the standard is to make
+      all calls through the public function in the `AggregatorService`
+        - you should not need to make any changes to the `AggregatorService` — hopefully it gives you everything you
+          need!
     - Only services in the `Orchestration layer` should inject the `AggregatorService`
 
 2. `Orchestration layer` in `n-tier architecture`
@@ -92,22 +105,26 @@ CI publishes both contracts with the same SAS app version and branch for CPR pro
       CaseController -> CaseService -> CaseOrchestration -> AggregatorService
       ```
     - The `Orchestration layer` will be made up of `@Service` classes named `*OrchestrationService` and their job is to:
-      - Inject the `AggregatorService`
-      - Help orchestrate the async (and synchronous) calls using the `AggregatorService`
-      - Return an `*OrchestrationDto` data class that holds `*Dto` responses from the upstream services
-      - Hard rules:
-          - Only retrieve and return the data in this layer please!
-          - No business-logic should sit in this layer
-          - Do not unit test this layer (covered by integration tests)
-      - The big plus here is that when we release a new version of the `AggregatorService` in the `aggregator` submodule it will:
-          - Only have rippling effects on the `Orchestration layer`
-              - We will only need to refactor implementation code in the `Orchestration layer`
-              - No unit test refactoring will be neccesary
-              - The integration tests will give us coverage on the `AggregatorService` itself and need no refactoring either
+        - Inject the `AggregatorService`
+        - Help orchestrate the async (and synchronous) calls using the `AggregatorService`
+        - Return an `*OrchestrationDto` data class that holds `*Dto` responses from the upstream services
+        - Hard rules:
+            - Only retrieve and return the data in this layer please!
+            - No business-logic should sit in this layer
+            - Do not unit test this layer (covered by integration tests)
+        - The big plus here is that when we release a new version of the `AggregatorService` in the `aggregator`
+          submodule it will:
+            - Only have rippling effects on the `Orchestration layer`
+                - We will only need to refactor implementation code in the `Orchestration layer`
+                - No unit test refactoring will be neccesary
+                - The integration tests will give us coverage on the `AggregatorService` itself and need no refactoring
+                  either
 
-4. The `Service` layer that sits in between the `*Controller` and `*OrchestrationService` can be unit tested in the usual way with the `mockk` library
+4. The `Service` layer that sits in between the `*Controller` and `*OrchestrationService` can be unit tested in the
+   usual way with the `mockk` library
 
 ### Linting / Static Analysis
+
 * There are linting and static analysis checks in the build pipeline. You can lint and check for issues by running
 
 ```bash
@@ -133,6 +150,7 @@ hmpps-single-accommodation-service-api-655968557b-bp7v9  1/1     Running   0    
 hmpps-single-accommodation-service-ui-67b49b8dcd-p85pt   1/1     Running   0          125m
 hmpps-single-accommodationn-service-ui-67b49b8dcd-tgjd5  1/1     Running   0          125m
 ```
+
 **NB**: this [`kubectl` cheatsheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/) is a good reference to
 other commands you may need.
 
@@ -143,29 +161,50 @@ Confluence](https://dsdmoj.atlassian.net/wiki/spaces/AP/pages/5001478252/CAS+Env
 
 ## Release process
 
-Our release process aligns with the other CAS teams and as such [lives in Confluence](https://dsdmoj.atlassian.net/wiki/spaces/AP/pages/4247847062/Release+process).
+Our release process aligns with the other CAS teams and as
+such [lives in Confluence](https://dsdmoj.atlassian.net/wiki/spaces/AP/pages/4247847062/Release+process).
 The steps are also available in the [pull request checklist](./.github/pull_request_template.md).
 
 ## Rules Engine
 
-`GET /cases/{crn}/v2/eligibility` returns `EligibilityV2Dto` in the standard API response envelope. It exposes service-specific status codes (such as `CAS1_NOT_ELIGIBLE`) and per-service action positions instead of a top-level `caseActions` list. The original `GET /cases/{crn}/eligibility` retains its existing response format. Both endpoints require the probation practitioner role.
+`GET /cases/{crn}/v2/eligibility` returns `EligibilityV2Dto` in the standard API response envelope. It exposes
+service-specific status codes (such as `CAS1_NOT_ELIGIBLE`) and per-service action positions instead of a top-level
+`caseActions` list. The original `GET /cases/{crn}/eligibility` retains its existing response format. Both endpoints
+require the probation practitioner role.
 
-The eligibility rules engine is in the codebase, you can extract a markdown version, (complete with mermaid diagrams) of the rules engine by running the following command:
+The eligibility rules engine is in the codebase, you can extract a markdown version, (complete with mermaid diagrams) of
+the rules engine by running the following command:
 
 ```bash
 ./gradlew :query:generateEligibilityRulesGraphs
 ```
 
-This task generates both the [Markdown graph with Mermaid diagrams](./docs/eligibility-rules-graph.md) and the [interactive HTML graph](./docs/eligibility-rules-graph.html). When the graphs change, review and commit both generated files.
+This task generates both the [Markdown graph with Mermaid diagrams](./docs/eligibility-rules-graph.md) and
+the [interactive HTML graph](./docs/eligibility-rules-graph.html). When the graphs change, review and commit both
+generated files.
 
-View the [interactive eligibility rules graph](https://ministryofjustice.github.io/hmpps-single-accommodation-service-api/eligibility-rules-graph.html).
-Each tree's sidebar contains its architecture decision record, or a message if none exists. Put tree ADRs in `docs/architecture/decisions/treeadrs` using the filename `<tree>-tree-explanation-YYYY-MM-DD.md` (for example, `cas1-tree-explanation-2026-11-23.md`). Each must contain a `Date: YYYY-MM-DD` line; when a tree has multiple ADRs, the graph uses the latest declared date, not the filename date. ADRs for the same tree must have distinct declared dates. Regenerate the graph after changing an ADR.
-The home page and sidebar warn when the latest committed change to that tree's `<tree>-eligibility-scenarios.csv` or `<tree>-application-scenarios.csv` is later than the ADR's declared date. This is a prompt to review the ADR, not proof it is incorrect. The graph generator considers committed changes only: regenerate the graph after committing scenario changes to update the warning. For a shallow checkout, it fetches the missing history from `origin` before checking dates, which requires access to the remote.
-Use **Search...** in the tree toolbar to highlight all matching nodes and dim the rest of the graph, including in **Simulate** mode. The search includes node labels, rule descriptions and failure reasons; outside simulation, click a node to see its details and incoming paths.
-In **Simulate** mode, click a node with rules to set them all to FAIL, or all to PASS if they are already all failing. You can still toggle individual rules in the sidebar.
-GitHub Pages must be configured to deploy from `main` and `/docs`; `docs/.nojekyll` disables Jekyll processing for these static files without changing the existing application deployment workflows.
+View
+the [interactive eligibility rules graph](https://ministryofjustice.github.io/hmpps-single-accommodation-service-api/eligibility-rules-graph.html).
+Each tree's sidebar contains an explanation and justification of that tree, or a message if none exists. Put tree
+explanations in `docs/architecture/decisions/treeexplanations` using the filename `<tree>-tree-explanation.md` (for
+example, `cas1-tree-explanation.md`), with one explanation per tree. Each must contain a `Date: YYYY-MM-DD` line; update
+it to the current date whenever you change the file. Regenerate the graph after changing a file.
+The home page and sidebar warn when the latest committed change to that tree's `<tree>-eligibility-scenarios.csv` or
+`<tree>-application-scenarios.csv` is later than the Explanation's declared date. This is a prompt to review the
+Explanation, not proof it is incorrect. The graph generator considers committed changes only: regenerate the graph after
+committing scenario changes to update the warning. For a shallow checkout, it fetches the missing history from `origin`
+before checking dates, which requires access to the remote.
+Use **Search...** in the tree toolbar to highlight all matching nodes and dim the rest of the graph, including in *
+*Simulate** mode. The search includes node labels, rule descriptions and failure reasons; outside simulation, click a
+node to see its details and incoming paths.
+In **Simulate** mode, click a node with rules to set them all to FAIL, or all to PASS if they are already all failing.
+You can still toggle individual rules in the sidebar.
+GitHub Pages must be configured to deploy from `main` and `/docs`; `docs/.nojekyll` disables Jekyll processing for these
+static files without changing the existing application deployment workflows.
 
-To update the preview manually, run the **Update Status Card Preview HTML** workflow on `main` from GitHub Actions. Leave `ui_run_id` blank to use the latest successful UI `main` pipeline run, or provide a run ID to select a specific run.
+To update the preview manually, run the **Update Status Card Preview HTML** workflow on `main` from GitHub Actions.
+Leave `ui_run_id` blank to use the latest successful UI `main` pipeline run, or provide a run ID to select a specific
+run.
 
 To update the current local API branch instead, install Node.js and authenticate with `gh auth login`:
 
@@ -174,6 +213,9 @@ To update the current local API branch instead, install Node.js and authenticate
 ./scripts/update-status-card-preview.sh my-branch   # latest successful pipeline on a UI branch
 ```
 
-The selected run must have an unexpired preview artifact. The script refuses to overwrite locally changed preview or graph files.
+The selected run must have an unexpired preview artifact. The script refuses to overwrite locally changed preview or
+graph files.
 
-The pre-push hook in `scripts/hooks/pre-push` regenerates both graphs and warns if either differs from its committed version. The warning itself does not block the push. Gradle's `copyGitHooks` task installs the script locally (also run automatically by root `compileKotlin`).
+The pre-push hook in `scripts/hooks/pre-push` regenerates both graphs and warns if either differs from its committed
+version. The warning itself does not block the push. Gradle's `copyGitHooks` task installs the script locally (also run
+automatically by root `compileKotlin`).

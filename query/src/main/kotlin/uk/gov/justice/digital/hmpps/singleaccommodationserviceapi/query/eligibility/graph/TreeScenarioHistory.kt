@@ -12,7 +12,7 @@ fun loadScenarioChangeDates(repository: Path, treeNames: Set<String>): Map<Strin
     git(repository, "fetch", "--unshallow", "--no-tags", "origin")
   }
   require(git(repository, "rev-parse", "--is-shallow-repository") == "false") {
-    "Full Git history is required to determine tree ADR freshness; origin is also shallow"
+    "Full Git history is required to determine tree Explanation freshness; origin is also shallow"
   }
   val resources = repository.resolve("query/src/test/resources")
   require(Files.isDirectory(resources)) { "Scenario directory does not exist: $resources" }

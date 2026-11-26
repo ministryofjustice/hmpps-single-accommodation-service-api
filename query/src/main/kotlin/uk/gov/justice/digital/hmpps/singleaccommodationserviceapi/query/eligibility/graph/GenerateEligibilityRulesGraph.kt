@@ -9,11 +9,11 @@ import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
   if (args.isEmpty()) {
-    System.err.println("Usage: generateEligibilityRulesGraph <output-folder> [tree-adr-folder] [repository-root]")
+    System.err.println("Usage: generateEligibilityRulesGraph <output-folder> [tree-explanation-folder] [repository-root]")
     exitProcess(1)
   }
   val outputFolder = Path.of(args[0])
-  val treeAdrFolder = args.getOrNull(1)?.let(Path::of) ?: Path.of("docs/architecture/decisions/treeadrs")
+  val treeExplanationFolder = args.getOrNull(1)?.let(Path::of) ?: Path.of("docs/architecture/decisions/treeexplanations")
   val repository = args.getOrNull(2)?.let(Path::of) ?: Path.of(".")
 
   try {
@@ -26,8 +26,8 @@ fun main(args: Array<String>) {
         RenderPath(
           path = outputFolder.resolve("eligibility-rules-graph.html"),
           renderer = RulesGraphRenderer { graphs ->
-            val adrs = loadTreeAdrs(treeAdrFolder)
-            RulesGraphHtmlRenderer.render(graphs, adrs, loadScenarioChangeDates(repository, adrs.keys))
+            val explanations = loadTreeExplanations(treeExplanationFolder)
+            RulesGraphHtmlRenderer.render(graphs, explanations, loadScenarioChangeDates(repository, explanations.keys))
           },
         ),
       ),
