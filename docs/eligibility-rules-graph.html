@@ -3651,16 +3651,30 @@ nunjucks/browser/nunjucks-slim.js:
   cy.on('tap', 'node', evt => {
     if (simMode) {
       const target = evt.target.id();
-      const result = findRuleFailuresForNode(target);
-      if (!result) {
-        renderSim('No consistent simulation path reaches this node.');
-        return;
+      const currentPath = simulate().steps.some(step => step.node.id === target);
+      const node = nodeById(target);
+      if (currentPath) {
+        if (node.rules.length) {
+          const allFailing = node.rules.every(rule => failing.has(rule.className));
+          node.rules.forEach(rule => {
+            if (allFailing) failing.delete(rule.className); else failing.add(rule.className);
+          });
+          simTarget = null;
+          renderSim();
+        }
+      } else {
+        const result = findRuleFailuresForNode(target);
+        if (!result) {
+          renderSim('No consistent simulation path reaches this node.');
+        } else {
+          failing.clear();
+          result.forEach(rule => failing.add(rule));
+          simTarget = null;
+          renderSim();
+        }
       }
-      failing.clear();
-      result.forEach(rule => failing.add(rule));
-      simTarget = target;
-      renderSim();
-      panel.scrollTop = 0;
+      const group = document.getElementById('sim-' + target);
+      if (group) group.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
     resetSearch();
