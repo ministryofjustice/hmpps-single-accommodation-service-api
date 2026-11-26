@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.PublicProtectionCheckerRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.currentOutcome
@@ -16,6 +17,7 @@ class DomainDataFactory(
   private val accommodationTypeRepository: AccommodationTypeRepository,
   private val dutyToReferQueryService: DutyToReferQueryService,
   private val userService: UserService,
+  private val publicProtectionCheckerRepository: PublicProtectionCheckerRepository,
 ) {
 
   fun buildDomainData(
@@ -80,12 +82,7 @@ class DomainDataFactory(
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = suitableCrsReferral,
       sexualOffenceRegistrations = eligibilityOrchestrationDto.sexualOffenceRegistrations,
-      ppcAnswers = getPpcAnswers(crn),
+      publicProtectionChecker = caseEntity?.let { publicProtectionCheckerRepository.findFirstBySasCaseIdOrderByCreatedAtDesc(it.id) },
     )
-  }
-
-  internal fun getPpcAnswers(crn: String): PublicProtectionCheckerAnswers? {
-    // TODO: Load the saved PPC answers for this CRN once PPC persistence is implemented.
-    return null
   }
 }

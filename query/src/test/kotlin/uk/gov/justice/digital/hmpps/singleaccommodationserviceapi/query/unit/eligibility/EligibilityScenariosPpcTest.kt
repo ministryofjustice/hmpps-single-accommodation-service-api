@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPublicProtectionCheckerEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.PpcEligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.PublicProtectionCheckerAnswers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.CsvReader
 
@@ -19,12 +19,12 @@ class EligibilityScenariosPpcTest : EligibilityScenarioTestBase() {
     val rows = CsvReader().read("/ppc-eligibility-scenarios.csv")
     return rows.map { row ->
       val supervisionRequired = row.getValue("supervisionRequired")?.toBooleanStrict()
-      val controlMeasureSuitable = row.getValue("controlMeasureSuitable")?.toBooleanStrict()
+      val controlMeasuresSuitable = row.getValue("controlMeasuresSuitable")?.toBooleanStrict()
       val practicalSupportSufficient = row.getValue("practicalSupportSufficient")?.toBooleanStrict()
       val answers = when {
-        supervisionRequired == null && controlMeasureSuitable == null && practicalSupportSufficient == null -> null
-        supervisionRequired != null && controlMeasureSuitable != null && practicalSupportSufficient != null ->
-          PublicProtectionCheckerAnswers(supervisionRequired, controlMeasureSuitable, practicalSupportSufficient)
+        supervisionRequired == null && controlMeasuresSuitable == null && practicalSupportSufficient == null -> null
+        supervisionRequired != null && controlMeasuresSuitable != null && practicalSupportSufficient != null ->
+          Triple(supervisionRequired, controlMeasuresSuitable, practicalSupportSufficient)
 
         else -> error("PPC scenario ${row["testCaseId"]} must supply all three answers or none")
       }
@@ -43,9 +43,9 @@ class EligibilityScenariosPpcTest : EligibilityScenarioTestBase() {
     val scenarios = loadPpcScenarios()
     val booleanValues = listOf(false, true)
     val allSubmittedAnswers = booleanValues.flatMap { supervisionRequired ->
-      booleanValues.flatMap { controlMeasureSuitable ->
+      booleanValues.flatMap { controlMeasuresSuitable ->
         booleanValues.map { practicalSupportSufficient ->
-          PublicProtectionCheckerAnswers(supervisionRequired, controlMeasureSuitable, practicalSupportSufficient)
+          Triple(supervisionRequired, controlMeasuresSuitable, practicalSupportSufficient)
         }
       }
     }
@@ -53,7 +53,14 @@ class EligibilityScenariosPpcTest : EligibilityScenarioTestBase() {
       .containsExactlyInAnyOrderElementsOf(allSubmittedAnswers + listOf(null))
 
     runScenarios(scenarios) { scenario ->
-      val data = buildDomainData(crn = scenario.testCaseId, ppcAnswers = scenario.answers)
+      val publicProtectionChecker = scenario.answers?.let { (supervisionRequired, controlMeasuresSuitable, practicalSupportSufficient) ->
+        buildPublicProtectionCheckerEntity(
+          supervisionRequired = supervisionRequired,
+          controlMeasuresSuitable = controlMeasuresSuitable,
+          practicalSupportSufficient = practicalSupportSufficient,
+        )
+      }
+      val data = buildDomainData(crn = scenario.testCaseId, publicProtectionChecker = publicProtectionChecker)
       val result = eligibilityService.evaluate(ppcTree, data)
 
       assertThat(result.serviceStatus).isEqualTo(scenario.expectedPpcStatus)
@@ -61,21 +68,13 @@ class EligibilityScenariosPpcTest : EligibilityScenarioTestBase() {
       assertThat(result.actionStartDate).isNull()
       assertThat(result.url).isNull()
       assertThat(result.failureReasons).isEmpty()
-
-      val eligibility = eligibilityService.getEligibility(data)
-      assertThat(eligibility.ppc.serviceResult).isEqualTo(result)
-      if (scenario.expectedPpcStatus == ServiceStatusV2.PPC_NOT_STARTED) {
-        assertThat(eligibility.ppc.actionPosition).isGreaterThanOrEqualTo(0)
-      } else {
-        assertThat(eligibility.ppc.actionPosition).isEqualTo(-1)
-      }
     }
   }
 
   private data class PpcScenario(
     val testCaseId: String,
     val description: String,
-    val answers: PublicProtectionCheckerAnswers?,
+    val answers: Triple<Boolean, Boolean, Boolean>?,
     val expectedPpcStatus: ServiceStatusV2,
   )
 }

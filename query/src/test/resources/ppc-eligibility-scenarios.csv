@@ -1,10 +1,10 @@
-testCaseId,description,supervisionRequired,controlMeasureSuitable,practicalSupportSufficient,expectedPpcStatus
+testCaseId,description,supervisionRequired,controlMeasuresSuitable,practicalSupportSufficient,expectedPpcStatus
 1,No answers submitted,,,,PPC_NOT_STARTED
 2,Control measure suitable and practical support sufficient,false,true,true,PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED
 3,All answers are false,false,false,false,PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED
 4,Only practical support sufficient,false,false,true,PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED
-5,Only control measure suitable,false,true,false,PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED
+5,Only control measures suitable,false,true,false,PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED
 6,Only supervision required,true,false,false,PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED
 7,Supervision required and practical support sufficient,true,false,true,PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED
-8,Supervision required and control measure suitable,true,true,false,PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED
+8,Supervision required and control measures suitable,true,true,false,PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED
 9,All answers are true,true,true,true,PPC_COMPLETED_PUBLIC_PROTECTION_REQUIRED

@@ -217,6 +217,11 @@ private val externalReferralControllerMap: Map<String, Set<String>> =
     "POST /cases/{crn}/external-referral/{id}/withdrawal" to defaultRoles,
   )
 
+private val publicProtectionCheckerControllerMap: Map<String, Set<String>> =
+  mapOf(
+    "POST /public-protection-checker/{crn}" to defaultRoles,
+  )
+
 private val controllerMap: Map<String, Map<String, Set<String>>> =
   mapOf(
     "UserController" to userControllerMap,
@@ -232,4 +237,5 @@ private val controllerMap: Map<String, Map<String, Set<String>>> =
     "ReferenceDataController" to referenceDataControllerMap,
     "AdminJobController" to adminJobControllerMap,
     "ExternalReferralController" to externalReferralControllerMap,
+    "PublicProtectionCheckerController" to publicProtectionCheckerControllerMap,
   )

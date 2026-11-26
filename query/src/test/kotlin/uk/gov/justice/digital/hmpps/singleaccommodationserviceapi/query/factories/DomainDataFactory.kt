@@ -13,10 +13,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.PublicProtectionCheckerEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas1ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.Cas2ApplicationDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.input.PublicProtectionCheckerAnswers
 import java.time.LocalDate
 
 fun buildDomainData(
@@ -34,7 +34,7 @@ fun buildDomainData(
   dutyToRefer: DutyToReferDto? = null,
   commissionedRehabilitativeServices: CommissionedRehabilitativeServices? = null,
   sexualOffenceRegistrations: SexualOffenceRegistrations? = null,
-  ppcAnswers: PublicProtectionCheckerAnswers? = null,
+  publicProtectionChecker: PublicProtectionCheckerEntity? = null,
 ) = DomainData(
   crn = crn,
   tierScore = tierScore,
@@ -50,7 +50,7 @@ fun buildDomainData(
   dutyToRefer = dutyToRefer,
   commissionedRehabilitativeServices = commissionedRehabilitativeServices,
   sexualOffenceRegistrations = sexualOffenceRegistrations,
-  ppcAnswers = ppcAnswers,
+  publicProtectionChecker = publicProtectionChecker,
 )
 
 fun buildCas1ApplicationDomainData(

@@ -12,6 +12,6 @@ class PpcAnswersNotPresentRule : Rule {
 
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (data.ppcAnswers == null) RuleStatus.FAIL else RuleStatus.PASS,
+    ruleStatus = if (data.publicProtectionChecker == null) RuleStatus.FAIL else RuleStatus.PASS,
   )
 }

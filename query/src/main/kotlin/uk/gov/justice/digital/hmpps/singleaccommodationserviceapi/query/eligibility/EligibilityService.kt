@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.PublicProtectionCheckerEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.trees.Cas1EligibilityTreeProvider
@@ -114,6 +115,27 @@ class EligibilityService(
       ppc = ppc,
       data = data,
     ).also { log.debug("Eligibility result for CRN {}: {}", data.crn, it) }
+  }
+
+  fun getEligibility(crn: String, publicProtectionChecker: PublicProtectionCheckerEntity): ServiceResultV2 {
+    val data = DomainData(
+      crn = crn,
+      tierScore = null,
+      dob = null,
+      sex = null,
+      roshLevel = null,
+      currentAccommodation = null,
+      currentAccommodationTypeEntity = null,
+      nextAccommodations = emptyList(),
+      cas1Application = null,
+      cas2Application = null,
+      cas3Application = null,
+      dutyToRefer = null,
+      commissionedRehabilitativeServices = null,
+      sexualOffenceRegistrations = null,
+      publicProtectionChecker = publicProtectionChecker,
+    )
+    return evaluate("PPC", data, ppcTree)
   }
 
   internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResultV2 {

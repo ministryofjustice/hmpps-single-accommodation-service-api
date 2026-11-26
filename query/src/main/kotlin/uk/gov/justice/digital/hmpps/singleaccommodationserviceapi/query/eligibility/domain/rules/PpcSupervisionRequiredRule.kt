@@ -12,6 +12,6 @@ class PpcSupervisionRequiredRule : Rule {
 
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (data.ppcAnswers?.supervisionRequired == true) RuleStatus.FAIL else RuleStatus.PASS,
+    ruleStatus = if (data.publicProtectionChecker?.supervisionRequired == true) RuleStatus.FAIL else RuleStatus.PASS,
   )
 }

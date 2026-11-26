@@ -48,12 +48,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPublicProtectionCheckerEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.LocalAuthorityAreaEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.PublicProtectionCheckerRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.asJsonValue
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
@@ -80,6 +82,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockManager.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.PUBLIC_PROTECTION_CHECKER
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -111,13 +114,16 @@ class EligibilityControllerIT : IntegrationTestBase() {
   @Autowired
   private lateinit var dutyToReferRepository: DutyToReferRepository
 
+  @Autowired
+  private lateinit var publicProtectionCheckerRepository: PublicProtectionCheckerRepository
+
   private val localAuthorityArea: LocalAuthorityAreaEntity by lazy {
     localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
   }
 
   @BeforeEach
   fun setup() {
-    databaseUtils.truncate(DUTY_TO_REFER)
+    databaseUtils.truncate(DUTY_TO_REFER, PUBLIC_PROTECTION_CHECKER)
 
     val corePersonRecord = buildCorePersonRecord(
       identifiers = buildIdentifiers(
@@ -595,6 +601,23 @@ class EligibilityControllerIT : IntegrationTestBase() {
         .jsonPath("$.data.cas3.cas3Application").isEmpty()
         .jsonPath("$.data.ppc.serviceResult.serviceStatus").isEqualTo("PPC_NOT_STARTED")
         .jsonPath("$.upstreamFailures").doesNotExist()
+    }
+
+    @Test
+    fun `should use the latest submitted PPC answers for the case`() {
+      TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+      val case = caseRepository.save(buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) })
+      publicProtectionCheckerRepository.save(
+        buildPublicProtectionCheckerEntity(sasCaseId = case.id, supervisionRequired = true),
+      )
+      publicProtectionCheckerRepository.save(buildPublicProtectionCheckerEntity(sasCaseId = case.id))
+
+      webTestClient.get().uri("/cases/{crn}/eligibility", crn)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.data.ppc.serviceResult.serviceStatus").isEqualTo("PPC_COMPLETED_PUBLIC_PROTECTION_NOT_REQUIRED")
     }
 
     @Test
