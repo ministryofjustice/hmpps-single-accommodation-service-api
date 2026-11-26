@@ -22,6 +22,7 @@ Use this file as the default operating guide. Only search the repo when these in
 - Prefer the edit tool over regex/python rewrites of Kotlin files; regex edits have silently deleted neighbouring functions. Check `git diff` afterwards, and re-grep anchors after `ktlintFormat` since it reflows code.
 - For focused integration tests in this repo, use the root task explicitly: `./gradlew :integrationTest --tests '...' --no-daemon`.
 - Never use heredocs directly in `run_in_terminal`. Use a temporary file instead.
+- Make Renovate configuration changes in `.github/renovate/cas-jvm.json` by default; the root `renovate.json` extends this preset.
 
 ## Avoid duplication
 - Avoid introducing duplicated code when making changes; prefer existing helpers, fixtures, builders, and shared utilities where appropriate.
