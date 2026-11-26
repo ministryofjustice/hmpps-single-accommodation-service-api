@@ -74,7 +74,7 @@ class CaseApplicationServiceTest {
         CrnToPrisonNumber(crn = UUID.randomUUID().toString(), prisonNumber = UUID.randomUUID().toString())
       }
 
-      every { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) } throws
+      every { caseCreationService.saveUnpersistedCasesAsBlankRows(any(), false) } throws
         DataIntegrityViolationException("duplicate-1") andThenThrows
         DataIntegrityViolationException("duplicate-2") andThenJust runs
       every { caseCreationService.saveUnpersistedCases(any()) } throws
@@ -86,7 +86,7 @@ class CaseApplicationServiceTest {
 
       // First and second call throws error, so retry, then 100 crns / 25 batch size = 4 calls == 6 calls in total
       if (createAsBlankRecord) {
-        verify(exactly = 6) { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) }
+        verify(exactly = 6) { caseCreationService.saveUnpersistedCasesAsBlankRows(any(), false) }
       } else {
         verify(exactly = 6) { caseCreationService.saveUnpersistedCases(any()) }
       }
@@ -102,7 +102,7 @@ class CaseApplicationServiceTest {
       val result = crnToPrisonNumbers.map { it.crn }
 
       every { caseRepository.findUnpersistedCrns(any()) } answers { result }
-      every { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) } throws
+      every { caseCreationService.saveUnpersistedCasesAsBlankRows(any(), false) } throws
         DataIntegrityViolationException("duplicate-1") andThenThrows
         DataIntegrityViolationException("duplicate-2") andThenThrows
         DataIntegrityViolationException("duplicate-3")
@@ -116,7 +116,7 @@ class CaseApplicationServiceTest {
       }
 
       if (createAsBlankRecord) {
-        verify(exactly = 3) { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) }
+        verify(exactly = 3) { caseCreationService.saveUnpersistedCasesAsBlankRows(any(), false) }
       } else {
         verify(exactly = 3) { caseCreationService.saveUnpersistedCases(any()) }
       }
@@ -167,6 +167,7 @@ class CaseApplicationServiceTest {
             CaseToCreate(crn = "B222222", prisonNumber = null),
             CaseToCreate(crn = "C333333", prisonNumber = null),
           ),
+          requestRefresh = false,
         )
       }
     }
@@ -185,6 +186,7 @@ class CaseApplicationServiceTest {
             CaseToCreate(crn = "B222222", prisonNumber = null),
             CaseToCreate(crn = "C333333", prisonNumber = null),
           ),
+          requestRefresh = true,
         )
       }
     }
@@ -232,6 +234,7 @@ class CaseApplicationServiceTest {
               dateOfBirth = dateOfBirth,
             ),
           ),
+          requestRefresh = true,
         )
       }
     }
@@ -266,6 +269,7 @@ class CaseApplicationServiceTest {
               dateOfBirth = dateOfBirth,
             ),
           ),
+          requestRefresh = true,
         )
       }
     }
@@ -299,6 +303,7 @@ class CaseApplicationServiceTest {
               dateOfBirth = dateOfBirth,
             ),
           ),
+          requestRefresh = true,
         )
       }
     }
@@ -315,7 +320,7 @@ class CaseApplicationServiceTest {
 
       assertThat(exception.message).isEqualTo("invalidCrns")
       assertThat(exception.userMessage).isEqualTo("C333333")
-      verify(exactly = 0) { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) }
+      verify(exactly = 0) { caseCreationService.saveUnpersistedCasesAsBlankRows(any(), any()) }
       verify(exactly = 0) { caseCreationService.saveUnpersistedCases(any()) }
     }
 
@@ -329,7 +334,7 @@ class CaseApplicationServiceTest {
         caseApplicationService.createValidatedCases(crns)
       }
 
-      verify(exactly = 0) { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) }
+      verify(exactly = 0) { caseCreationService.saveUnpersistedCasesAsBlankRows(any(), any()) }
       verify(exactly = 0) { caseCreationService.saveUnpersistedCases(any()) }
     }
 
@@ -396,12 +401,16 @@ class CaseApplicationServiceTest {
     }
 
     @Test
-    fun `createValidatedCases() requests a bulk refresh for every given case`() {
-      every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
+    fun `createValidatedCases() requests the refresh when creating the blank rows rather than afterwards`() {
+      every { caseRepository.findUnpersistedCrns(any()) } returns listOf("B222222")
+      every { approvedPremisesAndDeliusCachingService.postCaseSummaries(any()) } returns
+        CaseSummaries(listOf(buildCaseSummary(crn = "B222222")))
 
       caseApplicationService.createValidatedCases(crns)
 
-      verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(caseIds) }
+      verify(exactly = 1) { caseCreationService.saveUnpersistedCasesAsBlankRows(any(), requestRefresh = true) }
+      verify(exactly = 0) { caseRepository.findByCrns(any()) }
+      verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
     }
   }
 }

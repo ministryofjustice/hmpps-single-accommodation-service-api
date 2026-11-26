@@ -78,7 +78,7 @@ class UserCaseListControllerIT : IntegrationTestBase() {
     assertThat(savedMappings.map { it.sasCaseId }).containsExactlyInAnyOrder(existingCase.id, newCase!!.id)
 
     val refreshRequests = caseRefreshRequestRepository.findAll()
-    assertThat(refreshRequests.map { it.caseId }).containsExactlyInAnyOrder(existingCase.id, newCase.id)
+    assertThat(refreshRequests.map { it.caseId }).containsExactly(newCase.id)
   }
 
   @Test
@@ -325,13 +325,14 @@ class UserCaseListControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `does not call delius when every crn is already persisted`() {
+  fun `does not call delius or request a refresh when every crn is already persisted`() {
     caseRepository.save(buildCaseEntity { withCrn("A123456") })
     caseRepository.save(buildCaseEntity { withCrn("B654321") })
 
     postUserCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
 
     sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/probation-cases/summaries")))
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
   }
 
   @Test
@@ -418,6 +419,18 @@ class UserCaseListControllerIT : IntegrationTestBase() {
           .map { it.sasCaseId },
       )
         .containsExactly(case.id)
+    }
+
+    @Test
+    fun `PATCH does not request a refresh for an already persisted case`() {
+      val case = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+
+      patchUserCaseList("A123456").expectStatus().isNoContent
+
+      val entries = userCaseListEntryRepository.findAllBySasUserIdAndListType(deliusUser.id, CaseListType.CUSTOM)
+      assertThat(entries.map { it.sasCaseId }).containsExactly(case.id)
+      assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+      sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/probation-cases/summaries")))
     }
 
     @ParameterizedTest

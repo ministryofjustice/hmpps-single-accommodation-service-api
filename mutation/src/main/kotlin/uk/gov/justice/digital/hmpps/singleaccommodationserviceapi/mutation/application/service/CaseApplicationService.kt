@@ -21,18 +21,19 @@ class CaseApplicationService(
 
   fun createCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
     val casesToCreate = crnsToPrisonNumbers.map { CaseToCreate(crn = it.crn, prisonNumber = it.prisonNumber) }
-    saveCases(casesToCreate, createAsBlankRecord = false)
+    saveCases(casesToCreate, createAsBlankRecord = false, requestRefresh = false)
   }
 
   fun createBlankCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>, refreshPriority: CaseRefreshPriority) {
     val casesToCreate = crnsToPrisonNumbers.map { CaseToCreate(crn = it.crn, prisonNumber = it.prisonNumber) }
-    saveCases(casesToCreate, createAsBlankRecord = true)
+    saveCases(casesToCreate, createAsBlankRecord = true, requestRefresh = false)
     refreshCases(casesToCreate, refreshPriority)
   }
 
   fun createValidatedCases(crns: List<String>) {
     val distinctCrns = crns.distinct()
-    val caseSummariesByCrn = validateUnpersistedCrns(distinctCrns)
+    val unpersistedCrns = caseRepository.findUnpersistedCrns(distinctCrns.toTypedArray()).sortedBy { distinctCrns.indexOf(it) }
+    val caseSummariesByCrn = validateUnpersistedCrns(unpersistedCrns)
 
     val casesToCreate = distinctCrns.map { crn ->
       val caseSummary = caseSummariesByCrn[crn]
@@ -45,13 +46,12 @@ class CaseApplicationService(
       )
     }
 
-    saveCases(casesToCreate, createAsBlankRecord = true)
-    refreshCases(casesToCreate, CaseRefreshPriority.BULK)
+    saveCases(casesToCreate, createAsBlankRecord = true, requestRefresh = true)
   }
 
-  private fun saveCases(casesToCreate: List<CaseToCreate>, createAsBlankRecord: Boolean) {
+  private fun saveCases(casesToCreate: List<CaseToCreate>, createAsBlankRecord: Boolean, requestRefresh: Boolean) {
     casesToCreate.chunked(25).forEach {
-      saveChunkWithRetry(chunk = it, createAsBlankRecord)
+      saveChunkWithRetry(chunk = it, createAsBlankRecord, requestRefresh)
     }
   }
 
@@ -63,8 +63,7 @@ class CaseApplicationService(
     }
   }
 
-  private fun validateUnpersistedCrns(crns: List<String>): Map<String, CaseSummary> {
-    val unpersistedCrns = caseRepository.findUnpersistedCrns(crns.distinct().toTypedArray()).sortedBy { crns.indexOf(it) }
+  private fun validateUnpersistedCrns(unpersistedCrns: List<String>): Map<String, CaseSummary> {
     if (unpersistedCrns.isEmpty()) return emptyMap()
 
     val caseSummariesByCrn = approvedPremisesAndDeliusCachingService.postCaseSummaries(unpersistedCrns).cases
@@ -76,11 +75,11 @@ class CaseApplicationService(
     return caseSummariesByCrn
   }
 
-  private fun saveChunkWithRetry(chunk: List<CaseToCreate>, createAsBlankRecord: Boolean) {
+  private fun saveChunkWithRetry(chunk: List<CaseToCreate>, createAsBlankRecord: Boolean, requestRefresh: Boolean) {
     repeat(maxAttempts) { attempt ->
       try {
         if (createAsBlankRecord) {
-          caseCreationService.saveUnpersistedCasesAsBlankRows(chunk)
+          caseCreationService.saveUnpersistedCasesAsBlankRows(chunk, requestRefresh)
         } else {
           caseCreationService.saveUnpersistedCases(chunk)
         }

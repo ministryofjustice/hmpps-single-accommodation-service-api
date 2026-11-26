@@ -22,20 +22,23 @@ class CaseCreationService(
   private val log = LoggerFactory.getLogger(javaClass)
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  fun saveUnpersistedCasesAsBlankRows(casesToCreate: List<CaseToCreate>) {
-    findCasesToCreate(casesToCreate).forEach {
-      entityManager.persist(
-        caseMapper.create(
-          snapshot = CaseAggregate.hydrateNew(
-            firstName = it.firstName,
-            lastName = it.lastName,
-            dateOfBirth = it.dateOfBirth,
-          ).snapshot(),
-          crn = it.crn,
-          prisonNumber = it.prisonNumber,
-        ),
+  fun saveUnpersistedCasesAsBlankRows(casesToCreate: List<CaseToCreate>, requestRefresh: Boolean) {
+    val createdCaseIds = findCasesToCreate(casesToCreate).map {
+      val entity = caseMapper.create(
+        snapshot = CaseAggregate.hydrateNew(
+          firstName = it.firstName,
+          lastName = it.lastName,
+          dateOfBirth = it.dateOfBirth,
+        ).snapshot(),
+        crn = it.crn,
+        prisonNumber = it.prisonNumber,
       )
+      entityManager.persist(entity)
+      entity.id
     }
+
+    // requests in the same transaction so any committed blank row always has a refresh request
+    if (requestRefresh) caseRefreshRequestService.requestBulkRefresh(createdCaseIds)
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
