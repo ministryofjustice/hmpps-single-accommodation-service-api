@@ -24,9 +24,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphHtmlRenderer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphMarkdownRenderer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphWalker
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.TreeAdr
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.TreeExplanation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.loadScenarioChangeDates
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.loadTreeAdrs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.loadTreeExplanations
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.StubContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.StubRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.StubRuleSet
@@ -39,52 +39,51 @@ class RulesGraphTest {
   private val builder = DecisionTreeBuilder(RulesEngine(DefaultRuleSetEvaluator()))
 
   @Nested
-  inner class TreeAdrTests {
+  inner class TreeExplanationTests {
     @TempDir
     lateinit var directory: Path
 
     @Test
-    fun `uses latest declared date for the matching tree and renders markdown safely`() {
-      Files.writeString(directory.resolve("cas1-tree-explanation-2026-11-23.md"), "# Earlier\nDate: 2026-11-20")
+    fun `uses the declared date for the matching tree and renders markdown safely`() {
       Files.writeString(
-        directory.resolve("cas1-tree-explanation-2026-11-21.md"),
+        directory.resolve("cas1-tree-explanation.md"),
         "# Latest\nDate: 2026-11-22\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n<script>alert(1)</script>",
       )
-      Files.writeString(directory.resolve("cas2-tree-explanation-2026-01-01.md"), "# CAS2\nDate: 2026-01-01")
+      Files.writeString(directory.resolve("cas2-tree-explanation.md"), "# CAS2\nDate: 2026-01-01")
       val root = builder.confirmed()
       val graphs = listOf("CAS1", "CAS2", "CAS3").map { RulesGraphWalker().walk(it, root) }
 
-      val html = RulesGraphHtmlRenderer.render(graphs, loadTreeAdrs(directory))
+      val html = RulesGraphHtmlRenderer.render(graphs, loadTreeExplanations(directory))
       val json = html.substringAfter("<script type=\"application/json\" id=\"graph-data\">").substringBefore("</script>")
       val trees = JsonMapper.builder().build().readTree(json)["trees"]
 
-      assertThat(trees[0]["adr"]["date"].asText()).isEqualTo("2026-11-22")
-      assertThat(trees[0]["adr"]["html"].asText())
+      assertThat(trees[0]["explanation"]["date"].asText()).isEqualTo("2026-11-22")
+      assertThat(trees[0]["explanation"]["html"].asText())
         .contains("<h1>Latest</h1>", "<table>", "&lt;script&gt;alert(1)&lt;/script&gt;")
         .doesNotContain("<script>")
-      assertThat(trees[1]["adr"]["html"].asText()).contains("<h1>CAS2</h1>")
-      assertThat(trees[2]["adr"].isNull).isTrue()
+      assertThat(trees[1]["explanation"]["html"].asText()).contains("<h1>CAS2</h1>")
+      assertThat(trees[2]["explanation"].isNull).isTrue()
       assertThat(html).contains(
-        "<div id=\"tree-adr\"></div><div id=\"panel-content\"></div>",
+        "<div id=\"tree-explanation\"></div><div id=\"panel-content\"></div>",
         "No architecture decision record is available for this tree.",
-        "treeAdr.innerHTML = tree.adr ?",
+        "treeExplanation.innerHTML = tree.explanation ?",
       )
     }
 
     @Test
-    fun `rejects invalid or ambiguous ADR dates`() {
-      Files.writeString(directory.resolve("cas1-tree-explanation-2026-01-01.md"), "Date: 2026-02-30")
-      assertThatThrownBy { loadTreeAdrs(directory) }.isInstanceOf(IllegalArgumentException::class.java)
+    fun `rejects invalid Explanation dates and dated filenames`() {
+      Files.writeString(directory.resolve("cas1-tree-explanation.md"), "Date: 2026-02-30")
+      assertThatThrownBy { loadTreeExplanations(directory) }.isInstanceOf(IllegalArgumentException::class.java)
 
-      Files.writeString(directory.resolve("cas1-tree-explanation-2026-01-01.md"), "Date: 2026-01-01")
-      Files.writeString(directory.resolve("cas1-tree-explanation-2026-01-02.md"), "Date: 2026-01-01")
-      assertThatThrownBy { loadTreeAdrs(directory) }
+      Files.writeString(directory.resolve("cas1-tree-explanation.md"), "Date: 2026-01-01")
+      Files.writeString(directory.resolve("cas2-tree-explanation-2026-01-02.md"), "Date: 2026-01-01")
+      assertThatThrownBy { loadTreeExplanations(directory) }
         .isInstanceOf(IllegalArgumentException::class.java)
-        .hasMessageContaining("same date")
+        .hasMessageContaining("Invalid tree explanation filename")
     }
 
     @Test
-    fun `compares the latest matching committed CSV change with each ADR date`() {
+    fun `compares the latest matching committed CSV change with each Explanation date`() {
       git("init", "--quiet")
       git("config", "user.name", "Graph test")
       git("config", "user.email", "graph-test@example.com")
@@ -104,21 +103,21 @@ class RulesGraphTest {
       )
 
       val graphs = listOf("CAS1", "CAS2", "CAS3").map { RulesGraphWalker().walk(it, builder.confirmed()) }
-      val adrs = mapOf(
-        "CAS1" to TreeAdr(LocalDate.parse("2026-01-02"), "# CAS1"),
-        "CAS2" to TreeAdr(LocalDate.parse("2026-01-01"), "# CAS2"),
+      val explanations = mapOf(
+        "CAS1" to TreeExplanation(LocalDate.parse("2026-01-02"), "# CAS1"),
+        "CAS2" to TreeExplanation(LocalDate.parse("2026-01-01"), "# CAS2"),
       )
-      val html = RulesGraphHtmlRenderer.render(graphs, adrs, dates)
+      val html = RulesGraphHtmlRenderer.render(graphs, explanations, dates)
       val json = html.substringAfter("<script type=\"application/json\" id=\"graph-data\">").substringBefore("</script>")
       val trees = JsonMapper.builder().build().readTree(json)["trees"]
-      assertThat(trees[0]["adr"]["scenarioChangeDate"].asText()).isEqualTo("2026-01-03")
-      assertThat(trees[1]["adr"]["scenarioChangeDate"].isNull).isTrue()
-      assertThat(trees[2]["adr"].isNull).isTrue()
-      assertThat(html).contains("This ADR may be out of date.", "after the ADR date.")
+      assertThat(trees[0]["explanation"]["scenarioChangeDate"].asText()).isEqualTo("2026-01-03")
+      assertThat(trees[1]["explanation"]["scenarioChangeDate"].isNull).isTrue()
+      assertThat(trees[2]["explanation"].isNull).isTrue()
+      assertThat(html).contains("This Explanation may be out of date.", "after the Explanation date.")
 
-      val newerAdr = RulesGraphHtmlRenderer.render(graphs, mapOf("CAS1" to TreeAdr(LocalDate.parse("2026-01-04"), "# CAS1")), dates)
-      val newerJson = newerAdr.substringAfter("<script type=\"application/json\" id=\"graph-data\">").substringBefore("</script>")
-      assertThat(JsonMapper.builder().build().readTree(newerJson)["trees"][0]["adr"]["scenarioChangeDate"].isNull).isTrue()
+      val newerExplanation = RulesGraphHtmlRenderer.render(graphs, mapOf("CAS1" to TreeExplanation(LocalDate.parse("2026-01-04"), "# CAS1")), dates)
+      val newerJson = newerExplanation.substringAfter("<script type=\"application/json\" id=\"graph-data\">").substringBefore("</script>")
+      assertThat(JsonMapper.builder().build().readTree(newerJson)["trees"][0]["explanation"]["scenarioChangeDate"].isNull).isTrue()
     }
 
     @Test

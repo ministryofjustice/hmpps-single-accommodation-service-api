@@ -24,7 +24,7 @@ tasks.register<JavaExec>("generateEligibilityRulesGraphs") {
   )
   args(
     rootProject.projectDir.resolve("docs/").absolutePath,
-    rootProject.projectDir.resolve("docs/architecture/decisions/treeadrs").absolutePath,
+    rootProject.projectDir.resolve("docs/architecture/decisions/treeexplanations").absolutePath,
     rootProject.projectDir.absolutePath,
   )
   dependsOn(tasks.named("classes"))
