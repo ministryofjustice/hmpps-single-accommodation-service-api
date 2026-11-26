@@ -4,6 +4,13 @@
   "prBodyTemplate": "{{{table}}}{{{notes}}}{{{warnings}}}{{{controls}}}",
   "packageRules": [
     {
+      "description": "Keep PostgreSQL image major versions aligned with production",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
       "matchManagers": ["github-actions"],
       "matchFileNames": ["**/.github/workflows/**/*.ya?ml"],
       "matchUpdateTypes": ["minor", "patch"],
