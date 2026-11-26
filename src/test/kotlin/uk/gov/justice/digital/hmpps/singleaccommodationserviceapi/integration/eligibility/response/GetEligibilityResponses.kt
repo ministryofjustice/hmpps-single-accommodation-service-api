@@ -142,7 +142,7 @@ fun expectedGetEligibilityResponse(
         "createdAt": "$cas3ApplicationCreatedAt",
         "applicationStatus": "SUBMITTED",
         "applicationSubmittedDate": "2023-01-01",
-        "applicationSubmittedBy": {
+        "createdBy": {
           "name": "Test Tester",
           "username": "TestTester",
           "staffCode": "Test1234"
@@ -467,7 +467,7 @@ fun expectedGetEligibilityResponseTierNotFound(
         "createdAt": "$cas3ApplicationCreatedAt",
         "applicationStatus": "SUBMITTED",
         "applicationSubmittedDate": "2025-01-02",
-        "applicationSubmittedBy": {
+        "createdBy": {
           "name": "Test Tester",
           "username": "TestTester",
           "staffCode": "Test1234"
@@ -613,7 +613,7 @@ fun expectedGetEligibilityResponseCannotStartYet(
         "createdAt": "$cas3ApplicationCreatedAt",
         "applicationStatus": "REJECTED",
         "applicationSubmittedDate": "2025-01-02",
-        "applicationSubmittedBy": {
+        "createdBy": {
           "name": "Test Tester",
           "username": "TestTester",
           "staffCode": "Test1234"
@@ -815,7 +815,7 @@ fun expectedGetEligibilityV2Response(
         "createdAt": "$cas3CreatedAt",
         "applicationStatus": "SUBMITTED",
         "applicationSubmittedDate": "2023-01-01",
-        "applicationSubmittedBy": {
+        "createdBy": {
           "name": "Test Tester",
           "username": "TestTester",
           "staffCode": "Test1234"
@@ -959,7 +959,7 @@ fun expectedGetEligibilityV2Cas3BlockedResponse(
         "createdAt": "$cas3CreatedAt",
         "applicationStatus": "REJECTED",
         "applicationSubmittedDate": "2025-01-02",
-        "applicationSubmittedBy": {
+        "createdBy": {
           "name": "Test Tester",
           "username": "TestTester",
           "staffCode": "Test1234"
@@ -1124,7 +1124,7 @@ fun expectedGetEligibilityV2TierNotFoundResponse(
         "createdAt": "$cas3CreatedAt",
         "applicationStatus": "SUBMITTED",
         "applicationSubmittedDate": "2025-01-02",
-        "applicationSubmittedBy": {
+        "createdBy": {
           "name": "Test Tester",
           "username": "TestTester",
           "staffCode": "Test1234"
@@ -1365,7 +1365,7 @@ fun expectedGetEligibilityV2FailureReasonResponse(
         "createdAt": "$cas3CreatedAt",
         "applicationStatus": "SUBMITTED",
         "applicationSubmittedDate": "2025-01-02",
-        "applicationSubmittedBy": {
+        "createdBy": {
           "name": "Test Tester",
           "username": "TestTester",
           "staffCode": "Test1234"
@@ -1489,7 +1489,7 @@ fun expectedGetEligibilityV2NoPrisonerResponse(
         "createdAt": "$cas3CreatedAt",
         "applicationStatus": "SUBMITTED",
         "applicationSubmittedDate": "2025-01-02",
-        "applicationSubmittedBy": {
+        "createdBy": {
           "name": "Test Tester",
           "username": "TestTester",
           "staffCode": "Test1234"
