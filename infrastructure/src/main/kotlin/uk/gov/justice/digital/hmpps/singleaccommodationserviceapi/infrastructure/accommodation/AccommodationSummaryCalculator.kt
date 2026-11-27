@@ -60,13 +60,13 @@ class AccommodationSummaryCalculator(
       cas3CurrentPremises = cas3CurrentPremises,
     )
 
-    val nextAccommodation = calculateNextAccommodations(
+    val nextAccommodation = calculateNextAccommodation(
       crn = crn,
       addresses = addresses,
       cas1Application = cas1Application,
       cas3Application = cas3Application,
       currentAccommodation = currentAccommodation,
-    ).firstOrNull()
+    )
     val caseAccommodationStatus = calculateCaseAccommodationStatus(currentAccommodation, nextAccommodation)
     val caseAccommodationStatusDate = calculateCaseAccommodationStatusDate(caseAccommodationStatus, currentAccommodation, nextAccommodation, addresses)
 
@@ -114,6 +114,31 @@ class AccommodationSummaryCalculator(
         }
       }
   }
+
+  /**
+   * If there is an UPCOMING CAS1 address (i.e. not arrived), return it.
+   *
+   * Otherwise, if there is a CONFIRMED CAS3 address (i.e. not arrived), return it.
+   *
+   * Otherwise, return any Proposed (PR) or Proposed for Resettlement Address (PR1) from CPR where a postcode is defined and there is no end date. If there are multiple such addresses, one is picked indeterminately
+   *
+   * This approach is required because PR/PR1 addresses do not have dates. From prison a CRN would goto a CAS1 or a CAS3. From CAS1 they would goto CAS3 or other accommodation type (i.e. PR/PR1 in CPR).
+   *
+   * this documentation is duplicated on the `/cases/{crn}/accommodations/next` API
+   */
+  fun calculateNextAccommodation(
+    crn: String,
+    addresses: List<CanonicalAddress>?,
+    cas1Application: Cas1ApplicationV2?,
+    cas3Application: Cas3Application?,
+    currentAccommodation: AccommodationSummaryDto?,
+  ) = calculateNextAccommodations(
+    crn,
+    addresses,
+    cas1Application,
+    cas3Application,
+    currentAccommodation,
+  ).firstOrNull()
 
   fun calculateNextAccommodations(
     crn: String,

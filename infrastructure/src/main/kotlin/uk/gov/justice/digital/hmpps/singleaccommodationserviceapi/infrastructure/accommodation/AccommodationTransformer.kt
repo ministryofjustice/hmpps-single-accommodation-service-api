@@ -38,48 +38,13 @@ object AccommodationTransformer {
     address: CanonicalAddress,
     maskDates: Boolean = false,
     proposedAccommodationId: UUID? = null,
+    startDate: LocalDate? = address.startDate?.let { LocalDate.parse(it) },
+    endDate: LocalDate? = address.endDate?.let { LocalDate.parse(it) },
   ) = AccommodationSummaryDto(
     crn = crn,
-    startDate = address.startDate?.let { LocalDate.parse(it) }.takeIf { !maskDates },
-    endDate = address.endDate?.let { LocalDate.parse(it) }.takeIf { !maskDates },
+    startDate = startDate.takeIf { !maskDates },
+    endDate = endDate.takeIf { !maskDates },
     proposedAccommodationId = proposedAccommodationId,
-    address = AccommodationAddressDetails(
-      postcode = address.postcode,
-      subBuildingName = address.subBuildingName,
-      buildingName = address.buildingName,
-      buildingNumber = address.buildingNumber,
-      thoroughfareName = address.thoroughfareName,
-      dependentLocality = address.dependentLocality,
-      postTown = address.postTown,
-      county = address.county,
-      country = address.countryCode,
-      uprn = address.uprn,
-    ),
-    status = address.status.code?.let {
-      AccommodationStatusDto(
-        code = it,
-        description = address.status.description,
-      )
-    },
-    type = address.usages
-      .firstOrNull { it.isActive && it.usageCode.code != null }
-      ?.let {
-        AccommodationTypeDto(
-          code = it.usageCode.code!!,
-          description = it.usageCode.description,
-        )
-      },
-  )
-
-  fun toAccommodationSummary(
-    crn: String,
-    address: CanonicalAddress,
-    startDate: LocalDate?,
-    endDate: LocalDate?,
-  ) = AccommodationSummaryDto(
-    crn = crn,
-    startDate = startDate,
-    endDate = endDate,
     address = AccommodationAddressDetails(
       postcode = address.postcode,
       subBuildingName = address.subBuildingName,
