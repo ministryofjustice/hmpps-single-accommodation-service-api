@@ -20,6 +20,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.RENOVATE_DASHBOARD_TOKEN || github.token }}
           OWNER: ministryofjustice
+          SLACK_CHANNEL: ${{ vars.SECURITY_ALERTS_SLACK_CHANNEL_ID }}
           REPOSITORIES: >-
             hmpps-approved-premises-api
             hmpps-approved-premises-tools
@@ -91,7 +92,7 @@ jobs:
               blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": ":white_check_mark: No open Renovate PRs."}})
           blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": f"<{run_url}|View workflow run>"}]})
 
-          payload = json.dumps({"text": f"{prelude}\n{headline}", "blocks": blocks, "unfurl_links": False, "unfurl_media": False})
+          payload = json.dumps({"channel": os.environ["SLACK_CHANNEL"], "text": f"{prelude}\n{headline}", "blocks": blocks, "unfurl_links": False, "unfurl_media": False})
           print("Slack payload:")
           print(json.dumps(json.loads(payload), indent=2))
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
@@ -100,7 +101,6 @@ jobs:
       - name: Post summary to Slack
         uses: slackapi/slack-github-action@0bc3581177d9a0f8d555e07689384b376528e8fa # v4.1.0
         with:
-          channel-id: ${{ vars.SECURITY_ALERTS_SLACK_CHANNEL_ID }}
+          method: chat.postMessage
+          token: ${{ secrets.HMPPS_SRE_SLACK_BOT_TOKEN }}
           payload: ${{ steps.dashboards.outputs.payload }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.HMPPS_SRE_SLACK_BOT_TOKEN }}
