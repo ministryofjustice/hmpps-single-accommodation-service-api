@@ -14,6 +14,7 @@ generic-service:
 
   env:
     SENTRY_ENVIRONMENT: test
+    APPLICATIONINSIGHTS_ROLE_NAME: hmpps-single-accommodation-service-api-test
     APPLICATIONINSIGHTS_STATSBEAT_DISABLED: "true"
     JAVA_TOOL_OPTIONS: "$(JAVA_PROXY_TOOL_OPTIONS) -Xmx1024m -XX:-UseBASE64Intrinsics"
     SPRING_PROFILES_ACTIVE: dev
