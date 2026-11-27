@@ -5,7 +5,15 @@ enum class AddressStatusCode(val description: String) {
   M("Main"),
   MA("Postal"),
   P("Previous"),
+
+  /**
+   * The next address when not currently in Prison
+   */
   PR("Proposed"),
+
+  /**
+   * The next address on leaving Prison
+   */
   PR1("Proposed for Resettlement"),
   RJ("Rejected"),
   RT("ROTL"),
